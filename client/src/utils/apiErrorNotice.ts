@@ -1,4 +1,5 @@
 import { ApiError } from '@/api/client'
+import i18n, { DEFAULT_LOCALE } from '@/locales'
 
 export type NoticeSeverity = 'warn' | 'error'
 
@@ -21,26 +22,33 @@ const UNKNOWN: ApiErrorNotice = {
 
 const STATUSES_HANDLED_BY_NAVIGATION = new Set([401, 403])
 
+const UNKNOWN_DETAIL: LocalizedMessage = { key: 'error.unknown.details' }
+
+function isKnownMessage(key: string): boolean {
+  return i18n.global.te(key, DEFAULT_LOCALE)
+}
+
 function badRequest(error: ApiError): ApiErrorNotice {
+  const key = `error.bad-request.${error.error}`
   return {
     severity: error.error === 'data-integrity-violation' ? 'error' : 'warn',
     title: { key: 'error.bad-request.title' },
     details: [
-      error.error
-        ? { key: `error.bad-request.${error.error}`, params: error.parameters ?? {} }
-        : { key: 'error.unknown.details' },
+      error.error !== null && isKnownMessage(key)
+        ? { key, params: error.parameters ?? {} }
+        : UNKNOWN_DETAIL,
     ],
   }
 }
 
 function conflict(error: ApiError): ApiErrorNotice {
+  const details = Object.entries(error.parameters ?? {})
+    .map(([field, value]) => ({ key: `error.conflict.${field}`, params: { value } }))
+    .filter(({ key }) => isKnownMessage(key))
   return {
     severity: 'warn',
     title: { key: 'error.conflict.title' },
-    details: Object.entries(error.parameters ?? {}).map(([field, value]) => ({
-      key: `error.conflict.${field}`,
-      params: { value },
-    })),
+    details: details.length > 0 ? details : [UNKNOWN_DETAIL],
   }
 }
 

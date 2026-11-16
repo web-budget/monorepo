@@ -60,6 +60,21 @@ describe('describeApiError', () => {
     expect(describeApiError(apiError(400))?.details).toEqual([{ key: 'error.unknown.details' }])
   })
 
+  it.each(['some-new-server-code', 'title.nested', ''])(
+    'never shows the raw key for the unknown code "%s"',
+    (code) => {
+      const notice = describeApiError(apiError(400, { error: code, parameters: { a: 1 } }))
+
+      expect(notice?.details).toEqual([{ key: 'error.unknown.details' }])
+    },
+  )
+
+  it('does not take a message group for a message', () => {
+    expect(describeApiError(apiError(400, { error: '../conflict' }))?.details).toEqual([
+      { key: 'error.unknown.details' },
+    ])
+  })
+
   it('warns about a missing resource', () => {
     expect(describeApiError(apiError(404))).toEqual({
       severity: 'warn',
@@ -83,8 +98,25 @@ describe('describeApiError', () => {
     })
   })
 
-  it('reports a conflict without parameters with no details', () => {
-    expect(describeApiError(apiError(409))?.details).toEqual([])
+  it('drops conflicting fields that have no message', () => {
+    const notice = describeApiError(
+      apiError(409, { parameters: { 'wallet.name': 'Main', 'wallet.color': 'blue' } }),
+    )
+
+    expect(notice?.details).toEqual([
+      { key: 'error.conflict.wallet.name', params: { value: 'Main' } },
+    ])
+  })
+
+  it('falls back to the unknown detail when no conflicting field has a message', () => {
+    expect(
+      describeApiError(apiError(409, { parameters: { 'wallet.color': 'blue', wallet: 'x' } }))
+        ?.details,
+    ).toEqual([{ key: 'error.unknown.details' }])
+  })
+
+  it('falls back to the unknown detail on a conflict without parameters', () => {
+    expect(describeApiError(apiError(409))?.details).toEqual([{ key: 'error.unknown.details' }])
   })
 
   it('warns about an unprocessable entity', () => {

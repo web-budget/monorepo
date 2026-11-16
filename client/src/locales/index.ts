@@ -8,6 +8,8 @@ export const SUPPORTED_LOCALES = ['pt-BR', 'en-US'] as const
 
 export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number]
 
+export const DEFAULT_LOCALE: SupportedLocale = 'pt-BR'
+
 const numberFormats = {
   'en-US': {
     currency: { style: 'currency', currency: 'USD', notation: 'standard' },
@@ -35,8 +37,8 @@ const dateTimeFormat = {
 
 export const i18n = createI18n({
   legacy: false,
-  locale: 'pt-BR',
-  fallbackLocale: 'pt-BR',
+  locale: DEFAULT_LOCALE,
+  fallbackLocale: DEFAULT_LOCALE,
   messages: {
     'pt-BR': ptBR,
     'en-US': enUS as Partial<MessageSchema>,
