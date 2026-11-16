@@ -27,6 +27,12 @@ describe('i18n', () => {
     )
   })
 
+  it('interpolates the hyphenated parameters the server sends', () => {
+    expect(
+      i18n.global.t('error.bad-request.invalid-invoice-payment-day', { 'payment-day': 31 }),
+    ).toBe('31 não é um dia do mês válido, use algo entre 1 e 30')
+  })
+
   it('falls back to Portuguese for a message English does not have', () => {
     expect(i18n.global.t('form.save', {}, { locale: 'en-US' })).toBe('Salvar')
   })
