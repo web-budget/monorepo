@@ -1,0 +1,9 @@
+# Normalize line endings to LF. Shell scripts must stay LF so they run under bash
+# even when cloned on Windows (where autocrlf would otherwise rewrite them to CRLF).
+* text=auto eol=lf
+*.sh text eol=lf
+
+# Gradle wrapper (server/)
+/server/gradlew text eol=lf
+*.bat text eol=crlf
+*.jar binary
