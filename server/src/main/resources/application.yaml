@@ -1,8 +1,31 @@
 spring:
   application:
-    name: server
+    name: webbudget
+
+  main:
+    banner-mode: off
+
+  threads:
+    virtual:
+      enabled: true
+
+  datasource:
+    url: jdbc:postgresql://${DATABASE_URL:localhost:5433/webbudget}
+    username: ${DATABASE_USER:sa_webbudget}
+    password: ${DATABASE_PASSWORD:sa_webbudget}
 
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
     database-change-log-table: database_changelog
     database-change-log-lock-table: database_changelog_lock
+
+server:
+  port: ${APPLICATION_PORT:8085}
+
+management:
+  endpoints:
+    access:
+      default: read_only
+    web:
+      exposure:
+        include: [ 'health', 'info' ]

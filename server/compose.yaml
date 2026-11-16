@@ -1,9 +1,37 @@
+name: webbudget
+
 services:
+
   postgres:
-    image: 'postgres:latest'
+    container_name: webbudget-postgres
+    image: 'postgres:18-alpine'
     environment:
-      - 'POSTGRES_DB=mydatabase'
-      - 'POSTGRES_PASSWORD=secret'
-      - 'POSTGRES_USER=myuser'
+      - 'POSTGRES_DB=webbudget'
+      - 'POSTGRES_USER=sa_webbudget'
+      - 'POSTGRES_PASSWORD=sa_webbudget'
     ports:
-      - '5432'
+      - '5433:5432'
+    volumes:
+      - postgres-data:/var/lib/postgresql
+    networks:
+      - default
+
+  maildev:
+    container_name: webbudget-maildev
+    image: 'maildev/maildev:2.2.1'
+    environment:
+      - 'MAILDEV_INCOMING_USER=maildev'
+      - 'MAILDEV_INCOMING_PASS=maildev'
+    ports:
+      - '1080:1080'
+      - '1025:1025'
+    networks:
+      - default
+
+volumes:
+  postgres-data:
+    driver: local
+
+networks:
+  default:
+    driver: bridge
