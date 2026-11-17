@@ -119,7 +119,8 @@
     "back": "Voltar",
     "yes": "Sim",
     "no": "Não",
-    "recover": "Recuperar"
+    "recover": "Recuperar",
+    "clear-selection": "Limpar seleção"
   },
   "notification": {
     "success": "Sucesso!",
@@ -402,6 +403,7 @@
     "string-min": "Informe ao menos {minimum} caracteres",
     "string-max": "Informe no máximo {maximum} caracteres",
     "number-min": "O valor mínimo é {minimum}",
-    "number-max": "O valor máximo é {maximum}"
+    "number-max": "O valor máximo é {maximum}",
+    "end-before-start": "A data de fim não pode ser anterior à data de início"
   }
 }

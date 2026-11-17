@@ -8,7 +8,6 @@ export interface ItemsTableColumn {
 export interface ItemsTableItem {
   id: string
   active?: boolean
-  [field: string]: unknown
 }
 
 export interface ItemsTableSortEvent {
@@ -21,8 +20,8 @@ export interface ItemsTablePageEvent {
   pageSize: number
 }
 
-export interface ItemsTableRowEvent {
-  data: ItemsTableItem
+export interface ItemsTableRowEvent<T extends ItemsTableItem = ItemsTableItem> {
+  data: T
   index: number
 }
 
