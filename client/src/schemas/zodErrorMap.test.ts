@@ -48,6 +48,21 @@ describe('zodErrorMap', () => {
     expect(firstMessage(z.string().url(), 'nope')).toBe('Valor inválido')
   })
 
+  it('translates a custom issue by its i18n key', () => {
+    const schema = z.string().refine(() => false, { params: { i18n: 'email' } })
+
+    expect(firstMessage(schema, 'x')).toBe('Informe um email válido')
+  })
+
+  it('keeps the default message for a custom issue without an i18n key', () => {
+    expect(
+      firstMessage(
+        z.string().refine(() => false),
+        'x',
+      ),
+    ).toBe('Invalid input')
+  })
+
   it('keeps the default message for issues it does not know', () => {
     expect(firstMessage(z.enum(['a']), 'b')).toContain("Invalid enum value. Expected 'a'")
   })

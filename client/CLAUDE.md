@@ -70,7 +70,7 @@ Componentes usam a Composition API com `<script setup lang="ts">`, na ordem `<sc
 
 O client fala só com o server do monorepo, pela mesma origem: em desenvolvimento, o Vite encaminha `/private` para a 8085. Não há CORS, não há URL de API configurável por variável de ambiente e não há token no client.
 
-O client tem as camadas não visuais (#19) e a base visual (#22): shadcn-vue, o shell com as rotas por seção e os componentes compartilhados. As telas de autenticação e de erro (#23) e os cadastros (#24) ainda não existem: o `LoginView.vue` e as páginas iniciais de cada seção são só um marcador.
+O client tem as camadas não visuais (#19) e a base visual (#22): shadcn-vue, o shell com as rotas por seção e os componentes compartilhados. As telas de autenticação e de erro (#23) existem (veja [Telas de autenticação e de erro](#telas-de-autenticação-e-de-erro)); os cadastros (#24) ainda não, e as páginas iniciais de cada seção são só um marcador.
 
 ### API (`src/api/`)
 
@@ -112,6 +112,7 @@ Os stores de cadastro montam tudo sobre o composable `useCrudResource`, que guar
 - `src/lib/utils.ts`: o `cn`, que junta classes e resolve conflitos do Tailwind. O shadcn-vue o importa de `@/lib/utils`.
 - `src/utils/pageRequest.ts`: o `PageRequest` do client (`filterText`, `status`, `current`, `size`, `direction`, `sortField`), o `createPageRequest` (página de 15, ordem por `createdOn`), o `createPageResponse` e o `toPageQuery`, que traduz um para o `PageQuery` da API.
 - `src/utils/apiErrorNotice.ts`: o `describeApiError` traduz um erro em chaves do i18n, com parâmetros e severidade (`warn` ou `error`), para quem for mostrá-lo. Devolve `null` para 401 e 403, que são tratados por navegação, e cai na mensagem genérica quando o código de erro ou o campo em conflito não tem tradução, para que nenhuma chave crua chegue à tela.
+- `src/utils/safeRedirect.ts` e `src/utils/queryValue.ts`: o filtro do `redirect` do login e a leitura de um parâmetro de query como texto (veja [Telas de autenticação e de erro](#telas-de-autenticação-e-de-erro)).
 - `src/utils/localDate.ts`: `parseLocalDate` e `formatLocalDate` convertem as datas `yyyy-mm-dd` da API sem passar pelo UTC.
 
 Um composable reutilizável vai em `src/composables/`; uma função pura sem estado reativo vai em `src/utils/`.
@@ -127,7 +128,7 @@ Os componentes se organizam pelo papel, não pela view que primeiro precisou del
 | `components/` (raiz) | `PageStructure` (a moldura com barra superior, menu lateral, breadcrumb e rodapé) e `ErrorPage` |
 | `components/listing/` | `ItemsTable`, `SearchControls`, `ActionButtons`, `StatusBadge` |
 | `components/common/` | `CurrencyDisplay`, `DateTimeDisplay`, `ConfirmDialog` |
-| `components/forms/` | `StatusToggle` |
+| `components/forms/` | `StatusToggle`, `PasswordInput` (campo de senha com botão de mostrar e ocultar; repassa os atributos ao `<input>`, então vai dentro de um `FormControl`) |
 
 Um componente reutilizável e só de apresentação vai num diretório compartilhado, não ao lado do primeiro uso.
 
@@ -145,12 +146,12 @@ O `App.vue` só tem o `<RouterView>`, o `Toaster` e o `ConfirmDialog`. Cada seç
 
 As rotas ficam em `src/router/`, um arquivo por seção: `registrationRoutes.ts`, `financialRoutes.ts`, `configurationRoutes.ts` e `publicRoutes.ts`, montados no `index.ts`. Cada seção é um registro com o layout como `component` e as telas como `children` carregadas sob demanda (`() => import(...)`); uma tela nova entra como filha do registro da sua seção. Duas chaves de `meta` valem:
 
-- `public: true` no registro do layout marca a rota como pública (o `isPublicRoute` olha todos os registros de `to.matched`). Hoje só o `/login`.
+- `public: true` no registro do layout marca a rota como pública (o `isPublicRoute` olha todos os registros de `to.matched`). São públicos o `/login`, o `/auth/*` e as telas de erro (veja [Telas de autenticação e de erro](#telas-de-autenticação-e-de-erro)).
 - `breadcrumb` guarda a chave do i18n que o `PageBreadcrumb` mostra; repetir a mesma chave num filho não duplica o item. O último item é a página atual.
 
 O guard (`router/guard.ts`) é o mínimo: rota pública passa; senão, com sessão no store ou com `restoreSession()` verdadeiro passa; senão vai para `{ name: 'login', query: { redirect } }`. Os testes que chamam o `router/index.ts` precisam de um `createTestingPinia` ativo, e cada rota carregada sob demanda é coberta por um teste que resolve todos os carregadores (`router/index.test.ts`), então uma rota nova entra na contagem dele.
 
-**O `redirect` é entrada do usuário.** Quem o usa depois do login (#23) precisa aceitar só caminho interno (começando em `/`, sem `//`), nunca uma URL.
+**O `redirect` é entrada do usuário.** Quem o usa depois do login passa por `safeRedirect` (`utils/safeRedirect.ts`), que aceita só caminho interno (começando em `/`, sem `//` nem `/\`) e devolve `null` para o resto; o `LoginView` cai no `home` nesse caso.
 
 ### Notificações e confirmações
 
@@ -194,6 +195,15 @@ A autenticação é por sessão no servidor (#26): o cookie de sessão é do nav
 **Esconder um botão ou redirecionar uma rota é UX, não controle de acesso.** O server confere cada permissão por conta própria em cada requisição. Um `v-if` por role ou um redirecionamento do router melhora a experiência de quem usa o sistema direito e não faz nada contra quem chama a API direto, então nunca raciocine sobre o que o client esconde como se fosse a fronteira de segurança.
 
 O guard de rotas (`router/guard.ts`) só confere a sessão. O guard completo (status da conta e role), o auto-cadastro e o logout por inatividade vêm na #30.
+
+### Telas de autenticação e de erro
+
+As rotas públicas ficam em `router/publicRoutes.ts`. O login é `/login`; esqueci a senha, recuperação e ativação ficam sob `/auth` (`/auth/forgot-password`, `/auth/recover-password`, `/auth/account-activation`), dentro do `AuthLayout`. **Os dois últimos caminhos e os parâmetros `token` e `email` são o contrato dos emails que o server envia** (o back-end da v4 monta `${frontendUrl}/auth/...?token=...&email=...`): não os renomeie sem mudar o server. As telas de erro são `/error/forbidden` (`403`), `/error/not-found` (`404`) e `/error/server-error` (`500`), sem layout, e uma rota coringa pública (`not-found`) mostra a de 404 para qualquer caminho desconhecido.
+
+- **Login:** `POST /auth/login` com `{ email, password }`. Credencial ou conta recusada (401 e 403) mostra `error.login.*` na própria tela, porque o `describeApiError` devolve `null` para os dois e o plugin não mostra nada; qualquer outra falha já virou o toast padrão e a view não repete. Ao montar, a tela pergunta ao `restoreSession()` e, com sessão viva, segue direto para o destino. Hipótese de contrato até a #26: credencial inválida responde 401.
+- **Esqueci a senha, recuperação e ativação:** usam o store `account`; falhas já viram o toast padrão (o `invalid-token` do 400 diz "Token inválido ou expirado"), então só o sucesso é tratado na tela. A ativação tem três estados explícitos (`activating`, `success`, `error`) e `queryValue` (`utils/queryValue.ts`) lê `token` e `email` da query.
+- **Recuperação:** a confirmação precisa ser igual à senha. O `refine` do `recoverPasswordSchema` marca o issue com `params: { i18n: 'password-mismatch' }`, que o `zodErrorMap` traduz; uma regra cruzada nova segue o mesmo caminho.
+- **Testes de formulário:** o vee-validate valida de forma assíncrona; depois de `trigger('submit')` use `await settle()` (`src/test/settle.ts`) em vez de um único `flushPromises()`.
 
 ## Estilos
 

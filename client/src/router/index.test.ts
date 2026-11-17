@@ -22,16 +22,39 @@ describe('router', () => {
       .map((record) => record.components?.default)
       .filter((component) => typeof component === 'function')
 
-    expect(loaders).toHaveLength(5)
+    expect(loaders).toHaveLength(12)
     for (const loader of loaders) {
       expect(await (loader as () => Promise<unknown>)()).toHaveProperty('default')
     }
   })
 
-  it('treats only the login as public', () => {
-    expect(isPublicRoute(router.resolve('/login'))).toBe(true)
+  it('treats the authentication and error screens as public', () => {
+    for (const path of [
+      '/login',
+      '/auth/forgot-password',
+      '/auth/recover-password',
+      '/auth/account-activation',
+      '/error/forbidden',
+      '/error/not-found',
+      '/error/server-error',
+      '/does-not-exist',
+    ]) {
+      expect(isPublicRoute(router.resolve(path))).toBe(true)
+    }
+  })
+
+  it('keeps the application screens private', () => {
     expect(isPublicRoute(router.resolve('/registration'))).toBe(false)
     expect(isPublicRoute(router.resolve('/'))).toBe(false)
+  })
+
+  it('names the screens that the e-mail links and the error redirects point to', () => {
+    expect(router.resolve('/auth/account-activation?token=a&email=b').name).toBe(
+      'account-activation',
+    )
+    expect(router.resolve('/auth/recover-password').name).toBe('recover-password')
+    expect(router.resolve('/error/forbidden').name).toBe('403')
+    expect(router.resolve('/does-not-exist').name).toBe('not-found')
   })
 
   it('nests each section home under its layout with a breadcrumb label', () => {
