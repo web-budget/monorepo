@@ -17,6 +17,7 @@ interface CrudListOptions {
   pageRequest: Ref<Pick<PageRequest, 'size' | 'current' | 'sortField' | 'direction'>>
   findAll: () => Promise<void>
   remove: (id: string) => Promise<void>
+  confirmRemove?: (id: string) => Promise<boolean>
 }
 
 export function useCrudList(options: CrudListOptions) {
@@ -54,7 +55,10 @@ export function useCrudList(options: CrudListOptions) {
   }
 
   async function remove(id: string) {
-    if (!(await confirmDelete())) {
+    const confirmed = options.confirmRemove
+      ? await options.confirmRemove(id)
+      : await confirmDelete()
+    if (!confirmed) {
       return
     }
     if (await run(() => options.remove(id))) {

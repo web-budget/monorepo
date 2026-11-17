@@ -13,6 +13,7 @@ interface CrudFormOptions<Values extends GenericObject, Output extends GenericOb
   toFormValues: (entity: Entity) => Parameters<FormContext<Values, Output>['setValues']>[0]
   create: (values: Output) => Promise<void>
   update: (id: string, values: Output) => Promise<unknown>
+  confirm?: (updating: boolean) => Promise<boolean>
 }
 
 export function useCrudForm<Values extends GenericObject, Output extends GenericObject, Entity>(
@@ -33,6 +34,9 @@ export function useCrudForm<Values extends GenericObject, Output extends Generic
   const onSubmit = options.form.handleSubmit((values) =>
     run(async () => {
       const id = options.id()
+      if (options.confirm && !(await options.confirm(id !== undefined))) {
+        return
+      }
       if (id !== undefined) {
         await options.update(id, values)
         showSuccess('notification.record-updated', options.notices.updated)

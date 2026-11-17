@@ -244,3 +244,35 @@ export interface FinancialPeriodListView {
   endingAt: string
   status: FinancialPeriodStatus
 }
+
+export type Language = 'PT_BR' | 'EN_US'
+
+export interface UserCreateForm {
+  name: string
+  email: string
+  password: string
+  defaultLanguage: Language
+  roles: string[]
+  sendActivationEmail: boolean
+}
+
+export interface UserUpdateForm {
+  active: boolean
+  name: string
+  defaultLanguage: Language
+  roles: string[]
+}
+
+export interface UserPasswordForm {
+  temporary: boolean
+  password: string
+}
+
+export interface UserView {
+  id: string
+  active: boolean
+  name: string
+  email: string
+  defaultLanguage: Language
+  authorities: string[]
+}

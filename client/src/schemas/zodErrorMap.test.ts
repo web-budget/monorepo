@@ -24,6 +24,10 @@ describe('zodErrorMap', () => {
     expect(firstMessage(z.string().min(1), '')).toBe('Campo obrigatório')
   })
 
+  it('treats an empty required list as missing', () => {
+    expect(firstMessage(z.array(z.string()).min(1), [])).toBe('Campo obrigatório')
+  })
+
   it('reports a string that is too short', () => {
     expect(firstMessage(z.string().min(3), 'ab')).toBe('Informe ao menos 3 caracteres')
   })

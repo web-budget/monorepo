@@ -35,11 +35,13 @@ export async function mountView(
   view: Component,
   routeName: string,
   props: Record<string, unknown> = {},
+  initialState: Record<string, unknown> = {},
 ) {
   installZodErrorMap()
   const { router, plugins } = createTestPlugins({
     routes: crudTestRoutes(routeName),
     stubActions: false,
+    initialState,
   })
   const wrapper = mount(view, { props, attachTo: document.body, global: { plugins } })
   await flushPromises()
