@@ -66,7 +66,7 @@ A regra vale tanto para o nome da variável em Kotlin quanto para a string do al
 
 ## Arquitetura
 
-O código portado da v4 vive nas três camadas dela, sob `br.com.webbudget.server`. O módulo `administration` já está portado e é a referência dos padrões das seções abaixo:
+O código portado da v4 vive nas três camadas dela, sob `br.com.webbudget.server`. Os módulos `administration` e `registration` já estão portados, e o `administration` é a referência dos padrões das seções abaixo:
 
 | Pacote | O que fica nele |
 |---|---|
@@ -117,6 +117,7 @@ Os repositórios são classes `@Repository` com o `DSLContext` injetado, em `inf
 - **Os filtros que a v4 fazia com `Specification` viram `Condition` do jOOQ montado dentro do repositório**, a partir de parâmetros simples (`filter: String?`, `active: Boolean?`). O payload de filtro (`UserFilter`) não conhece jOOQ.
 - **Exclusões que o JPA fazia em cascata são explícitas no serviço**: apagar um usuário apaga antes os grants e as tentativas de ativação e de recuperação.
 - As consultas `existsBy...` do jOOQ (`dsl.fetchExists`) substituem os `findBy...` que os validadores usavam só para checar existência.
+- **O módulo `registration` segue o mesmo padrão** (`infrastructure/repository/registration/`). A busca textual dos filtros é `containsIgnoreCase` do jOOQ, que escapa `%` e `_`. O `CostCenter` carrega o pai um nível só, com o `full_name` gravado dele, e o nome completo do filho vem desse valor (`updateFullName`); o `CostCenterService` refaz o nome dos filhos e netos ao renomear ou mover um centro, e o `CostCenterParentValidator` recusa um pai que seja o próprio centro ou um descendente. O `CardRepository.findByExternalId` traz a carteira (o `CardView` a expõe); a listagem não. O `WalletRepository.update` não grava o `current_balance`, que é do financial. `GET /registration/financial-periods` sem `status` devolve só os períodos `ACCOUNTED`, como na v4 (`OPEN` são `ACTIVE` e `ENDED`, `ALL` são todos).
 
 ### Paginação
 
@@ -239,7 +240,7 @@ As classes do jOOQ são geradas no build, a partir do changelog, e nunca vão pa
 
 O Kover mede a suíte, e o `koverVerify` impõe pisos sobre ela em `kover.reports.verify`, no `build.gradle.kts`. Os filtros excluem `ServerApplication`, `ServerApplicationKt` e o pacote gerado `br.com.webbudget.server.jooq`, e valem igual para os relatórios XML e HTML e para o `koverVerify`.
 
-**Os pisos de LINE, INSTRUCTION e BRANCH só sobem.** Eles começaram em 0, subiram para 99, 99 e 84 com o módulo `administration` (#13), para 99, 99 e 85 com a sessão no servidor (#26) e sobem ao fim de cada subtarefa de portabilidade, até o que a suíte atinge naquele momento, arredondado para baixo. Um PR pode subir um número, nunca baixá-lo: baixar um piso é a cara de uma regressão de cobertura num diff. Com os pisos no que a suíte atinge, um PR que traz código de produção sem teste fica vermelho, então os testes entram junto com a funcionalidade.
+**Os pisos de LINE, INSTRUCTION e BRANCH só sobem.** Eles começaram em 0, subiram para 99, 99 e 84 com o módulo `administration` (#13), para 99, 99 e 85 com a sessão no servidor (#26), para 99, 99 e 89 com o módulo `registration` (#14) e sobem ao fim de cada subtarefa de portabilidade, até o que a suíte atinge naquele momento, arredondado para baixo. Um PR pode subir um número, nunca baixá-lo: baixar um piso é a cara de uma regressão de cobertura num diff. Com os pisos no que a suíte atinge, um PR que traz código de produção sem teste fica vermelho, então os testes entram junto com a funcionalidade.
 
 ## Manutenção deste arquivo
 
