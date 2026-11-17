@@ -23,4 +23,7 @@ object ErrorCodes {
     const val INVALID_PARENT_COST_CENTER = "invalid-parent-cost-center"
 
     const val PENDING_APPROVAL = "pending_approval"
+
+    const val ACCOUNTED_PERIOD_MOVEMENT = "accounted-period-movement"
+    const val RECURRING_MOVEMENT_NOT_ACTIVE = "recurring-movement.errors.invalid-state"
 }
