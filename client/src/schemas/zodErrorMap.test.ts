@@ -48,6 +48,14 @@ describe('zodErrorMap', () => {
     expect(firstMessage(z.string().url(), 'nope')).toBe('Valor inválido')
   })
 
+  it('translates a custom issue by the key it carries', () => {
+    const schema = z.string().superRefine((_value, context) => {
+      context.addIssue({ code: z.ZodIssueCode.custom, params: { i18nKey: 'end-before-start' } })
+    })
+
+    expect(firstMessage(schema, 'x')).toBe('A data de fim não pode ser anterior à data de início')
+  })
+
   it('keeps the default message for issues it does not know', () => {
     expect(firstMessage(z.enum(['a']), 'b')).toContain("Invalid enum value. Expected 'a'")
   })

@@ -43,6 +43,7 @@ export function useCrudResource<L extends { id: string }, V, C, U, S extends str
 
   function findOne(id: string): Promise<V> {
     return track(async () => {
+      current.value = null
       current.value = await api.findById(id)
       return current.value
     })

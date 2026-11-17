@@ -70,7 +70,7 @@ Componentes usam a Composition API com `<script setup lang="ts">`, na ordem `<sc
 
 O client fala só com o server do monorepo, pela mesma origem: em desenvolvimento, o Vite encaminha `/private` para a 8085. Não há CORS, não há URL de API configurável por variável de ambiente e não há token no client.
 
-O client tem as camadas não visuais (#19) e a base visual (#22): shadcn-vue, o shell com as rotas por seção e os componentes compartilhados. As telas de autenticação e de erro (#23) e os cadastros (#24) ainda não existem: o `LoginView.vue` e as páginas iniciais de cada seção são só um marcador.
+O client tem as camadas não visuais (#19) e a base visual (#22): shadcn-vue, o shell com as rotas por seção e os componentes compartilhados. Os cinco cadastros (#24) estão em `src/views/registration/` (veja [Cadastros](#cadastros)). As telas de autenticação e de erro (#23) ainda não existem: o `LoginView.vue` é só um marcador, assim como as páginas iniciais de cada seção, que são só um marcador também na v4.
 
 ### API (`src/api/`)
 
@@ -109,6 +109,7 @@ Os stores de cadastro montam tudo sobre o composable `useCrudResource`, que guar
 
 - `src/composables/useCrudResource.ts`: a mecânica comum dos stores de cadastro (veja acima).
 - `src/composables/useNotification.ts` e `src/composables/useConfirmDialog.ts`: toasts e confirmação de exclusão (veja [Notificações e confirmações](#notificações-e-confirmações)).
+- `src/composables/useCrudList.ts`, `useCrudForm.ts`, `useCrudDetail.ts` e `useServerErrors.ts`: a mecânica das telas de cadastro (veja [Cadastros](#cadastros)).
 - `src/lib/utils.ts`: o `cn`, que junta classes e resolve conflitos do Tailwind. O shadcn-vue o importa de `@/lib/utils`.
 - `src/utils/pageRequest.ts`: o `PageRequest` do client (`filterText`, `status`, `current`, `size`, `direction`, `sortField`), o `createPageRequest` (página de 15, ordem por `createdOn`), o `createPageResponse` e o `toPageQuery`, que traduz um para o `PageQuery` da API.
 - `src/utils/apiErrorNotice.ts`: o `describeApiError` traduz um erro em chaves do i18n, com parâmetros e severidade (`warn` ou `error`), para quem for mostrá-lo. Devolve `null` para 401 e 403, que são tratados por navegação, e cai na mensagem genérica quando o código de erro ou o campo em conflito não tem tradução, para que nenhuma chave crua chegue à tela.
@@ -125,15 +126,15 @@ Os componentes se organizam pelo papel, não pela view que primeiro precisou del
 | `components/ui/` | os primitivos do shadcn-vue, gerados pela CLI. Não escreva testes para eles (ficam fora da cobertura) e evite editá-los à mão |
 | `components/layout/` | o shell: `TopBar`, `SideMenu`, `MenuItem`, `PageBreadcrumb`, `PageFooter`, os layouts por seção (`HomeLayout`, `RegistrationLayout`, `FinancialLayout`, `ConfigurationLayout`, `AuthLayout`) e o tipo `menu.ts` |
 | `components/` (raiz) | `PageStructure` (a moldura com barra superior, menu lateral, breadcrumb e rodapé) e `ErrorPage` |
-| `components/listing/` | `ItemsTable`, `SearchControls`, `ActionButtons`, `StatusBadge` |
-| `components/common/` | `CurrencyDisplay`, `DateTimeDisplay`, `ConfirmDialog` |
-| `components/forms/` | `StatusToggle` |
+| `components/listing/` | `ItemsTable`, `SearchControls`, `ActionButtons`, `StatusBadge`, `PeriodStatusBadge` |
+| `components/common/` | `CurrencyDisplay`, `DateTimeDisplay`, `ConfirmDialog`, `DetailCard`, `DetailField` |
+| `components/forms/` | `StatusToggle`, `FormCard`, `InputField`, `SelectField`, `SearchSelectField`, `ServerErrorAlert` |
 
 Um componente reutilizável e só de apresentação vai num diretório compartilhado, não ao lado do primeiro uso.
 
 **Props e eventos da v4 foram mantidos** nos componentes de `listing/`, `common/` e `forms/`, para que as views de cadastro (#24) sigam o desenho da v4. O que muda é só o que o PrimeVue fazia por baixo:
 
-- `ItemsTable`: no lugar das `<Column>` do PrimeVue, recebe a prop `columns` (`{ field, header, sortable?, class? }`, com `header` já traduzido). Uma célula customizada vem pelo slot `cell-<campo>` (`{ item, value }`) e a coluna de ações pelo slot `actions` (`{ item }`); sem o slot `actions` a coluna não existe. Os eventos são os da v4: `pageChanged` (`{ currentPage, pageSize }`, com `currentPage` **começando em zero**, como o `pageRequest.current`), `rowSelected` (`{ data, index }`) e `tableSorted` (`{ sortField, sortOrder: 'asc' | 'desc' }`; ao remover a ordenação volta para `createdOn` ascendente). A prop `currentPage` (zero-based) marca a página atual e `loading` mostra o esqueleto.
+- `ItemsTable`: no lugar das `<Column>` do PrimeVue, recebe a prop `columns` (`{ field, header, sortable?, class? }`, com `header` já traduzido). Uma célula customizada vem pelo slot `cell-<campo>` (`{ item, value }`) e a coluna de ações pelo slot `actions` (`{ item }`); sem o slot `actions` a coluna não existe. Os eventos são os da v4: `pageChanged` (`{ currentPage, pageSize }`, com `currentPage` **começando em zero**, como o `pageRequest.current`), `rowSelected` (`{ data, index }`) e `tableSorted` (`{ sortField, sortOrder: 'asc' | 'desc' }`; ao remover a ordenação volta para `createdOn` ascendente). A prop `currentPage` (zero-based) marca a página atual e `loading` mostra o esqueleto. O componente é genérico no tipo da linha (`T extends { id: string; active?: boolean }`), então o `item` dos slots chega tipado.
 - `SearchControls`: os mesmos `v-model:status` e `v-model:filter` e os eventos `onFilterChange`, `onFilterReset` e `onNew`.
 - `ActionButtons`: `onEdit` e `onDelete`.
 - `StatusToggle`: recebe só o `name` e se liga ao formulário pelo `useField` do vee-validate, então vai dentro de um `useForm`.
@@ -168,7 +169,18 @@ if (await confirmDelete()) {
 
 ### Formulários
 
-Todo formulário usa o `useForm` do vee-validate com um esquema Zod, e os campos usam os componentes de `components/ui/form` (`FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormMessage`). O esquema fica em `src/schemas/<formulario>Schema.ts`, um arquivo por formulário, e é embrulhado com o `toTypedSchema` (veja `loginSchema.ts`). As mensagens de validação não ficam no esquema: o `schemas/zodErrorMap.ts`, instalado no `main.ts`, as traduz pelas chaves `validation.*` do i18n, então `z.string().min(1)` já dá "Campo obrigatório". O mapa conhece obrigatório, tamanho mínimo e máximo de texto, mínimo e máximo de número e email; uma regra nova vira uma chave em `validation` e um caso no mapa. O `zod` fica na linha 3, porque o `@vee-validate/zod` pede `^3.24`.
+Todo formulário usa o `useForm` do vee-validate com um esquema Zod, e os campos usam os componentes de `components/ui/form` (`FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormMessage`). O esquema fica em `src/schemas/<formulario>Schema.ts`, um arquivo por formulário, e é embrulhado com o `toTypedSchema` (veja `loginSchema.ts`). As mensagens de validação não ficam no esquema: o `schemas/zodErrorMap.ts`, instalado no `main.ts`, as traduz pelas chaves `validation.*` do i18n, então `z.string().min(1)` já dá "Campo obrigatório". O mapa conhece obrigatório, tamanho mínimo e máximo de texto, mínimo e máximo de número, email e uma regra própria (`superRefine` com `code: custom` e `params: { i18nKey }`, que vira a chave `validation.<i18nKey>`, como o `end-before-start` do período financeiro); uma regra nova vira uma chave em `validation` e um caso no mapa. O `zod` fica na linha 3, porque o `@vee-validate/zod` pede `^3.24`.
+
+### Cadastros
+
+Carteiras, cartões, centros de custo, classificações e períodos financeiros vivem em `src/views/registration/<recurso>/`, três telas cada: `<Entidade>ListView`, `<Entidade>FormView` (criar e editar) e `<Entidade>DetailView`. As rotas saem do `router/crudRoutes.ts`, que monta, dentro do registro da seção, o registro do recurso (só com a migalha `<entidade>.menu`) e as filhas `` (lista, nome `wallets`), `create`, `:id/update` e `:id/detail` (nomes `wallets.create`, `wallets.update`, `wallets.detail`), com `props: true`: o `id` chega como prop e é ele que diferencia o formulário de edição do de criação. **A v4 tinha uma quinta rota, `:id/delete`, que mostrava o detalhe com a pergunta "Confirma a exclusão?". Ela não existe mais:** a exclusão, na lista e no detalhe, passa pelo `useConfirmDialog().confirmDelete()`.
+
+- **Lista:** o `useCrudList` recebe o `pageRequest`, o `findAll` e o `remove` do store e devolve os manipuladores de paginação, ordenação, navegação e exclusão; carrega a lista no `onMounted`. A lista monta `SearchControls` e `ItemsTable` com `columns` e os slots `cell-<campo>` e `actions`, e passa `:current-page` e `:page-size` do `pageRequest`.
+- **Formulário:** `useForm` do vee-validate com o esquema de `src/schemas/<entidade>Schema.ts`, que também exporta os valores iniciais e as funções `to<Entidade>CreateForm`, `to<Entidade>UpdateForm` e `to<Entidade>FormValues` (esquema de formulário e payload da API não são iguais: `''` vira `null`, a opção escolhida vira o `id`). O `useCrudForm` carrega a entidade quando há `id`, grava e, ao criar, limpa o formulário. Os campos são `InputField` (texto, número, data e `multiline`), `SelectField` e `SearchSelectField`, dentro de um `FormCard`. Número e data usam o `<input>` nativo (a data já sai como `yyyy-mm-dd`, o formato da API, sem passar pelo UTC); o `optionalNumberSchema` converte o texto em número ou `null`.
+- **`SearchSelectField`:** o seletor com busca no servidor (carteira do cartão, centro de custo pai). Só busca com dois caracteres ou mais, emite `search` com o texto e mostra as `options` que a tela passa; o valor do campo é `{ id, label }` ou `null`. O centro de custo pai aparece pelo `fullName`.
+- **Detalhe:** `DetailCard` com `DetailField`s; o `useCrudDetail` carrega, leva à edição e exclui com confirmação.
+- **Erro do servidor:** o `useServerErrors().run()` envolve toda chamada da tela; se ela falha, as mensagens (as mesmas do `describeApiError`) vão para o `ServerErrorAlert`, no formulário, no detalhe ou acima da tabela. O toast padrão do `apiErrorHandler` continua aparecendo: os dois são intencionais, o toast some e o alerta fica ao lado do que falhou.
+- **Testes:** cada tela tem um `*.test.ts` com `createTestingPinia({ stubActions: false })` (via `mountView` de `src/test/crud.ts`) e o módulo `@/api/<recurso>` mockado, para exercitar o store de verdade. A confirmação de exclusão se resolve com `useConfirmDialog().accept()` ou `.cancel()`, sem montar o `ConfirmDialog`. Depois de um `submit`, use o `settle()` do mesmo helper: a validação do vee-validate é assíncrona.
 
 ### i18n (`src/locales/`)
 

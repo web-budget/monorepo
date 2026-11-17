@@ -1,4 +1,4 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="T extends ItemsTableItem">
 import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-vue-next'
 import { computed, ref, useSlots } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -43,7 +43,7 @@ import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-v
 
 const props = withDefaults(
   defineProps<{
-    data: ItemsTableItem[]
+    data: T[]
     totalElements: number
     columns?: ItemsTableColumn[]
     showStatus?: boolean
@@ -56,8 +56,13 @@ const props = withDefaults(
 
 const emit = defineEmits<{
   pageChanged: [event: ItemsTablePageEvent]
-  rowSelected: [event: ItemsTableRowEvent]
+  rowSelected: [event: ItemsTableRowEvent<T>]
   tableSorted: [event: ItemsTableSortEvent]
+}>()
+
+defineSlots<{
+  actions?(props: { item: T }): unknown
+  [slot: `cell-${string}`]: ((props: { item: T; value: unknown }) => unknown) | undefined
 }>()
 
 const { t } = useI18n()
@@ -82,6 +87,10 @@ const headerColumns = computed<ItemsTableColumn[]>(() => [
     : []),
   ...props.columns,
 ])
+
+function cellValue(item: T, field: string): unknown {
+  return (item as Record<string, unknown>)[field]
+}
 
 function sortIcon(field: string) {
   if (sortField.value !== field) {
@@ -171,8 +180,12 @@ function changePageSize(value: unknown) {
               <StatusBadge :active="item.active === true" />
             </TableCell>
             <TableCell v-for="column in props.columns" :key="column.field" :class="column.class">
-              <slot :name="`cell-${column.field}`" :item="item" :value="item[column.field]">
-                {{ item[column.field] }}
+              <slot
+                :name="`cell-${column.field}`"
+                :item="item"
+                :value="cellValue(item, column.field)"
+              >
+                {{ cellValue(item, column.field) }}
               </slot>
             </TableCell>
             <TableCell v-if="hasActions" @click.stop>

@@ -1,5 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router'
 import RegistrationLayout from '@/components/layout/RegistrationLayout.vue'
+import { crudRoutes } from '@/router/crudRoutes'
 
 export const registrationRoutes: RouteRecordRaw[] = [
   {
@@ -12,6 +13,47 @@ export const registrationRoutes: RouteRecordRaw[] = [
         name: 'registration',
         component: () => import('@/views/registration/RegistrationHomeView.vue'),
       },
+      crudRoutes({
+        path: 'wallets',
+        name: 'wallets',
+        entity: 'wallet',
+        list: () => import('@/views/registration/wallets/WalletListView.vue'),
+        form: () => import('@/views/registration/wallets/WalletFormView.vue'),
+        detail: () => import('@/views/registration/wallets/WalletDetailView.vue'),
+      }),
+      crudRoutes({
+        path: 'cards',
+        name: 'cards',
+        entity: 'card',
+        list: () => import('@/views/registration/cards/CardListView.vue'),
+        form: () => import('@/views/registration/cards/CardFormView.vue'),
+        detail: () => import('@/views/registration/cards/CardDetailView.vue'),
+      }),
+      crudRoutes({
+        path: 'cost-centers',
+        name: 'cost-centers',
+        entity: 'cost-center',
+        list: () => import('@/views/registration/cost-centers/CostCenterListView.vue'),
+        form: () => import('@/views/registration/cost-centers/CostCenterFormView.vue'),
+        detail: () => import('@/views/registration/cost-centers/CostCenterDetailView.vue'),
+      }),
+      crudRoutes({
+        path: 'classifications',
+        name: 'classifications',
+        entity: 'classification',
+        list: () => import('@/views/registration/classifications/ClassificationListView.vue'),
+        form: () => import('@/views/registration/classifications/ClassificationFormView.vue'),
+        detail: () => import('@/views/registration/classifications/ClassificationDetailView.vue'),
+      }),
+      crudRoutes({
+        path: 'financial-periods',
+        name: 'financial-periods',
+        entity: 'financial-period',
+        list: () => import('@/views/registration/financial-periods/FinancialPeriodListView.vue'),
+        form: () => import('@/views/registration/financial-periods/FinancialPeriodFormView.vue'),
+        detail: () =>
+          import('@/views/registration/financial-periods/FinancialPeriodDetailView.vue'),
+      }),
     ],
   },
 ]

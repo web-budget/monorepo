@@ -1,0 +1,224 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { toast } from 'vue-sonner'
+import { costCentersApi } from '@/api/costCenters'
+import { buttonWithText, mountView, pageOf, problem, settle } from '@/test/crud'
+import type { CostCenterListView, CostCenterView } from '@/types'
+import CostCenterFormView from '@/views/registration/cost-centers/CostCenterFormView.vue'
+
+vi.mock('@/api/costCenters')
+vi.mock('vue-sonner', () => ({
+  toast: {
+    success: vi.fn<() => void>(),
+    info: vi.fn<() => void>(),
+    warning: vi.fn<() => void>(),
+    error: vi.fn<() => void>(),
+  },
+}))
+
+type Wrapper = Awaited<ReturnType<typeof mountView>>['wrapper']
+
+const home: CostCenterListView = {
+  id: 'cc-1',
+  name: 'Home',
+  fullName: 'Home',
+  active: true,
+  incomeBudget: null,
+  expenseBudget: null,
+}
+
+const kitchen: CostCenterView = {
+  id: 'cc-2',
+  name: 'Kitchen',
+  active: true,
+  description: 'Pots and pans',
+  incomeBudget: 100,
+  expenseBudget: 250.5,
+  parentCostCenter: home,
+}
+
+function field(wrapper: Wrapper, name: string) {
+  return wrapper.find(`[name="${name}"]`)
+}
+
+async function submit(wrapper: Wrapper) {
+  await wrapper.find('form').trigger('submit')
+  await settle()
+}
+
+async function pickParent(wrapper: Wrapper, query: string, optionText: string) {
+  await wrapper.find('button[role="combobox"]').trigger('click')
+  await settle()
+  const search = document.body.querySelector<HTMLInputElement>(
+    '[data-slot="popover-content"] input',
+  )
+  if (!search) {
+    throw new Error('popover did not open')
+  }
+  search.value = query
+  search.dispatchEvent(new Event('input'))
+  await settle()
+  const option = [...document.body.querySelectorAll<HTMLElement>('[role="option"]')].find(
+    (candidate) => candidate.textContent?.trim() === optionText,
+  )
+  if (!option) {
+    throw new Error(`no option "${optionText}"`)
+  }
+  option.click()
+  await settle()
+}
+
+describe('CostCenterFormView', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    document.body.replaceChildren()
+  })
+
+  it('asks for the name', async () => {
+    const { wrapper } = await mountView(CostCenterFormView, 'cost-centers')
+
+    expect(wrapper.text()).toContain('Novo centro de custo')
+    await submit(wrapper)
+
+    expect(wrapper.text()).toContain('Campo obrigatório')
+    expect(costCentersApi.create).not.toHaveBeenCalled()
+  })
+
+  it('creates a cost center under a parent found by name and clears the form', async () => {
+    vi.mocked(costCentersApi.findAll).mockResolvedValue(pageOf([home]))
+    vi.mocked(costCentersApi.create).mockResolvedValue(undefined)
+    const { wrapper } = await mountView(CostCenterFormView, 'cost-centers')
+
+    await field(wrapper, 'name').setValue('Kitchen')
+    await pickParent(wrapper, 'Ho', 'Home')
+    await field(wrapper, 'incomeBudget').setValue('100')
+    await field(wrapper, 'description').setValue('Pots and pans')
+    await submit(wrapper)
+
+    expect(costCentersApi.findAll).toHaveBeenCalledWith({ filter: 'Ho', status: 'ACTIVE' })
+    expect(costCentersApi.create).toHaveBeenCalledWith({
+      name: 'Kitchen',
+      description: 'Pots and pans',
+      incomeBudget: 100,
+      expenseBudget: null,
+      parentCostCenter: 'cc-1',
+    })
+    expect(toast.success).toHaveBeenCalledWith('Registro criado', {
+      description: 'Centro de custo criado com sucesso',
+      duration: 4000,
+    })
+    expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('')
+  })
+
+  it('creates a top level cost center without a parent', async () => {
+    vi.mocked(costCentersApi.create).mockResolvedValue(undefined)
+    const { wrapper } = await mountView(CostCenterFormView, 'cost-centers')
+
+    await field(wrapper, 'name').setValue('Home')
+    await submit(wrapper)
+
+    expect(costCentersApi.create).toHaveBeenCalledWith({
+      name: 'Home',
+      description: null,
+      incomeBudget: null,
+      expenseBudget: null,
+      parentCostCenter: null,
+    })
+  })
+
+  it('shows the server error inside the form', async () => {
+    vi.mocked(costCentersApi.create).mockRejectedValue(
+      problem(409, { error: 'conflict', parameters: { 'cost-center.name': 'Home' } }),
+    )
+    const { wrapper } = await mountView(CostCenterFormView, 'cost-centers')
+
+    await field(wrapper, 'name').setValue('Home')
+    await submit(wrapper)
+
+    expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
+      'Nome "Home" já esta em uso',
+    )
+    expect(toast.success).not.toHaveBeenCalled()
+  })
+
+  it('loads a cost center for editing with its parent shown by full name', async () => {
+    vi.mocked(costCentersApi.findById).mockResolvedValue(kitchen)
+
+    const { wrapper } = await mountView(CostCenterFormView, 'cost-centers', { id: 'cc-2' })
+
+    expect(wrapper.text()).toContain('Editando centro de custo')
+    expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('Kitchen')
+    expect((field(wrapper, 'expenseBudget').element as HTMLInputElement).value).toBe('250.5')
+    expect(wrapper.find('button[role="combobox"]').text()).toContain('Home')
+  })
+
+  it('saves the changes keeping the parent and clears it on request', async () => {
+    vi.mocked(costCentersApi.findById).mockResolvedValue(kitchen)
+    vi.mocked(costCentersApi.update).mockResolvedValue(kitchen)
+    const { wrapper } = await mountView(CostCenterFormView, 'cost-centers', { id: 'cc-2' })
+
+    await submit(wrapper)
+    expect(costCentersApi.update).toHaveBeenLastCalledWith('cc-2', {
+      name: 'Kitchen',
+      active: true,
+      description: 'Pots and pans',
+      incomeBudget: 100,
+      expenseBudget: 250.5,
+      parentCostCenter: 'cc-1',
+    })
+    expect(toast.success).toHaveBeenCalledWith('Registro atualizado', {
+      description: 'Centro de custo atualizado com sucesso',
+      duration: 4000,
+    })
+
+    await wrapper.find('button[aria-label="Limpar seleção"]').trigger('click')
+    await buttonWithText(wrapper, 'Inativo').trigger('click')
+    await submit(wrapper)
+    expect(costCentersApi.update).toHaveBeenLastCalledWith(
+      'cc-2',
+      expect.objectContaining({ active: false, parentCostCenter: null }),
+    )
+  })
+
+  it('does not offer the cost center itself as its parent', async () => {
+    vi.mocked(costCentersApi.findById).mockResolvedValue(kitchen)
+    vi.mocked(costCentersApi.findAll).mockResolvedValue(
+      pageOf([home, { ...home, id: 'cc-2', name: 'Kitchen', fullName: 'Kitchen' }]),
+    )
+    const { wrapper } = await mountView(CostCenterFormView, 'cost-centers', { id: 'cc-2' })
+
+    await wrapper.find('button[role="combobox"]').trigger('click')
+    await settle()
+    const search = document.body.querySelector<HTMLInputElement>(
+      '[data-slot="popover-content"] input',
+    )
+    search!.value = 'Ki'
+    search!.dispatchEvent(new Event('input'))
+    await settle()
+
+    const options = [...document.body.querySelectorAll('[role="option"]')].map((option) =>
+      option.textContent?.trim(),
+    )
+    expect(options).toEqual(['Home'])
+  })
+
+  it('shows the server error when the update is rejected', async () => {
+    vi.mocked(costCentersApi.findById).mockResolvedValue(kitchen)
+    vi.mocked(costCentersApi.update).mockRejectedValue(problem(422))
+    const { wrapper } = await mountView(CostCenterFormView, 'cost-centers', { id: 'cc-2' })
+
+    await submit(wrapper)
+
+    expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
+      'Revise os dados e tente novamente',
+    )
+  })
+
+  it('goes back to the listing', async () => {
+    const { wrapper, router } = await mountView(CostCenterFormView, 'cost-centers')
+
+    await buttonWithText(wrapper, 'Voltar').trigger('click')
+    await settle()
+
+    expect(router.currentRoute.value.name).toBe('cost-centers')
+  })
+})

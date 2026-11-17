@@ -28,6 +28,8 @@ export const zodErrorMap: z.ZodErrorMap = (issue, context) => {
       }
     case z.ZodIssueCode.invalid_string:
       return { message: translate(issue.validation === 'email' ? 'email' : 'invalid') }
+    case z.ZodIssueCode.custom:
+      return { message: translate((issue.params as { i18nKey: string }).i18nKey) }
     default:
       return { message: context.defaultError }
   }
