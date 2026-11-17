@@ -1,6 +1,6 @@
 # CLAUDE.md
 
-Este arquivo orienta o Claude Code no `client/`, o frontend do webBudget: Vue 3 com `<script setup>` e TypeScript 6.0, Vite 8, Vue Router 5, Pinia 4, vue-i18n 11, axios, Vitest 5, ESLint 10, oxlint e Prettier, sobre Node 24 e pnpm 12. O alias `@` aponta para `src/`. As regras do repositório inteiro (issues, branches, PRs, idioma, comentários no código, como ativar o Node e o pnpm nesta máquina e a proibição de subir os servidores de desenvolvimento do usuário) estão no `CLAUDE.md` da raiz e valem aqui também.
+Este arquivo orienta o Claude Code no `client/`, o frontend do webBudget: Vue 3 com `<script setup>` e TypeScript 6.0, Vite 8, Vue Router 5, Pinia 4, vue-i18n 11, axios, shadcn-vue (Reka UI e Tailwind 4), vee-validate com Zod, Vitest 5, ESLint 10, oxlint e Prettier, sobre Node 24 e pnpm 12. O alias `@` aponta para `src/`. As regras do repositório inteiro (issues, branches, PRs, idioma, comentários no código, como ativar o Node e o pnpm nesta máquina e a proibição de subir os servidores de desenvolvimento do usuário) estão no `CLAUDE.md` da raiz e valem aqui também.
 
 ## Comandos
 
@@ -34,7 +34,7 @@ O `tsconfig.app.json` estende o `@vue/tsconfig` (que já liga o `strict`) e acre
 
 **Arquivos de teste terminam em `.test.ts`, nunca em `.spec.ts`.** O `vite.config.ts` fixa `test.include` em `src/**/*.test.ts`, então um arquivo com outro sufixo nunca roda, e ninguém percebe. Os testes ficam **ao lado** do código que cobrem; não existem diretórios `__tests__/`, e nenhum deve ser criado.
 
-O ambiente é o `jsdom`, e o `src/test/setup.ts` roda antes de cada arquivo (`test.setupFiles`) com o `enableAutoUnmount(afterEach)`, então nenhum teste precisa desmontar o que montou. Os `globals` do Vitest estão desligados: importe `describe`, `it`, `expect` e `vi` de `'vitest'` em cada arquivo.
+O ambiente é o `jsdom`, e o `src/test/setup.ts` roda antes de cada arquivo (`test.setupFiles`) com o `enableAutoUnmount(afterEach)`, então nenhum teste precisa desmontar o que montou. Os `globals` do Vitest estão desligados: importe `describe`, `it`, `expect` e `vi` de `'vitest'` em cada arquivo. O `setup.ts` também põe no jsdom o que o shadcn-vue e o Reka UI esperam e ele não tem (`ResizeObserver`, `matchMedia` e `scrollIntoView`), e o `src/test/mounting.ts` tem os helpers de montagem: `createTestPlugins()` devolve o router (em memória), o `createTestingPinia` e o i18n prontos para o `global.plugins`, e o `mountInSidebar()` monta um componente dentro do `SidebarProvider`, que o menu lateral e a barra superior exigem. Menus e diálogos do Reka UI vão para o `document.body`: monte com `attachTo: document.body` e procure o conteúdo lá, e abra o menu do usuário com `keydown` Enter, porque o `pointerdown` não abre no jsdom.
 
 O Pinia tem uma regra que decide sozinha:
 
@@ -47,7 +47,7 @@ O `createTestingPinia()` troca todas as ações por spies, que é o que um teste
 
 Confira o que aparece na tela, os eventos emitidos e as interações do usuário, nunca o `wrapper.vm` ou métodos privados, que prendem o teste à implementação e quebram na primeira refatoração. Nada de teste só de snapshot: um snapshot que ninguém lê continua passando com a funcionalidade quebrada.
 
-A cobertura é medida pelo `pnpm test:coverage` (provider v8, relatório em `client/coverage/`) e **imposta**: `coverage.thresholds` no `vite.config.ts` define um piso para statements, lines, functions e branches, e o CI roda esse comando, então um PR que derruba qualquer um dos quatro abaixo do piso quebra o build. O piso hoje é **100% nos quatro**. Ficam fora do conjunto medido os arquivos de teste, `src/test/**`, `src/main.ts`, `src/types.ts` e `src/api/**`.
+A cobertura é medida pelo `pnpm test:coverage` (provider v8, relatório em `client/coverage/`) e **imposta**: `coverage.thresholds` no `vite.config.ts` define um piso para statements, lines, functions e branches, e o CI roda esse comando, então um PR que derruba qualquer um dos quatro abaixo do piso quebra o build. O piso hoje é **100% nos quatro**. Ficam fora do conjunto medido os arquivos de teste, `src/test/**`, `src/main.ts`, `src/types.ts`, `src/api/**` e `src/components/ui/**` (o código que a CLI do shadcn-vue gera).
 
 **A catraca:** um PR pode subir esses números, nunca baixar. Um PR que acrescenta testes pode subir cada piso até o valor inteiro (arredondado para baixo) que o seu próprio `pnpm test:coverage` reporta; um PR que não muda a cobertura deixa os números como estão. A única forma de fazer uma queda de cobertura passar no CI é baixar um piso, e um PR nunca faz isso. Com o piso em 100, a regra que vale na prática é essa: código novo chega com os testes que o cobrem por inteiro, inclusive os dois lados de cada `?.` e `??` que o v8 conta como branch.
 
@@ -70,13 +70,13 @@ Componentes usam a Composition API com `<script setup lang="ts">`, na ordem `<sc
 
 O client fala só com o server do monorepo, pela mesma origem: em desenvolvimento, o Vite encaminha `/private` para a 8085. Não há CORS, não há URL de API configurável por variável de ambiente e não há token no client.
 
-Hoje o client tem as camadas não visuais (#19), mas nenhuma tela: o `src/router/index.ts` tem `routes: []` e o `App.vue` ainda é o placeholder do create-vue, que o `App.test.ts` confere. As telas, o shell e as rotas chegam na tarefa #21 (a base delas na #22).
+O client tem as camadas não visuais (#19) e a base visual (#22): shadcn-vue, o shell com as rotas por seção e os componentes compartilhados. As telas de autenticação e de erro (#23) e os cadastros (#24) ainda não existem: o `LoginView.vue` e as páginas iniciais de cada seção são só um marcador.
 
 ### API (`src/api/`)
 
 **O `src/api/` é a única camada que usa o axios.** Stores, composables e componentes chamam as funções de um módulo daqui e nunca importam o axios nem o `apiClient` direto.
 
-O `src/api/client.ts` cria o `apiClient` com `baseURL: '/private/v1'` (sempre na mesma origem, nunca com host) e `timeout` de 20 s. O interceptor de resposta converte toda falha num `ApiError`, com `status` (`null` quando a requisição nem chegou ao server, e `isNetworkError` para perguntar isso), `error` (o código do `ProblemDetail` do server), `detail`, `parameters` e o erro original em `cause`. Cancelamentos e erros que não vêm do axios passam sem conversão. O interceptor não mostra nada na tela: o toast padrão para um `ApiError` vem na #22.
+O `src/api/client.ts` cria o `apiClient` com `baseURL: '/private/v1'` (sempre na mesma origem, nunca com host) e `timeout` de 20 s. O interceptor de resposta converte toda falha num `ApiError`, com `status` (`null` quando a requisição nem chegou ao server, e `isNetworkError` para perguntar isso), `error` (o código do `ProblemDetail` do server), `detail`, `parameters` e o erro original em `cause`. Cancelamentos e erros que não vêm do axios passam sem conversão. O interceptor não mostra nada na tela: o toast padrão para um `ApiError` vem do `plugins/apiErrorHandler.ts` (veja [Notificações e confirmações](#notificações-e-confirmações)). Uma chamada que trata o erro por conta própria passa `silent: true` na configuração do axios e o plugin a ignora, como o `fetchSession` faz.
 
 | Arquivo | Endpoints |
 |---|---|
@@ -108,15 +108,67 @@ Os stores de cadastro montam tudo sobre o composable `useCrudResource`, que guar
 ### Composables e utils
 
 - `src/composables/useCrudResource.ts`: a mecânica comum dos stores de cadastro (veja acima).
+- `src/composables/useNotification.ts` e `src/composables/useConfirmDialog.ts`: toasts e confirmação de exclusão (veja [Notificações e confirmações](#notificações-e-confirmações)).
+- `src/lib/utils.ts`: o `cn`, que junta classes e resolve conflitos do Tailwind. O shadcn-vue o importa de `@/lib/utils`.
 - `src/utils/pageRequest.ts`: o `PageRequest` do client (`filterText`, `status`, `current`, `size`, `direction`, `sortField`), o `createPageRequest` (página de 15, ordem por `createdOn`), o `createPageResponse` e o `toPageQuery`, que traduz um para o `PageQuery` da API.
 - `src/utils/apiErrorNotice.ts`: o `describeApiError` traduz um erro em chaves do i18n, com parâmetros e severidade (`warn` ou `error`), para quem for mostrá-lo. Devolve `null` para 401 e 403, que são tratados por navegação, e cai na mensagem genérica quando o código de erro ou o campo em conflito não tem tradução, para que nenhuma chave crua chegue à tela.
 - `src/utils/localDate.ts`: `parseLocalDate` e `formatLocalDate` convertem as datas `yyyy-mm-dd` da API sem passar pelo UTC.
 
 Um composable reutilizável vai em `src/composables/`; uma função pura sem estado reativo vai em `src/utils/`.
 
-### Componentes e rotas
+### Componentes
 
-Ainda não existem. Quando chegarem (#22), os componentes se organizam pelo papel, não pela view que primeiro precisou deles: os primitivos do shadcn-vue em `src/components/ui/`, e os demais em diretórios como `layout/` e `forms/`. Um componente reutilizável e só de apresentação vai num diretório compartilhado, não ao lado do primeiro uso. As rotas se dividem por seção (autenticação, cadastros, financeiro, configuração), cada seção com o seu layout.
+Os componentes se organizam pelo papel, não pela view que primeiro precisou deles:
+
+| Pasta | O que tem |
+|---|---|
+| `components/ui/` | os primitivos do shadcn-vue, gerados pela CLI. Não escreva testes para eles (ficam fora da cobertura) e evite editá-los à mão |
+| `components/layout/` | o shell: `TopBar`, `SideMenu`, `MenuItem`, `PageBreadcrumb`, `PageFooter`, os layouts por seção (`HomeLayout`, `RegistrationLayout`, `FinancialLayout`, `ConfigurationLayout`, `AuthLayout`) e o tipo `menu.ts` |
+| `components/` (raiz) | `PageStructure` (a moldura com barra superior, menu lateral, breadcrumb e rodapé) e `ErrorPage` |
+| `components/listing/` | `ItemsTable`, `SearchControls`, `ActionButtons`, `StatusBadge` |
+| `components/common/` | `CurrencyDisplay`, `DateTimeDisplay`, `ConfirmDialog` |
+| `components/forms/` | `StatusToggle` |
+
+Um componente reutilizável e só de apresentação vai num diretório compartilhado, não ao lado do primeiro uso.
+
+**Props e eventos da v4 foram mantidos** nos componentes de `listing/`, `common/` e `forms/`, para que as views de cadastro (#24) sigam o desenho da v4. O que muda é só o que o PrimeVue fazia por baixo:
+
+- `ItemsTable`: no lugar das `<Column>` do PrimeVue, recebe a prop `columns` (`{ field, header, sortable?, class? }`, com `header` já traduzido). Uma célula customizada vem pelo slot `cell-<campo>` (`{ item, value }`) e a coluna de ações pelo slot `actions` (`{ item }`); sem o slot `actions` a coluna não existe. Os eventos são os da v4: `pageChanged` (`{ currentPage, pageSize }`, com `currentPage` **começando em zero**, como o `pageRequest.current`), `rowSelected` (`{ data, index }`) e `tableSorted` (`{ sortField, sortOrder: 'asc' | 'desc' }`; ao remover a ordenação volta para `createdOn` ascendente). A prop `currentPage` (zero-based) marca a página atual e `loading` mostra o esqueleto.
+- `SearchControls`: os mesmos `v-model:status` e `v-model:filter` e os eventos `onFilterChange`, `onFilterReset` e `onNew`.
+- `ActionButtons`: `onEdit` e `onDelete`.
+- `StatusToggle`: recebe só o `name` e se liga ao formulário pelo `useField` do vee-validate, então vai dentro de um `useForm`.
+- `CurrencyDisplay` mostra `R$ 0,00` para o zero (a v4 não mostrava nada); `null` só mostra algo com `zeroIfNull`.
+
+### Layout e rotas
+
+O `App.vue` só tem o `<RouterView>`, o `Toaster` e o `ConfirmDialog`. Cada seção tem o seu layout, que monta a `PageStructure` e passa o menu lateral pelo slot `side-menu` como uma lista de `MenuGroup` (`label` do i18n, `items` com `label`, `icon` do Lucide e `to`). Um item sem `to` aparece desabilitado: é o que o financeiro e a configuração têm hoje.
+
+As rotas ficam em `src/router/`, um arquivo por seção: `registrationRoutes.ts`, `financialRoutes.ts`, `configurationRoutes.ts` e `publicRoutes.ts`, montados no `index.ts`. Cada seção é um registro com o layout como `component` e as telas como `children` carregadas sob demanda (`() => import(...)`); uma tela nova entra como filha do registro da sua seção. Duas chaves de `meta` valem:
+
+- `public: true` no registro do layout marca a rota como pública (o `isPublicRoute` olha todos os registros de `to.matched`). Hoje só o `/login`.
+- `breadcrumb` guarda a chave do i18n que o `PageBreadcrumb` mostra; repetir a mesma chave num filho não duplica o item. O último item é a página atual.
+
+O guard (`router/guard.ts`) é o mínimo: rota pública passa; senão, com sessão no store ou com `restoreSession()` verdadeiro passa; senão vai para `{ name: 'login', query: { redirect } }`. Os testes que chamam o `router/index.ts` precisam de um `createTestingPinia` ativo, e cada rota carregada sob demanda é coberta por um teste que resolve todos os carregadores (`router/index.test.ts`), então uma rota nova entra na contagem dele.
+
+**O `redirect` é entrada do usuário.** Quem o usa depois do login (#23) precisa aceitar só caminho interno (começando em `/`, sem `//`), nunca uma URL.
+
+### Notificações e confirmações
+
+`useNotification()` (sobre o `vue-sonner`) devolve `showSuccess`, `showInfo`, `showWarn` e `showError` com a assinatura da v4 (`título, detalhe, localizar = true`, as duas strings como chaves do i18n) e o `showApiNotice`, que mostra o que o `describeApiError` descreveu. O `Toaster` fica no `App.vue`, e o CSS do `vue-sonner` é importado no `main.ts`.
+
+O `plugins/apiErrorHandler.ts`, instalado no `main.ts`, mostra o toast de todo `ApiError` que o `describeApiError` descreve. No 401 limpa a sessão e, se a tela atual não for pública, leva ao `/login?redirect=`. O 403 não faz nada aqui: a navegação para ele é da #30.
+
+`useConfirmDialog()` devolve o `confirm(opções)` e o `confirmDelete()`, que abrem o `ConfirmDialog` (um `alert-dialog` montado uma vez no `App.vue`) e resolvem uma promessa com `true` ou `false`. Sem opções, o texto é o de exclusão da v4:
+
+```ts
+if (await confirmDelete()) {
+  await wallets.remove(id)
+}
+```
+
+### Formulários
+
+Todo formulário usa o `useForm` do vee-validate com um esquema Zod, e os campos usam os componentes de `components/ui/form` (`FormField`, `FormItem`, `FormLabel`, `FormControl`, `FormMessage`). O esquema fica em `src/schemas/<formulario>Schema.ts`, um arquivo por formulário, e é embrulhado com o `toTypedSchema` (veja `loginSchema.ts`). As mensagens de validação não ficam no esquema: o `schemas/zodErrorMap.ts`, instalado no `main.ts`, as traduz pelas chaves `validation.*` do i18n, então `z.string().min(1)` já dá "Campo obrigatório". O mapa conhece obrigatório, tamanho mínimo e máximo de texto, mínimo e máximo de número e email; uma regra nova vira uma chave em `validation` e um caso no mapa. O `zod` fica na linha 3, porque o `@vee-validate/zod` pede `^3.24`.
 
 ### i18n (`src/locales/`)
 
@@ -128,10 +180,10 @@ O código de origem fica em `D:/desenvolvimento/web-budget/front-end`, o clone d
 
 O port mantém as telas, os textos e as regras da v4. O que muda:
 
-- Nada de PrimeVue nem de Yup, nem como dependência nem como import. Os componentes vêm do shadcn-vue e os formulários usam vee-validate com Zod (#22).
+- Nada de PrimeVue nem de Yup, nem como dependência nem como import. Os componentes vêm do shadcn-vue e os formulários usam vee-validate com Zod.
 - A seção de investimentos não é portada.
 - Nada de `useApi` nem de `src/utilities/http.js`: as chamadas passam pelos módulos de `src/api/`, tipados.
-- Nada de `src/models/`: os formatos ficam em `src/types.ts` e os esquemas de formulário virão em `src/schemas/` (#22).
+- Nada de `src/models/`: os formatos ficam em `src/types.ts` e os esquemas de formulário ficam em `src/schemas/`.
 - Os stores não recebem callbacks `onSuccess`/`onError` (veja [Stores](#stores-srcstores)).
 - O client não tem `VITE_API_URL`: fala com `/private/v1` na mesma origem.
 
@@ -141,8 +193,14 @@ A autenticação é por sessão no servidor (#26): o cookie de sessão é do nav
 
 **Esconder um botão ou redirecionar uma rota é UX, não controle de acesso.** O server confere cada permissão por conta própria em cada requisição. Um `v-if` por role ou um redirecionamento do router melhora a experiência de quem usa o sistema direito e não faz nada contra quem chama a API direto, então nunca raciocine sobre o que o client esconde como se fosse a fronteira de segurança.
 
-Hoje não há guard de rotas. O guard completo (sessão, status da conta e role), o auto-cadastro e o logout por inatividade vêm na #30.
+O guard de rotas (`router/guard.ts`) só confere a sessão. O guard completo (status da conta e role), o auto-cadastro e o logout por inatividade vêm na #30.
 
 ## Estilos
 
-**Seção provisória.** O client ainda não tem Tailwind nem shadcn-vue, que chegam na #22, sob a tarefa #21. Até lá, não acrescente CSS próprio, biblioteca de componentes ou framework de estilo; esta seção será reescrita quando a base visual entrar.
+O estilo é o padrão neutro do shadcn-vue sobre o Tailwind 4, sem arquivo de configuração em JavaScript: o plugin `@tailwindcss/vite` está no `vite.config.ts` e o `src/assets/theme.css` importa o Tailwind e define os tokens (`--background`, `--primary`, `--sidebar` e companhia) para o claro e o escuro, mais o `@theme inline` que os expõe como classes. Mexer no visual é mexer nos tokens desse arquivo; o design novo vem no épico #33.
+
+- **Use os tokens, não cores fixas.** `bg-background`, `text-muted-foreground`, `border` e afins trocam sozinhos com o tema. Uma cor fixa (como o verde do `StatusBadge`) precisa de uma variante `dark:`.
+- **O tema escuro é a classe `dark` no `<html>`.** O store `appearance` (`stores/appearance.ts`) guarda a escolha em `localStorage` (`webbudget.appearance`) e aplica a classe; ele é instanciado no `main.ts`, para valer também nas telas públicas. A troca fica no menu do usuário, na `TopBar`.
+- **Ícones vêm do `lucide-vue-next`.**
+- **Componente novo do shadcn-vue:** o `components.json` já está pronto, mas a CLI só acha o alias `@/*` com um `compilerOptions.paths` no `tsconfig.json` da raiz, que aqui só tem referências. Acrescente-o à mão antes do comando, rode `pnpm dlx shadcn-vue@latest add <componente>` e **desfaça o `tsconfig.json`** depois. Confira o resultado: a CLI importou o `cn` de um pacote `cn` e os ícones do `@lucide/vue` (troque por `@/lib/utils` e `lucide-vue-next` e tire os dois do `package.json`), e o código gerado vem com aspas duplas (rode o Prettier nele).
+- **Gráficos:** o `chart.js` não está instalado. A v4 não tem gráfico em lugar nenhum (o `FinancialLayout` dela só tem ícones de gráfico); quando uma tela precisar de um, o `chart.js` entra junto com ela.

@@ -47,3 +47,9 @@ apiClient.interceptors.response.use(
   (response) => response,
   (error: unknown) => Promise.reject(toApiError(error)),
 )
+
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    silent?: boolean
+  }
+}

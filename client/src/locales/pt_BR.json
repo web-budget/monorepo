@@ -164,7 +164,8 @@
   "search-control": {
     "actions": {
       "new": "Novo",
-      "search": "Buscar"
+      "search": "Buscar",
+      "clear": "Limpar filtro"
     },
     "all": "Todos",
     "active": "Ativos",
@@ -182,6 +183,17 @@
     "footer": {
       "until": " até ",
       "total": ", total "
+    },
+    "pagination": {
+      "rows-per-page": "Linhas por página",
+      "previous": "Página anterior",
+      "next": "Próxima página",
+      "first": "Primeira página",
+      "last": "Última página"
+    },
+    "sort": {
+      "ascending": "Ordenar crescente",
+      "descending": "Ordenar decrescente"
     }
   },
   "status": {
@@ -363,5 +375,28 @@
       "income-budget": "Orçamento receitas",
       "expense-budget": "Orçamento despesas"
     }
+  },
+  "layout": {
+    "toggle-menu": "Alternar menu lateral",
+    "main-menu": "Seções",
+    "user-menu": "Menu do usuário",
+    "dark-theme": "Tema escuro",
+    "light-theme": "Tema claro",
+    "logout": "Sair",
+    "breadcrumb": "Trilha de navegação",
+    "coming-soon": "Em breve",
+    "loading": "Carregando..."
+  },
+  "confirm": {
+    "title": "Confirmação"
+  },
+  "validation": {
+    "required": "Campo obrigatório",
+    "email": "Informe um email válido",
+    "invalid": "Valor inválido",
+    "string-min": "Informe ao menos {minimum} caracteres",
+    "string-max": "Informe no máximo {maximum} caracteres",
+    "number-min": "O valor mínimo é {minimum}",
+    "number-max": "O valor máximo é {maximum}"
   }
 }
