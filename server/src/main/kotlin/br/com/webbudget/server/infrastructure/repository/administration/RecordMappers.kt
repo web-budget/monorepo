@@ -1,9 +1,11 @@
 package br.com.webbudget.server.infrastructure.repository.administration
 
+import br.com.webbudget.server.domain.entities.administration.AuthProvider
 import br.com.webbudget.server.domain.entities.administration.Grant
 import br.com.webbudget.server.domain.entities.administration.Language
 import br.com.webbudget.server.domain.entities.administration.Role
 import br.com.webbudget.server.domain.entities.administration.User
+import br.com.webbudget.server.domain.entities.administration.UserStatus
 import br.com.webbudget.server.jooq.administration.tables.records.GrantsRecord
 import br.com.webbudget.server.jooq.administration.tables.records.RolesRecord
 import br.com.webbudget.server.jooq.administration.tables.records.UsersRecord
@@ -14,7 +16,10 @@ internal fun UsersRecord.toUser(grants: List<Grant> = emptyList()): User = User(
     email = email!!,
     password = password!!,
     defaultLanguage = Language.valueOf(defaultLanguage!!),
-    grants = grants.toMutableList()
+    grants = grants.toMutableList(),
+    status = UserStatus.valueOf(status!!),
+    authProvider = AuthProvider.valueOf(authProvider!!),
+    credentialsVersion = credentialsVersion!!
 ).also { user -> user.restore(id, externalId, version, createdOn, lastUpdate) }
 
 internal fun RolesRecord.toRole(): Role = Role(name!!)

@@ -64,10 +64,8 @@ class UserService(
     }
 
     @Transactional
-    fun updatePassword(user: User, password: String) {
-        user.password = passwordEncoder.encode(password)!!
-        userRepository.update(user)
-    }
+    fun updatePassword(user: User, password: String): User =
+        userRepository.updatePassword(user, passwordEncoder.encode(password)!!)
 
     @Transactional
     fun deleteAccount(user: User) {

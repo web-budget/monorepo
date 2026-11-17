@@ -3,8 +3,10 @@ package br.com.webbudget.server.application.controllers.administration
 import br.com.webbudget.server.BaseIntegrationTest
 import org.junit.jupiter.api.Test
 import org.springframework.http.MediaType
+import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.json.JsonCompareMode
 
+@Sql("/sql/administration/clear-tables.sql")
 class RoleControllerTest : BaseIntegrationTest() {
 
     @Test
