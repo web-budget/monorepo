@@ -7,6 +7,7 @@ import br.com.webbudget.server.domain.entities.administration.User
 import br.com.webbudget.server.domain.exceptions.DomainException
 import br.com.webbudget.server.infrastructure.repository.administration.PasswordRecoverAttemptRepository
 import br.com.webbudget.server.infrastructure.repository.administration.UserRepository
+import br.com.webbudget.server.utilities.fixtures.createUser
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.assertj.core.api.Assertions.fail
@@ -34,7 +35,7 @@ class UserServiceTest : BaseIntegrationTest() {
     @Test
     fun `should save without sending the activation request`() {
 
-        val externalId = userService.createAccount(newUser(), listOf("ANY_ROLE"))
+        val externalId = userService.createAccount(createUser(), listOf("ANY_ROLE"))
         val created = userRepository.findByExternalId(externalId) ?: fail(OBJECT_NOT_FOUND_ERROR)
 
         assertThat(created.id).isNotNull
@@ -51,7 +52,7 @@ class UserServiceTest : BaseIntegrationTest() {
     @Test
     fun `should save and send the activation request`() {
 
-        userService.createAccount(newUser(), listOf("ANY_ROLE"), true)
+        userService.createAccount(createUser(), listOf("ANY_ROLE"), true)
 
         assertThat(greenMail.receivedMessages).hasSize(1)
         assertThat(greenMail.receivedMessages.first().allRecipients.map { it.toString() })
@@ -63,7 +64,7 @@ class UserServiceTest : BaseIntegrationTest() {
 
         val roles = listOf("SOME_ROLE", "ANY_ROLE", "ANY_OTHER_ROLE", "UNKNOWN_ROLE")
 
-        val externalId = userService.createAccount(newUser(), roles)
+        val externalId = userService.createAccount(createUser(), roles)
         val saved = userRepository.findByExternalId(externalId) ?: fail(OBJECT_NOT_FOUND_ERROR)
 
         assertThat(saved.grants.map { it.role.name })
@@ -73,9 +74,9 @@ class UserServiceTest : BaseIntegrationTest() {
     @Test
     fun `should not save when the e-mail is duplicated`() {
 
-        userService.createAccount(newUser(), listOf("ANY_ROLE"))
+        userService.createAccount(createUser(), listOf("ANY_ROLE"))
 
-        assertThatThrownBy { userService.createAccount(newUser(), listOf("ANY_ROLE")) }
+        assertThatThrownBy { userService.createAccount(createUser(), listOf("ANY_ROLE")) }
             .isInstanceOfSatisfying(DomainException::class.java) { exception ->
                 assertThat(exception.status).isEqualTo(HttpStatus.CONFLICT)
             }
@@ -84,7 +85,7 @@ class UserServiceTest : BaseIntegrationTest() {
     @Test
     fun `should update the account and replace the grants`() {
 
-        val externalId = userService.createAccount(newUser(), listOf("ANY_ROLE"))
+        val externalId = userService.createAccount(createUser(), listOf("ANY_ROLE"))
         val toUpdate = userRepository.findByExternalId(externalId) ?: fail(OBJECT_NOT_FOUND_ERROR)
 
         toUpdate.apply {
@@ -111,8 +112,8 @@ class UserServiceTest : BaseIntegrationTest() {
     @Test
     fun `should not update when the e-mail belongs to another account`() {
 
-        userService.createAccount(newUser(), listOf("ANY_ROLE"))
-        val externalId = userService.createAccount(newUser(email = "other@test.com"), listOf("ANY_ROLE"))
+        userService.createAccount(createUser(), listOf("ANY_ROLE"))
+        val externalId = userService.createAccount(createUser(email = "other@test.com"), listOf("ANY_ROLE"))
 
         val toUpdate = userRepository.findByExternalId(externalId) ?: fail(OBJECT_NOT_FOUND_ERROR)
         toUpdate.email = "user@test.com"
@@ -124,7 +125,7 @@ class UserServiceTest : BaseIntegrationTest() {
     @Test
     fun `should refuse a stale version`() {
 
-        val externalId = userService.createAccount(newUser(), listOf("ANY_ROLE"))
+        val externalId = userService.createAccount(createUser(), listOf("ANY_ROLE"))
 
         val first = userRepository.findByExternalId(externalId) ?: fail(OBJECT_NOT_FOUND_ERROR)
         val second = userRepository.findByExternalId(externalId) ?: fail(OBJECT_NOT_FOUND_ERROR)
@@ -143,7 +144,7 @@ class UserServiceTest : BaseIntegrationTest() {
     @Test
     fun `should update the password`() {
 
-        val externalId = userService.createAccount(newUser(), listOf("ANY_ROLE"))
+        val externalId = userService.createAccount(createUser(), listOf("ANY_ROLE"))
         val toUpdate = userRepository.findByExternalId(externalId) ?: fail(OBJECT_NOT_FOUND_ERROR)
 
         userService.updatePassword(toUpdate, "new-secret")
@@ -156,7 +157,7 @@ class UserServiceTest : BaseIntegrationTest() {
     @Test
     fun `should delete the account with its grants and attempts`() {
 
-        val externalId = userService.createAccount(newUser(), listOf("ANY_ROLE"), true)
+        val externalId = userService.createAccount(createUser(), listOf("ANY_ROLE"), true)
         val toDelete = userRepository.findByExternalId(externalId) ?: fail(OBJECT_NOT_FOUND_ERROR)
 
         userService.deleteAccount(toDelete)
@@ -177,15 +178,7 @@ class UserServiceTest : BaseIntegrationTest() {
     @Test
     fun `should not delete an account that was never saved`() {
 
-        assertThatThrownBy { userService.deleteAccount(newUser()) }
+        assertThatThrownBy { userService.deleteAccount(createUser()) }
             .isInstanceOf(IllegalArgumentException::class.java)
     }
-
-    private fun newUser(email: String = "user@test.com") = User(
-        active = false,
-        name = "User",
-        email = email,
-        password = "s3cr3t",
-        defaultLanguage = PT_BR
-    )
 }
