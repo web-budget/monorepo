@@ -6,7 +6,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_4
 
 plugins {
-    kotlin("jvm") version "2.4.10"
+    kotlin("jvm") version "2.4.21"
     kotlin("plugin.spring") version "2.4.10"
 
     id("org.springframework.boot") version "4.1.2"
