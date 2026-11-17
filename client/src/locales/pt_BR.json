@@ -390,9 +390,14 @@
   "confirm": {
     "title": "Confirmação"
   },
+  "password-input": {
+    "show": "Mostrar senha",
+    "hide": "Ocultar senha"
+  },
   "validation": {
     "required": "Campo obrigatório",
     "email": "Informe um email válido",
+    "password-mismatch": "A confirmação deve ser igual à senha",
     "invalid": "Valor inválido",
     "string-min": "Informe ao menos {minimum} caracteres",
     "string-max": "Informe no máximo {maximum} caracteres",
