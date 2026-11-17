@@ -5,7 +5,7 @@ export const configurationRoutes: RouteRecordRaw[] = [
   {
     path: '/configuration',
     component: ConfigurationLayout,
-    meta: { breadcrumb: 'menu.configuration' },
+    meta: { breadcrumb: 'menu.configuration', role: 'ADMINISTRATION' },
     children: [
       {
         path: '',

@@ -6,7 +6,7 @@ export const registrationRoutes: RouteRecordRaw[] = [
   {
     path: '/registration',
     component: RegistrationLayout,
-    meta: { breadcrumb: 'menu.registration' },
+    meta: { breadcrumb: 'menu.registration', role: 'REGISTRATION' },
     children: [
       {
         path: '',

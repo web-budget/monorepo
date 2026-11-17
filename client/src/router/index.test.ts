@@ -104,3 +104,22 @@ describe('registration crud routes', () => {
     expect(list?.props.default).toBeFalsy()
   })
 })
+
+describe('role of each section', () => {
+  it.each([
+    ['/registration', 'REGISTRATION'],
+    ['/registration/wallets/create', 'REGISTRATION'],
+    ['/financial', 'FINANCIAL'],
+    ['/configuration', 'ADMINISTRATION'],
+  ])('asks for the role of the area on %s', (path, role) => {
+    expect(router.resolve(path).matched.map((record) => record.meta.role)).toContain(role)
+  })
+
+  it('asks for no role on the home page nor on the public screens', () => {
+    for (const path of ['/', '/login', '/error/forbidden', '/auth/forgot-password']) {
+      expect(router.resolve(path).matched.some((record) => record.meta.role !== undefined)).toBe(
+        false,
+      )
+    }
+  })
+})

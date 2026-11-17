@@ -25,6 +25,12 @@ function createRouterAt() {
     routes: [
       { path: '/private', component: { render: () => h('div') } },
       {
+        path: '/error/forbidden',
+        name: '403',
+        meta: { public: true },
+        component: { render: () => h('div') },
+      },
+      {
         path: '/login',
         name: 'login',
         meta: { public: true },
@@ -79,6 +85,69 @@ describe('installApiErrorHandler', () => {
     expect(router.currentRoute.value.name).toBe('login')
     expect(router.currentRoute.value.query.redirect).toBe('/private')
     expect(toast.error).not.toHaveBeenCalled()
+  })
+
+  it('expires the session of an authenticated user whose request is answered with a 401', async () => {
+    const router = createRouterAt()
+    await router.push('/private')
+    const auth = useAuthStore()
+    auth.session = { name: 'Ana', email: 'ana@example.com', status: 'APPROVED', roles: [] }
+    const client = createClient({ status: 401, data: { error: 'session-revoked' } }, router)
+
+    await expect(client.get('/x')).rejects.toMatchObject({ status: 401 })
+
+    expect(auth.expireSession).toHaveBeenCalledExactlyOnceWith('expired')
+    expect(auth.clearSession).not.toHaveBeenCalled()
+    expect(router.currentRoute.value.fullPath).toBe('/private')
+  })
+
+  it.each(['invalid-credentials', 'account-disabled'])(
+    'leaves a login rejected with %s to the login screen',
+    async (error) => {
+      const router = createRouterAt()
+      await router.push('/private')
+      const auth = useAuthStore()
+      const client = createClient({ status: 401, data: { error } }, router)
+
+      await expect(client.post('/auth/login')).rejects.toMatchObject({ status: 401, error })
+
+      expect(auth.expireSession).not.toHaveBeenCalled()
+      expect(auth.clearSession).not.toHaveBeenCalled()
+      expect(router.currentRoute.value.fullPath).toBe('/private')
+    },
+  )
+
+  it('sends the user to the forbidden page when the server refuses the role', async () => {
+    const router = createRouterAt()
+    await router.push('/private')
+    const client = createClient({ status: 403, data: { error: 'forbidden' } }, router)
+
+    await expect(client.get('/x')).rejects.toMatchObject({ status: 403 })
+
+    expect(router.currentRoute.value.name).toBe('403')
+    expect(toast.error).not.toHaveBeenCalled()
+  })
+
+  it('leaves a pending approval to its own screen', async () => {
+    const router = createRouterAt()
+    await router.push('/private')
+    const client = createClient({ status: 403, data: { error: 'pending_approval' } }, router)
+
+    await expect(client.get('/x')).rejects.toMatchObject({ status: 403 })
+
+    expect(router.currentRoute.value.fullPath).toBe('/private')
+    expect(toast.error).not.toHaveBeenCalled()
+  })
+
+  it('tells the user when the server rejects the CSRF token', async () => {
+    const router = createRouterAt()
+    await router.push('/private')
+    const client = createClient({ status: 403, data: { error: 'invalid-csrf-token' } }, router)
+
+    await expect(client.post('/x')).rejects.toMatchObject({ status: 403 })
+
+    expect(toast.error).toHaveBeenCalledWith('Requisição não autorizada', expect.anything())
+    expect(router.currentRoute.value.fullPath).toBe('/private')
   })
 
   it('stays on a public route after a 401', async () => {
