@@ -20,7 +20,7 @@ export const financialPeriodSchema = z
       context.addIssue({
         code: z.ZodIssueCode.custom,
         path: ['endingAt'],
-        params: { i18nKey: 'end-before-start' },
+        params: { i18n: 'end-before-start' },
       })
     }
   })
