@@ -28,12 +28,12 @@ O Kover pendura o `koverVerify` no `check`, então o `build` já falha quando a 
 ## Stack
 
 - Kotlin 2.4.10 (`jvm` e `plugin.spring`) com `jvmTarget` 25, `languageVersion` e `apiVersion` 2.4 e os argumentos `-Xjsr305=strict` e `-Xemit-jvm-type-annotations`. O toolchain Java é o 25 e o Gradle vem do wrapper.
-- Spring Boot 4.1.2 com os starters `webmvc` (servlet, não WebFlux), `jooq`, `liquibase`, `security`, `validation` e `actuator`. As threads virtuais estão ligadas.
+- Spring Boot 4.1.2 com os starters `webmvc` (servlet, não WebFlux), `jooq`, `liquibase`, `security`, `validation`, `actuator`, `mail` e `thymeleaf` (só para os e-mails), mais `spring-data-commons` explícito para `Pageable` e `PagedModel`. As threads virtuais estão ligadas.
 - PostgreSQL 18 (`postgres:18-alpine`), tanto no `compose.yaml` quanto no Testcontainers.
 - jOOQ 3.21.7 com o plugin `org.jooq.jooq-codegen-gradle`, que gera as classes Kotlin das tabelas no build (veja [Codegen do jOOQ](#codegen-do-jooq)).
 - Jackson 3 (`tools.jackson.module:jackson-module-kotlin`) e `kotlin-reflect` para Jackson e Spring.
 - `io.github.oshai:kotlin-logging-jvm` para log com `KotlinLogging.logger {}`.
-- Kover 0.9.9 para cobertura.
+- Kover 0.9.9 para cobertura. Nos testes, GreenMail recebe os e-mails e o `RestTestClient` chama a API (veja [Testes e cobertura](#testes-e-cobertura)).
 
 ## Convenções de código
 
@@ -66,15 +66,15 @@ A regra vale tanto para o nome da variável em Kotlin quanto para a string do al
 
 ## Arquitetura
 
-Hoje o `server/` tem só o `ServerApplication.kt`, o bootstrap `@SpringBootApplication`. O código portado da v4 entra na estrutura em três camadas dela, agora sob `br.com.webbudget.server`:
+O código portado da v4 vive nas três camadas dela, sob `br.com.webbudget.server`. O módulo `administration` já está portado e é a referência dos padrões das seções abaixo:
 
 | Pacote | O que fica nele |
 |---|---|
 | `application/` | Controllers, payloads (requisição e resposta) e mappers. Nenhuma regra de negócio. |
 | `domain/` | Serviços, entidades, validadores, exceções e e-mails (`mail/`). Todas as regras de negócio. |
-| `infrastructure/` | Configuração do Spring (`config/`), repositórios (`repositories/`) e utilitários (`utilities/`). Usada pelas outras duas camadas. |
+| `infrastructure/` | Configuração do Spring (`config/`), repositórios (`repository/`) e utilitários (`utilities/`). Usada pelas outras duas camadas. |
 
-Dentro de cada camada, o código se divide pelas áreas da v4, que são também os schemas do banco: `administration`, `registration` e `financial` (por exemplo `application/controllers/registration`, `domain/services/financial`, `infrastructure/repositories/administration`). Não existem pacotes planos por funcionalidade: todo código novo entra numa das três camadas.
+Dentro de cada camada, o código se divide pelas áreas da v4, que são também os schemas do banco: `administration`, `registration` e `financial` (por exemplo `application/controllers/registration`, `domain/services/financial`, `infrastructure/repository/administration`). Não existem pacotes planos por funcionalidade: todo código novo entra numa das três camadas.
 
 ### Validadores
 
@@ -105,6 +105,41 @@ class WalletService(
 ```
 
 Uma regra nova é um validador novo com a anotação certa, não um `if` a mais no serviço.
+
+### Persistência com jOOQ
+
+Os repositórios são classes `@Repository` com o `DSLContext` injetado, em `infrastructure/repository/<módulo>/`, sobre as tabelas de `br.com.webbudget.server.jooq`. Não existe `JpaRepository`, `Specification` nem camada ORM. As regras:
+
+- **Entidades são classes Kotlin simples** em `domain/entities/<módulo>/`, sem anotação de persistência e herdando de `PersistentEntity` (`id`, `externalId`, `version`, `createdOn`, `lastUpdate`). Não use `data class` em entidades que se referenciam (`toString` e `hashCode` recursivos). As relações são carregadas explicitamente pelo repositório: `User.grants` vem de `GrantRepository.findByUserIds`, uma consulta só para a página inteira, e nunca de um lazy-load.
+- **Aliases com nome completo**, como no resto do código: `val users = USERS.as("users")` nas consultas. `INSERT`, `UPDATE` e `DELETE` usam a tabela sem alias.
+- **Quem preenche os campos de controle é o repositório**: `externalId` (`UUID.randomUUID()`), `version = 0` e `createdOn` na inserção, `lastUpdate` e `version + 1` na atualização. O `INSERT ... RETURNING` e o `UPDATE ... RETURNING` devolvem a linha, e o repositório devolve a mesma entidade preenchida pelo `restore(...)`.
+- **Controle otimista de `version` no `UPDATE`**: `UPDATE ... WHERE id = ? AND version = ?`. Nenhuma linha atualizada lança `concurrentUpdate()` (`OptimisticLocking.kt`), um `DomainException.conflict` com o erro `concurrent-update` e status 409. Todo `update` de repositório novo segue isso.
+- **Os filtros que a v4 fazia com `Specification` viram `Condition` do jOOQ montado dentro do repositório**, a partir de parâmetros simples (`filter: String?`, `active: Boolean?`). O payload de filtro (`UserFilter`) não conhece jOOQ.
+- **Exclusões que o JPA fazia em cascata são explícitas no serviço**: apagar um usuário apaga antes os grants e as tentativas de ativação e de recuperação.
+- As consultas `existsBy...` do jOOQ (`dsl.fetchExists`) substituem os `findBy...` que os validadores usavam só para checar existência.
+
+### Paginação
+
+`infrastructure/repository/Paging.kt` concentra o padrão, e o `WebMvcConfiguration` liga o `@EnableSpringDataWebSupport` que resolve o `Pageable` dos controllers:
+
+- `pagedModelOf(content, pageable, total)` devolve o `PagedModel<T>` que o repositório retorna. O JSON sai como `content` mais `page { size, number, totalElements, totalPages }`, o mesmo da v4.
+- `PagedModel<T>.map { }` converte as entidades em views no controller, sem o repositório conhecer o payload.
+- `Pageable.toOrderBy(sortable, tiebreaker)` traduz o `sort` da requisição para colunas conhecidas (um `Map<String, Field<*>>` por repositório) e sempre acrescenta um desempate por `id`, então a ordem é determinística. Propriedades de `sort` desconhecidas são ignoradas.
+- A contagem é `dsl.fetchCount(tabela, condição)` com a mesma condição da página.
+
+### Rotas, erros e segurança provisória
+
+- **Todo `@RestController` sai sob `/private/{version}`**: o `WebMvcConfiguration` acrescenta o prefixo a todo controller (versionamento por segmento, `v1` como padrão). O `@RequestMapping` do controller leva só o caminho do módulo, por exemplo `@RequestMapping("/administration/users")`, que responde em `/private/v1/administration/users`. O `Location` de um `201` já sai com o prefixo.
+- **Erros são `ProblemDetail` (RFC 7807)**, produzidos pelo `ExceptionHandlerAdvice` (uma subclasse de `ResponseEntityExceptionHandler`). O código de máquina fica na propriedade **`error`** (`field-validation-failed`, `resource-not-found`, `conflicting-properties`, `concurrent-update`, `invalid-token`, `bad-request`, `data-integrity-violation`, `internal-error`), e `parameters` leva os valores de contexto, por exemplo o mapa campo → código das violações de validação (`422`) ou a propriedade em conflito (`409`). A v4 chamava o campo de `code`; o client lê `error`.
+- As exceções de domínio são `DomainException` (regra violada, `400` por padrão, `DomainException.conflict(...)` para `409`) e `ApplicationException` (`ResourceNotFoundException` é `404`). Os códigos de domínio ficam em `domain/exceptions/ErrorCodes.kt`, e os códigos das mensagens de validação de campo (`is-null-or-blank` e afins) em `application/payloads/ErrorCodes.kt`. `IllegalArgumentException`, violações de integridade e erros de acesso a dados respondem `400` genérico, e qualquer outra exceção `500` genérico: a mensagem real só vai para o log. Um `AccessDeniedException` é relançado para o Spring Security tratar.
+- **Status herdados da v4, de propósito**: `DELETE` e `PATCH` sem corpo respondem `200` (`ResponseEntity<Void>`), não `204`; `POST` responde `201` com `Location`; validação de corpo responde `422`.
+- **O `JacksonConfiguration` define a leitura dos payloads**: strings viram `null` quando vazias ou só com espaços (então `""` cai em `is-null-or-blank` e não em erro de formato), enum desconhecido vira `null`, propriedades desconhecidas são ignoradas e `null` não é serializado.
+- **A segurança é provisória até a #26.** O `SecurityConfiguration` só traz as regras de caminho por role de área sob `/private/v1` (`/administration` para `ADMINISTRATION`, `/registration`, `/financial` e `/dashboards` para as outras), `/private/v1/accounts/**` e os endpoints `health` e `info` do Actuator públicos, o resto autenticado, o CSRF desligado e `401` para quem não está autenticado (`403` para quem está sem a role). Não há mecanismo de login, e o `UserDetailsService` é um `InMemoryUserDetailsManager` vazio só para o Spring Boot não gerar um usuário com senha aleatória. Não existe JWT, `httpBasic` nem CORS, e a #26 não os traz de volta. As roles são autoridades `ROLE_<NOME>`.
+- **O admin inicial** (`admin@webbudget.com.br`, com todas as roles) é criado na subida pelo `AdminUserBootstrap` quando não existe, com uma senha aleatória que sai só no log.
+
+### E-mails
+
+Os e-mails do módulo (ativação de conta e recuperação de senha) saem pelo `MailSenderService`, que renderiza um template Thymeleaf de `src/main/resources/mail-templates/` (um por idioma, `<nome>-<en_US|pt_BR>.html`, escolhido pelo `defaultLanguage` do usuário) e envia pelo SMTP de `spring.mail.*` (o Maildev do `compose.yaml` no `bootRun`, interface em `http://localhost:1080`). Uma classe `MailTemplate` por e-mail, em `domain/mail/`, define o assunto e as variáveis. O envio é `@Async` (fora do perfil `test`, onde roda síncrono). As propriedades `web-budget.mail.*` e a `web-budget.frontend-url`, usada só para montar os links dos e-mails, vêm do `application.yaml`.
 
 ## Portabilidade da v4
 
@@ -153,19 +188,24 @@ As classes do jOOQ são geradas no build, a partir do changelog, e nunca vão pa
 - O código gerado fica em `build/generated-sources/jooq/main`, no pacote `br.com.webbudget.server.jooq` (por exemplo `br.com.webbudget.server.jooq.registration.tables.Wallets`), e está fora do git (pelo `build/` do `.gitignore`) e da cobertura do Kover.
 - Um SHA-256 de todos os arquivos de `db/changelog` fica em `build/jooq-codegen-changelog.sha256`. Enquanto o digest não muda, `startJooqDb`, `jooqCodegen` e `stopJooqDb` são puladas e o Docker nem é tocado nessa etapa. Mudou um changelog, a geração roda de novo; um `./gradlew clean` apaga o marcador e também força a regeneração.
 - O gerador avisa `Ambiguous key name` para `registration.fk_parent_on_cost_centers` (a FK de `cost_centers` para ela mesma, herdada da v4). É só um aviso das *implicit join paths*, e a geração termina normalmente.
-- O jOOQ gerado só serve de base para os repositórios da tarefa #12; o build não traz nenhum repositório jOOQ ainda.
+- O jOOQ gerado é a base dos repositórios (veja [Persistência com jOOQ](#persistência-com-jooq)).
 
 ## Testes e cobertura
 
 - JUnit 5 com `kotlin-test-junit5`, `useJUnitPlatform()` e `maxParallelForks = 4`. O número de forks é limitado para evitar disputa no Docker quando vários forks sobem um contêiner do Testcontainers ao mesmo tempo.
 - `TestcontainersConfiguration` registra um Postgres `postgres:18-alpine` como `@ServiceConnection`, e os testes `@SpringBootTest` o importam com `@Import(TestcontainersConfiguration::class)`, como faz `ServerApplicationTests`. O Docker precisa estar ligado para rodar os testes.
-- Os testes de integração rodam contra esse Postgres real, sem MockK nem outro framework de mock de objetos.
+- Os testes de integração rodam contra esse Postgres real, sem MockK nem outro framework de mock de objetos. O que na v4 era teste de controller com mock é teste de integração: a chamada passa pelo controller, pelo serviço e pelo repositório de verdade.
+- **Todo teste de integração estende `BaseIntegrationTest`**: `@SpringBootTest` no ambiente `MOCK`, com `@AutoConfigureMockMvc` e `@AutoConfigureRestTestClient`, perfil `test` e o `@Import` do `TestcontainersConfiguration` e do `MailTestConfiguration`. Todas as classes compartilham o mesmo contexto (um contêiner Postgres por fork), então **não use `@DirtiesContext`** nem configuração própria por classe. O `RestTestClient` (`restTestClient`) fala com o MockMvc, com o filtro do Spring Security aplicado, e as URLs são as reais, com `/private/v1`.
+- **A autenticação dos testes fica num helper só**, no `BaseIntegrationTest`: `authenticateWithRoles(...)` põe no contexto de segurança um usuário com as roles pedidas, `authenticateAnonymously()` limpa o contexto, e cada teste começa autenticado com todas as roles. A #26 troca o corpo desses dois métodos pelo login e pelo cookie de sessão, sem mexer nos testes.
+- **O e-mail dos testes** é um `GreenMail` com porta dinâmica (nunca fixa, por causa dos forks em paralelo), exposto como o bean `greenMail`. O `BaseIntegrationTest` limpa as caixas antes de cada teste, e o teste lê `greenMail.receivedMessages`.
+- **Dados de teste são SQL em `src/test/resources/sql/<módulo>/`**, carregados com `@Sql`. O `clear-tables.sql` apaga só o que o teste cria e **preserva as quatro roles do changelog e o admin criado na subida**; as roles de teste (`ANY_ROLE` e afins) e os usuários de teste entram por `create-authorities.sql` e `create-user.sql`, referenciando as roles do changelog pelo nome, sem ids fixos de coluna de identidade. Um módulo novo traz os seus próprios arquivos e o seu `clear-tables.sql`.
+- Um controller que só existe para os testes (como o `ErrorProbeController`, que exercita o `ExceptionHandlerAdvice`) fica em `src/test/kotlin`, no pacote que ele testa.
 - `TestServerApplication` é um `main` alternativo que sobe a aplicação com o `TestcontainersConfiguration`, contra um Postgres descartável.
 
 O Kover mede a suíte, e o `koverVerify` impõe pisos sobre ela em `kover.reports.verify`, no `build.gradle.kts`. Os filtros excluem `ServerApplication`, `ServerApplicationKt` e o pacote gerado `br.com.webbudget.server.jooq`, e valem igual para os relatórios XML e HTML e para o `koverVerify`.
 
-**Os pisos de LINE, INSTRUCTION e BRANCH começam em 0 e só sobem.** Eles sobem ao fim de cada subtarefa de portabilidade, até o que a suíte atinge naquele momento. Um PR pode subir um número, nunca baixá-lo: baixar um piso é a cara de uma regressão de cobertura num diff. Com os pisos no que a suíte atinge, um PR que traz código de produção sem teste fica vermelho, então os testes entram junto com a funcionalidade.
+**Os pisos de LINE, INSTRUCTION e BRANCH só sobem.** Eles começaram em 0, subiram para 99, 99 e 84 com o módulo `administration` (#13) e sobem ao fim de cada subtarefa de portabilidade, até o que a suíte atinge naquele momento, arredondado para baixo. Um PR pode subir um número, nunca baixá-lo: baixar um piso é a cara de uma regressão de cobertura num diff. Com os pisos no que a suíte atinge, um PR que traz código de produção sem teste fica vermelho, então os testes entram junto com a funcionalidade.
 
 ## Manutenção deste arquivo
 
-Todo PR que muda algo descrito aqui atualiza este arquivo no mesmo PR. As tarefas #12 e #25 acrescentam as seções de persistência (repositórios jOOQ), de testes e de autenticação, quando o código delas existir.
+Todo PR que muda algo descrito aqui atualiza este arquivo no mesmo PR. A #26 e a #25 atualizam a parte de segurança e de autenticação (o `SecurityConfiguration` provisório e o helper de autenticação dos testes) quando o código delas existir.

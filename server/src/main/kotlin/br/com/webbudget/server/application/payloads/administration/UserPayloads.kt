@@ -39,7 +39,7 @@ data class UserUpdateForm(
 
 data class PasswordChangeForm(
     @field:NotNull(message = IS_NULL)
-    var temporary: Boolean,
+    val temporary: Boolean,
     @field:NotBlank(message = IS_NULL_OR_BLANK)
     val password: String
 )

@@ -26,12 +26,4 @@ abstract class PersistentEntity {
     }
 
     fun isSaved(): Boolean = id != null
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is PersistentEntity) return false
-        return id == other.id && externalId == other.externalId
-    }
-
-    override fun hashCode(): Int = 31 * (id?.hashCode() ?: 0) + (externalId?.hashCode() ?: 0)
 }

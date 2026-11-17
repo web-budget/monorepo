@@ -132,17 +132,17 @@ kover {
                 bound {
                     coverageUnits = LINE
                     aggregationForGroup = COVERED_PERCENTAGE
-                    minValue = 0
+                    minValue = 99
                 }
                 bound {
                     coverageUnits = INSTRUCTION
                     aggregationForGroup = COVERED_PERCENTAGE
-                    minValue = 0
+                    minValue = 99
                 }
                 bound {
                     coverageUnits = BRANCH
                     aggregationForGroup = COVERED_PERCENTAGE
-                    minValue = 0
+                    minValue = 84
                 }
             }
         }

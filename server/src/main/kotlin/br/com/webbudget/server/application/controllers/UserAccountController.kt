@@ -22,7 +22,7 @@ class UserAccountController(
     @PatchMapping("/activate")
     fun activateAccount(@RequestBody @Valid form: ActivateAccountForm): ResponseEntity<Void> {
 
-        accountActivationService.activate(requireNotNull(form.token), requireNotNull(form.email))
+        accountActivationService.activate(form.token!!, form.email!!)
 
         return ResponseEntity.ok().build()
     }
@@ -30,7 +30,7 @@ class UserAccountController(
     @PatchMapping("/forgot-password")
     fun forgotPassword(@RequestBody @Valid form: ForgotPasswordForm): ResponseEntity<Void> {
 
-        recoverPasswordService.registerRecoveryAttempt(requireNotNull(form.email))
+        recoverPasswordService.registerRecoveryAttempt(form.email!!)
 
         return ResponseEntity.accepted().build()
     }
@@ -39,9 +39,9 @@ class UserAccountController(
     fun recoverPassword(@RequestBody @Valid form: RecoverPasswordForm): ResponseEntity<Void> {
 
         recoverPasswordService.recover(
-            requireNotNull(form.password),
-            requireNotNull(form.token),
-            requireNotNull(form.email)
+            form.password!!,
+            form.token!!,
+            form.email!!
         )
 
         return ResponseEntity.ok().build()

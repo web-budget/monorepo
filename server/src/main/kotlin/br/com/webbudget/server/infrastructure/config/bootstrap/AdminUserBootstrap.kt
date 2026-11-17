@@ -9,6 +9,8 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.stereotype.Component
+import java.security.SecureRandom
+import java.util.Base64
 
 private val logger = KotlinLogging.logger {}
 
@@ -43,11 +45,12 @@ class AdminUserBootstrap(
         logger.warn { "Initial password is $initialPassword change it as soon as possible" }
     }
 
-    private fun generateInitialPassword(): String = "Admin@" + (MIN_RANGE..MAX_RANGE).random()
+    private fun generateInitialPassword(): String = ByteArray(PASSWORD_BYTES)
+        .also { bytes -> SecureRandom().nextBytes(bytes) }
+        .let { bytes -> Base64.getUrlEncoder().withoutPadding().encodeToString(bytes) }
 
     companion object {
-        private const val MIN_RANGE = 1000
-        private const val MAX_RANGE = 9999
+        private const val PASSWORD_BYTES = 18
 
         private val ALL_ROLES = listOf(Role.ADMINISTRATION, Role.REGISTRATION, Role.FINANCIAL, Role.DASHBOARDS)
     }
