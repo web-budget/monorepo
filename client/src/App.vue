@@ -1,11 +1,10 @@
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import ConfirmDialog from '@/components/common/ConfirmDialog.vue'
+import { Toaster } from '@/components/ui/sonner'
+</script>
 
 <template>
-  <h1>You did it!</h1>
-  <p>
-    Visit <a href="https://vuejs.org/" target="_blank" rel="noopener">vuejs.org</a> to read the
-    documentation
-  </p>
+  <RouterView />
+  <Toaster position="top-center" />
+  <ConfirmDialog />
 </template>
-
-<style scoped></style>

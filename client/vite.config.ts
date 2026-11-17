@@ -4,10 +4,21 @@ import { fileURLToPath, URL } from 'node:url'
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import vueDevTools from 'vite-plugin-vue-devtools'
+import tailwindcss from '@tailwindcss/vite'
+import { readFileSync } from 'node:fs'
+
+const { version } = JSON.parse(
+  readFileSync(new URL('./package.json', import.meta.url), 'utf-8'),
+) as {
+  version: string
+}
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [vue(), vueDevTools()],
+  plugins: [vue(), tailwindcss(), vueDevTools()],
+  define: {
+    __APP_VERSION__: JSON.stringify(version),
+  },
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
@@ -31,7 +42,14 @@ export default defineConfig({
       provider: 'v8',
       reporter: ['text', 'html', 'lcov'],
       include: ['src/**/*.{ts,vue}'],
-      exclude: ['src/**/*.test.ts', 'src/test/**', 'src/main.ts', 'src/types.ts', 'src/api/**'],
+      exclude: [
+        'src/**/*.test.ts',
+        'src/test/**',
+        'src/main.ts',
+        'src/types.ts',
+        'src/api/**',
+        'src/components/ui/**',
+      ],
       thresholds: {
         statements: 100,
         lines: 100,
