@@ -64,19 +64,17 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
 
-    // paging (PagedModel and Pageable resolution)
+    developmentOnly("org.springframework.boot:spring-boot-docker-compose")
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+
     implementation("org.springframework.data:spring-data-commons")
 
     // logging
     implementation("io.github.oshai:kotlin-logging-jvm:$kotlinLoggingJvmVersion")
 
-    // kotlin thing
+    // kotlin things
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("tools.jackson.module:jackson-module-kotlin")
-
-    // dev utils
-    developmentOnly("org.springframework.boot:spring-boot-docker-compose")
-    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
     // database
     runtimeOnly("org.postgresql:postgresql")

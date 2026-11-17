@@ -22,7 +22,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 import org.springframework.web.context.request.WebRequest
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler
 
-private val logger = KotlinLogging.logger {}
+private val log = KotlinLogging.logger {}
 
 @RestControllerAdvice
 class ExceptionHandlerAdvice : ResponseEntityExceptionHandler() {
@@ -37,19 +37,19 @@ class ExceptionHandlerAdvice : ResponseEntityExceptionHandler() {
 
     @ExceptionHandler(IllegalArgumentException::class)
     fun handle(exception: IllegalArgumentException): ProblemDetail {
-        br.com.webbudget.server.application.controllers.logger.error(exception) { "Illegal argument exception" }
+        log.error(exception) { "Illegal argument exception" }
         return buildProblem(HttpStatus.BAD_REQUEST, BAD_REQUEST, GENERIC_BAD_REQUEST_DETAIL)
     }
 
     @ExceptionHandler(DataIntegrityViolationException::class)
     fun handle(exception: DataIntegrityViolationException): ProblemDetail {
-        br.com.webbudget.server.application.controllers.logger.error(exception) { "Data integrity violation" }
+        log.error(exception) { "Data integrity violation" }
         return buildProblem(HttpStatus.BAD_REQUEST, DATA_INTEGRITY_VIOLATION, GENERIC_DATA_INTEGRITY_DETAIL)
     }
 
     @ExceptionHandler(NonTransientDataAccessException::class)
     fun handle(exception: NonTransientDataAccessException): ProblemDetail {
-        br.com.webbudget.server.application.controllers.logger.error(exception) { "Non transient data access exception" }
+        log.error(exception) { "Non transient data access exception" }
         return buildProblem(HttpStatus.BAD_REQUEST, BAD_REQUEST, GENERIC_BAD_REQUEST_DETAIL)
     }
 
@@ -61,7 +61,7 @@ class ExceptionHandlerAdvice : ResponseEntityExceptionHandler() {
 
     @ExceptionHandler(Exception::class)
     fun handle(exception: Exception): ProblemDetail {
-        br.com.webbudget.server.application.controllers.logger.error(exception) { "Unexpected exception" }
+        log.error(exception) { "Unexpected exception" }
         return buildProblem(HttpStatus.INTERNAL_SERVER_ERROR, INTERNAL_ERROR, GENERIC_INTERNAL_ERROR_DETAIL)
     }
 
