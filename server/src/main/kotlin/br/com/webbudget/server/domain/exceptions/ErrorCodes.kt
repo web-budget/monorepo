@@ -17,4 +17,8 @@ object ErrorCodes {
     const val INVALID_CSRF_TOKEN = "invalid-csrf-token"
 
     const val PENDING_APPROVAL = "pending_approval"
+
+    const val ACCOUNTED_PERIOD_MOVEMENT = "accounted-period-movement"
+    const val FINANCIAL_PERIOD_NOT_OPEN = "financial-period-not-open"
+    const val RECURRING_MOVEMENT_NOT_ACTIVE = "recurring-movement.errors.invalid-state"
 }
