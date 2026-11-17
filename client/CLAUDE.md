@@ -45,6 +45,8 @@ O Pinia tem uma regra que decide sozinha:
 
 O `createTestingPinia()` troca todas as ações por spies, que é o que um teste de componente quer: as ações viram algo para conferir e nenhuma chamada à API escapa. Passe `{ stubActions: false }` só quando o comportamento testado *é* a ação de verdade rodando. Os testes de store mockam o módulo da API com `vi.mock('@/api/<recurso>')`, como em `src/stores/auth.test.ts`.
 
+Duas armadilhas disso: sob o `createTestingPinia`, `hasRole` do `auth` também vira spy, então um teste de componente ou de guard que depende de role precisa de `vi.mocked(auth.hasRole).mockImplementation(...)`, senão toda seção some. E o store `auth` importa o router, então o `auth.test.ts` mocka `@/router` com `vi.mock`.
+
 Confira o que aparece na tela, os eventos emitidos e as interações do usuário, nunca o `wrapper.vm` ou métodos privados, que prendem o teste à implementação e quebram na primeira refatoração. Nada de teste só de snapshot: um snapshot que ninguém lê continua passando com a funcionalidade quebrada.
 
 A cobertura é medida pelo `pnpm test:coverage` (provider v8, relatório em `client/coverage/`) e **imposta**: `coverage.thresholds` no `vite.config.ts` define um piso para statements, lines, functions e branches, e o CI roda esse comando, então um PR que derruba qualquer um dos quatro abaixo do piso quebra o build. O piso hoje é **100% nos quatro**. Ficam fora do conjunto medido os arquivos de teste, `src/test/**`, `src/main.ts`, `src/types.ts`, `src/api/**` e `src/components/ui/**` (o código que a CLI do shadcn-vue gera).
@@ -115,7 +117,7 @@ Os stores de cadastro montam tudo sobre o composable `useCrudResource`, que guar
 - `src/composables/useCrudList.ts`, `useCrudForm.ts`, `useCrudDetail.ts` e `useServerErrors.ts`: a mecânica das telas de cadastro (veja [Cadastros](#cadastros)).
 - `src/lib/utils.ts`: o `cn`, que junta classes e resolve conflitos do Tailwind. O shadcn-vue o importa de `@/lib/utils`.
 - `src/utils/pageRequest.ts`: o `PageRequest` do client (`filterText`, `status`, `current`, `size`, `direction`, `sortField`), o `createPageRequest` (página de 15, ordem por `createdOn`), o `createPageResponse` e o `toPageQuery`, que traduz um para o `PageQuery` da API.
-- `src/utils/apiErrorNotice.ts`: o `describeApiError` traduz um erro em chaves do i18n, com parâmetros e severidade (`warn` ou `error`), para quem for mostrá-lo. Devolve `null` para 401 e 403, que são tratados por navegação, e cai na mensagem genérica quando o código de erro ou o campo em conflito não tem tradução, para que nenhuma chave crua chegue à tela.
+- `src/utils/apiErrorNotice.ts`: o `describeApiError` traduz um erro em chaves do i18n, com parâmetros e severidade (`warn` ou `error`), para quem for mostrá-lo. Devolve `null` para 401 e 403, que são tratados por navegação (a exceção é o 403 `invalid-csrf-token`, que tem aviso próprio), e cai na mensagem genérica quando o código de erro ou o campo em conflito não tem tradução, para que nenhuma chave crua chegue à tela.
 - `src/utils/safeRedirect.ts` e `src/utils/queryValue.ts`: o filtro do `redirect` do login e a leitura de um parâmetro de query como texto (veja [Telas de autenticação e de erro](#telas-de-autenticação-e-de-erro)).
 - `src/utils/localDate.ts`: `parseLocalDate` e `formatLocalDate` convertem as datas `yyyy-mm-dd` da API sem passar pelo UTC.
 
