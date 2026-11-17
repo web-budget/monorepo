@@ -2,10 +2,6 @@ package br.com.webbudget.server.domain.exceptions
 
 import org.springframework.security.core.AuthenticationException
 
-/**
- * Anything that must answer 401. It is an [AuthenticationException] so that, once rethrown by the controller advice,
- * the Spring Security filter chain answers it through the authentication entry point.
- */
 open class AuthenticationFailedException(
     val error: String,
     message: String
