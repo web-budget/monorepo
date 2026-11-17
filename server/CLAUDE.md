@@ -123,7 +123,17 @@ Os dados são compartilhados entre todos os usuários: quem pode ver ou mudar o 
 
 ## Migrations
 
-O Liquibase cria e evolui o schema na subida da aplicação (no `bootRun` e nos testes). O master é `src/main/resources/db/changelog/db.changelog-master.xml`, e as tabelas de controle se chamam `database_changelog` e `database_changelog_lock`. Os schemas `administration`, `registration` e `financial` já existem, criados por `changes/2026/11/16-1000-create-schemas.xml`.
+O Liquibase cria e evolui o schema na subida da aplicação (no `bootRun` e nos testes). O master é `src/main/resources/db/changelog/db.changelog-master.xml`, e as tabelas de controle se chamam `database_changelog` e `database_changelog_lock`. Os changelogs vivem em `src/main/resources/db/changelog/changes/<ano>/<mês>/`, e o master os inclui em ordem cronológica. O changelog inicial é o schema final da v4, consolidado sem Investimentos:
+
+| Arquivo | O que cria |
+|---|---|
+| `changes/2026/11/16-1000-create-schemas.xml` | Os schemas `administration`, `registration` e `financial`. |
+| `changes/2026/11/16-1010-create-administration-tables.xml` | A extensão `uuid-ossp` e as tabelas `users`, `roles`, `grants`, `password_recover_attempts` e `account_activation_attempt`. |
+| `changes/2026/11/16-1020-create-registration-tables.xml` | As tabelas `cost_centers`, `wallets`, `cards`, `financial_periods` e `classifications`. |
+| `changes/2026/11/16-1030-create-financial-tables.xml` | As tabelas `recurring_movements`, `credit_card_invoices`, `payments`, `transferences`, `period_movements` e `wallet_balances`. |
+| `changes/2026/11/16-1040-insert-roles.xml` | As roles `DASHBOARDS`, `REGISTRATION`, `FINANCIAL` e `ADMINISTRATION`, com os mesmos `external_id` da v4. |
+
+O DDL é SQL puro em `<sql>`, uma tabela por changeset, com cada constraint nomeada explicitamente. O `pg_dump --schema-only` desse schema é igual ao da v4, tirando o schema `investments`, inclusive nas esquisitices herdadas: a extensão `uuid-ossp` sem uso, o `UNIQUE (id)` redundante nas tabelas de `financial`, o `UNIQUE (id, external_id)` duplicado nas duas tabelas de tentativas, nomes de FK como `fk_wallets_on_payments` em `wallet_balances` e as colunas acrescentadas por último (`id_parent`, `full_name`, `id_cost_center`). Corrigir qualquer uma delas é mudança de modelo e entra num changelog novo. As constraints redundantes vão num `ALTER TABLE` depois do `CREATE TABLE`, porque o Postgres descarta em silêncio uma constraint declarada dentro do `CREATE TABLE` que repete outra. Os dados de teste não estão no changelog: cada subtarefa de portabilidade traz os do seu módulo.
 
 **Nunca edite um changelog já integrado** em `src/main/resources/db/changelog/changes/**`, nem para acrescentar "só mais um changeset" a um arquivo recente. O Liquibase registra cada changeset aplicado por id, autor e checksum em `database_changelog`; editar um que já rodou quebra a subida (checksum diferente) ou pula o SQL novo em silêncio. Sempre crie um arquivo novo e inclua-o no master:
 
