@@ -1,0 +1,367 @@
+{
+  "error": {
+    "unknown": {
+      "title": "Erro desconhecido",
+      "details": "Um erro inesperado aconteceu, entre em contato com o administrador"
+    },
+    "connection-failure": {
+      "title": "Falha na conexão",
+      "details": "Não foi possível se conectar ao servidor, tente novamente mais tarde"
+    },
+    "conflict": {
+      "title": "Conflito",
+      "cost-center": {
+        "name": "Nome \"{value}\" já esta em uso"
+      },
+      "wallet": {
+        "name": "Nome \"{value}\" já esta em uso",
+        "bank": "Banco \"{value} já esta em uso",
+        "agency": "Agência \"{value}\" já esta em uso",
+        "number": "Número de conta \"{value}\" já esta em uso"
+      },
+      "card": {
+        "type": "Tipo já esta em uso",
+        "last-four-digits": "Últimos dígitos \"{value}\" já esta em uso"
+      },
+      "classification": {
+        "name": "Nome \"{value}\" já esta em uso"
+      }
+    },
+    "unprocessable-entity": {
+      "title": "Falha na requisição",
+      "details": "Revise os dados e tente novamente"
+    },
+    "bad-request": {
+      "title": "Requisição inválida",
+      "bad-request": "Não foi possível processar a requisição, revise os dados e tente novamente",
+      "data-integrity-violation": "Não foi possível concluir a operação pois o registro está vinculado a outros registros",
+      "budget-limit-exceeded": "O orçamento disponível no centro de custo para o tipo selecionado é ${available-budget}",
+      "overlapping-start-end-dates": "Já existe um período financeiro que compreende a data de inicio e fim selecionada",
+      "start-date-after-end-date": "Data de início precisa ser antes da data de fim",
+      "debit-card-without-wallet": "O cartão de débito deve estar vinculado a uma carteira",
+      "invalid-invoice-payment-day": "{payment-day} não é um dia do mês válido, use algo entre 1 e 30",
+      "financial-period-not-open": "O período financeiro não esta aberto e não pode receber modificações",
+      "accounted-period-movement": "O movimento pertence a um período contabilizado e não pode ser alterado",
+      "invalid-token": "Token inválido ou expirado"
+    },
+    "not-found": {
+      "detail": "Não encontrado",
+      "description": "O recurso solicitado não existe"
+    },
+    "forbidden": {
+      "detail": "Não autorizado",
+      "description": "Você não tem permissão para acessar este recurso"
+    },
+    "server-error": {
+      "detail": "Falha no servidor",
+      "description": "Tente novamente mais tarde ou entre em contato com o administrador"
+    },
+    "login": {
+      "detail": "Falha ao realizar login",
+      "description": "Verifique os dados informados e tente novamente"
+    }
+  },
+  "login": {
+    "title": "Faça login para continuar",
+    "form": {
+      "email": "Email",
+      "email-placeholder": "Seu usuário",
+      "password": "Senha",
+      "password-placeholder": "Sua senha",
+      "remember-me": "Lembrar-me",
+      "forgot-password": "Esqueceu a senha?",
+      "sign-in": "Entrar"
+    }
+  },
+  "forgot-password": {
+    "title": "Recuperar senha",
+    "form": {
+      "email": "Email",
+      "recover": "Recuperar",
+      "back": "Voltar",
+      "email-placeholder": "Informe seu email cadastrado"
+    }
+  },
+  "recover-password": {
+    "title": "Recuperar senha",
+    "form": {
+      "confirmation": "Confirmação",
+      "confirmation-placeholder": "Digite sua nova senha novamente",
+      "password": "Senha",
+      "password-placeholder": "Digite sua nova senha"
+    }
+  },
+  "account-activation": {
+    "success": "Conta ativada com sucesso!",
+    "error": "Token inválido ou expirado, entre em contato com o administrador",
+    "activating": "Ativando conta, aguarde...",
+    "back-to-login": "Voltar ao login"
+  },
+  "menu": {
+    "financial": "Financeiro",
+    "configuration": "Configurações",
+    "registration": "Cadastros"
+  },
+  "pages": {
+    "quick-access": "Acesso rápido"
+  },
+  "action-button": {
+    "delete": "Deletar",
+    "edit": "Editar",
+    "go-home": "Ir para home",
+    "go-login": "Ir para login"
+  },
+  "form": {
+    "save": "Salvar",
+    "cancel": "Cancelar",
+    "edit": "Editar",
+    "delete": "Excluir",
+    "back": "Voltar",
+    "yes": "Sim",
+    "no": "Não",
+    "recover": "Recuperar"
+  },
+  "notification": {
+    "success": "Sucesso!",
+    "error": "Erro",
+    "confirm-delete": "Confirma a exclusão do registro?",
+    "record-deleted": "Registro excluído",
+    "record-created": "Registro criado",
+    "record-updated": "Registro atualizado",
+    "cost-center": {
+      "deleted": "Centro de custo excluído com sucesso",
+      "created": "Centro de custo criado com sucesso",
+      "updated": "Centro de custo atualizado com sucesso"
+    },
+    "wallet": {
+      "deleted": "Carteira excluída com sucesso",
+      "created": "Carteira criada com sucesso",
+      "updated": "Carteira atualizada com sucesso"
+    },
+    "card": {
+      "deleted": "Cartão excluído com sucesso",
+      "created": "Cartão criado com sucesso",
+      "updated": "Cartão atualizado com sucesso"
+    },
+    "financial-period": {
+      "deleted": "Período financeiro excluído com sucesso",
+      "created": "Período financeiro criado com sucesso",
+      "updated": "Período financeiro atualizado com sucesso"
+    },
+    "classification": {
+      "deleted": "Classificação excluída com sucesso",
+      "created": "Classificação criada com sucesso",
+      "updated": "Classificação atualizada com sucesso"
+    },
+    "forgot-password": {
+      "requested": "Solicitação realizada, aguarde pelo email de recuperação"
+    },
+    "recover-password": {
+      "success": "Senha recuperada, realize login para continuar",
+      "error": "Falha ao recuperar senha, token inválido ou expirado"
+    }
+  },
+  "search-control": {
+    "actions": {
+      "new": "Novo",
+      "search": "Buscar"
+    },
+    "all": "Todos",
+    "active": "Ativos",
+    "inactive": "Inativos"
+  },
+  "items-table": {
+    "state": {
+      "empty": "Nenhum registro encontrado",
+      "loading": "Carregando..."
+    },
+    "columns": {
+      "actions": "Ações",
+      "status": "Status"
+    },
+    "footer": {
+      "until": " até ",
+      "total": ", total "
+    }
+  },
+  "status": {
+    "active": "Ativo",
+    "inactive": "Inativo"
+  },
+  "integrations": {
+    "title": "Integrações",
+    "menu": "Integrações"
+  },
+  "users": {
+    "title": "Usuários",
+    "menu": "Usuários"
+  },
+  "period-movement": {
+    "title": "Movimentos do período",
+    "menu": "Movimentos do período"
+  },
+  "recurrent-movement": {
+    "title": "Movimentos recorrentes",
+    "menu": "Movimentos recorrentes"
+  },
+  "credit-card-invoice": {
+    "title": "Fatura do cartão de crédito",
+    "menu": "Fatura do cartão de crédito"
+  },
+  "period-closing": {
+    "title": "Encerramento do período",
+    "menu": "Encerramento do período"
+  },
+  "wallet": {
+    "title": "Carteiras",
+    "menu": "Carteiras",
+    "search": {
+      "placeholder": "Nome, descrição, banco, agência ou número"
+    },
+    "table-columns": {
+      "name": "Nome",
+      "type": "Tipo",
+      "bank": "Banco"
+    },
+    "form": {
+      "new": "Nova carteira",
+      "editing": "Editando carteira",
+      "detailing": "Detalhando carteira",
+      "deleting": "Excluindo carteira",
+      "name": "Nome",
+      "description": "Descrição",
+      "type": "Tipo",
+      "bank": "Banco",
+      "agency": "Agência",
+      "number": "Número da conta",
+      "type-placeholder": "Selecione um tipo"
+    },
+    "type": {
+      "bank-account": "Conta Bancária",
+      "personal": "Pessoal",
+      "investment": "Investimento"
+    }
+  },
+  "card": {
+    "title": "Cartões",
+    "menu": "Cartões",
+    "search": {
+      "placeholder": "Nome, últimos 4 dígitos ou bandeira"
+    },
+    "table-columns": {
+      "name": "Nome",
+      "type": "Tipo",
+      "flag": "Bandeira"
+    },
+    "type": {
+      "debit": "Débito",
+      "credit": "Crédito"
+    },
+    "form": {
+      "new": "Novo cartão",
+      "editing": "Editando cartão",
+      "detailing": "Detalhando cartão",
+      "deleting": "Excluindo cartão",
+      "name": "Nome",
+      "type": "Tipo",
+      "flag": "Bandeira",
+      "last-four-digits": "Últimos 4 dígitos",
+      "wallet": "Carteira",
+      "invoice-payment-day": "Dia do vencimento",
+      "type-placeholder": "Selecione um tipo",
+      "wallet-search-empty": "Nenhuma carteira encontrada",
+      "wallet-search-placeholder": "Digite o nome"
+    }
+  },
+  "financial-period": {
+    "title": "Períodos financeiros",
+    "menu": "Períodos financeiros",
+    "search": {
+      "placeholder": "Nome"
+    },
+    "table-columns": {
+      "name": "Nome",
+      "starting-at": "Início",
+      "ending-at": "Fim",
+      "status": "Status"
+    },
+    "status": {
+      "active": "Ativo",
+      "ended": "Encerrado",
+      "accounted": "Contabilizado"
+    },
+    "options": {
+      "all": "Todos",
+      "open": "Abertos",
+      "accounted": "Contabilizados"
+    },
+    "form": {
+      "new": "Novo período financeiro",
+      "editing": "Editando período financeiro",
+      "detailing": "Detalhando período financeiro",
+      "deleting": "Excluindo período financeiro",
+      "name": "Nome",
+      "starting-at": "Início",
+      "ending-at": "Fim",
+      "expenses-goal": "Meta de despesas",
+      "revenues-goal": "Meta de receitas"
+    },
+    "errors": {
+      "overlapping-dates": "Data de início e fim estão sobrepondo com outro período financeiro existente",
+      "invalid-dates": "Data de início e fim são inválidas",
+      "period-not-open": "Período financeiro não está aberto e não pode ser alterado ou excluído"
+    }
+  },
+  "classification": {
+    "title": "Classificações",
+    "menu": "Classificações",
+    "search": {
+      "placeholder": "Nome ou descrição"
+    },
+    "table-columns": {
+      "name": "Nome",
+      "type": "Tipo",
+      "budget": "Orçamento"
+    },
+    "type": {
+      "income": "Receita",
+      "expense": "Despesa"
+    },
+    "form": {
+      "new": "Nova classificação",
+      "editing": "Editando classificação",
+      "detailing": "Detalhando classificação",
+      "deleting": "Excluindo classificação",
+      "name": "Nome",
+      "description": "Descrição",
+      "type": "Tipo",
+      "budget": "Orçamento",
+      "type-placeholder": "Selecione um tipo"
+    }
+  },
+  "cost-center": {
+    "title": "Centros de custos",
+    "menu": "Centros de custos",
+    "search": {
+      "placeholder": "Nome"
+    },
+    "form": {
+      "new": "Novo centro de custo",
+      "editing": "Editando centro de custo",
+      "detailing": "Detalhando centro de custo",
+      "deleting": "Excluindo centro de custo",
+      "name": "Nome",
+      "description": "Descrição",
+      "income-budget": "Orçamento receitas",
+      "expense-budget": "Orçamento despesas",
+      "parent": "Subcentro de custo de",
+      "parent-search-empty": "Nenhum centro de custo encontrado",
+      "parent-search-placeholder": "Digite o nome"
+    },
+    "table-columns": {
+      "full-name": "Nome",
+      "income-budget": "Orçamento receitas",
+      "expense-budget": "Orçamento despesas"
+    }
+  }
+}

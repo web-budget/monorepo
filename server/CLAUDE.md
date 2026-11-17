@@ -27,7 +27,7 @@ O Kover pendura o `koverVerify` no `check`, então o `build` já falha quando a 
 
 ## Stack
 
-- Kotlin 2.4.10 (`jvm` e `plugin.spring`) com `jvmTarget` 25, `languageVersion` e `apiVersion` 2.4 e os argumentos `-Xjsr305=strict` e `-Xemit-jvm-type-annotations`. O toolchain Java é o 25 e o Gradle vem do wrapper.
+- Kotlin 2.4.21 (`jvm` e `plugin.spring`) com `jvmTarget` 25, `languageVersion` e `apiVersion` 2.4 e os argumentos `-Xjsr305=strict` e `-Xemit-jvm-type-annotations`. O toolchain Java é o 25 e o Gradle vem do wrapper.
 - Spring Boot 4.1.2 com os starters `webmvc` (servlet, não WebFlux), `jooq`, `liquibase`, `security`, `validation`, `actuator`, `mail` e `thymeleaf` (só para os e-mails), mais `spring-data-commons` explícito para `Pageable` e `PagedModel`. As threads virtuais estão ligadas.
 - PostgreSQL 18 (`postgres:18-alpine`), tanto no `compose.yaml` quanto no Testcontainers.
 - jOOQ 3.21.7 com o plugin `org.jooq.jooq-codegen-gradle`, que gera as classes Kotlin das tabelas no build (veja [Codegen do jOOQ](#codegen-do-jooq)).
