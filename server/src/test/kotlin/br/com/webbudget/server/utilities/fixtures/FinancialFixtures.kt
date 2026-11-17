@@ -11,22 +11,22 @@ import java.util.UUID
 
 object FinancialTestData {
 
-    val ACTIVE_PERIOD_ID: UUID = UUID.fromString("bc67ba91-7c0a-466d-877c-0b1fe2fb56bd")
-    val ACCOUNTED_PERIOD_ID: UUID = UUID.fromString("df05156c-3fce-4f56-88ff-918d50200312")
-    val ENDED_PERIOD_ID: UUID = UUID.fromString("27881a12-5e61-43cd-a6d0-fdb32eaa75c0")
+    val ACTIVE_PERIOD_ID: UUID = UUID.fromString("2a7b99bc-f077-4dbf-8458-87c5d0e8fd7a")
+    val ACCOUNTED_PERIOD_ID: UUID = UUID.fromString("6531c609-577b-4a45-82a9-debe0b53eeab")
+    val ENDED_PERIOD_ID: UUID = UUID.fromString("6248abb7-a8ad-4d2b-a0a4-0417b98cb008")
 
-    val EXPENSE_CLASSIFICATION_ID: UUID = UUID.fromString("ff8ac873-2cbd-43dd-a3e8-2bc451f4e3fa")
-    val INCOME_CLASSIFICATION_ID: UUID = UUID.fromString("f21d94d2-d28e-4aa3-b12d-8a520023edd9")
+    val EXPENSE_CLASSIFICATION_ID: UUID = UUID.fromString("503cee43-583e-4df5-a9db-8bf049cf6a8d")
+    val INCOME_CLASSIFICATION_ID: UUID = UUID.fromString("fd17c780-50b0-4669-9c1c-272c6f5d3413")
 
-    val HEALTH_COST_CENTER_ID: UUID = UUID.fromString("2bed30e7-419d-4097-841c-7d88fbc708ad")
-    val HOME_COST_CENTER_ID: UUID = UUID.fromString("52e3456b-1b0d-42c5-8be0-07ddaecce441")
+    val HEALTH_COST_CENTER_ID: UUID = UUID.fromString("338c8eea-6d53-4e68-882d-cec57c0ac49f")
+    val HOME_COST_CENTER_ID: UUID = UUID.fromString("bfe5413f-1cc6-46cb-967c-8a3b11046747")
 
-    val OPEN_PERIOD_MOVEMENT_ID: UUID = UUID.fromString("287e26fa-763b-4efb-908e-734e637bb6fd")
-    val ACCOUNTED_PERIOD_MOVEMENT_ID: UUID = UUID.fromString("413b96ec-fed9-487f-b587-7bb9c4989020")
-    val PAID_PERIOD_MOVEMENT_ID: UUID = UUID.fromString("5d1d1e86-5f4e-4bd5-93df-3b0f5fd6b8d4")
+    val OPEN_PERIOD_MOVEMENT_ID: UUID = UUID.fromString("4a26f975-c9a9-4231-958c-9b59ee55e04f")
+    val ACCOUNTED_PERIOD_MOVEMENT_ID: UUID = UUID.fromString("655a0c7f-caf4-4213-be64-e28c5646e979")
+    val PAID_PERIOD_MOVEMENT_ID: UUID = UUID.fromString("c237997e-c784-429d-9d22-a9f5cc079822")
 
-    val ACTIVE_RECURRING_MOVEMENT_ID: UUID = UUID.fromString("ba870b58-01aa-4477-8ea1-1c644a6770c4")
-    val ENDED_RECURRING_MOVEMENT_ID: UUID = UUID.fromString("2afc2759-b38e-4e1a-9a56-3f54c11c7e5c")
+    val ACTIVE_RECURRING_MOVEMENT_ID: UUID = UUID.fromString("e12805f3-1419-4a7b-994b-4c751255fc7a")
+    val ENDED_RECURRING_MOVEMENT_ID: UUID = UUID.fromString("08d874d2-f56d-49b9-a6b3-bf86e075d986")
 }
 
 fun createPeriodMovement(
