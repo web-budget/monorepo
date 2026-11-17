@@ -11,7 +11,7 @@ O `CLAUDE.md` de cada pasta é a fonte de verdade da sua camada: comandos, conve
 
 Os repositórios arquivados da v4, `web-budget/back-end` e `web-budget/front-end` (clones locais em `D:/desenvolvimento/web-budget/back-end` e `D:/desenvolvimento/web-budget/front-end`), são só referência para a portabilidade. Eles **nunca recebem mudanças**: nada de commits, branches, issues ou PRs neles.
 
-Para rodar localmente, cada lado sobe da sua própria pasta. Em `server/`, `./gradlew bootRun` sobe a aplicação na porta 8085 e, pelo `spring-boot-docker-compose`, o Postgres de `server/compose.yaml` (o Docker precisa estar ligado). Em `client/`, `pnpm dev` sobe o Vite na porta 8086 e faz proxy de `/private` para `localhost:8085`.
+Para rodar localmente, cada lado sobe da sua própria pasta. Em `server/`, `./gradlew bootRun` sobe a aplicação na porta 8085 e, pelo `spring-boot-docker-compose`, o Postgres (porta 5433) e o Maildev (SMTP na 1025, interface na 1080) de `server/compose.yaml` (o Docker precisa estar ligado). Em `client/`, `pnpm dev` sobe o Vite na porta 8086 e faz proxy de `/private` para `localhost:8085`.
 
 O client roda com Node 24 e com o pnpm fixado no `packageManager` de `client/package.json` (pnpm 12). Nesta máquina o Node vem do fnm: no PowerShell, ative-o com `fnm env --use-on-cd | Out-String | Invoke-Expression; fnm use 24` e chame o pnpm por `corepack pnpm <comando>`, com `COREPACK_ENABLE_DOWNLOAD_PROMPT=0`. O `npx pnpm@12` falha no Windows.
 
