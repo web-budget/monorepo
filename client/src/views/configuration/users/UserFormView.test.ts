@@ -38,6 +38,15 @@ function roleBox(wrapper: Wrapper, role: string) {
   return wrapper.find(`button#roles-${role}`)
 }
 
+function checkboxes(wrapper: Wrapper) {
+  return wrapper.findAll('button[role="checkbox"]')
+}
+
+function activationBox(wrapper: Wrapper) {
+  const boxes = checkboxes(wrapper)
+  return boxes[boxes.length - 1]!
+}
+
 async function render(props: Record<string, unknown> = {}) {
   vi.mocked(rolesApi.findAll).mockResolvedValue(['ADMINISTRATION', 'FINANCIAL', 'REGISTRATION'])
   return mountView(UserFormView, 'users', props)
@@ -71,7 +80,10 @@ describe('UserFormView', () => {
       expect(wrapper.text()).toContain('Administração')
       expect(wrapper.text()).toContain('Cadastros')
       expect(field(wrapper, 'password').exists()).toBe(true)
-      expect(wrapper.find('[aria-pressed][type="button"]').exists()).toBe(true)
+      expect(wrapper.text()).toContain('Português (Brasil)')
+      expect(checkboxes(wrapper)).toHaveLength(4)
+      expect(activationBox(wrapper).attributes('aria-checked')).toBe('true')
+      expect(wrapper.find('label[for]').exists()).toBe(true)
       expect(usersApi.findById).not.toHaveBeenCalled()
     })
 
@@ -122,7 +134,7 @@ describe('UserFormView', () => {
       await roleBox(wrapper, 'FINANCIAL').trigger('click')
       await roleBox(wrapper, 'REGISTRATION').trigger('click')
       wrapper.getComponent(Select).vm.$emit('update:modelValue', 'EN_US')
-      await wrapper.find('button#send-activation-email').trigger('click')
+      await activationBox(wrapper).trigger('click')
       await settle()
 
       await submit(wrapper)
@@ -200,7 +212,8 @@ describe('UserFormView', () => {
       expect((field(wrapper, 'email').element as HTMLInputElement).value).toBe('bruno@example.com')
       expect(field(wrapper, 'email').attributes('disabled')).toBeDefined()
       expect(field(wrapper, 'password').exists()).toBe(false)
-      expect(wrapper.find('button#send-activation-email').exists()).toBe(false)
+      expect(checkboxes(wrapper)).toHaveLength(3)
+      expect(wrapper.text()).toContain('Inglês (Estados Unidos)')
       expect(roleBox(wrapper, 'FINANCIAL').attributes('aria-checked')).toBe('true')
       expect(roleBox(wrapper, 'REGISTRATION').attributes('aria-checked')).toBe('false')
       expect(buttonWithText(wrapper, 'Inativo').attributes('aria-pressed')).toBe('true')

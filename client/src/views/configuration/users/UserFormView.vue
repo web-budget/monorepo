@@ -23,7 +23,6 @@ import {
   userUpdateFormSchema,
 } from '@/schemas/userSchema'
 import { useUsersAdminStore } from '@/stores/usersAdmin'
-import { typeKey } from '@/utils/typeLabels'
 
 const props = defineProps<{ id?: string }>()
 
@@ -60,7 +59,10 @@ const { messages, changeToList, onSubmit, run } = useCrudForm({
 })
 
 const languages = computed(() =>
-  LANGUAGES.map((language) => ({ value: language, label: t(typeKey('users.language', language)) })),
+  LANGUAGES.map((language) => ({
+    value: language,
+    label: t(`users.language.${language.toLowerCase().replace('_', '-')}`),
+  })),
 )
 const roleOptions = computed(() =>
   roles.value.map((role) => ({ value: role, label: t(`users.role.${role.toLowerCase()}`) })),
@@ -95,14 +97,10 @@ onMounted(() => run(store.findRoles))
     <RoleSelectField name="roles" :label="$t('users.form.roles')" :options="roleOptions" />
     <FormField v-if="!updating" v-slot="{ value, handleChange }" name="sendActivationEmail">
       <FormItem class="flex items-center gap-2">
-        <Checkbox
-          id="send-activation-email"
-          :model-value="value"
-          @update:model-value="handleChange($event === true)"
-        />
-        <FormLabel for="send-activation-email">
-          {{ $t('users.form.send-activation-email') }}
-        </FormLabel>
+        <FormControl>
+          <Checkbox :model-value="value" @update:model-value="handleChange($event === true)" />
+        </FormControl>
+        <FormLabel>{{ $t('users.form.send-activation-email') }}</FormLabel>
       </FormItem>
     </FormField>
   </FormCard>
