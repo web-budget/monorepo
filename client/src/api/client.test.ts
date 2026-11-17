@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import {
   AxiosError,
   CanceledError,
@@ -6,6 +6,7 @@ import {
   type InternalAxiosRequestConfig,
 } from 'axios'
 import { ApiError, apiClient, toApiError } from './client'
+import { lastServerActivityAt } from './serverActivity'
 
 const originalAdapter = apiClient.defaults.adapter
 const requestConfig = { headers: {} } as InternalAxiosRequestConfig
@@ -119,5 +120,45 @@ describe('toApiError', () => {
     const error = new TypeError('boom')
 
     expect(toApiError(error)).toBe(error)
+  })
+})
+
+describe('apiClient server activity', () => {
+  afterEach(() => {
+    apiClient.defaults.adapter = originalAdapter
+    vi.useRealTimers()
+  })
+
+  it('stamps the time of a successful response', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-01-01T10:00:00Z'))
+    apiClient.defaults.adapter = (config) =>
+      Promise.resolve({ data: {}, status: 200, statusText: 'OK', headers: {}, config })
+
+    await apiClient.get('/ping')
+
+    expect(lastServerActivityAt()).toBe(new Date('2026-01-01T10:00:00Z').getTime())
+  })
+
+  it('stamps the time of an error the server answered', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-01-01T11:00:00Z'))
+    apiClient.defaults.adapter = rejectWith(500, {})
+
+    await apiClient.get('/ping').catch(() => undefined)
+
+    expect(lastServerActivityAt()).toBe(new Date('2026-01-01T11:00:00Z').getTime())
+  })
+
+  it('does not stamp a request the server never answered', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-01-01T12:00:00Z'))
+    const before = lastServerActivityAt()
+    apiClient.defaults.adapter = () =>
+      Promise.reject(new AxiosError('Network Error', 'ERR_NETWORK', requestConfig))
+
+    await apiClient.get('/ping').catch(() => undefined)
+
+    expect(lastServerActivityAt()).toBe(before)
   })
 })

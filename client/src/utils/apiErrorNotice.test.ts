@@ -20,6 +20,14 @@ describe('describeApiError', () => {
     expect(describeApiError(apiError(status))).toBeNull()
   })
 
+  it('reports a rejected CSRF token, which no navigation can fix', () => {
+    expect(describeApiError(apiError(403, { error: 'invalid-csrf-token' }))).toEqual({
+      severity: 'error',
+      title: { key: 'error.invalid-csrf-token.title' },
+      details: [{ key: 'error.invalid-csrf-token.details' }],
+    })
+  })
+
   it.each([500, 503])('reports a server failure on %i', (status) => {
     expect(describeApiError(apiError(status))).toEqual({
       severity: 'error',

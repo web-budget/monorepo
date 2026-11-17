@@ -32,11 +32,17 @@ async function render(
     authenticated?: boolean
     loading?: boolean
     restored?: boolean
+    reason?: string
+    ending?: boolean
   } = {},
 ) {
   const { router, plugins } = createTestPlugins({
     initialState: {
-      auth: { session: options.authenticated ? session : null, loading: options.loading ?? false },
+      auth: {
+        session: options.authenticated ? session : null,
+        loading: options.loading ?? false,
+        endingSession: options.ending ?? false,
+      },
     },
     routes: [
       { path: '/home', name: 'home', component: { render: () => h('div') } },
@@ -51,7 +57,14 @@ async function render(
   const auth = useAuthStore()
   vi.mocked(auth.login).mockResolvedValue(session)
   vi.mocked(auth.restoreSession).mockResolvedValue(options.restored ?? false)
-  await router.push(options.redirect ? `/?redirect=${encodeURIComponent(options.redirect)}` : '/')
+  const query = new URLSearchParams()
+  if (options.redirect) {
+    query.set('redirect', options.redirect)
+  }
+  if (options.reason) {
+    query.set('reason', options.reason)
+  }
+  await router.push(`/?${query}`)
   await router.isReady()
   const wrapper = mount(LoginView, { global: { plugins } })
   await settle()
@@ -191,6 +204,45 @@ describe('LoginView', () => {
 
     expect(auth.restoreSession).toHaveBeenCalled()
     expect(router.currentRoute.value.path).toBe('/')
+  })
+
+  it.each([
+    ['inactivity', 'Sua sessão foi encerrada por inatividade, entre novamente'],
+    ['expired', 'Sua sessão expirou, entre novamente'],
+  ])('warns that the session ended by %s', async (reason, message) => {
+    await render({ reason })
+
+    expect(toast.warning).toHaveBeenCalledWith(
+      'Sessão encerrada',
+      expect.objectContaining({ description: message }),
+    )
+  })
+
+  it('does not warn without a reason or with one it does not know', async () => {
+    await render()
+    await render({ reason: 'something-else' })
+
+    expect(toast.warning).not.toHaveBeenCalled()
+  })
+
+  it('goes back to the page the expired session came from after the next login', async () => {
+    const { wrapper, router } = await render({ reason: 'expired', redirect: '/private-page' })
+
+    await submit(wrapper, 'ana@example.com', 'secret')
+
+    expect(router.currentRoute.value.path).toBe('/private-page')
+  })
+
+  it('does not send the user back into the app while the session is still ending', async () => {
+    const { router, auth } = await render({
+      authenticated: true,
+      ending: true,
+      reason: 'inactivity',
+    })
+
+    expect(auth.restoreSession).not.toHaveBeenCalled()
+    expect(router.currentRoute.value.path).toBe('/')
+    expect(toast.warning).toHaveBeenCalledTimes(1)
   })
 
   it('disables the button while the login runs', async () => {

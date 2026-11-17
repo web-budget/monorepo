@@ -1,19 +1,30 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { authApi } from '@/api/auth'
+import router from '@/router'
+import { isPublicRoute } from '@/router/publicRoutes'
 import { resetUserStores } from '@/stores/resetUserStores'
-import type { LoginRequest, SessionResponse } from '@/types'
+import type { LoginRequest, Role, SessionResponse } from '@/types'
+
+export type SessionEndReason = 'inactivity' | 'expired'
 
 export const useAuthStore = defineStore('auth', () => {
   const session = ref<SessionResponse | null>(null)
   const loading = ref(false)
+  const endingSession = ref(false)
   const isAuthenticated = computed(() => session.value !== null)
+
+  function hasRole(role: Role): boolean {
+    return session.value?.roles.includes(role) ?? false
+  }
 
   async function login(credentials: LoginRequest): Promise<SessionResponse> {
     loading.value = true
     try {
-      session.value = await authApi.login(credentials)
-      return session.value
+      const newSession = await authApi.login(credentials)
+      resetUserStores()
+      session.value = newSession
+      return newSession
     } finally {
       loading.value = false
     }
@@ -24,7 +35,7 @@ export const useAuthStore = defineStore('auth', () => {
     try {
       session.value = await authApi.fetchSession()
     } catch {
-      session.value = null
+      clearSession()
     } finally {
       loading.value = false
     }
@@ -36,13 +47,50 @@ export const useAuthStore = defineStore('auth', () => {
     resetUserStores()
   }
 
-  async function logout(): Promise<void> {
+  async function endSession(reason?: SessionEndReason) {
+    const current = router.currentRoute.value
+    const query: Record<string, string> = {}
+    if (reason) {
+      query.reason = reason
+      if (!isPublicRoute(current)) {
+        query.redirect = current.fullPath
+      }
+    }
+    endingSession.value = true
     try {
-      await authApi.logout()
+      await router.replace({ name: 'login', query })
     } finally {
+      endingSession.value = false
       clearSession()
     }
   }
 
-  return { session, loading, isAuthenticated, login, restoreSession, clearSession, logout }
+  async function logout(): Promise<void> {
+    try {
+      await authApi.logout()
+    } finally {
+      await endSession()
+    }
+  }
+
+  async function expireSession(reason: SessionEndReason): Promise<void> {
+    if (!isAuthenticated.value || endingSession.value) {
+      return
+    }
+    authApi.logout({ silent: true }).catch(() => undefined)
+    await endSession(reason)
+  }
+
+  return {
+    session,
+    isAuthenticated,
+    loading,
+    endingSession,
+    hasRole,
+    login,
+    restoreSession,
+    clearSession,
+    logout,
+    expireSession,
+  }
 })

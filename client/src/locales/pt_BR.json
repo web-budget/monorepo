@@ -52,6 +52,10 @@
       "detail": "Não autorizado",
       "description": "Você não tem permissão para acessar este recurso"
     },
+    "invalid-csrf-token": {
+      "title": "Requisição não autorizada",
+      "details": "A verificação de segurança da requisição falhou, recarregue a página e tente novamente"
+    },
     "server-error": {
       "detail": "Falha no servidor",
       "description": "Tente novamente mais tarde ou entre em contato com o administrador"
@@ -63,6 +67,11 @@
   },
   "login": {
     "title": "Faça login para continuar",
+    "session-ended": {
+      "title": "Sessão encerrada",
+      "inactivity": "Sua sessão foi encerrada por inatividade, entre novamente",
+      "expired": "Sua sessão expirou, entre novamente"
+    },
     "form": {
       "email": "Email",
       "email-placeholder": "Seu usuário",

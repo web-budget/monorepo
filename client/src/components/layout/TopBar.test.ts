@@ -1,14 +1,17 @@
 import { flushPromises } from '@vue/test-utils'
-import { beforeEach, describe, expect, it } from 'vitest'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { h } from 'vue'
 import TopBar from '@/components/layout/TopBar.vue'
 import { useAppearanceStore } from '@/stores/appearance'
 import { useAuthStore } from '@/stores/auth'
 import { createTestPlugins, mountInSidebar } from '@/test/mounting'
+import type { Role } from '@/types'
 
-const session = { name: 'Ana Souza', email: 'ana@example.com', status: 'APPROVED', roles: [] }
+const allRoles: Role[] = ['REGISTRATION', 'FINANCIAL', 'ADMINISTRATION', 'DASHBOARDS']
 
-async function render(options: { path?: string; withSideMenu?: boolean } = {}) {
+const session = { name: 'Ana Souza', email: 'ana@example.com', status: 'APPROVED', roles: allRoles }
+
+async function render(options: { path?: string; withSideMenu?: boolean; roles?: Role[] } = {}) {
   const { router, plugins } = createTestPlugins({
     initialState: { auth: { session } },
     routes: [
@@ -16,6 +19,8 @@ async function render(options: { path?: string; withSideMenu?: boolean } = {}) {
       { path: '/login', name: 'login', component: { render: () => h('div') } },
     ],
   })
+  const roles = options.roles ?? allRoles
+  vi.mocked(useAuthStore().hasRole).mockImplementation((role) => roles.includes(role))
   await router.push(options.path ?? '/')
   await router.isReady()
   const wrapper = mountInSidebar(TopBar, { withSideMenu: options.withSideMenu ?? true }, plugins)
@@ -107,14 +112,56 @@ describe('TopBar', () => {
     expect(menuItem('Tema claro')).toBeTruthy()
   })
 
-  it('logs out and goes to the login', async () => {
-    const { wrapper, router } = await render({ path: '/registration' })
+  it('logs out from the user menu', async () => {
+    const { wrapper } = await render({ path: '/registration' })
     await openUserMenu(wrapper)
 
     menuItem('Sair').click()
     await flushPromises()
 
     expect(useAuthStore().logout).toHaveBeenCalledTimes(1)
-    expect(router.currentRoute.value.name).toBe('login')
+  })
+
+  it.each([
+    [['REGISTRATION'], ['Cadastros']],
+    [['FINANCIAL'], ['Financeiro']],
+    [['ADMINISTRATION'], ['Configurações']],
+    [
+      ['FINANCIAL', 'ADMINISTRATION'],
+      ['Financeiro', 'Configurações'],
+    ],
+    [['DASHBOARDS'], []],
+  ] as [Role[], string[]][])(
+    'shows only the sections the roles %j give access to',
+    async (roles, expected) => {
+      const { wrapper } = await render({ roles })
+
+      expect(wrapper.findAll('nav a').map((link) => link.text())).toEqual(expected)
+    },
+  )
+
+  it('offers only the permitted sections in the user menu as well', async () => {
+    const { wrapper } = await render({ roles: ['FINANCIAL'] })
+    await openUserMenu(wrapper)
+
+    const sectionItems = [...document.body.querySelectorAll('[role="menuitem"]')].filter((item) =>
+      item.classList.contains('md:hidden'),
+    )
+    expect(sectionItems.map((item) => item.textContent?.trim())).toEqual(['Financeiro'])
+  })
+
+  it('does not highlight a section the user cannot reach', async () => {
+    const { wrapper } = await render({ path: '/registration', roles: ['FINANCIAL'] })
+
+    expect(wrapper.findAll('nav a').some((link) => link.classes().includes('bg-secondary'))).toBe(
+      false,
+    )
+  })
+
+  it('leaves out the section separator of the user menu when no section is permitted', async () => {
+    const { wrapper } = await render({ roles: [] })
+    await openUserMenu(wrapper)
+
+    expect(document.body.querySelectorAll('[role="separator"].md:hidden')).toHaveLength(0)
   })
 })

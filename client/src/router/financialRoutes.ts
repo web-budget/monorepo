@@ -5,7 +5,7 @@ export const financialRoutes: RouteRecordRaw[] = [
   {
     path: '/financial',
     component: FinancialLayout,
-    meta: { breadcrumb: 'menu.financial' },
+    meta: { breadcrumb: 'menu.financial', role: 'FINANCIAL' },
     children: [
       {
         path: '',

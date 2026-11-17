@@ -13,13 +13,16 @@ import { useNotification } from '@/composables/useNotification'
 import { loginFormSchema } from '@/schemas/loginSchema'
 import { useAuthStore } from '@/stores/auth'
 import { describeApiError } from '@/utils/apiErrorNotice'
+import { queryValue } from '@/utils/queryValue'
 import { safeRedirect } from '@/utils/safeRedirect'
 
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
 const { loading } = storeToRefs(auth)
-const { showError } = useNotification()
+const { showError, showWarn } = useNotification()
+
+const SESSION_END_REASONS = ['inactivity', 'expired']
 
 const { handleSubmit } = useForm({
   validationSchema: loginFormSchema,
@@ -46,7 +49,18 @@ const submit = handleSubmit(async (values) => {
   await goAfterLogin()
 })
 
+function notifySessionEnded() {
+  const reason = queryValue(route.query.reason)
+  if (SESSION_END_REASONS.includes(reason)) {
+    showWarn('login.session-ended.title', `login.session-ended.${reason}`)
+  }
+}
+
 onMounted(async () => {
+  notifySessionEnded()
+  if (auth.endingSession) {
+    return
+  }
   if (auth.isAuthenticated || (await auth.restoreSession())) {
     await goAfterLogin()
   }

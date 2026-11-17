@@ -2,12 +2,19 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { authApi } from '@/api/auth'
 import { ApiError } from '@/api/client'
+import router from '@/router'
 import { resetUserStores } from '@/stores/resetUserStores'
 import type { SessionResponse } from '@/types'
 import { useAuthStore } from './auth'
 
 vi.mock('@/api/auth')
 vi.mock('@/stores/resetUserStores')
+vi.mock('@/router', () => ({
+  default: {
+    currentRoute: { value: { fullPath: '/registration/wallets?page=2', matched: [{ meta: {} }] } },
+    replace: vi.fn<() => Promise<void>>(),
+  },
+}))
 
 const session: SessionResponse = {
   name: 'Admin',
@@ -16,10 +23,24 @@ const session: SessionResponse = {
   roles: ['ADMINISTRATION', 'REGISTRATION'],
 }
 
+const credentials = { email: session.email, password: 'secret' }
+
+async function authenticatedStore() {
+  vi.mocked(authApi.login).mockResolvedValue(session)
+  const store = useAuthStore()
+  await store.login(credentials)
+  vi.clearAllMocks()
+  return store
+}
+
 describe('useAuthStore', () => {
   beforeEach(() => {
     setActivePinia(createPinia())
-    vi.clearAllMocks()
+    vi.resetAllMocks()
+    vi.mocked(router.replace).mockResolvedValue(undefined)
+    vi.mocked(authApi.logout).mockResolvedValue()
+    router.currentRoute.value.fullPath = '/registration/wallets?page=2'
+    router.currentRoute.value.matched = [{ meta: {} }] as never
   })
 
   it('starts without a session', () => {
@@ -28,19 +49,28 @@ describe('useAuthStore', () => {
     expect(store.session).toBeNull()
     expect(store.isAuthenticated).toBe(false)
     expect(store.loading).toBe(false)
+    expect(store.endingSession).toBe(false)
   })
 
   it('login() keeps the session the server answers with', async () => {
     vi.mocked(authApi.login).mockResolvedValue(session)
     const store = useAuthStore()
 
-    await expect(store.login({ email: session.email, password: 'secret' })).resolves.toEqual(
-      session,
-    )
+    await expect(store.login(credentials)).resolves.toEqual(session)
 
-    expect(authApi.login).toHaveBeenCalledWith({ email: session.email, password: 'secret' })
+    expect(authApi.login).toHaveBeenCalledWith(credentials)
     expect(store.session).toEqual(session)
     expect(store.isAuthenticated).toBe(true)
+  })
+
+  it('login() clears the user stores before it keeps the new session', async () => {
+    vi.mocked(authApi.login).mockResolvedValue(session)
+    const store = useAuthStore()
+    vi.mocked(resetUserStores).mockImplementation(() => expect(store.session).toBeNull())
+
+    await store.login(credentials)
+
+    expect(resetUserStores).toHaveBeenCalledOnce()
   })
 
   it('login() reports loading while the request is in flight', async () => {
@@ -48,7 +78,7 @@ describe('useAuthStore', () => {
     vi.mocked(authApi.login).mockReturnValue(new Promise((done) => (resolve = done)))
     const store = useAuthStore()
 
-    const logging = store.login({ email: session.email, password: 'secret' })
+    const logging = store.login(credentials)
     expect(store.loading).toBe(true)
 
     resolve(session)
@@ -56,14 +86,27 @@ describe('useAuthStore', () => {
     expect(store.loading).toBe(false)
   })
 
-  it('login() rethrows bad credentials without a session', async () => {
-    const failure = new ApiError({ error: 'invalid_credentials' }, 401)
+  it('login() rethrows bad credentials without a session and keeps the user stores', async () => {
+    const failure = new ApiError({ error: 'invalid-credentials' }, 401)
     vi.mocked(authApi.login).mockRejectedValue(failure)
     const store = useAuthStore()
 
-    await expect(store.login({ email: session.email, password: 'wrong' })).rejects.toBe(failure)
+    await expect(store.login({ ...credentials, password: 'wrong' })).rejects.toBe(failure)
     expect(store.session).toBeNull()
     expect(store.loading).toBe(false)
+    expect(resetUserStores).not.toHaveBeenCalled()
+  })
+
+  it('hasRole() is true only for a role of the session', async () => {
+    const store = useAuthStore()
+    expect(store.hasRole('REGISTRATION')).toBe(false)
+
+    await authenticatedStore()
+    vi.mocked(authApi.login).mockResolvedValue(session)
+    await store.login(credentials)
+
+    expect(store.hasRole('REGISTRATION')).toBe(true)
+    expect(store.hasRole('FINANCIAL')).toBe(false)
   })
 
   it('restoreSession() keeps the session the server still holds', async () => {
@@ -73,52 +116,118 @@ describe('useAuthStore', () => {
     await expect(store.restoreSession()).resolves.toBe(true)
     expect(store.session).toEqual(session)
     expect(store.loading).toBe(false)
+    expect(resetUserStores).not.toHaveBeenCalled()
   })
 
-  it('restoreSession() settles on no session when the server has none', async () => {
+  it('restoreSession() settles on no session and clears the user stores when the server has none', async () => {
     vi.mocked(authApi.fetchSession).mockRejectedValue(new ApiError(null, 401))
     const store = useAuthStore()
 
     await expect(store.restoreSession()).resolves.toBe(false)
     expect(store.session).toBeNull()
     expect(store.loading).toBe(false)
-  })
-
-  it('logout() ends the session and clears the user stores', async () => {
-    vi.mocked(authApi.login).mockResolvedValue(session)
-    vi.mocked(authApi.logout).mockResolvedValue()
-    const store = useAuthStore()
-    await store.login({ email: session.email, password: 'secret' })
-
-    await store.logout()
-
-    expect(authApi.logout).toHaveBeenCalled()
-    expect(store.session).toBeNull()
     expect(resetUserStores).toHaveBeenCalledOnce()
   })
 
-  it('logout() clears the local session even when the server call fails', async () => {
+  it('logout() goes to the login first and only then clears the session and the user stores', async () => {
+    const store = await authenticatedStore()
+    vi.mocked(router.replace).mockImplementation(() => {
+      expect(store.session).toEqual(session)
+      expect(store.endingSession).toBe(true)
+      expect(resetUserStores).not.toHaveBeenCalled()
+      return Promise.resolve(undefined)
+    })
+
+    await store.logout()
+
+    expect(authApi.logout).toHaveBeenCalledWith()
+    expect(router.replace).toHaveBeenCalledWith({ name: 'login', query: {} })
+    expect(store.session).toBeNull()
+    expect(store.endingSession).toBe(false)
+    expect(resetUserStores).toHaveBeenCalledOnce()
+  })
+
+  it('logout() ends the local session even when the server call fails', async () => {
     const failure = new ApiError(null, null)
-    vi.mocked(authApi.login).mockResolvedValue(session)
+    const store = await authenticatedStore()
     vi.mocked(authApi.logout).mockRejectedValue(failure)
-    const store = useAuthStore()
-    await store.login({ email: session.email, password: 'secret' })
 
     await expect(store.logout()).rejects.toBe(failure)
 
+    expect(router.replace).toHaveBeenCalledWith({ name: 'login', query: {} })
     expect(store.session).toBeNull()
     expect(resetUserStores).toHaveBeenCalledOnce()
   })
 
   it('clearSession() drops the session without calling the server', async () => {
-    vi.mocked(authApi.login).mockResolvedValue(session)
-    const store = useAuthStore()
-    await store.login({ email: session.email, password: 'secret' })
+    const store = await authenticatedStore()
 
     store.clearSession()
 
     expect(authApi.logout).not.toHaveBeenCalled()
+    expect(router.replace).not.toHaveBeenCalled()
     expect(store.session).toBeNull()
     expect(resetUserStores).toHaveBeenCalledOnce()
+  })
+
+  it.each(['expired', 'inactivity'] as const)(
+    'expireSession(%s) sends the user to the login with the reason and the page to come back to',
+    async (reason) => {
+      const store = await authenticatedStore()
+
+      await store.expireSession(reason)
+
+      expect(authApi.logout).toHaveBeenCalledWith({ silent: true })
+      expect(router.replace).toHaveBeenCalledWith({
+        name: 'login',
+        query: { reason, redirect: '/registration/wallets?page=2' },
+      })
+      expect(store.session).toBeNull()
+      expect(store.endingSession).toBe(false)
+      expect(resetUserStores).toHaveBeenCalledOnce()
+    },
+  )
+
+  it('expireSession() does not ask to come back to a public page', async () => {
+    const store = await authenticatedStore()
+    router.currentRoute.value.matched = [{ meta: { public: true } }] as never
+
+    await store.expireSession('expired')
+
+    expect(router.replace).toHaveBeenCalledWith({ name: 'login', query: { reason: 'expired' } })
+  })
+
+  it('expireSession() ignores a failure of the server logout', async () => {
+    const store = await authenticatedStore()
+    vi.mocked(authApi.logout).mockRejectedValue(new ApiError(null, 401))
+
+    await store.expireSession('expired')
+
+    expect(store.session).toBeNull()
+  })
+
+  it('expireSession() does nothing without a session', async () => {
+    const store = useAuthStore()
+
+    await store.expireSession('expired')
+
+    expect(authApi.logout).not.toHaveBeenCalled()
+    expect(router.replace).not.toHaveBeenCalled()
+  })
+
+  it('expireSession() does not run twice while the session is ending', async () => {
+    const store = await authenticatedStore()
+    let finish!: () => void
+    vi.mocked(router.replace).mockReturnValue(
+      new Promise((done) => (finish = () => done(undefined))),
+    )
+
+    const first = store.expireSession('expired')
+    await store.expireSession('inactivity')
+    finish()
+    await first
+
+    expect(router.replace).toHaveBeenCalledTimes(1)
+    expect(authApi.logout).toHaveBeenCalledTimes(1)
   })
 })

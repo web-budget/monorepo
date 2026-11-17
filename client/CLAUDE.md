@@ -78,6 +78,8 @@ O client tem as camadas não visuais (#19) e a base visual (#22): shadcn-vue, o 
 
 O `src/api/client.ts` cria o `apiClient` com `baseURL: '/private/v1'` (sempre na mesma origem, nunca com host) e `timeout` de 20 s. O interceptor de resposta converte toda falha num `ApiError`, com `status` (`null` quando a requisição nem chegou ao server, e `isNetworkError` para perguntar isso), `error` (o código do `ProblemDetail` do server), `detail`, `parameters` e o erro original em `cause`. Cancelamentos e erros que não vêm do axios passam sem conversão. O interceptor não mostra nada na tela: o toast padrão para um `ApiError` vem do `plugins/apiErrorHandler.ts` (veja [Notificações e confirmações](#notificações-e-confirmações)). Uma chamada que trata o erro por conta própria passa `silent: true` na configuração do axios e o plugin a ignora, como o `fetchSession` faz.
 
+O `client.ts` também cuida de duas coisas da sessão (veja [Autenticação](#autenticação)): carimba a hora de toda resposta que o server deu, sucesso ou erro, em `api/serverActivity.ts` (é o que o `useInactivityLogout` lê), e garante o token de CSRF antes de uma escrita. O `client.ts` não importa o store nem o router, porque o `api/auth` importa o `client` e o store importa o `api/auth`: tudo o que navega ou mexe na sessão fica no `plugins/apiErrorHandler.ts`.
+
 | Arquivo | Endpoints |
 |---|---|
 | `auth.ts` | `POST /auth/login` (devolve a sessão), `GET /auth/session`, `POST /auth/logout` |
@@ -94,7 +96,7 @@ Todos os formatos que atravessam a API ficam em `src/types.ts`, num arquivo só,
 
 | Store | O que expõe |
 |---|---|
-| `auth` | `session`, `isAuthenticated`, `loading`, `login`, `restoreSession` (devolve se há sessão), `clearSession` e `logout` |
+| `auth` | `session`, `isAuthenticated`, `loading`, `endingSession`, `hasRole(role)`, `login`, `restoreSession` (devolve se há sessão), `clearSession`, `logout` e `expireSession(reason)` (veja [Autenticação](#autenticação)) |
 | `account` | `loading`, `activate`, `forgotPassword`, `recoverPassword` e `reset` |
 | `wallets`, `cards`, `costCenters`, `classifications`, `financialPeriods` | a ref da entidade (`wallet`, `card`, `costCenter`, `classification`, `financialPeriod`), `pageRequest`, `pageResponse`, `loading`, `findAll`, `findOne`, `create`, `update`, `remove` e `reset`; `wallets` e `costCenters` acrescentam `findByName` e a lista de opções que ele preenche |
 
@@ -103,11 +105,12 @@ Os stores de cadastro montam tudo sobre o composable `useCrudResource`, que guar
 - **Carregamento sob demanda:** cada store é carregado pela view ou pelo componente que precisa dele, no `onMounted`. Cargas em paralelo numa mesma tela usam `Promise.all`.
 - **Atualização pessimista:** toda mutação espera a resposta da API antes de mudar o estado do store. Não há atualização otimista nem rollback.
 - **Ações devolvem promessas e propagam o `ApiError`.** Não há os callbacks `onSuccess`/`onError` da v4: quem chama usa `await` e `try`/`catch`.
-- **`reset()` no fim da sessão:** todo store que guarda dado do usuário tem um `reset()`, e o `stores/resetUserStores.ts` chama todos eles. O `auth` chama o `resetUserStores()` no `clearSession()` e no `logout()`. Um store novo com dado do usuário ganha um `reset()` e uma linha lá.
+- **`reset()` no fim da sessão:** todo store que guarda dado do usuário tem um `reset()`, e o `stores/resetUserStores.ts` chama todos eles. O `auth` chama o `resetUserStores()` em toda saída de sessão (todos passam pelo `clearSession()`: o `restoreSession()` que falha, o `logout()` e o `expireSession()`) e também no `login()`, antes de guardar a sessão nova: nenhum usuário começa vendo o que o anterior carregou. Um store novo com dado do usuário ganha um `reset()` e uma linha lá.
 
 ### Composables e utils
 
 - `src/composables/useCrudResource.ts`: a mecânica comum dos stores de cadastro (veja acima).
+- `src/composables/useInactivityLogout.ts`: o logout por inatividade, iniciado no `App.vue` (veja [Autenticação](#autenticação)).
 - `src/composables/useNotification.ts` e `src/composables/useConfirmDialog.ts`: toasts e confirmação de exclusão (veja [Notificações e confirmações](#notificações-e-confirmações)).
 - `src/composables/useCrudList.ts`, `useCrudForm.ts`, `useCrudDetail.ts` e `useServerErrors.ts`: a mecânica das telas de cadastro (veja [Cadastros](#cadastros)).
 - `src/lib/utils.ts`: o `cn`, que junta classes e resolve conflitos do Tailwind. O shadcn-vue o importa de `@/lib/utils`.
@@ -145,12 +148,13 @@ Um componente reutilizável e só de apresentação vai num diretório compartil
 
 O `App.vue` só tem o `<RouterView>`, o `Toaster` e o `ConfirmDialog`. Cada seção tem o seu layout, que monta a `PageStructure` e passa o menu lateral pelo slot `side-menu` como uma lista de `MenuGroup` (`label` do i18n, `items` com `label`, `icon` do Lucide e `to`). Um item sem `to` aparece desabilitado: é o que o financeiro e a configuração têm hoje.
 
-As rotas ficam em `src/router/`, um arquivo por seção: `registrationRoutes.ts`, `financialRoutes.ts`, `configurationRoutes.ts` e `publicRoutes.ts`, montados no `index.ts`. Cada seção é um registro com o layout como `component` e as telas como `children` carregadas sob demanda (`() => import(...)`); uma tela nova entra como filha do registro da sua seção. Duas chaves de `meta` valem:
+As rotas ficam em `src/router/`, um arquivo por seção: `registrationRoutes.ts`, `financialRoutes.ts`, `configurationRoutes.ts` e `publicRoutes.ts`, montados no `index.ts`. Cada seção é um registro com o layout como `component` e as telas como `children` carregadas sob demanda (`() => import(...)`); uma tela nova entra como filha do registro da sua seção. Três chaves de `meta` valem (os tipos estão em `router/routeMeta.ts`):
 
 - `public: true` no registro do layout marca a rota como pública (o `isPublicRoute` olha todos os registros de `to.matched`). São públicos o `/login`, o `/auth/*` e as telas de erro (veja [Telas de autenticação e de erro](#telas-de-autenticação-e-de-erro)).
 - `breadcrumb` guarda a chave do i18n que o `PageBreadcrumb` mostra; repetir a mesma chave num filho não duplica o item. O último item é a página atual.
+- `role` no registro do layout de uma seção exige essa role do usuário em toda rota dela: `/registration` pede `REGISTRATION`, `/financial` pede `FINANCIAL` e `/configuration` pede `ADMINISTRATION`. A home e as rotas públicas não pedem nenhuma. Uma seção nova ganha a `role` da sua área no registro do layout e um item em `sections` da `TopBar`.
 
-O guard (`router/guard.ts`) é o mínimo: rota pública passa; senão, com sessão no store ou com `restoreSession()` verdadeiro passa; senão vai para `{ name: 'login', query: { redirect } }`. Os testes que chamam o `router/index.ts` precisam de um `createTestingPinia` ativo, e cada rota carregada sob demanda é coberta por um teste que resolve todos os carregadores (`router/index.test.ts`), então uma rota nova entra na contagem dele.
+O guard (`router/guard.ts`): rota pública passa; senão, com sessão no store ou com `restoreSession()` verdadeiro segue; senão vai para `{ name: 'login', query: { redirect } }`. Com sessão, se algum registro de `to.matched` pede uma role que o usuário não tem (`auth.hasRole`), vai para `{ name: '403' }`, a tela `/error/forbidden`. **Isso é UX, não controle de acesso:** o server confere a role em cada requisição, e a `TopBar` só esconde as seções sem a role pelo mesmo motivo. Os testes que chamam o `router/index.ts` precisam de um `createTestingPinia` ativo, e cada rota carregada sob demanda é coberta por um teste que resolve todos os carregadores (`router/index.test.ts`), então uma rota nova entra na contagem dele.
 
 **O `redirect` é entrada do usuário.** Quem o usa depois do login passa por `safeRedirect` (`utils/safeRedirect.ts`), que aceita só caminho interno (começando em `/`, sem `//` nem `/\`) e devolve `null` para o resto; o `LoginView` cai no `home` nesse caso.
 
@@ -158,7 +162,7 @@ O guard (`router/guard.ts`) é o mínimo: rota pública passa; senão, com sess�
 
 `useNotification()` (sobre o `vue-sonner`) devolve `showSuccess`, `showInfo`, `showWarn` e `showError` com a assinatura da v4 (`título, detalhe, localizar = true`, as duas strings como chaves do i18n) e o `showApiNotice`, que mostra o que o `describeApiError` descreveu. O `Toaster` fica no `App.vue`, e o CSS do `vue-sonner` é importado no `main.ts`.
 
-O `plugins/apiErrorHandler.ts`, instalado no `main.ts`, mostra o toast de todo `ApiError` que o `describeApiError` descreve. No 401 limpa a sessão e, se a tela atual não for pública, leva ao `/login?redirect=`. O 403 não faz nada aqui: a navegação para ele é da #30.
+O `plugins/apiErrorHandler.ts`, instalado no `main.ts`, mostra o toast de todo `ApiError` que o `describeApiError` descreve e cuida da sessão. No 401: `invalid-credentials` e `account-disabled` são do formulário de login e passam; com sessão no store (`unauthenticated`, `session-revoked`) chama `auth.expireSession('expired')`; sem sessão limpa o store e, se a tela atual não for pública, leva ao `/login?redirect=`. No 403 `forbidden` (a role foi tirada no meio da sessão) leva ao `403`; o `pending_approval` não faz nada aqui (é da #31) e o `invalid-csrf-token` vira o toast "Requisição não autorizada". Uma chamada `silent` não passa por nada disso.
 
 `useConfirmDialog()` devolve o `confirm(opções)` e o `confirmDelete()`, que abrem o `ConfirmDialog` (um `alert-dialog` montado uma vez no `App.vue`) e resolvem uma promessa com `true` ou `false`. Sem opções, o texto é o de exclusão da v4:
 
@@ -206,13 +210,19 @@ A autenticação é por sessão no servidor (#26): o cookie de sessão é do nav
 
 **Esconder um botão ou redirecionar uma rota é UX, não controle de acesso.** O server confere cada permissão por conta própria em cada requisição. Um `v-if` por role ou um redirecionamento do router melhora a experiência de quem usa o sistema direito e não faz nada contra quem chama a API direto, então nunca raciocine sobre o que o client esconde como se fosse a fronteira de segurança.
 
-O guard de rotas (`router/guard.ts`) só confere a sessão. O guard completo (status da conta e role), o auto-cadastro e o logout por inatividade vêm na #30.
+O guard de rotas (`router/guard.ts`) confere a sessão e a role (veja [Layout e rotas](#layout-e-rotas)). O auto-cadastro, o aguardando aprovação e o redirecionamento por `pending_approval` vêm na #31.
+
+**Fim de sessão.** O `auth.logout()` e o `auth.expireSession(reason)` navegam para o `/login` primeiro e só então limpam a sessão e os stores (`endingSession` fica `true` no meio), para que a tela que está aberta nunca renderize sem sessão. Quem sai por `expireSession` leva `?reason=expired|inactivity` e, se a tela era privada, `redirect=` com ela; a `LoginView` mostra o aviso da razão como toast, sem mexer no layout, e não manda o usuário de volta ao app enquanto `endingSession` é `true`. `expireSession` não faz nada sem sessão ou com um fim de sessão em curso, e o `POST /auth/logout` que ele dispara é `silent` e ignora a falha.
+
+**Logout por inatividade.** O `useInactivityLogout`, iniciado no `App.vue`, confere a cada 30 s (e quando a aba volta a ficar visível) se a última resposta do server (`lastServerActivityAt`) tem 30 minutos ou mais, o mesmo timeout de sessão do server, e então chama `expireSession('inactivity')`. Só vigia enquanto há sessão.
+
+**CSRF.** O server (#26) exige o header `X-XSRF-TOKEN`, igual ao cookie `XSRF-TOKEN`, em toda escrita, até nas anônimas (`POST /auth/login`, `PATCH /accounts/*`); sem ele responde `403` `invalid-csrf-token`, não `401`. O axios do `apiClient` lê o cookie e manda o header sozinho (mesma origem). O cookie só nasce depois de algum `GET`, então um interceptor de requisição do `client.ts` dispara um `GET /auth/session` `silent` antes de qualquer escrita feita sem o cookie (as telas de recuperação de senha e de ativação, abertas direto pelo link do e-mail, não têm outro `GET`), e escritas simultâneas dividem esse mesmo `GET`.
 
 ### Telas de autenticação e de erro
 
 As rotas públicas ficam em `router/publicRoutes.ts`. O login é `/login`; esqueci a senha, recuperação e ativação ficam sob `/auth` (`/auth/forgot-password`, `/auth/recover-password`, `/auth/account-activation`), dentro do `AuthLayout`. **Os dois últimos caminhos e os parâmetros `token` e `email` são o contrato dos emails que o server envia** (o back-end da v4 monta `${frontendUrl}/auth/...?token=...&email=...`): não os renomeie sem mudar o server. As telas de erro são `/error/forbidden` (`403`), `/error/not-found` (`404`) e `/error/server-error` (`500`), sem layout, e uma rota coringa pública (`not-found`) mostra a de 404 para qualquer caminho desconhecido.
 
-- **Login:** `POST /auth/login` com `{ email, password }`. Credencial ou conta recusada (401 e 403) mostra `error.login.*` na própria tela, porque o `describeApiError` devolve `null` para os dois e o plugin não mostra nada; qualquer outra falha já virou o toast padrão e a view não repete. Ao montar, a tela pergunta ao `restoreSession()` e, com sessão viva, segue direto para o destino. Hipótese de contrato até a #26: credencial inválida responde 401.
+- **Login:** `POST /auth/login` com `{ email, password }`. Credencial ou conta recusada (401 e 403) mostra `error.login.*` na própria tela, porque o `describeApiError` devolve `null` para os dois e o plugin não mostra nada; qualquer outra falha já virou o toast padrão e a view não repete. Ao montar, a tela pergunta ao `restoreSession()` e, com sessão viva, segue direto para o destino. Credencial inválida responde 401 `invalid-credentials` e conta recusada responde 401 `account-disabled`; o `apiErrorHandler` deixa os dois para a tela.
 - **Esqueci a senha, recuperação e ativação:** usam o store `account`; falhas já viram o toast padrão (o `invalid-token` do 400 diz "Token inválido ou expirado"), então só o sucesso é tratado na tela. A ativação tem três estados explícitos (`activating`, `success`, `error`) e `queryValue` (`utils/queryValue.ts`) lê `token` e `email` da query.
 - **Recuperação:** a confirmação precisa ser igual à senha. O `refine` do `recoverPasswordSchema` marca o issue com `params: { i18n: 'password-mismatch' }`, que o `zodErrorMap` traduz; uma regra cruzada nova segue o mesmo caminho.
 - **Testes de formulário:** o vee-validate valida de forma assíncrona; depois de `trigger('submit')` use `await settle()` (`src/test/settle.ts`) em vez de um único `flushPromises()`.

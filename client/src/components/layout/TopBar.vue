@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { LogOut, Moon, Sun, User } from 'lucide-vue-next'
 import { computed } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -15,29 +15,24 @@ import { Separator } from '@/components/ui/separator'
 import { SidebarTrigger } from '@/components/ui/sidebar'
 import { useAppearanceStore } from '@/stores/appearance'
 import { useAuthStore } from '@/stores/auth'
+import type { Role } from '@/types'
 
 const props = defineProps<{ withSideMenu: boolean }>()
 
-const sections = [
-  { path: '/registration', label: 'menu.registration' },
-  { path: '/financial', label: 'menu.financial' },
-  { path: '/configuration', label: 'menu.configuration' },
+const sections: { path: string; label: string; role: Role }[] = [
+  { path: '/registration', label: 'menu.registration', role: 'REGISTRATION' },
+  { path: '/financial', label: 'menu.financial', role: 'FINANCIAL' },
+  { path: '/configuration', label: 'menu.configuration', role: 'ADMINISTRATION' },
 ]
 
 const route = useRoute()
-const router = useRouter()
 const auth = useAuthStore()
 const appearance = useAppearanceStore()
 
-const currentSection = computed(() => sections.find(({ path }) => route.path.startsWith(path)))
-
-async function logout() {
-  try {
-    await auth.logout()
-  } finally {
-    await router.push({ name: 'login' })
-  }
-}
+const visibleSections = computed(() => sections.filter(({ role }) => auth.hasRole(role)))
+const currentSection = computed(() =>
+  visibleSections.value.find(({ path }) => route.path.startsWith(path)),
+)
 </script>
 
 <template>
@@ -53,7 +48,7 @@ async function logout() {
 
     <nav :aria-label="$t('layout.main-menu')" class="ml-6 hidden items-center gap-1 md:flex">
       <Button
-        v-for="section in sections"
+        v-for="section in visibleSections"
         :key="section.path"
         as-child
         :variant="currentSection?.path === section.path ? 'secondary' : 'ghost'"
@@ -78,21 +73,21 @@ async function logout() {
           </DropdownMenuLabel>
           <DropdownMenuSeparator />
           <DropdownMenuItem
-            v-for="section in sections"
+            v-for="section in visibleSections"
             :key="section.path"
             class="md:hidden"
             as-child
           >
             <RouterLink :to="section.path">{{ $t(section.label) }}</RouterLink>
           </DropdownMenuItem>
-          <DropdownMenuSeparator class="md:hidden" />
+          <DropdownMenuSeparator v-if="visibleSections.length > 0" class="md:hidden" />
           <DropdownMenuItem @select="appearance.toggleDark()">
             <Sun v-if="appearance.dark" />
             <Moon v-else />
             {{ appearance.dark ? $t('layout.light-theme') : $t('layout.dark-theme') }}
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-          <DropdownMenuItem @select="logout()">
+          <DropdownMenuItem @select="auth.logout()">
             <LogOut />
             {{ $t('layout.logout') }}
           </DropdownMenuItem>
