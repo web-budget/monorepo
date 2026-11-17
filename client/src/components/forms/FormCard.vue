@@ -10,7 +10,7 @@ const emit = defineEmits<{ submit: []; back: [] }>()
 
 <template>
   <Card>
-    <form novalidate @submit.prevent="emit('submit')">
+    <form class="flex flex-col gap-6" novalidate @submit.prevent="emit('submit')">
       <CardHeader>
         <CardTitle>{{ title }}</CardTitle>
       </CardHeader>
@@ -18,7 +18,7 @@ const emit = defineEmits<{ submit: []; back: [] }>()
         <ServerErrorAlert :messages="messages" />
         <slot />
       </CardContent>
-      <CardFooter class="mt-6 justify-end gap-2">
+      <CardFooter class="justify-end gap-2">
         <Button type="button" variant="outline" :disabled="loading" @click="emit('back')">
           {{ $t('form.back') }}
         </Button>

@@ -21,7 +21,7 @@ const emit = defineEmits<{ back: []; edit: []; delete: [] }>()
         <slot />
       </dl>
     </CardContent>
-    <CardFooter class="mt-6 justify-end gap-2">
+    <CardFooter class="justify-end gap-2">
       <Button type="button" variant="outline" @click="emit('back')">{{ $t('form.back') }}</Button>
       <Button type="button" @click="emit('edit')">{{ $t('form.edit') }}</Button>
       <Button type="button" variant="destructive" @click="emit('delete')">
