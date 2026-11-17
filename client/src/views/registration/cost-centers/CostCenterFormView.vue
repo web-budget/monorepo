@@ -26,7 +26,7 @@ const form = useForm({
   initialValues: costCenterFormDefaults,
 })
 
-const { messages, changeToList, onSubmit } = useCrudForm({
+const { messages, changeToList, onSubmit, run } = useCrudForm({
   routeName: 'cost-centers',
   notices: {
     created: 'notification.cost-center.created',
@@ -65,7 +65,7 @@ const parentOptions = computed(() =>
         :options="parentOptions"
         :placeholder="$t('cost-center.form.parent-search-placeholder')"
         :empty-message="$t('cost-center.form.parent-search-empty')"
-        @search="store.findByName"
+        @search="(text) => run(() => store.findByName(text))"
       />
       <InputField name="incomeBudget" type="number" :label="$t('cost-center.form.income-budget')" />
       <InputField

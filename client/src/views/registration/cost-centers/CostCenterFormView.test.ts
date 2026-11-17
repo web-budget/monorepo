@@ -213,6 +213,17 @@ describe('CostCenterFormView', () => {
     )
   })
 
+  it('shows the server error when the parent search fails', async () => {
+    vi.mocked(costCentersApi.findAll).mockRejectedValue(problem(500))
+    const { wrapper } = await mountView(CostCenterFormView, 'cost-centers')
+
+    await pickParent(wrapper, 'Ho', 'Home').catch(() => undefined)
+
+    expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
+      'Tente novamente mais tarde',
+    )
+  })
+
   it('goes back to the listing', async () => {
     const { wrapper, router } = await mountView(CostCenterFormView, 'cost-centers')
 

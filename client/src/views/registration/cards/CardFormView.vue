@@ -34,7 +34,7 @@ const { wallets } = storeToRefs(walletsStore)
 
 const form = useForm({ validationSchema: cardFormSchema, initialValues: cardFormDefaults })
 
-const { messages, changeToList, onSubmit } = useCrudForm({
+const { messages, changeToList, onSubmit, run } = useCrudForm({
   routeName: 'cards',
   notices: { created: 'notification.card.created', updated: 'notification.card.updated' },
   id: () => props.id,
@@ -79,7 +79,7 @@ const invoiceEnabled = computed(() => usesInvoice(form.values.type))
         :placeholder="$t('card.form.wallet-search-placeholder')"
         :empty-message="$t('card.form.wallet-search-empty')"
         :disabled="!walletEnabled"
-        @search="walletsStore.findByName"
+        @search="(text) => run(() => walletsStore.findByName(text))"
       />
     </div>
     <div class="grid gap-4 md:grid-cols-3">

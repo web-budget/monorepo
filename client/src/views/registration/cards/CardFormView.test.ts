@@ -235,6 +235,24 @@ describe('CardFormView', () => {
     )
   })
 
+  it('shows the server error when the wallet search fails', async () => {
+    vi.mocked(walletsApi.findAll).mockRejectedValue(problem(500))
+    const { wrapper } = await mountView(CardFormView, 'cards')
+
+    await wrapper.find('button[data-field="wallet"]').trigger('click')
+    await settle()
+    const search = document.body.querySelector<HTMLInputElement>(
+      '[data-slot="popover-content"] input',
+    )
+    search!.value = 'Ma'
+    search!.dispatchEvent(new Event('input'))
+    await settle()
+
+    expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
+      'Tente novamente mais tarde',
+    )
+  })
+
   it('goes back to the listing', async () => {
     const { wrapper, router } = await mountView(CardFormView, 'cards')
 

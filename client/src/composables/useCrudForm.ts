@@ -51,5 +51,5 @@ export function useCrudForm<Values extends GenericObject, Output extends Generic
     }
   })
 
-  return { messages, changeToList, onSubmit }
+  return { messages, changeToList, onSubmit, run }
 }
