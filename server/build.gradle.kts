@@ -1,9 +1,30 @@
+import liquibase.Liquibase
+import liquibase.database.DatabaseFactory
+import liquibase.database.jvm.JdbcConnection
+import liquibase.resource.DirectoryResourceAccessor
 import kotlinx.kover.gradle.plugin.dsl.AggregationType.COVERED_PERCENTAGE
 import kotlinx.kover.gradle.plugin.dsl.CoverageUnit.BRANCH
 import kotlinx.kover.gradle.plugin.dsl.CoverageUnit.INSTRUCTION
 import kotlinx.kover.gradle.plugin.dsl.CoverageUnit.LINE
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_4
+import org.jooq.codegen.gradle.CodegenPluginExtension
+import org.jooq.meta.jaxb.Jdbc
+import org.testcontainers.postgresql.PostgreSQLContainer
+import org.testcontainers.utility.DockerImageName
+import java.security.MessageDigest
+import java.sql.DriverManager
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.testcontainers:testcontainers-postgresql:2.0.5")
+        classpath("org.liquibase:liquibase-core:5.0.4")
+        classpath("org.postgresql:postgresql:42.7.14")
+    }
+}
 
 plugins {
     kotlin("jvm") version "2.4.10"
@@ -11,6 +32,7 @@ plugins {
 
     id("org.springframework.boot") version "4.1.2"
     id("io.spring.dependency-management") version "1.1.7"
+    id("org.jooq.jooq-codegen-gradle") version "3.21.7"
     id("org.jetbrains.kotlinx.kover") version "0.9.9"
 }
 
@@ -28,6 +50,7 @@ repositories {
 }
 
 val kotlinLoggingJvmVersion = "8.0.4"
+val postgresDriverVersion = "42.7.14"
 
 dependencies {
     // spring stuff
@@ -51,6 +74,7 @@ dependencies {
 
     // database
     runtimeOnly("org.postgresql:postgresql")
+    jooqCodegen("org.postgresql:postgresql:$postgresDriverVersion")
 
     // testing
     testImplementation("org.springframework.boot:spring-boot-starter-actuator-test")
@@ -85,6 +109,7 @@ kover {
     reports {
         filters {
             excludes {
+                packages("br.com.webbudget.server.jooq")
                 classes(
                     "br.com.webbudget.server.ServerApplication",
                     "br.com.webbudget.server.ServerApplicationKt"
@@ -118,4 +143,108 @@ kover {
 tasks.withType<Test> {
     useJUnitPlatform()
     maxParallelForks = 4
+}
+
+jooq {
+    configuration {
+        generator {
+            name = "org.jooq.codegen.KotlinGenerator"
+
+            database {
+                name = "org.jooq.meta.postgres.PostgresDatabase"
+
+                schemata {
+                    schema {
+                        inputSchema = "administration"
+                    }
+                    schema {
+                        inputSchema = "registration"
+                    }
+                    schema {
+                        inputSchema = "financial"
+                    }
+                }
+            }
+
+            target {
+                packageName = "br.com.webbudget.server.jooq"
+                directory = "build/generated-sources/jooq/main"
+            }
+        }
+    }
+}
+
+val jooqDb = PostgreSQLContainer(DockerImageName.parse("postgres:18-alpine"))
+
+val changelogDir = file("src/main/resources/db/changelog")
+val jooqCodegenMarker = layout.buildDirectory.file("jooq-codegen-changelog.sha256")
+
+fun changelogDigest(): String {
+    val digest = MessageDigest.getInstance("SHA-256")
+    changelogDir.walkTopDown().filter { it.isFile }.sortedBy { it.path }.forEach { changelogFile ->
+        digest.update(changelogFile.readBytes())
+    }
+    return digest.digest().joinToString("") { byte -> "%02x".format(byte) }
+}
+
+fun changelogUnchangedSinceLastCodegen(): Boolean {
+    val markerFile = jooqCodegenMarker.get().asFile
+    return markerFile.exists() && markerFile.readText() == changelogDigest()
+}
+
+val startJooqDb by tasks.registering {
+    description = "starts a disposable postgres with the changelog applied to generate the jooq classes"
+    onlyIf { !changelogUnchangedSinceLastCodegen() }
+    doLast {
+        jooqDb.start()
+
+        DriverManager.getConnection(jooqDb.jdbcUrl, jooqDb.username, jooqDb.password).use { connection ->
+            val database = DatabaseFactory
+                .getInstance()
+                .findCorrectDatabaseImplementation(JdbcConnection(connection))
+
+            val resourceAccessor = DirectoryResourceAccessor(File(projectDir, "src/main/resources"))
+
+            Liquibase("db/changelog/db.changelog-master.xml", resourceAccessor, database).update()
+        }
+
+        project.extensions.getByType(CodegenPluginExtension::class.java)
+            .executions.getByName("")
+            .configuration
+            .withJdbc(
+                Jdbc()
+                    .withDriver("org.postgresql.Driver")
+                    .withUrl(jooqDb.jdbcUrl)
+                    .withUser(jooqDb.username)
+                    .withPassword(jooqDb.password)
+            )
+    }
+}
+
+val stopJooqDb by tasks.registering {
+    description = "stops the disposable postgres used to generate the jooq classes"
+    onlyIf { startJooqDb.get().didWork }
+    doLast {
+        jooqDb.stop()
+    }
+}
+
+startJooqDb {
+    finalizedBy(stopJooqDb)
+}
+
+tasks.named("jooqCodegen") {
+    dependsOn(startJooqDb)
+    finalizedBy(stopJooqDb)
+    onlyIf { startJooqDb.get().didWork }
+    doLast {
+        jooqCodegenMarker.get().asFile.apply {
+            parentFile.mkdirs()
+            writeText(changelogDigest())
+        }
+    }
+}
+
+tasks.named("compileKotlin") {
+    dependsOn("jooqCodegen")
 }
