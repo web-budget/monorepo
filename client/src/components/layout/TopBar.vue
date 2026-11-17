@@ -32,8 +32,11 @@ const appearance = useAppearanceStore()
 const currentSection = computed(() => sections.find(({ path }) => route.path.startsWith(path)))
 
 async function logout() {
-  await auth.logout()
-  await router.push({ name: 'login' })
+  try {
+    await auth.logout()
+  } finally {
+    await router.push({ name: 'login' })
+  }
 }
 </script>
 
