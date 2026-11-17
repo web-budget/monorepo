@@ -22,7 +22,7 @@ describe('router', () => {
       .map((record) => record.components?.default)
       .filter((component) => typeof component === 'function')
 
-    expect(loaders).toHaveLength(32)
+    expect(loaders).toHaveLength(35)
     for (const loader of loaders) {
       expect(await (loader as () => Promise<unknown>)()).toHaveProperty('default')
     }
@@ -102,6 +102,34 @@ describe('registration crud routes', () => {
 
     expect(update?.props.default).toBe(true)
     expect(list?.props.default).toBeFalsy()
+  })
+})
+
+describe('users routes', () => {
+  it('registers the list, create and update routes under the configuration section', () => {
+    expect(router.resolve('/configuration/users').name).toBe('users')
+    expect(router.resolve('/configuration/users/create').name).toBe('users.create')
+    expect(router.resolve('/configuration/users/abc/update').name).toBe('users.update')
+    expect(router.resolve('/configuration/users/abc/update').params.id).toBe('abc')
+  })
+
+  it('asks for the administration role and labels the breadcrumb on every users screen', () => {
+    for (const [path, label] of [
+      ['/configuration/users', undefined],
+      ['/configuration/users/create', 'users.form.new'],
+      ['/configuration/users/abc/update', 'users.form.editing'],
+    ] as const) {
+      const matched = router.resolve(path).matched
+
+      expect(matched.map((record) => record.meta.role)).toContain('ADMINISTRATION')
+      expect(matched.map((record) => record.meta.breadcrumb)).toContain('users.menu')
+      expect(
+        matched
+          .map((record) => record.meta.breadcrumb)
+          .filter(Boolean)
+          .pop(),
+      ).toBe(label ?? 'users.menu')
+    }
   })
 })
 

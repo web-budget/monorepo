@@ -50,10 +50,14 @@ describe('layouts', () => {
     expect(wrapper.findAll('[data-slot="sidebar"] button[disabled]')).toHaveLength(4)
   })
 
-  it('ConfigurationLayout lists the configuration entries, still disabled', async () => {
+  it('ConfigurationLayout links the users and still lists the integrations, disabled', async () => {
     const wrapper = await render(ConfigurationLayout)
 
     expect(menuLabels(wrapper)).toEqual(['Usuários', 'Integrações'])
+    expect(
+      wrapper.findAll('[data-slot="sidebar"] a').map((link) => link.attributes('href')),
+    ).toEqual(['/configuration/users'])
+    expect(wrapper.findAll('[data-slot="sidebar"] button[disabled]')).toHaveLength(1)
   })
 
   it('HomeLayout has no side menu', async () => {

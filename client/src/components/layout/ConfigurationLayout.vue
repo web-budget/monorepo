@@ -8,7 +8,7 @@ const items: MenuGroup[] = [
   {
     label: 'menu.configuration',
     items: [
-      { label: 'users.menu', icon: Users },
+      { label: 'users.menu', icon: Users, to: '/configuration/users' },
       { label: 'integrations.menu', icon: ArrowRightLeft },
     ],
   },

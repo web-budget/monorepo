@@ -72,7 +72,7 @@ Componentes usam a Composition API com `<script setup lang="ts">`, na ordem `<sc
 
 O client fala só com o server do monorepo, pela mesma origem: em desenvolvimento, o Vite encaminha `/private` para a 8085. Não há CORS, não há URL de API configurável por variável de ambiente e não há token no client.
 
-O client tem as camadas não visuais (#19) e a base visual (#22): shadcn-vue, o shell com as rotas por seção e os componentes compartilhados. As telas de autenticação e de erro (#23) existem (veja [Telas de autenticação e de erro](#telas-de-autenticação-e-de-erro)) e os cinco cadastros (#24) também (veja [Cadastros](#cadastros)); as páginas iniciais de cada seção são só um marcador, como na v4.
+O client tem as camadas não visuais (#19) e a base visual (#22): shadcn-vue, o shell com as rotas por seção e os componentes compartilhados. As telas de autenticação e de erro (#23) existem (veja [Telas de autenticação e de erro](#telas-de-autenticação-e-de-erro)) e os cinco cadastros (#24) também (veja [Cadastros](#cadastros)), assim como a administração de usuários (#32, veja [Administração de usuários](#administração-de-usuários)); as páginas iniciais de cada seção são só um marcador, como na v4.
 
 ### API (`src/api/`)
 
@@ -86,6 +86,8 @@ O `client.ts` também cuida de duas coisas da sessão (veja [Autenticação](#au
 |---|---|
 | `auth.ts` | `POST /auth/login` (devolve a sessão), `GET /auth/session`, `POST /auth/logout` |
 | `accounts.ts` | `PATCH /accounts/activate`, `/accounts/forgot-password`, `/accounts/recover-password` |
+| `users.ts` | o CRUD de `/administration/users` (`CrudApi`) mais `PATCH /{id}/update-password` (`updatePassword`) |
+| `roles.ts` | `GET /administration/roles`, a lista de nomes de role que se pode conceder |
 | `wallets.ts`, `cards.ts`, `costCenters.ts`, `classifications.ts`, `financialPeriods.ts` | o CRUD de cada cadastro em `/registration/<recurso>`: `GET` paginado (com `PageQuery`), `GET /{id}`, `POST`, `PUT /{id}` e `DELETE /{id}` |
 
 Os módulos de cadastro têm a forma de `CrudApi` (`src/composables/useCrudResource.ts`): `findAll`, `findById`, `create`, `update` e `remove`.
@@ -101,6 +103,7 @@ Todos os formatos que atravessam a API ficam em `src/types.ts`, num arquivo só,
 | `auth` | `session`, `isAuthenticated`, `loading`, `endingSession`, `hasRole(role)`, `login`, `restoreSession` (devolve se há sessão), `clearSession`, `logout` e `expireSession(reason)` (veja [Autenticação](#autenticação)) |
 | `account` | `loading`, `activate`, `forgotPassword`, `recoverPassword` e `reset` |
 | `wallets`, `cards`, `costCenters`, `classifications`, `financialPeriods` | a ref da entidade (`wallet`, `card`, `costCenter`, `classification`, `financialPeriod`), `pageRequest`, `pageResponse`, `loading`, `findAll`, `findOne`, `create`, `update`, `remove` e `reset`; `wallets` e `costCenters` acrescentam `findByName` e a lista de opções que ele preenche |
+| `usersAdmin` | a ref `user`, `roles`, `pageRequest` (o status padrão é `ALL`, não `ACTIVE`), `pageResponse`, `loading`, `findAll`, `findOne`, `findRoles`, `create`, `update`, `updatePassword`, `remove` e `reset` |
 
 Os stores de cadastro montam tudo sobre o composable `useCrudResource`, que guarda o `pageRequest`, o `pageResponse` e a entidade corrente e conta as operações em andamento para o `loading`. Um store novo de CRUD usa o mesmo composable em vez de reescrever essa mecânica.
 
@@ -148,7 +151,7 @@ Um componente reutilizável e só de apresentação vai num diretório compartil
 
 ### Layout e rotas
 
-O `App.vue` só tem o `<RouterView>`, o `Toaster` e o `ConfirmDialog`. Cada seção tem o seu layout, que monta a `PageStructure` e passa o menu lateral pelo slot `side-menu` como uma lista de `MenuGroup` (`label` do i18n, `items` com `label`, `icon` do Lucide e `to`). Um item sem `to` aparece desabilitado: é o que o financeiro e a configuração têm hoje.
+O `App.vue` só tem o `<RouterView>`, o `Toaster` e o `ConfirmDialog`. Cada seção tem o seu layout, que monta a `PageStructure` e passa o menu lateral pelo slot `side-menu` como uma lista de `MenuGroup` (`label` do i18n, `items` com `label`, `icon` do Lucide e `to`). Um item sem `to` aparece desabilitado: é o que o financeiro e as integrações da configuração têm hoje.
 
 As rotas ficam em `src/router/`, um arquivo por seção: `registrationRoutes.ts`, `financialRoutes.ts`, `configurationRoutes.ts` e `publicRoutes.ts`, montados no `index.ts`. Cada seção é um registro com o layout como `component` e as telas como `children` carregadas sob demanda (`() => import(...)`); uma tela nova entra como filha do registro da sua seção. Três chaves de `meta` valem (os tipos estão em `router/routeMeta.ts`):
 
@@ -188,6 +191,16 @@ Carteiras, cartões, centros de custo, classificações e períodos financeiros 
 - **Detalhe:** `DetailCard` com `DetailField`s; o `useCrudDetail` carrega, leva à edição e exclui com confirmação.
 - **Erro do servidor:** o `useServerErrors().run()` envolve toda chamada da tela; se ela falha, as mensagens (as mesmas do `describeApiError`) vão para o `ServerErrorAlert`, no formulário, no detalhe ou acima da tabela. O toast padrão do `apiErrorHandler` continua aparecendo: os dois são intencionais, o toast some e o alerta fica ao lado do que falhou.
 - **Testes:** cada tela tem um `*.test.ts` com `createTestingPinia({ stubActions: false })` (via `mountView` de `src/test/crud.ts`) e o módulo `@/api/<recurso>` mockado, para exercitar o store de verdade. A confirmação de exclusão se resolve com `useConfirmDialog().accept()` ou `.cancel()`, sem montar o `ConfirmDialog`. Depois de um `submit`, use o `settle()` do mesmo helper: a validação do vee-validate é assíncrona.
+
+### Administração de usuários
+
+Tela em `src/views/configuration/users/` (`UserListView` e `UserFormView`), sob `/configuration/users`, `.../create` e `.../:id/update` (nomes `users`, `users.create` e `users.update`; sem tela de detalhe, por isso as rotas são escritas à mão em `configurationRoutes.ts` e não saem do `crudRoutes`). A role `ADMINISTRATION` vem do registro `/configuration`. O visual é o padrão do shadcn-vue e será refeito no design novo (#33); o store, a API, os esquemas e os testes continuam.
+
+- **O contrato do server tem armadilhas que a tela já cobre.** O `POST` exige senha (`UserCreateForm.password`) e só envia o e-mail de ativação com `sendActivationEmail: true`, então o formulário de criação pede a senha e marca o envio por padrão. A `UserView` devolve `authorities`, mas os formulários enviam `roles`: o `schemas/userSchema.ts` faz a troca (`toUserFormValues`). Um usuário novo nasce inativo até ativar a conta, por isso o `usersAdmin` e o `SearchControls` da lista começam em `ALL`. O e-mail não muda na edição (o `UserUpdateForm` nem o tem). O `409` de e-mail repetido vem como `parameters['user.email']`, traduzido em `error.conflict.user.email`.
+- **Sem ação sobre a própria conta.** A linha do usuário logado (`email` igual ao de `auth.session`) mostra "Sua conta" no lugar das ações. É só UX: o server de hoje (`feature/12`) **não** recusa editar ou apagar a própria conta (só recusa apagar o admin principal), então a proteção real é uma pendência do server.
+- **Confirmação em toda ação.** Criar e salvar passam pela opção `confirm` do `useCrudForm` (roda antes da chamada e, se recusada, não grava, não mostra o aviso de sucesso nem limpa o formulário); excluir passa pela opção `confirmRemove` do `useCrudList`, que cita o nome do usuário. Redefinir a senha é um diálogo (`components/users/ResetPasswordDialog.vue`) com senha e confirmação; o botão do diálogo é a confirmação. A senha vai com `temporary: true` (o server ignora o campo hoje) e a troca encerra as sessões abertas do usuário, porque sobe o `credentials_version`.
+- **Roles.** O `RoleSelectField` (caixas de seleção) lista o que o `GET /administration/roles` devolve, carregado pelo `findRoles` ao abrir o formulário, e exige ao menos uma. Quando as roles de alguém mudam, a próxima requisição dele já responde `403` `forbidden` nas áreas perdidas (o server confere a role no banco a cada chamada); o `apiErrorHandler` leva à tela `403`.
+- **Fora de escopo, vem na #31:** filtro por status de aprovação, aprovar, bloquear, desbloquear e resetar o TOTP.
 
 ### i18n (`src/locales/`)
 

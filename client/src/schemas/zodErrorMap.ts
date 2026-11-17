@@ -12,7 +12,7 @@ export const zodErrorMap: z.ZodErrorMap = (issue, context) => {
         message: translate(issue.received === 'undefined' ? 'required' : 'invalid'),
       }
     case z.ZodIssueCode.too_small:
-      if (issue.type === 'string') {
+      if (issue.type === 'string' || issue.type === 'array') {
         return {
           message: translate(issue.minimum === 1 ? 'required' : 'string-min', {
             minimum: issue.minimum,
