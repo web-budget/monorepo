@@ -12,6 +12,7 @@ import { Input } from '@/components/ui/input'
 import { useNotification } from '@/composables/useNotification'
 import { loginFormSchema } from '@/schemas/loginSchema'
 import { useAuthStore } from '@/stores/auth'
+import { describeApiError } from '@/utils/apiErrorNotice'
 import { safeRedirect } from '@/utils/safeRedirect'
 
 const route = useRoute()
@@ -30,7 +31,7 @@ async function goAfterLogin() {
 }
 
 function notifyFailure(error: unknown) {
-  if (error instanceof ApiError && error.status === 401) {
+  if (error instanceof ApiError && describeApiError(error) === null) {
     showError('error.login.detail', 'error.login.description')
   }
 }

@@ -144,6 +144,15 @@ describe('LoginView', () => {
     expect(router.currentRoute.value.path).toBe('/')
   })
 
+  it('also tells the user when the account is refused', async () => {
+    const { wrapper, auth } = await render()
+    vi.mocked(auth.login).mockRejectedValue(new ApiError(null, 403))
+
+    await submit(wrapper, 'ana@example.com', 'secret')
+
+    expect(toast.error).toHaveBeenCalledTimes(1)
+  })
+
   it('stays quiet about failures the API handler already reported', async () => {
     const { wrapper, router, auth } = await render()
     vi.mocked(auth.login).mockRejectedValue(new ApiError(null, 500))
