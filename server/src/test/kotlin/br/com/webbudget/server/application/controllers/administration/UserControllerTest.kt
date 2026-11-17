@@ -48,7 +48,7 @@ class UserControllerTest : BaseIntegrationTest() {
             .exchange()
             .expectStatus().isCreated
             .expectHeader().value("Location") { location ->
-                assertThat(location).matches("http://localhost/private/v1/administration/users/[0-9a-f-]{36}")
+                assertThat(location).matches("http://localhost:[0-9]+/private/v1/administration/users/[0-9a-f-]{36}")
             }
 
         val created = userRepository.findByEmail("created@webbudget.com.br")!!

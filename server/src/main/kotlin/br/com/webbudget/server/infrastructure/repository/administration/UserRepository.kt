@@ -74,10 +74,13 @@ class UserRepository(
             .set(USERS.EMAIL, user.email)
             .set(USERS.PASSWORD, user.password)
             .set(USERS.DEFAULT_LANGUAGE, user.defaultLanguage.name)
+            .set(USERS.STATUS, user.status.name)
+            .set(USERS.AUTH_PROVIDER, user.authProvider.name)
             .returning()
             .fetchSingle()
 
         user.restore(record.id, record.externalId, record.version, record.createdOn, record.lastUpdate)
+        user.credentialsVersion = record.credentialsVersion!!
         return user
     }
 
@@ -86,7 +89,6 @@ class UserRepository(
             .set(USERS.ACTIVE, user.active)
             .set(USERS.NAME, user.name)
             .set(USERS.EMAIL, user.email)
-            .set(USERS.PASSWORD, user.password)
             .set(USERS.DEFAULT_LANGUAGE, user.defaultLanguage.name)
             .set(USERS.VERSION, USERS.VERSION.plus(1))
             .set(USERS.LAST_UPDATE, LocalDateTime.now())
@@ -96,6 +98,23 @@ class UserRepository(
             .fetchOne() ?: throw concurrentUpdate()
 
         user.restore(record.id, record.externalId, record.version, record.createdOn, record.lastUpdate)
+        return user
+    }
+
+    fun updatePassword(user: User, passwordHash: String): User {
+        val record = dsl.update(USERS)
+            .set(USERS.PASSWORD, passwordHash)
+            .set(USERS.CREDENTIALS_VERSION, USERS.CREDENTIALS_VERSION.plus(1))
+            .set(USERS.VERSION, USERS.VERSION.plus(1))
+            .set(USERS.LAST_UPDATE, LocalDateTime.now())
+            .where(USERS.ID.eq(user.id))
+            .and(USERS.VERSION.eq(user.version))
+            .returning()
+            .fetchOne() ?: throw concurrentUpdate()
+
+        user.restore(record.id, record.externalId, record.version, record.createdOn, record.lastUpdate)
+        user.password = record.password!!
+        user.credentialsVersion = record.credentialsVersion!!
         return user
     }
 

@@ -9,4 +9,12 @@ object ErrorCodes {
     const val BAD_REQUEST = "bad-request"
     const val DATA_INTEGRITY_VIOLATION = "data-integrity-violation"
     const val INTERNAL_ERROR = "internal-error"
+    const val UNAUTHENTICATED = "unauthenticated"
+    const val INVALID_CREDENTIALS = "invalid-credentials"
+    const val ACCOUNT_DISABLED = "account-disabled"
+    const val SESSION_REVOKED = "session-revoked"
+    const val FORBIDDEN = "forbidden"
+    const val INVALID_CSRF_TOKEN = "invalid-csrf-token"
+
+    const val PENDING_APPROVAL = "pending_approval"
 }

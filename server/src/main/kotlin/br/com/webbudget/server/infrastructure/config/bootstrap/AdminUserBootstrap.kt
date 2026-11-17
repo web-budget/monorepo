@@ -6,6 +6,7 @@ import br.com.webbudget.server.domain.entities.administration.User
 import br.com.webbudget.server.domain.services.administration.UserService
 import br.com.webbudget.server.infrastructure.repository.administration.UserRepository
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.ApplicationArguments
 import org.springframework.boot.ApplicationRunner
 import org.springframework.stereotype.Component
@@ -16,6 +17,8 @@ private val logger = KotlinLogging.logger {}
 
 @Component
 class AdminUserBootstrap(
+    @param:Value($$"${web-budget.security.admin-default-password:}")
+    private val adminDefaultPassword: String,
     private val userService: UserService,
     private val userRepository: UserRepository
 ) : ApplicationRunner {
@@ -29,7 +32,7 @@ class AdminUserBootstrap(
 
         logger.warn { "No admin user found, creating default admin account" }
 
-        val initialPassword = generateInitialPassword()
+        val initialPassword = adminDefaultPassword.ifBlank { generateInitialPassword() }
 
         val admin = User(
             active = true,
@@ -42,7 +45,12 @@ class AdminUserBootstrap(
         userService.createAccount(admin, ALL_ROLES)
 
         logger.info { "Admin account created successfully" }
-        logger.warn { "Initial password is $initialPassword change it as soon as possible" }
+
+        if (adminDefaultPassword.isBlank()) {
+            logger.warn { "Initial password is $initialPassword change it as soon as possible" }
+        } else {
+            logger.warn { "Initial password was taken from the configured default, change it as soon as possible" }
+        }
     }
 
     private fun generateInitialPassword(): String = ByteArray(PASSWORD_BYTES)

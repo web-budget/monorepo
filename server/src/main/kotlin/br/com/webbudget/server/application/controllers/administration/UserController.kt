@@ -6,10 +6,16 @@ import br.com.webbudget.server.application.payloads.administration.UserCreateFor
 import br.com.webbudget.server.application.payloads.administration.UserFilter
 import br.com.webbudget.server.application.payloads.administration.UserUpdateForm
 import br.com.webbudget.server.application.payloads.administration.UserView
+import br.com.webbudget.server.domain.entities.administration.Role
 import br.com.webbudget.server.domain.exceptions.ResourceNotFoundException
 import br.com.webbudget.server.domain.services.administration.UserService
+import br.com.webbudget.server.domain.security.CurrentUser
+import br.com.webbudget.server.infrastructure.config.security.RequiresRole
+import br.com.webbudget.server.infrastructure.config.security.SessionPrincipalRefresher
 import br.com.webbudget.server.infrastructure.repository.administration.UserRepository
 import br.com.webbudget.server.infrastructure.repository.map
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PagedModel
@@ -27,11 +33,13 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import java.util.UUID
 
 @RestController
+@RequiresRole(Role.ADMINISTRATION)
 @RequestMapping("/administration/users")
 class UserController(
     private val userMapper: UserMapper,
     private val userService: UserService,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val sessionPrincipalRefresher: SessionPrincipalRefresher
 ) {
 
     @GetMapping
@@ -73,12 +81,19 @@ class UserController(
     }
 
     @PatchMapping("/{id}/update-password")
-    fun updatePassword(@PathVariable id: UUID, @RequestBody @Valid form: PasswordChangeForm): ResponseEntity<Void> {
+    fun updatePassword(
+        @PathVariable id: UUID,
+        @RequestBody @Valid form: PasswordChangeForm,
+        request: HttpServletRequest,
+        response: HttpServletResponse
+    ): ResponseEntity<Void> {
 
         val user = userRepository.findByExternalId(id)
             ?: throw ResourceNotFoundException()
 
-        userService.updatePassword(user, form.password)
+        val updated = userService.updatePassword(user, form.password)
+
+        sessionPrincipalRefresher.refresh(CurrentUser.from(updated), request, response)
 
         return ResponseEntity.ok().build()
     }

@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatusCode
 import org.springframework.http.ProblemDetail
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.AccessDeniedException
+import org.springframework.security.core.AuthenticationException
 import org.springframework.web.bind.MethodArgumentNotValidException
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.RestControllerAdvice
@@ -54,6 +55,9 @@ class ExceptionHandlerAdvice : ResponseEntityExceptionHandler() {
 
     @ExceptionHandler(AccessDeniedException::class)
     fun handleAccessDenied(exception: AccessDeniedException): Nothing = throw exception
+
+    @ExceptionHandler(AuthenticationException::class)
+    fun handleAuthentication(exception: AuthenticationException): Nothing = throw exception
 
     @ExceptionHandler(Exception::class)
     fun handle(exception: Exception): ProblemDetail {
