@@ -144,6 +144,11 @@ class RecurringMovementControllerTest : BaseIntegrationTest() {
     }
 
     @Test
+    fun `should ignore an empty list filter`() {
+        assertThatFilterMatches("states=", "Gym", "Pilates")
+    }
+
+    @Test
     fun `should combine the filters`() {
         assertThatFilterMatches("filter=gym&states=ACTIVE&classification=$EXPENSE_CLASSIFICATION_ID", "Gym")
         assertThatFilterMatches("filter=gym&states=ENDED")

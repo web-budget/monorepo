@@ -178,6 +178,11 @@ class PeriodMovementControllerTest : BaseIntegrationTest() {
     }
 
     @Test
+    fun `should ignore empty list filters`() {
+        assertThatFilterMatches("states=&financialPeriods=", "Groceries", "Gym", "Salary")
+    }
+
+    @Test
     fun `should combine the filters`() {
         assertThatFilterMatches(
             "filter=gro&states=PAID&costCenter=$HOME_COST_CENTER_ID&classification=$EXPENSE_CLASSIFICATION_ID",
