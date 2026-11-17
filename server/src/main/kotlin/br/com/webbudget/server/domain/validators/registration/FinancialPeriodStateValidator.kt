@@ -1,0 +1,25 @@
+package br.com.webbudget.server.domain.validators.registration
+
+import br.com.webbudget.server.domain.entities.registration.FinancialPeriod
+import br.com.webbudget.server.domain.entities.registration.FinancialPeriod.Status.ACTIVE
+import br.com.webbudget.server.domain.entities.registration.FinancialPeriod.Status.ENDED
+import br.com.webbudget.server.domain.exceptions.DomainException
+import br.com.webbudget.server.domain.exceptions.ErrorCodes.FINANCIAL_PERIOD_NOT_OPEN
+import br.com.webbudget.server.domain.validators.OnDeleteValidation
+import br.com.webbudget.server.domain.validators.OnUpdateValidation
+import br.com.webbudget.server.infrastructure.repository.registration.FinancialPeriodRepository
+import org.springframework.stereotype.Component
+
+@Component
+@OnUpdateValidation
+@OnDeleteValidation
+class FinancialPeriodStateValidator(
+    private val financialPeriodRepository: FinancialPeriodRepository
+) : FinancialPeriodValidator {
+
+    override fun validate(value: FinancialPeriod) {
+        if (!financialPeriodRepository.existsByExternalIdAndStatusIn(value.externalId!!, listOf(ACTIVE, ENDED))) {
+            throw DomainException("You can not delete or update non open periods", FINANCIAL_PERIOD_NOT_OPEN)
+        }
+    }
+}
