@@ -67,10 +67,13 @@ describe('layouts', () => {
     expect(wrapper.find('main').text()).toContain('root')
   })
 
-  it('AuthLayout centers the routed page under the logo', async () => {
+  it('AuthLayout puts the routed step beside the ruled aside, with the brand on top for phones', async () => {
     const wrapper = await render(AuthLayout)
 
-    expect(wrapper.text()).toContain('webBudget')
-    expect(wrapper.text()).toContain('root')
+    expect(wrapper.find('[data-slot="auth-aside"]').text()).toContain(
+      'Suas contas, passadas a limpo.',
+    )
+    expect(wrapper.find('[data-slot="auth-brand"]').text()).toContain('webBudget')
+    expect(wrapper.find('main').text()).toContain('root')
   })
 })

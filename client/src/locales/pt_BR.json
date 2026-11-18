@@ -62,52 +62,98 @@
     "server-error": {
       "detail": "Falha no servidor",
       "description": "Tente novamente mais tarde ou entre em contato com o administrador"
-    },
-    "login": {
-      "detail": "Falha ao realizar login",
-      "description": "Verifique os dados informados e tente novamente"
     }
   },
+  "auth-aside": {
+    "headline": "Suas contas, passadas a limpo.",
+    "tagline": "Lance receitas e despesas em cada período, acompanhe o saldo das carteiras e veja para onde o dinheiro vai.",
+    "features": {
+      "periods": "Lançamentos por período financeiro",
+      "dashboards": "Dashboards do mês e dos anteriores",
+      "forecast": "Previsão de gastos e receitas"
+    }
+  },
+  "auth-step": {
+    "back-to-login": "Voltar para o login"
+  },
+  "password-rules": {
+    "min-length": "Pelo menos {minimum} caracteres",
+    "uppercase": "Uma letra maiúscula",
+    "number": "Um número",
+    "met": "atendido",
+    "pending": "pendente"
+  },
   "login": {
-    "title": "Faça login para continuar",
+    "title": "Entrar",
+    "description": "Use o e-mail e a senha da sua conta.",
     "session-ended": {
       "title": "Sessão encerrada",
       "inactivity": "Sua sessão foi encerrada por inatividade, entre novamente",
       "expired": "Sua sessão expirou, entre novamente"
     },
+    "failure": {
+      "credentials": {
+        "title": "E-mail ou senha incorretos",
+        "description": "Confira os dados e tente de novo."
+      },
+      "rate-limit": {
+        "title": "Muitas tentativas seguidas",
+        "description": "Por segurança, espere alguns minutos antes de tentar de novo."
+      }
+    },
     "form": {
-      "email": "Email",
-      "email-placeholder": "Seu usuário",
+      "email": "E-mail",
+      "email-placeholder": "voce{'@'}exemplo.com.br",
       "password": "Senha",
       "password-placeholder": "Sua senha",
-      "remember-me": "Lembrar-me",
-      "forgot-password": "Esqueceu a senha?",
-      "sign-in": "Entrar"
+      "forgot-password": "Esqueci a senha",
+      "sign-in": "Entrar",
+      "signing-in": "Entrando…"
+    },
+    "divider": "ou",
+    "google": "Entrar com Google",
+    "register": {
+      "prompt": "Não tem conta?",
+      "action": "Criar conta"
     }
   },
   "forgot-password": {
-    "title": "Recuperar senha",
+    "title": "Esqueci a senha",
+    "description": "Informe o e-mail da conta para receber um link de recuperação.",
     "form": {
-      "email": "Email",
-      "recover": "Recuperar",
-      "back": "Voltar",
-      "email-placeholder": "Informe seu email cadastrado"
+      "email": "E-mail",
+      "email-placeholder": "voce{'@'}exemplo.com.br",
+      "submit": "Enviar link",
+      "submitting": "Enviando…"
+    },
+    "sent": {
+      "title": "Confira seu e-mail",
+      "description": "Se {email} estiver cadastrado, você vai receber um link para criar uma nova senha. Olhe também a caixa de spam."
     }
   },
   "recover-password": {
-    "title": "Recuperar senha",
+    "title": "Criar nova senha",
+    "description": "Para a conta {email}.",
     "form": {
-      "confirmation": "Confirmação",
+      "password": "Nova senha",
+      "password-placeholder": "Digite sua nova senha",
+      "confirmation": "Confirme a nova senha",
       "confirmation-placeholder": "Digite sua nova senha novamente",
-      "password": "Senha",
-      "password-placeholder": "Digite sua nova senha"
+      "submit": "Salvar nova senha",
+      "submitting": "Salvando…"
     }
   },
   "account-activation": {
-    "success": "Conta ativada com sucesso!",
-    "error": "Token inválido ou expirado, entre em contato com o administrador",
     "activating": "Ativando conta, aguarde...",
-    "back-to-login": "Voltar ao login"
+    "success": {
+      "title": "Conta ativada",
+      "description": "Tudo certo com {email}. Entre com seu e-mail e senha.",
+      "action": "Ir para o login"
+    },
+    "error": {
+      "title": "Link inválido ou expirado",
+      "description": "Este link de ativação já foi usado ou passou do prazo. Peça um novo a quem administra o webBudget."
+    }
   },
   "menu": {
     "financial": "Financeiro",
@@ -461,6 +507,7 @@
     "required": "Campo obrigatório",
     "email": "Informe um email válido",
     "password-mismatch": "A confirmação deve ser igual à senha",
+    "password-requirements": "A senha não atende aos requisitos",
     "invalid": "Valor inválido",
     "string-min": "Informe ao menos {minimum} caracteres",
     "string-max": "Informe no máximo {maximum} caracteres",
