@@ -158,10 +158,14 @@
   "menu": {
     "financial": "Financeiro",
     "configuration": "Configurações",
-    "registration": "Cadastros"
+    "registration": "Cadastros",
+    "dashboards": "Dashboards"
   },
   "pages": {
     "quick-access": "Acesso rápido"
+  },
+  "dashboards": {
+    "overview": "Visão geral"
   },
   "action-button": {
     "delete": "Deletar",
@@ -665,7 +669,14 @@
     "logout": "Sair",
     "breadcrumb": "Trilha de navegação",
     "coming-soon": "Em breve",
-    "loading": "Carregando..."
+    "loading": "Carregando...",
+    "menu": "Menu",
+    "menu-description": "Navegação entre as seções do webBudget",
+    "close-menu": "Fechar menu",
+    "theme": "Tema",
+    "theme-light": "Claro",
+    "theme-dark": "Escuro",
+    "theme-system": "Sistema"
   },
   "confirm": {
     "title": "Confirmação"
