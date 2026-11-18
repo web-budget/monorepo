@@ -52,7 +52,8 @@ data class UserView(
     val email: String,
     val defaultLanguage: Language,
     val authorities: List<String>,
-    val status: UserStatus
+    val status: UserStatus,
+    val totpEnabled: Boolean
 )
 
 data class UserFilter(

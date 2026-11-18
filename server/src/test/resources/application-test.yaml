@@ -12,6 +12,11 @@ web-budget:
       max-attempts: 1000
       base-duration: 15m
       failure-window: 1h
+    totp:
+      required: false
+      lockout:
+        max-attempts: 1000
+        base-duration: 60s
     client-ip:
       trusted-proxy-count: 1
 
