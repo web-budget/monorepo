@@ -121,7 +121,19 @@ class GoogleAuthenticationTest : BaseIntegrationTest() {
         assertThat(location).startsWith("https://accounts.google.com/o/oauth2/v2/auth")
         assertThat(location).contains("client_id=test-google-client-id")
         assertThat(location).contains("scope=openid%20profile%20email")
-        assertThat(location).contains("login/oauth2/code/google")
+        assertThat(location).contains("redirect_uri=http://localhost:${port()}/private/login/oauth2/code/google")
+    }
+
+    @Test
+    fun `should answer the google callback with the failure redirect when there is no authorization in progress`() {
+
+        val response = HttpClient.newBuilder().followRedirects(HttpClient.Redirect.NEVER).build().send(
+            HttpRequest.newBuilder(URI.create("http://localhost:${port()}/private/login/oauth2/code/google?code=a&state=b")).GET().build(),
+            HttpResponse.BodyHandlers.discarding()
+        )
+
+        assertThat(response.statusCode()).isEqualTo(302)
+        assertThat(response.headers().firstValue("Location").orElseThrow()).isEqualTo(OAUTH_FAILED)
     }
 
     @Test
