@@ -104,6 +104,30 @@ describe('installApiErrorHandler', () => {
     expect(router.currentRoute.value.fullPath).toBe('/private')
   })
 
+  it('leaves a login rate limit to the login screen', async () => {
+    const client = createClient(
+      { status: 429, data: { error: 'too_many_login_attempts' } },
+      createRouterAt(),
+    )
+
+    await expect(client.post('/auth/login')).rejects.toMatchObject({ status: 429 })
+
+    expect(toast.error).not.toHaveBeenCalled()
+    expect(toast.warning).not.toHaveBeenCalled()
+  })
+
+  it('still shows a toast for any other rate limit', async () => {
+    const client = createClient(
+      { status: 429, data: { error: 'too_many_totp_attempts' } },
+      createRouterAt(),
+    )
+
+    await expect(client.post('/auth/totp')).rejects.toMatchObject({ status: 429 })
+
+    await flushToasts()
+    expect(toast.error).toHaveBeenCalledTimes(1)
+  })
+
   it.each(['invalid-credentials', 'account-disabled'])(
     'leaves a login rejected with %s to the login screen',
     async (error) => {
