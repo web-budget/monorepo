@@ -10,7 +10,9 @@ const baseSchema = z.object({
   email: z.string().max(150),
   password: z.string().max(100),
   defaultLanguage: z.enum(LANGUAGES),
-  roles: z.array(z.string()).min(1),
+  roles: z.array(z.string()).refine((roles) => roles.length > 0, {
+    params: { i18n: 'roles-required' },
+  }),
   sendActivationEmail: z.boolean(),
 })
 

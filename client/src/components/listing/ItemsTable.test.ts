@@ -351,6 +351,20 @@ describe('ItemsTable on a small screen', () => {
 
     expect(wrapper.find('dd').classes()).toContain('font-mono')
   })
+
+  it('lets a wide detail take the whole row of the card', () => {
+    const wrapper = renderCompact({
+      columns: [
+        { field: 'name', header: 'Nome' },
+        { field: 'bank', header: 'Banco' },
+        { field: 'type', header: 'Tipo', wide: true },
+      ],
+    })
+
+    const [bank, type] = wrapper.findAll('dl > div')
+    expect(bank!.classes()).not.toContain('col-span-2')
+    expect(type!.classes()).toContain('col-span-2')
+  })
 })
 
 describe('ItemsTable column span', () => {

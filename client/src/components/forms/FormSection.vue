@@ -2,8 +2,14 @@
 import { cn } from '@/lib/utils'
 
 withDefaults(
-  defineProps<{ title: string; description?: string; columns?: string; conditional?: boolean }>(),
-  { description: undefined, columns: 'md:grid-cols-2', conditional: false },
+  defineProps<{
+    title: string
+    description?: string
+    columns?: string
+    conditional?: boolean
+    stacked?: boolean
+  }>(),
+  { description: undefined, columns: 'md:grid-cols-2', conditional: false, stacked: false },
 )
 </script>
 
@@ -11,7 +17,8 @@ withDefaults(
   <section
     :class="
       cn(
-        'grid gap-4 border-b p-5 md:grid-cols-[220px_minmax(0,1fr)] md:gap-8',
+        'grid gap-4 border-b p-5',
+        !stacked && 'md:grid-cols-[220px_minmax(0,1fr)] md:gap-8',
         conditional && 'bg-accent/35',
       )
     "

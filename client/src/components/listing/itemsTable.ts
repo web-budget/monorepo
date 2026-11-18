@@ -5,6 +5,7 @@ export interface ItemsTableColumn {
   class?: string
   align?: 'end'
   mono?: boolean
+  wide?: boolean
 }
 
 export interface ItemsTableItem {

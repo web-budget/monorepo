@@ -28,8 +28,8 @@ interface CrudListOptions<S extends string> {
   loading: Ref<boolean>
   findAll: () => Promise<void>
   remove: (id: string) => Promise<void>
-  count?: (status: S) => Promise<number | null>
-  statuses?: S[]
+  count: (status: S) => Promise<number | null>
+  statuses: S[]
   allStatus?: S
 }
 
@@ -69,12 +69,8 @@ export function useCrudList<S extends string>(options: CrudListOptions<S>) {
   }
 
   async function loadCounts() {
-    const count = options.count
-    if (!count || !options.statuses) {
-      return
-    }
     const entries = await Promise.all(
-      options.statuses.map(async (status) => [status, await count(status)] as const),
+      options.statuses.map(async (status) => [status, await options.count(status)] as const),
     )
     counts.value = Object.fromEntries(entries)
   }
