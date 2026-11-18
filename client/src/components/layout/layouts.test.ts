@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils'
 import { describe, expect, it } from 'vitest'
 import AuthLayout from '@/components/layout/AuthLayout.vue'
 import ConfigurationLayout from '@/components/layout/ConfigurationLayout.vue'
+import DashboardsLayout from '@/components/layout/DashboardsLayout.vue'
 import FinancialLayout from '@/components/layout/FinancialLayout.vue'
 import HomeLayout from '@/components/layout/HomeLayout.vue'
 import RegistrationLayout from '@/components/layout/RegistrationLayout.vue'
@@ -19,7 +20,7 @@ async function render(layout: Parameters<typeof mount>[0]) {
 function menuLabels(wrapper: Awaited<ReturnType<typeof render>>) {
   return wrapper
     .find('[data-slot="sidebar"]')
-    .findAll('[data-slot="sidebar-menu-button"]')
+    .findAll('[data-sidebar="menu-button"]')
     .map((button) => button.text())
 }
 
@@ -28,14 +29,21 @@ describe('layouts', () => {
     const wrapper = await render(RegistrationLayout)
 
     expect(menuLabels(wrapper)).toEqual([
-      'Cartões',
       'Carteiras',
+      'Cartões',
       'Classificações',
       'Centros de custos',
       'Períodos financeiros',
     ])
-    expect(wrapper.findAll('[data-slot="sidebar"] a')).toHaveLength(5)
+    expect(wrapper.findAll('[data-slot="sidebar-menu"] a')).toHaveLength(5)
     expect(wrapper.find('main').text()).toContain('root')
+  })
+
+  it('DashboardsLayout lists the overview, still disabled', async () => {
+    const wrapper = await render(DashboardsLayout)
+
+    expect(menuLabels(wrapper)).toEqual(['Visão geral'])
+    expect(wrapper.findAll('[data-slot="sidebar"] button[disabled]')).toHaveLength(1)
   })
 
   it('FinancialLayout lists the financial entries, still disabled', async () => {
@@ -55,7 +63,7 @@ describe('layouts', () => {
 
     expect(menuLabels(wrapper)).toEqual(['Usuários', 'Integrações'])
     expect(
-      wrapper.findAll('[data-slot="sidebar"] a').map((link) => link.attributes('href')),
+      wrapper.findAll('[data-slot="sidebar-menu"] a').map((link) => link.attributes('href')),
     ).toEqual(['/configuration/users'])
     expect(wrapper.findAll('[data-slot="sidebar"] button[disabled]')).toHaveLength(1)
   })

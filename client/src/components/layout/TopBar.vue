@@ -1,35 +1,21 @@
 <script setup lang="ts">
-import { LogOut, Moon, Sun, User } from 'lucide-vue-next'
+import { Menu, PanelLeft } from 'lucide-vue-next'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import BrandMark from '@/components/brand/BrandMark.vue'
 import BrandWordmark from '@/components/brand/BrandWordmark.vue'
+import UserMenu from '@/components/layout/UserMenu.vue'
+import { sections } from '@/components/layout/sections'
 import { Button } from '@/components/ui/button'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { Separator } from '@/components/ui/separator'
-import { SidebarTrigger } from '@/components/ui/sidebar'
-import { useAppearanceStore } from '@/stores/appearance'
+import { useSidebar } from '@/components/ui/sidebar'
 import { useAuthStore } from '@/stores/auth'
-import type { Role } from '@/types'
 
 const props = defineProps<{ withSideMenu: boolean }>()
 
-const sections: { path: string; label: string; role: Role }[] = [
-  { path: '/registration', label: 'menu.registration', role: 'REGISTRATION' },
-  { path: '/financial', label: 'menu.financial', role: 'FINANCIAL' },
-  { path: '/configuration', label: 'menu.configuration', role: 'ADMINISTRATION' },
-]
-
 const route = useRoute()
 const auth = useAuthStore()
-const appearance = useAppearanceStore()
+const { toggleSidebar } = useSidebar()
 
 const visibleSections = computed(() => sections.filter(({ role }) => auth.hasRole(role)))
 const currentSection = computed(() =>
@@ -38,64 +24,50 @@ const currentSection = computed(() =>
 </script>
 
 <template>
-  <header class="bg-background sticky top-0 z-30 flex h-14 items-center gap-2 border-b px-4">
-    <template v-if="props.withSideMenu">
-      <SidebarTrigger :aria-label="$t('layout.toggle-menu')" />
-      <Separator orientation="vertical" class="mr-2 h-4" />
-    </template>
-
-    <RouterLink to="/" class="flex items-center gap-2 text-base">
-      <BrandMark :size="24" />
-      <BrandWordmark />
-    </RouterLink>
-
-    <nav :aria-label="$t('layout.main-menu')" class="ml-6 hidden items-center gap-1 md:flex">
+  <header
+    class="bg-background sticky top-0 z-30 flex h-14 shrink-0 items-stretch gap-1 border-b px-3"
+  >
+    <div class="flex items-center">
       <Button
+        variant="ghost"
+        size="icon"
+        :class="{ 'md:hidden': !props.withSideMenu }"
+        :aria-label="$t('layout.toggle-menu')"
+        @click="toggleSidebar"
+      >
+        <PanelLeft class="max-md:hidden" />
+        <Menu class="md:hidden" />
+      </Button>
+      <Separator v-if="props.withSideMenu" orientation="vertical" class="mx-2 h-5 max-md:hidden" />
+    </div>
+
+    <RouterLink
+      to="/"
+      class="flex items-center gap-2.5 text-base"
+      :class="{ 'md:hidden': props.withSideMenu }"
+    >
+      <BrandMark :size="24" />
+      <BrandWordmark class="max-md:hidden" />
+    </RouterLink>
+    <span v-if="currentSection" class="flex items-center font-medium md:hidden">
+      {{ $t(currentSection.label) }}
+    </span>
+
+    <nav :aria-label="$t('layout.main-menu')" class="flex items-stretch gap-1 max-md:hidden">
+      <RouterLink
         v-for="section in visibleSections"
         :key="section.path"
-        as-child
-        :variant="currentSection?.path === section.path ? 'secondary' : 'ghost'"
-        size="sm"
+        :to="section.path"
+        aria-current-value="true"
+        :aria-current="currentSection?.path === section.path ? 'true' : undefined"
+        class="text-muted-foreground hover:text-foreground aria-[current=true]:text-foreground aria-[current=true]:border-primary -mb-px inline-flex items-center border-b-2 border-transparent px-3 text-sm aria-[current=true]:font-semibold"
       >
-        <RouterLink :to="section.path">{{ $t(section.label) }}</RouterLink>
-      </Button>
+        {{ $t(section.label) }}
+      </RouterLink>
     </nav>
 
-    <div class="ml-auto">
-      <DropdownMenu>
-        <DropdownMenuTrigger as-child>
-          <Button variant="ghost" size="sm" :aria-label="$t('layout.user-menu')">
-            <User />
-            <span class="hidden sm:inline">{{ auth.session?.name }}</span>
-          </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" class="w-56">
-          <DropdownMenuLabel class="font-normal">
-            <p class="text-sm font-medium">{{ auth.session?.name }}</p>
-            <p class="text-muted-foreground text-xs">{{ auth.session?.email }}</p>
-          </DropdownMenuLabel>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem
-            v-for="section in visibleSections"
-            :key="section.path"
-            class="md:hidden"
-            as-child
-          >
-            <RouterLink :to="section.path">{{ $t(section.label) }}</RouterLink>
-          </DropdownMenuItem>
-          <DropdownMenuSeparator v-if="visibleSections.length > 0" class="md:hidden" />
-          <DropdownMenuItem @select="appearance.toggleDark()">
-            <Sun v-if="appearance.dark" />
-            <Moon v-else />
-            {{ appearance.dark ? $t('layout.light-theme') : $t('layout.dark-theme') }}
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          <DropdownMenuItem @select="auth.logout()">
-            <LogOut />
-            {{ $t('layout.logout') }}
-          </DropdownMenuItem>
-        </DropdownMenuContent>
-      </DropdownMenu>
+    <div class="ml-auto flex items-center">
+      <UserMenu />
     </div>
   </header>
 </template>

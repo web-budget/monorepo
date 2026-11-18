@@ -19,6 +19,14 @@ async function render(path: string) {
           { path: '', component: leaf },
           { path: 'wallets', meta: { breadcrumb: 'wallet.menu' }, component: leaf },
           { path: 'again', meta: { breadcrumb: 'menu.registration' }, component: leaf },
+          {
+            path: 'deep',
+            meta: { breadcrumb: 'wallet.form.new' },
+            component: outlet,
+            children: [
+              { path: 'leaf', meta: { breadcrumb: 'wallet.form.editing' }, component: leaf },
+            ],
+          },
           { path: 'plain', meta: { breadcrumb: 5 }, component: leaf },
         ],
       },
@@ -62,5 +70,27 @@ describe('PageBreadcrumb', () => {
     const wrapper = await render('/registration/plain')
 
     expect(wrapper.findAll('li[data-slot="breadcrumb-item"]')).toHaveLength(1)
+  })
+
+  it('shows only the last two levels on a phone', async () => {
+    const wrapper = await render('/registration/deep/leaf')
+
+    const items = wrapper.findAll('li[data-slot="breadcrumb-item"]')
+    const separators = wrapper.findAll('li[data-slot="breadcrumb-separator"]')
+    expect(items.map((item) => item.classes().includes('max-md:hidden'))).toEqual([
+      true,
+      false,
+      false,
+    ])
+    expect(separators.map((separator) => separator.classes().includes('max-md:hidden'))).toEqual([
+      true,
+      false,
+    ])
+  })
+
+  it('keeps a trail of two levels whole on a phone', async () => {
+    const wrapper = await render('/registration/wallets')
+
+    expect(wrapper.html()).not.toContain('max-md:hidden')
   })
 })
