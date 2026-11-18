@@ -7,10 +7,10 @@ export const authApi = {
   },
 
   fetchSession(): Promise<SessionResponse> {
-    return apiClient.get<SessionResponse>('/auth/session').then((r) => r.data)
+    return apiClient.get<SessionResponse>('/auth/session', { silent: true }).then((r) => r.data)
   },
 
-  logout(): Promise<void> {
-    return apiClient.post('/auth/logout').then(() => undefined)
+  logout(options: { silent?: boolean } = {}): Promise<void> {
+    return apiClient.post('/auth/logout', undefined, options).then(() => undefined)
   },
 }

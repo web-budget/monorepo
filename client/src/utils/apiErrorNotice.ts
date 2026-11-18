@@ -64,6 +64,13 @@ export function describeApiError(error: unknown): ApiErrorNotice | null {
       details: [{ key: 'error.connection-failure.details' }],
     }
   }
+  if (status === 403 && error.error === 'invalid-csrf-token') {
+    return {
+      severity: 'error',
+      title: { key: 'error.invalid-csrf-token.title' },
+      details: [{ key: 'error.invalid-csrf-token.details' }],
+    }
+  }
   if (STATUSES_HANDLED_BY_NAVIGATION.has(status)) {
     return null
   }

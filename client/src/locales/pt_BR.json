@@ -25,6 +25,9 @@
       },
       "classification": {
         "name": "Nome \"{value}\" já esta em uso"
+      },
+      "user": {
+        "email": "Email \"{value}\" já esta em uso"
       }
     },
     "unprocessable-entity": {
@@ -52,6 +55,10 @@
       "detail": "Não autorizado",
       "description": "Você não tem permissão para acessar este recurso"
     },
+    "invalid-csrf-token": {
+      "title": "Requisição não autorizada",
+      "details": "A verificação de segurança da requisição falhou, recarregue a página e tente novamente"
+    },
     "server-error": {
       "detail": "Falha no servidor",
       "description": "Tente novamente mais tarde ou entre em contato com o administrador"
@@ -63,6 +70,11 @@
   },
   "login": {
     "title": "Faça login para continuar",
+    "session-ended": {
+      "title": "Sessão encerrada",
+      "inactivity": "Sua sessão foi encerrada por inatividade, entre novamente",
+      "expired": "Sua sessão expirou, entre novamente"
+    },
     "form": {
       "email": "Email",
       "email-placeholder": "Seu usuário",
@@ -119,7 +131,8 @@
     "back": "Voltar",
     "yes": "Sim",
     "no": "Não",
-    "recover": "Recuperar"
+    "recover": "Recuperar",
+    "clear-selection": "Limpar seleção"
   },
   "notification": {
     "success": "Sucesso!",
@@ -153,6 +166,12 @@
       "created": "Classificação criada com sucesso",
       "updated": "Classificação atualizada com sucesso"
     },
+    "user": {
+      "deleted": "Usuário excluído com sucesso",
+      "created": "Usuário criado com sucesso",
+      "updated": "Usuário atualizado com sucesso",
+      "password-reset": "Senha redefinida com sucesso"
+    },
     "forgot-password": {
       "requested": "Solicitação realizada, aguarde pelo email de recuperação"
     },
@@ -164,7 +183,8 @@
   "search-control": {
     "actions": {
       "new": "Novo",
-      "search": "Buscar"
+      "search": "Buscar",
+      "clear": "Limpar filtro"
     },
     "all": "Todos",
     "active": "Ativos",
@@ -182,6 +202,17 @@
     "footer": {
       "until": " até ",
       "total": ", total "
+    },
+    "pagination": {
+      "rows-per-page": "Linhas por página",
+      "previous": "Página anterior",
+      "next": "Próxima página",
+      "first": "Primeira página",
+      "last": "Última página"
+    },
+    "sort": {
+      "ascending": "Ordenar crescente",
+      "descending": "Ordenar decrescente"
     }
   },
   "status": {
@@ -194,7 +225,51 @@
   },
   "users": {
     "title": "Usuários",
-    "menu": "Usuários"
+    "menu": "Usuários",
+    "own-account": "Sua conta",
+    "search": {
+      "placeholder": "Nome ou email"
+    },
+    "table-columns": {
+      "name": "Nome",
+      "email": "Email",
+      "roles": "Permissões"
+    },
+    "role": {
+      "administration": "Administração",
+      "dashboards": "Dashboards",
+      "financial": "Financeiro",
+      "registration": "Cadastros"
+    },
+    "language": {
+      "pt-br": "Português (Brasil)",
+      "en-us": "Inglês (Estados Unidos)"
+    },
+    "form": {
+      "new": "Novo usuário",
+      "editing": "Editando usuário",
+      "name": "Nome",
+      "email": "Email",
+      "password": "Senha",
+      "language": "Idioma",
+      "roles": "Permissões",
+      "send-activation-email": "Enviar email de ativação da conta"
+    },
+    "confirm": {
+      "create-title": "Criar usuário",
+      "create": "Confirma a criação do usuário {name}?",
+      "update-title": "Salvar usuário",
+      "update": "Confirma as alterações do usuário {name}?",
+      "delete": "Confirma a exclusão do usuário {name}? Essa ação não pode ser desfeita."
+    },
+    "password": {
+      "action": "Redefinir senha",
+      "title": "Redefinir senha",
+      "description": "Informe a nova senha de {name}. As sessões abertas dele serão encerradas.",
+      "password": "Nova senha",
+      "confirmation": "Confirmação",
+      "submit": "Redefinir senha"
+    }
   },
   "period-movement": {
     "title": "Movimentos do período",
@@ -363,5 +438,34 @@
       "income-budget": "Orçamento receitas",
       "expense-budget": "Orçamento despesas"
     }
+  },
+  "layout": {
+    "toggle-menu": "Alternar menu lateral",
+    "main-menu": "Seções",
+    "user-menu": "Menu do usuário",
+    "dark-theme": "Tema escuro",
+    "light-theme": "Tema claro",
+    "logout": "Sair",
+    "breadcrumb": "Trilha de navegação",
+    "coming-soon": "Em breve",
+    "loading": "Carregando..."
+  },
+  "confirm": {
+    "title": "Confirmação"
+  },
+  "password-input": {
+    "show": "Mostrar senha",
+    "hide": "Ocultar senha"
+  },
+  "validation": {
+    "required": "Campo obrigatório",
+    "email": "Informe um email válido",
+    "password-mismatch": "A confirmação deve ser igual à senha",
+    "invalid": "Valor inválido",
+    "string-min": "Informe ao menos {minimum} caracteres",
+    "string-max": "Informe no máximo {maximum} caracteres",
+    "number-min": "O valor mínimo é {minimum}",
+    "number-max": "O valor máximo é {maximum}",
+    "end-before-start": "A data de fim não pode ser anterior à data de início"
   }
 }
