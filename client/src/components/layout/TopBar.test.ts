@@ -162,6 +162,6 @@ describe('TopBar', () => {
     const { wrapper } = await render({ roles: [] })
     await openUserMenu(wrapper)
 
-    expect(document.body.querySelectorAll('[role="separator"].md:hidden')).toHaveLength(0)
+    expect(document.body.querySelectorAll('[role="separator"].md\\:hidden')).toHaveLength(0)
   })
 })
