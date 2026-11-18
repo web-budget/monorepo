@@ -1,6 +1,19 @@
 web-budget:
   security:
     admin-default-password: test-admin-password
+    login:
+      max-attempts: 1000
+      base-duration: 60s
+    ip-lockout:
+      max-attempts: 1000
+      base-duration: 60s
+      failure-window: 15m
+    registration-limit:
+      max-attempts: 1000
+      base-duration: 15m
+      failure-window: 1h
+    client-ip:
+      trusted-proxy-count: 1
 
 logging:
   level:

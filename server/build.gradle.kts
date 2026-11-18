@@ -140,7 +140,7 @@ kover {
                 bound {
                     coverageUnits = BRANCH
                     aggregationForGroup = COVERED_PERCENTAGE
-                    minValue = 90
+                    minValue = 91
                 }
             }
         }

@@ -9,13 +9,9 @@ import br.com.webbudget.server.application.payloads.administration.UserView
 import br.com.webbudget.server.domain.entities.administration.Role
 import br.com.webbudget.server.domain.exceptions.ResourceNotFoundException
 import br.com.webbudget.server.domain.services.administration.UserService
-import br.com.webbudget.server.domain.security.CurrentUser
 import br.com.webbudget.server.infrastructure.config.security.RequiresRole
-import br.com.webbudget.server.infrastructure.config.security.SessionPrincipalRefresher
 import br.com.webbudget.server.infrastructure.repository.administration.UserRepository
 import br.com.webbudget.server.infrastructure.repository.map
-import jakarta.servlet.http.HttpServletRequest
-import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PagedModel
@@ -38,13 +34,12 @@ import java.util.UUID
 class UserController(
     private val userMapper: UserMapper,
     private val userService: UserService,
-    private val userRepository: UserRepository,
-    private val sessionPrincipalRefresher: SessionPrincipalRefresher
+    private val userRepository: UserRepository
 ) {
 
     @GetMapping
     fun get(filter: UserFilter, pageable: Pageable): ResponseEntity<PagedModel<UserView>> =
-        userRepository.findAll(filter.filter, filter.status?.value, pageable)
+        userRepository.findAll(filter.filter, filter.status?.value, filter.userStatus, pageable)
             .map { userMapper.mapToView(it) }
             .let { ResponseEntity.ok(it) }
 
@@ -81,19 +76,45 @@ class UserController(
     }
 
     @PatchMapping("/{id}/update-password")
-    fun updatePassword(
-        @PathVariable id: UUID,
-        @RequestBody @Valid form: PasswordChangeForm,
-        request: HttpServletRequest,
-        response: HttpServletResponse
-    ): ResponseEntity<Void> {
+    fun updatePassword(@PathVariable id: UUID, @RequestBody @Valid form: PasswordChangeForm): ResponseEntity<Void> {
 
         val user = userRepository.findByExternalId(id)
             ?: throw ResourceNotFoundException()
 
-        val updated = userService.updatePassword(user, form.password)
+        userService.resetPassword(user, form.password)
 
-        sessionPrincipalRefresher.refresh(CurrentUser.from(updated), request, response)
+        return ResponseEntity.ok().build()
+    }
+
+    @PatchMapping("/{id}/approve")
+    fun approve(@PathVariable id: UUID): ResponseEntity<Void> {
+
+        val user = userRepository.findByExternalId(id)
+            ?: throw ResourceNotFoundException()
+
+        userService.approve(user)
+
+        return ResponseEntity.ok().build()
+    }
+
+    @PatchMapping("/{id}/block")
+    fun block(@PathVariable id: UUID): ResponseEntity<Void> {
+
+        val user = userRepository.findByExternalId(id)
+            ?: throw ResourceNotFoundException()
+
+        userService.block(user)
+
+        return ResponseEntity.ok().build()
+    }
+
+    @PatchMapping("/{id}/unblock")
+    fun unblock(@PathVariable id: UUID): ResponseEntity<Void> {
+
+        val user = userRepository.findByExternalId(id)
+            ?: throw ResourceNotFoundException()
+
+        userService.unblock(user)
 
         return ResponseEntity.ok().build()
     }

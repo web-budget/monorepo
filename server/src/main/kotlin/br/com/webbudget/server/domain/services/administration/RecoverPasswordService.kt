@@ -3,12 +3,13 @@ package br.com.webbudget.server.domain.services.administration
 import br.com.webbudget.server.domain.entities.administration.PasswordRecoverAttempt
 import br.com.webbudget.server.domain.exceptions.DomainException
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.INVALID_TOKEN
+import br.com.webbudget.server.domain.mail.MailRequested
 import br.com.webbudget.server.domain.mail.RecoverPasswordEmail
-import br.com.webbudget.server.domain.services.MailSenderService
 import br.com.webbudget.server.infrastructure.repository.administration.PasswordRecoverAttemptRepository
 import br.com.webbudget.server.infrastructure.repository.administration.UserRepository
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -24,7 +25,7 @@ class RecoverPasswordService(
     private val frontendUrl: String,
     private val userService: UserService,
     private val userRepository: UserRepository,
-    private val mailSenderService: MailSenderService,
+    private val applicationEventPublisher: ApplicationEventPublisher,
     private val passwordRecoverAttemptRepository: PasswordRecoverAttemptRepository
 ) {
 
@@ -48,7 +49,7 @@ class RecoverPasswordService(
         mailMessage.addVariable("recoverPasswordUrl", recoverPasswordUrl)
         mailMessage.addVariable("validUntil", recoverAttempt.validity.format(formatter))
 
-        mailSenderService.sendEmail(mailMessage)
+        applicationEventPublisher.publishEvent(MailRequested(mailMessage))
     }
 
     @Transactional

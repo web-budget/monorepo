@@ -1,14 +1,16 @@
 package br.com.webbudget.server.domain.services.administration
 
 import br.com.webbudget.server.domain.entities.administration.AccountActivationAttempt
+import br.com.webbudget.server.domain.entities.administration.UserStatus
 import br.com.webbudget.server.domain.exceptions.DomainException
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.INVALID_TOKEN
 import br.com.webbudget.server.domain.mail.AccountActivationEmail
-import br.com.webbudget.server.domain.services.MailSenderService
+import br.com.webbudget.server.domain.mail.MailRequested
 import br.com.webbudget.server.infrastructure.repository.administration.AccountActivationAttemptRepository
 import br.com.webbudget.server.infrastructure.repository.administration.UserRepository
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
@@ -23,7 +25,8 @@ class AccountActivationService(
     @param:Value($$"${web-budget.frontend-url}")
     private val frontendUrl: String,
     private val userRepository: UserRepository,
-    private val mailSenderService: MailSenderService,
+    private val accountMailNotifier: AccountMailNotifier,
+    private val applicationEventPublisher: ApplicationEventPublisher,
     private val accountActivationAttemptRepository: AccountActivationAttemptRepository
 ) {
 
@@ -47,7 +50,7 @@ class AccountActivationService(
         mailMessage.addVariable("activateAccountUrl", activationUrl)
         mailMessage.addVariable("validUntil", activationAttempt.validity.format(formatter))
 
-        mailSenderService.sendEmail(mailMessage)
+        applicationEventPublisher.publishEvent(MailRequested(mailMessage))
     }
 
     @Transactional
@@ -66,5 +69,9 @@ class AccountActivationService(
 
         attempt.user.active = true
         userRepository.update(attempt.user)
+
+        if (attempt.user.status == UserStatus.PENDING) {
+            accountMailNotifier.notifyPendingApproval(attempt.user)
+        }
     }
 }

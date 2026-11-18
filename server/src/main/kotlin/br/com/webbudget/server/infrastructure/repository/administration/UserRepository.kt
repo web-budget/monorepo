@@ -1,10 +1,14 @@
 package br.com.webbudget.server.infrastructure.repository.administration
 
+import br.com.webbudget.server.domain.entities.administration.Role
 import br.com.webbudget.server.domain.entities.administration.User
+import br.com.webbudget.server.domain.entities.administration.UserStatus
 import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.administration.tables.Users
+import br.com.webbudget.server.jooq.administration.tables.references.GRANTS
+import br.com.webbudget.server.jooq.administration.tables.references.ROLES
 import br.com.webbudget.server.jooq.administration.tables.references.USERS
 import org.jooq.Condition
 import org.jooq.DSLContext
@@ -33,12 +37,34 @@ class UserRepository(
 
     fun findByEmail(email: String): User? = findOne { users -> users.EMAIL.eq(email) }
 
-    fun findAll(filter: String?, active: Boolean?, pageable: Pageable): PagedModel<User> {
+    fun findApprovedAdministrators(): List<User> {
+
+        val users = USERS.`as`("users")
+        val grants = GRANTS.`as`("grants")
+        val roles = ROLES.`as`("roles")
+
+        val administratorGrants = DSL.selectOne()
+            .from(grants)
+            .join(roles).on(roles.ID.eq(grants.ID_ROLE))
+            .where(grants.ID_USER.eq(users.ID))
+            .and(roles.NAME.eq(Role.ADMINISTRATION))
+
+        return dsl.selectFrom(users)
+            .where(users.STATUS.eq(UserStatus.APPROVED.name))
+            .and(users.ACTIVE.isTrue)
+            .and(DSL.exists(administratorGrants))
+            .orderBy(users.ID.asc())
+            .fetch()
+            .map { record -> record.toUser() }
+    }
+
+    fun findAll(filter: String?, active: Boolean?, status: UserStatus?, pageable: Pageable): PagedModel<User> {
 
         val users = USERS.`as`("users")
 
         val condition = listOfNotNull(
             active?.let { users.ACTIVE.eq(it) },
+            status?.let { users.STATUS.eq(it.name) },
             filter?.let { text -> likeIgnoreCase(users.NAME, text).or(likeIgnoreCase(users.EMAIL, text)) }
         ).fold(DSL.noCondition()) { accumulated, current -> accumulated.and(current) }
 
@@ -114,6 +140,24 @@ class UserRepository(
 
         user.restore(record.id, record.externalId, record.version, record.createdOn, record.lastUpdate)
         user.password = record.password!!
+        user.credentialsVersion = record.credentialsVersion!!
+        return user
+    }
+
+    fun updateStatus(user: User, expected: UserStatus, target: UserStatus, revokeSessions: Boolean = false): User {
+        val record = dsl.update(USERS)
+            .set(USERS.STATUS, target.name)
+            .set(USERS.CREDENTIALS_VERSION, USERS.CREDENTIALS_VERSION.plus(if (revokeSessions) 1 else 0))
+            .set(USERS.VERSION, USERS.VERSION.plus(1))
+            .set(USERS.LAST_UPDATE, LocalDateTime.now())
+            .where(USERS.ID.eq(user.id))
+            .and(USERS.VERSION.eq(user.version))
+            .and(USERS.STATUS.eq(expected.name))
+            .returning()
+            .fetchOne() ?: throw concurrentUpdate()
+
+        user.restore(record.id, record.externalId, record.version, record.createdOn, record.lastUpdate)
+        user.status = target
         user.credentialsVersion = record.credentialsVersion!!
         return user
     }
