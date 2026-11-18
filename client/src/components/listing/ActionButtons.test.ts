@@ -1,55 +1,61 @@
-import { mount } from '@vue/test-utils'
-import { describe, expect, it, vi } from 'vitest'
-import { h } from 'vue'
+import { flushPromises, mount } from '@vue/test-utils'
+import { beforeEach, describe, expect, it } from 'vitest'
 import ActionButtons from '@/components/listing/ActionButtons.vue'
 import i18n from '@/locales'
 
 function render() {
-  return mount(ActionButtons, { global: { plugins: [i18n] } })
+  return mount(ActionButtons, { attachTo: document.body, global: { plugins: [i18n] } })
+}
+
+async function openMenu(wrapper: ReturnType<typeof render>) {
+  await wrapper.find('button[aria-label="Mais ações"]').trigger('keydown', { key: 'Enter' })
+  await flushPromises()
+}
+
+function menuItem(label: string) {
+  const item = [...document.body.querySelectorAll<HTMLElement>('[role="menuitem"]')].find(
+    (candidate) => candidate.textContent?.trim() === label,
+  )
+  if (!item) {
+    throw new Error(`no menu item "${label}"`)
+  }
+  return item
 }
 
 describe('ActionButtons', () => {
-  it('emits onEdit when the edit button is clicked', async () => {
+  beforeEach(() => {
+    document.body.replaceChildren()
+  })
+
+  it('offers the edit and remove actions in a menu', async () => {
     const wrapper = render()
 
-    await wrapper.find('button[aria-label="Editar"]').trigger('click')
+    expect(document.body.querySelector('[role="menu"]')).toBeNull()
+    await openMenu(wrapper)
+
+    expect(menuItem('Editar')).toBeDefined()
+    expect(menuItem('Remover')).toBeDefined()
+  })
+
+  it('emits onEdit when Editar is chosen', async () => {
+    const wrapper = render()
+    await openMenu(wrapper)
+
+    menuItem('Editar').click()
+    await flushPromises()
 
     expect(wrapper.emitted('onEdit')).toHaveLength(1)
     expect(wrapper.emitted('onDelete')).toBeUndefined()
   })
 
-  it('emits onDelete when the delete button is clicked', async () => {
+  it('emits onDelete when Remover is chosen', async () => {
     const wrapper = render()
+    await openMenu(wrapper)
 
-    await wrapper.find('button[aria-label="Deletar"]').trigger('click')
+    menuItem('Remover').click()
+    await flushPromises()
 
     expect(wrapper.emitted('onDelete')).toHaveLength(1)
     expect(wrapper.emitted('onEdit')).toBeUndefined()
-  })
-
-  it('does not let a click bubble up to a clickable row', async () => {
-    const rowClick = vi.fn<() => void>()
-    const wrapper = mount(
-      { render: () => h('div', { onClick: rowClick }, [h(ActionButtons)]) },
-      { global: { plugins: [i18n] } },
-    )
-
-    await wrapper.find('button[aria-label="Editar"]').trigger('click')
-    await wrapper.find('button[aria-label="Deletar"]').trigger('click')
-
-    expect(rowClick).not.toHaveBeenCalled()
-  })
-})
-
-describe('ActionButtons tooltips', () => {
-  it('names each action in a tooltip when its button is focused', async () => {
-    const wrapper = mount(ActionButtons, { attachTo: document.body, global: { plugins: [i18n] } })
-
-    await wrapper.find('button[aria-label="Editar"]').trigger('focus')
-    expect(document.body.querySelector('[role="tooltip"]')?.textContent).toBe('Editar')
-
-    await wrapper.find('button[aria-label="Editar"]').trigger('blur')
-    await wrapper.find('button[aria-label="Deletar"]').trigger('focus')
-    expect(document.body.querySelector('[role="tooltip"]')?.textContent).toBe('Deletar')
   })
 })

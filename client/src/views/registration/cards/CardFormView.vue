@@ -4,6 +4,7 @@ import { useForm } from 'vee-validate'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import FormCard from '@/components/forms/FormCard.vue'
+import FormSection from '@/components/forms/FormSection.vue'
 import InputField from '@/components/forms/InputField.vue'
 import SearchSelectField from '@/components/forms/SearchSelectField.vue'
 import SelectField from '@/components/forms/SelectField.vue'
@@ -29,68 +30,101 @@ const { t } = useI18n()
 
 const store = useCardsStore()
 const walletsStore = useWalletsStore()
-const { loading } = storeToRefs(store)
 const { wallets } = storeToRefs(walletsStore)
 
 const form = useForm({ validationSchema: cardFormSchema, initialValues: cardFormDefaults })
 
-const { messages, changeToList, onSubmit, run } = useCrudForm({
-  routeName: 'cards',
-  notices: { created: 'notification.card.created', updated: 'notification.card.updated' },
-  id: () => props.id,
-  form,
-  findOne: store.findOne,
-  toFormValues: toCardFormValues,
-  create: (values) => store.create(toCardCreateForm(values)),
-  update: (id, values) => store.update(id, toCardUpdateForm(values)),
-})
+const { messages, fields, submitting, loadingRecord, dirty, changeToList, onSubmit, run } =
+  useCrudForm({
+    routeName: 'cards',
+    entity: 'card',
+    id: () => props.id,
+    form,
+    findOne: store.findOne,
+    toFormValues: toCardFormValues,
+    create: (values) => store.create(toCardCreateForm(values)),
+    update: (id, values) => store.update(id, toCardUpdateForm(values)),
+    redirectToDetail: true,
+  })
 
 const updating = computed(() => props.id !== undefined)
 const cardTypes = computed(() => typeOptions('card', CARD_TYPES, t))
 const walletOptions = computed(() =>
   wallets.value.map((wallet) => ({ id: wallet.id, label: wallet.name })),
 )
-const walletEnabled = computed(() => usesWallet(form.values.type))
-const invoiceEnabled = computed(() => usesInvoice(form.values.type))
+const typeChosen = computed(() => form.values.type !== undefined)
+const walletEnabled = computed(() => typeChosen.value && usesWallet(form.values.type))
+const invoiceEnabled = computed(() => typeChosen.value && usesInvoice(form.values.type))
 </script>
 
 <template>
   <FormCard
     :title="updating ? $t('card.form.editing') : $t('card.form.new')"
-    :loading="loading"
+    :description="updating ? form.values.name : undefined"
+    :loading="loadingRecord"
+    :submitting="submitting"
+    :dirty="dirty"
     :messages="messages"
+    :fields="fields"
+    :submit-label="updating ? $t('crud.save-changes') : $t('card.form.create')"
     @submit="onSubmit"
     @back="changeToList"
   >
-    <StatusToggle v-if="updating" name="active" />
-    <div class="grid gap-4 md:grid-cols-3">
-      <InputField name="name" :label="$t('card.form.name')" />
+    <FormSection
+      :title="$t('card.sections.identification')"
+      :description="updating ? $t('card.form.type-hint') : $t('card.sections.identification-help')"
+    >
+      <InputField name="name" :label="$t('card.form.name')" required />
       <SelectField
         name="type"
         :label="$t('card.form.type')"
         :options="cardTypes"
         :placeholder="$t('card.form.type-placeholder')"
         :disabled="updating"
+        required
       />
+      <InputField
+        name="lastFourDigits"
+        :label="$t('card.form.last-four-digits')"
+        :maxlength="4"
+        mono
+        required
+      />
+      <InputField name="flag" :label="$t('card.form.flag')" />
+      <StatusToggle
+        v-if="updating"
+        name="active"
+        :label="$t('card.form.active-label')"
+        :hint="$t('card.form.active-hint')"
+      />
+    </FormSection>
+    <FormSection
+      v-if="walletEnabled"
+      :title="$t('card.sections.wallet')"
+      :description="$t('card.sections.wallet-help')"
+      conditional
+    >
       <SearchSelectField
         name="wallet"
         :label="$t('card.form.wallet')"
         :options="walletOptions"
         :placeholder="$t('card.form.wallet-search-placeholder')"
         :empty-message="$t('card.form.wallet-search-empty')"
-        :disabled="!walletEnabled"
         @search="(text) => run(() => walletsStore.findByName(text))"
       />
-    </div>
-    <div class="grid gap-4 md:grid-cols-3">
+    </FormSection>
+    <FormSection
+      v-if="invoiceEnabled"
+      :title="$t('card.sections.invoice')"
+      :description="$t('card.sections.invoice-help')"
+      conditional
+    >
       <InputField
         name="invoicePaymentDay"
         type="number"
         :label="$t('card.form.invoice-payment-day')"
-        :disabled="!invoiceEnabled"
+        mono
       />
-      <InputField name="lastFourDigits" :label="$t('card.form.last-four-digits')" :maxlength="4" />
-      <InputField name="flag" :label="$t('card.form.flag')" />
-    </div>
+    </FormSection>
   </FormCard>
 </template>

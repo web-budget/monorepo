@@ -17,8 +17,9 @@ withDefaults(
     placeholder: string
     emptyMessage: string
     disabled?: boolean
+    required?: boolean
   }>(),
-  { disabled: false },
+  { disabled: false, required: false },
 )
 
 const emit = defineEmits<{ search: [query: string] }>()
@@ -49,7 +50,7 @@ function choose(option: SelectedOption, setValue: (value: SelectedOption) => voi
 <template>
   <FormField v-slot="{ value, setValue }" :name="name">
     <FormItem>
-      <FormLabel>{{ label }}</FormLabel>
+      <FormLabel :required="required">{{ label }}</FormLabel>
       <Popover v-model:open="open">
         <div class="flex gap-2">
           <PopoverTrigger as-child>

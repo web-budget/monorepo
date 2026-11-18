@@ -5,6 +5,7 @@ import { useNotification } from '@/composables/useNotification'
 import { isPublicRoute } from '@/router/publicRoutes'
 import { useAuthStore } from '@/stores/auth'
 import { describeApiError } from '@/utils/apiErrorNotice'
+import { isHandled } from '@/utils/handledErrors'
 
 const LOGIN_REJECTIONS = new Set(['invalid-credentials', 'account-disabled'])
 
@@ -44,7 +45,11 @@ async function handleApiError(error: ApiError, router: Router) {
   }
   const notice = describeApiError(error)
   if (notice) {
-    useNotification().showApiNotice(notice)
+    setTimeout(() => {
+      if (!isHandled(error)) {
+        useNotification().showApiNotice(notice)
+      }
+    }, 0)
   }
 }
 

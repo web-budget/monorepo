@@ -1,5 +1,6 @@
 import { computed, ref, type Ref } from 'vue'
 import type { PagedResponse, PageQuery } from '@/types'
+import { markHandled } from '@/utils/handledErrors'
 import {
   createPageResponse,
   toPageQuery,
@@ -10,7 +11,7 @@ import {
 export interface CrudApi<L, V, C, U> {
   findAll(query: PageQuery): Promise<PagedResponse<L>>
   findById(id: string): Promise<V>
-  create(form: C): Promise<void>
+  create(form: C): Promise<string>
   update(id: string, form: U): Promise<V>
   remove(id: string): Promise<void>
 }
@@ -41,6 +42,22 @@ export function useCrudResource<L extends { id: string }, V, C, U, S extends str
     })
   }
 
+  async function count(status: S): Promise<number | null> {
+    try {
+      const query = toPageQuery({
+        ...pageRequest.value,
+        status,
+        filterText: '',
+        current: 0,
+        size: 1,
+      })
+      return (await api.findAll(query)).page.totalElements
+    } catch (error) {
+      markHandled(error)
+      return null
+    }
+  }
+
   function findOne(id: string): Promise<V> {
     return track(async () => {
       current.value = null
@@ -49,7 +66,7 @@ export function useCrudResource<L extends { id: string }, V, C, U, S extends str
     })
   }
 
-  function create(form: C): Promise<void> {
+  function create(form: C): Promise<string> {
     return track(() => api.create(form))
   }
 
@@ -87,6 +104,7 @@ export function useCrudResource<L extends { id: string }, V, C, U, S extends str
     loading,
     track,
     findAll,
+    count,
     findOne,
     create,
     update,

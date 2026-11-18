@@ -1,4 +1,5 @@
 import { apiClient } from './client'
+import { createdId } from './createdId'
 import type {
   FinancialPeriodListView,
   FinancialPeriodView,
@@ -21,8 +22,8 @@ export const financialPeriodsApi = {
     return apiClient.get<FinancialPeriodView>(`${PATH}/${id}`).then((r) => r.data)
   },
 
-  create(form: FinancialPeriodCreateForm): Promise<void> {
-    return apiClient.post(PATH, form).then(() => undefined)
+  create(form: FinancialPeriodCreateForm): Promise<string> {
+    return apiClient.post(PATH, form).then(createdId)
   },
 
   update(id: string, form: FinancialPeriodUpdateForm): Promise<FinancialPeriodView> {

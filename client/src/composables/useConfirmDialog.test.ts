@@ -61,4 +61,38 @@ describe('useConfirmDialog', () => {
       dialog.cancel()
     }).not.toThrow()
   })
+
+  it('asks to confirm the removal of a record, naming it and what happens to its data', async () => {
+    const dialog = useConfirmDialog()
+
+    const result = dialog.confirmRemoval('wallet', 'Main')
+
+    expect(dialog.state.options).toEqual({
+      destructive: true,
+      title: 'Remover a carteira “Main”?',
+      description: expect.stringContaining('o servidor recusa a remoção'),
+      confirmLabel: 'Remover',
+    })
+    dialog.accept()
+    expect(await result).toBe(true)
+  })
+
+  it('asks to confirm leaving a form with changes, naming the record when it has one', async () => {
+    const dialog = useConfirmDialog()
+
+    const named = dialog.confirmDiscard('Main')
+    expect(dialog.state.options).toEqual({
+      title: 'Sair sem salvar?',
+      description: 'As alterações em “Main” vão se perder.',
+      confirmLabel: 'Sair sem salvar',
+      cancelLabel: 'Continuar editando',
+    })
+    dialog.cancel()
+    expect(await named).toBe(false)
+
+    const unnamed = dialog.confirmDiscard('')
+    expect(dialog.state.options.description).toBe('Os dados informados vão se perder.')
+    dialog.accept()
+    expect(await unnamed).toBe(true)
+  })
 })

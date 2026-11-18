@@ -1,10 +1,21 @@
 <script setup lang="ts" generic="T extends ItemsTableItem">
-import { ArrowDown, ArrowUp, ArrowUpDown } from 'lucide-vue-next'
+import { useMediaQuery } from '@vueuse/core'
+import {
+  ArrowDown,
+  ArrowUp,
+  ArrowUpDown,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from 'lucide-vue-next'
 import { computed, ref, useSlots } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { RouterLink } from 'vue-router'
 import StatusBadge from '@/components/listing/StatusBadge.vue'
 import {
   DEFAULT_SORT_FIELD,
+  MINIMUM_PAGE_SIZE,
   PAGE_SIZE_OPTIONS,
   type ItemsTableColumn,
   type ItemsTableItem,
@@ -12,6 +23,7 @@ import {
   type ItemsTableRowEvent,
   type ItemsTableSortEvent,
 } from '@/components/listing/itemsTable'
+import { Card } from '@/components/ui/card'
 import {
   Pagination,
   PaginationContent,
@@ -39,7 +51,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-vue-next'
+import { cn } from '@/lib/utils'
 
 const props = withDefaults(
   defineProps<{
@@ -50,8 +62,18 @@ const props = withDefaults(
     pageSize?: number
     currentPage?: number
     loading?: boolean
+    detailRoute?: string
+    linkField?: string
   }>(),
-  { columns: () => [], showStatus: true, pageSize: 15, currentPage: 0, loading: false },
+  {
+    columns: () => [],
+    showStatus: true,
+    pageSize: 15,
+    currentPage: 0,
+    loading: false,
+    detailRoute: undefined,
+    linkField: undefined,
+  },
 )
 
 const emit = defineEmits<{
@@ -67,6 +89,7 @@ defineSlots<{
 
 const { t } = useI18n()
 const slots = useSlots()
+const compact = useMediaQuery('(max-width: 767px)')
 
 const sortField = ref<string | null>(null)
 const sortDirection = ref<'asc' | 'desc' | null>(null)
@@ -81,15 +104,35 @@ const firstRecord = computed(() =>
 const lastRecord = computed(() =>
   Math.min((props.currentPage + 1) * props.pageSize, props.totalElements),
 )
-const headerColumns = computed<ItemsTableColumn[]>(() => [
-  ...(props.showStatus
-    ? [{ field: 'active', header: t('items-table.columns.status'), sortable: true }]
-    : []),
-  ...props.columns,
-])
+const showPageSize = computed(() => props.totalElements > MINIMUM_PAGE_SIZE)
+const linkedField = computed(() => props.linkField ?? props.columns[0]?.field ?? '')
+const secondaryColumns = computed(() =>
+  props.columns.filter((column) => column.field !== linkedField.value),
+)
+const statusColumn = computed<ItemsTableColumn>(() => ({
+  field: 'active',
+  header: t('crud.status'),
+  sortable: true,
+}))
 
 function cellValue(item: T, field: string): unknown {
   return (item as Record<string, unknown>)[field]
+}
+
+function cellClass(column: ItemsTableColumn) {
+  return cn(
+    column.class,
+    column.align === 'end' && 'text-right',
+    column.mono && 'font-mono tabular-nums',
+  )
+}
+
+function isLink(column: ItemsTableColumn) {
+  return props.detailRoute !== undefined && column.field === linkedField.value
+}
+
+function detailTarget(item: T) {
+  return { name: props.detailRoute, params: { id: item.id } }
 }
 
 function sortIcon(field: string) {
@@ -132,54 +175,153 @@ function changePageSize(value: unknown) {
 </script>
 
 <template>
-  <div class="space-y-4">
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead
-            v-for="column in headerColumns"
-            :key="column.field"
-            :aria-sort="ariaSort(column.field)"
-            :class="column.field === 'active' ? 'w-[10%]' : undefined"
-          >
-            <button
-              v-if="column.sortable"
-              type="button"
-              class="inline-flex items-center gap-1"
-              @click="toggleSort(column.field)"
+  <div class="space-y-3">
+    <Card v-if="!compact" class="gap-0 overflow-hidden py-0">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead
+              v-for="column in [...props.columns, ...(props.showStatus ? [statusColumn] : [])]"
+              :key="column.field"
+              :aria-sort="ariaSort(column.field)"
+              :class="
+                cn(column.align === 'end' && 'text-right', column.field === 'active' && 'w-[10%]')
+              "
             >
-              {{ column.header }}
-              <component :is="sortIcon(column.field)" class="size-3.5" />
-            </button>
-            <template v-else>{{ column.header }}</template>
-          </TableHead>
-          <TableHead v-if="hasActions" class="w-[12%]">
-            {{ $t('items-table.columns.actions') }}
-          </TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody :class="{ 'opacity-60': props.loading && props.data.length > 0 }">
-        <template v-if="props.loading && props.data.length === 0">
-          <TableRow v-for="row in 3" :key="row" :aria-label="$t('items-table.state.loading')">
-            <TableCell v-for="cell in columnCount" :key="cell">
-              <Skeleton class="h-5 w-full" />
-            </TableCell>
+              <button
+                v-if="column.sortable"
+                type="button"
+                :class="[
+                  'inline-flex items-center gap-1 uppercase',
+                  sortField === column.field && 'text-foreground',
+                ]"
+                @click="toggleSort(column.field)"
+              >
+                {{ column.header }}
+                <component
+                  :is="sortIcon(column.field)"
+                  :class="['size-3', sortField !== column.field && 'opacity-40']"
+                />
+              </button>
+              <template v-else>{{ column.header }}</template>
+            </TableHead>
+            <TableHead v-if="hasActions" class="w-0">
+              <span class="sr-only">{{ $t('items-table.columns.actions') }}</span>
+            </TableHead>
           </TableRow>
-        </template>
-        <TableEmpty v-else-if="props.data.length === 0" :colspan="columnCount">
-          {{ $t('items-table.state.empty') }}
-        </TableEmpty>
-        <template v-else>
-          <TableRow
-            v-for="(item, index) in props.data"
-            :key="item.id"
-            class="cursor-pointer"
-            @click="emit('rowSelected', { data: item, index })"
-          >
-            <TableCell v-if="props.showStatus">
-              <StatusBadge :active="item.active === true" />
-            </TableCell>
-            <TableCell v-for="column in props.columns" :key="column.field" :class="column.class">
+        </TableHeader>
+        <TableBody :class="{ 'opacity-60': props.loading && props.data.length > 0 }">
+          <template v-if="props.loading && props.data.length === 0">
+            <TableRow v-for="row in 3" :key="row" :aria-label="$t('items-table.state.loading')">
+              <TableCell v-for="cell in columnCount" :key="cell">
+                <Skeleton class="h-3.5 w-full max-w-32" />
+              </TableCell>
+            </TableRow>
+          </template>
+          <TableEmpty v-else-if="props.data.length === 0" :colspan="columnCount">
+            {{ $t('items-table.state.empty') }}
+          </TableEmpty>
+          <template v-else>
+            <TableRow
+              v-for="(item, index) in props.data"
+              :key="item.id"
+              class="cursor-pointer"
+              @click="emit('rowSelected', { data: item, index })"
+            >
+              <TableCell
+                v-for="column in props.columns"
+                :key="column.field"
+                :class="cellClass(column)"
+              >
+                <RouterLink
+                  v-if="isLink(column)"
+                  :to="detailTarget(item)"
+                  class="font-medium hover:underline"
+                  @click.stop
+                >
+                  <slot
+                    :name="`cell-${column.field}`"
+                    :item="item"
+                    :value="cellValue(item, column.field)"
+                  >
+                    {{ cellValue(item, column.field) }}
+                  </slot>
+                </RouterLink>
+                <slot
+                  v-else
+                  :name="`cell-${column.field}`"
+                  :item="item"
+                  :value="cellValue(item, column.field)"
+                >
+                  {{ cellValue(item, column.field) }}
+                </slot>
+              </TableCell>
+              <TableCell v-if="props.showStatus">
+                <StatusBadge :active="item.active === true" />
+              </TableCell>
+              <TableCell v-if="hasActions" class="text-right" @click.stop>
+                <slot name="actions" :item="item" />
+              </TableCell>
+            </TableRow>
+          </template>
+        </TableBody>
+      </Table>
+    </Card>
+
+    <div v-else class="grid gap-2" data-slot="items-cards">
+      <template v-if="props.loading && props.data.length === 0">
+        <Card
+          v-for="row in 3"
+          :key="row"
+          class="gap-2 p-4"
+          :aria-label="$t('items-table.state.loading')"
+        >
+          <Skeleton class="h-4 w-40" />
+          <Skeleton class="h-3.5 w-24" />
+        </Card>
+      </template>
+      <Card
+        v-for="(item, index) in props.data"
+        v-else
+        :key="item.id"
+        class="cursor-pointer gap-3 p-4"
+        @click="emit('rowSelected', { data: item, index })"
+      >
+        <div class="flex items-start justify-between gap-2">
+          <div class="grid min-w-0 gap-1.5">
+            <RouterLink
+              v-if="props.detailRoute !== undefined"
+              :to="detailTarget(item)"
+              class="font-medium"
+              @click.stop
+            >
+              <slot
+                :name="`cell-${linkedField}`"
+                :item="item"
+                :value="cellValue(item, linkedField)"
+              >
+                {{ cellValue(item, linkedField) }}
+              </slot>
+            </RouterLink>
+            <span v-else class="font-medium">
+              <slot
+                :name="`cell-${linkedField}`"
+                :item="item"
+                :value="cellValue(item, linkedField)"
+              >
+                {{ cellValue(item, linkedField) }}
+              </slot>
+            </span>
+            <StatusBadge v-if="props.showStatus" :active="item.active === true" class="w-fit" />
+          </div>
+          <div v-if="hasActions" class="-mt-1 -mr-2" @click.stop>
+            <slot name="actions" :item="item" />
+          </div>
+        </div>
+        <dl v-if="secondaryColumns.length > 0" class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+          <div v-for="column in secondaryColumns" :key="column.field" class="min-w-0">
+            <dt class="text-muted-foreground text-xs">{{ column.header }}</dt>
+            <dd :class="cn(column.mono && 'font-mono tabular-nums')">
               <slot
                 :name="`cell-${column.field}`"
                 :item="item"
@@ -187,64 +329,76 @@ function changePageSize(value: unknown) {
               >
                 {{ cellValue(item, column.field) }}
               </slot>
-            </TableCell>
-            <TableCell v-if="hasActions" @click.stop>
-              <slot name="actions" :item="item" />
-            </TableCell>
-          </TableRow>
-        </template>
-      </TableBody>
-    </Table>
+            </dd>
+          </div>
+        </dl>
+      </Card>
+    </div>
 
-    <div class="flex flex-col items-center justify-between gap-4 md:flex-row">
-      <span class="text-muted-foreground text-sm">
-        {{ firstRecord }}{{ $t('items-table.footer.until') }}{{ lastRecord
-        }}{{ $t('items-table.footer.total') }}{{ props.totalElements }}
+    <div class="text-muted-foreground flex flex-wrap items-center justify-between gap-2 text-xs">
+      <span class="font-mono tabular-nums">
+        {{
+          $t('items-table.footer.range', {
+            first: firstRecord,
+            last: lastRecord,
+            total: props.totalElements,
+          })
+        }}
       </span>
-      <Pagination
-        :total="props.totalElements"
-        :items-per-page="props.pageSize"
-        :page="props.currentPage + 1"
-        :sibling-count="1"
-        show-edges
-        class="mx-0 w-auto"
-        @update:page="changePage"
-      >
-        <PaginationContent v-slot="{ items }">
-          <PaginationFirst :aria-label="$t('items-table.pagination.first')">
-            <ChevronsLeft />
-          </PaginationFirst>
-          <PaginationPrevious :aria-label="$t('items-table.pagination.previous')">
-            <ChevronLeft />
-          </PaginationPrevious>
-          <template v-for="(page, index) in items" :key="index">
-            <PaginationItem
-              v-if="page.type === 'page'"
-              :value="page.value"
-              :is-active="page.value === props.currentPage + 1"
-            >
-              {{ page.value }}
-            </PaginationItem>
-            <PaginationEllipsis v-else :index="index" />
-          </template>
-          <PaginationNext :aria-label="$t('items-table.pagination.next')">
-            <ChevronRight />
-          </PaginationNext>
-          <PaginationLast :aria-label="$t('items-table.pagination.last')">
-            <ChevronsRight />
-          </PaginationLast>
-        </PaginationContent>
-      </Pagination>
-      <Select :model-value="String(props.pageSize)" @update:model-value="changePageSize">
-        <SelectTrigger class="w-24" :aria-label="$t('items-table.pagination.rows-per-page')">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem v-for="size in PAGE_SIZE_OPTIONS" :key="size" :value="String(size)">
-            {{ size }}
-          </SelectItem>
-        </SelectContent>
-      </Select>
+      <div class="flex items-center gap-2">
+        <Select
+          v-if="showPageSize"
+          :model-value="String(props.pageSize)"
+          @update:model-value="changePageSize"
+        >
+          <SelectTrigger
+            size="sm"
+            class="w-20"
+            :aria-label="$t('items-table.pagination.rows-per-page')"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="size in PAGE_SIZE_OPTIONS" :key="size" :value="String(size)">
+              {{ size }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
+        <Pagination
+          :total="props.totalElements"
+          :items-per-page="props.pageSize"
+          :page="props.currentPage + 1"
+          :sibling-count="1"
+          show-edges
+          class="mx-0 w-auto"
+          @update:page="changePage"
+        >
+          <PaginationContent v-slot="{ items }">
+            <PaginationFirst :aria-label="$t('items-table.pagination.first')">
+              <ChevronsLeft />
+            </PaginationFirst>
+            <PaginationPrevious :aria-label="$t('items-table.pagination.previous')">
+              <ChevronLeft />
+            </PaginationPrevious>
+            <template v-for="(page, index) in items" :key="index">
+              <PaginationItem
+                v-if="page.type === 'page'"
+                :value="page.value"
+                :is-active="page.value === props.currentPage + 1"
+              >
+                {{ page.value }}
+              </PaginationItem>
+              <PaginationEllipsis v-else :index="index" />
+            </template>
+            <PaginationNext :aria-label="$t('items-table.pagination.next')">
+              <ChevronRight />
+            </PaginationNext>
+            <PaginationLast :aria-label="$t('items-table.pagination.last')">
+              <ChevronsRight />
+            </PaginationLast>
+          </PaginationContent>
+        </Pagination>
+      </div>
     </div>
   </div>
 </template>

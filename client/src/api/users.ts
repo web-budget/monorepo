@@ -1,4 +1,5 @@
 import { apiClient } from './client'
+import { createdId } from './createdId'
 import type {
   PagedResponse,
   PageQuery,
@@ -19,8 +20,8 @@ export const usersApi = {
     return apiClient.get<UserView>(`${PATH}/${id}`).then((r) => r.data)
   },
 
-  create(form: UserCreateForm): Promise<void> {
-    return apiClient.post(PATH, form).then(() => undefined)
+  create(form: UserCreateForm): Promise<string> {
+    return apiClient.post(PATH, form).then(createdId)
   },
 
   update(id: string, form: UserUpdateForm): Promise<UserView> {

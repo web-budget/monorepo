@@ -12,25 +12,53 @@ withDefaults(
     disabled?: boolean
     maxlength?: number
     multiline?: boolean
+    required?: boolean
+    mono?: boolean
+    class?: string
   }>(),
-  { type: 'text', placeholder: undefined, disabled: false, maxlength: undefined, multiline: false },
+  {
+    type: 'text',
+    placeholder: undefined,
+    disabled: false,
+    maxlength: undefined,
+    multiline: false,
+    required: false,
+    mono: false,
+    class: undefined,
+  },
 )
 </script>
 
 <template>
-  <FormField v-slot="{ componentField }" :name="name">
-    <FormItem>
-      <FormLabel>{{ label }}</FormLabel>
+  <FormField
+    v-slot="{ value, errors, handleChange, handleBlur }"
+    :name="name"
+    :validate-on-model-update="false"
+  >
+    <FormItem :class="$props.class">
+      <FormLabel :required="required">{{ label }}</FormLabel>
       <FormControl>
-        <Textarea v-if="multiline" v-bind="componentField" rows="4" :disabled="disabled" />
+        <Textarea
+          v-if="multiline"
+          :name="name"
+          :model-value="value"
+          rows="4"
+          :disabled="disabled"
+          @update:model-value="handleChange($event, errors.length > 0)"
+          @blur="handleBlur"
+        />
         <Input
           v-else
-          v-bind="componentField"
+          :name="name"
+          :model-value="value"
           :type="type"
           :step="type === 'number' ? 'any' : undefined"
           :placeholder="placeholder"
           :maxlength="maxlength"
           :disabled="disabled"
+          :class="mono && 'font-mono'"
+          @update:model-value="handleChange($event, errors.length > 0)"
+          @blur="handleBlur"
         />
       </FormControl>
       <FormMessage />

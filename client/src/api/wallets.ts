@@ -1,4 +1,5 @@
 import { apiClient } from './client'
+import { createdId } from './createdId'
 import type {
   WalletListView,
   WalletView,
@@ -19,8 +20,8 @@ export const walletsApi = {
     return apiClient.get<WalletView>(`${PATH}/${id}`).then((r) => r.data)
   },
 
-  create(form: WalletCreateForm): Promise<void> {
-    return apiClient.post(PATH, form).then(() => undefined)
+  create(form: WalletCreateForm): Promise<string> {
+    return apiClient.post(PATH, form).then(createdId)
   },
 
   update(id: string, form: WalletUpdateForm): Promise<WalletView> {

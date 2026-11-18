@@ -3,6 +3,7 @@ import { storeToRefs } from 'pinia'
 import { useForm } from 'vee-validate'
 import { computed } from 'vue'
 import FormCard from '@/components/forms/FormCard.vue'
+import FormSection from '@/components/forms/FormSection.vue'
 import InputField from '@/components/forms/InputField.vue'
 import SearchSelectField from '@/components/forms/SearchSelectField.vue'
 import StatusToggle from '@/components/forms/StatusToggle.vue'
@@ -19,26 +20,25 @@ import { useCostCentersStore } from '@/stores/costCenters'
 const props = defineProps<{ id?: string }>()
 
 const store = useCostCentersStore()
-const { costCenters, loading } = storeToRefs(store)
+const { costCenters } = storeToRefs(store)
 
 const form = useForm({
   validationSchema: costCenterFormSchema,
   initialValues: costCenterFormDefaults,
 })
 
-const { messages, changeToList, onSubmit, run } = useCrudForm({
-  routeName: 'cost-centers',
-  notices: {
-    created: 'notification.cost-center.created',
-    updated: 'notification.cost-center.updated',
-  },
-  id: () => props.id,
-  form,
-  findOne: store.findOne,
-  toFormValues: toCostCenterFormValues,
-  create: (values) => store.create(toCostCenterCreateForm(values)),
-  update: (id, values) => store.update(id, toCostCenterUpdateForm(values)),
-})
+const { messages, fields, submitting, loadingRecord, dirty, changeToList, onSubmit, run } =
+  useCrudForm({
+    routeName: 'cost-centers',
+    entity: 'cost-center',
+    id: () => props.id,
+    form,
+    findOne: store.findOne,
+    toFormValues: toCostCenterFormValues,
+    create: (values) => store.create(toCostCenterCreateForm(values)),
+    update: (id, values) => store.update(id, toCostCenterUpdateForm(values)),
+    redirectToDetail: true,
+  })
 
 const updating = computed(() => props.id !== undefined)
 const parentOptions = computed(() =>
@@ -51,14 +51,21 @@ const parentOptions = computed(() =>
 <template>
   <FormCard
     :title="updating ? $t('cost-center.form.editing') : $t('cost-center.form.new')"
-    :loading="loading"
+    :description="updating ? form.values.name : undefined"
+    :loading="loadingRecord"
+    :submitting="submitting"
+    :dirty="dirty"
     :messages="messages"
+    :fields="fields"
+    :submit-label="updating ? $t('crud.save-changes') : $t('cost-center.form.create')"
     @submit="onSubmit"
     @back="changeToList"
   >
-    <StatusToggle v-if="updating" name="active" />
-    <div class="grid gap-4 md:grid-cols-2">
-      <InputField name="name" :label="$t('cost-center.form.name')" />
+    <FormSection
+      :title="$t('cost-center.sections.identification')"
+      :description="$t('cost-center.sections.identification-help')"
+    >
+      <InputField name="name" :label="$t('cost-center.form.name')" required />
       <SearchSelectField
         name="parentCostCenter"
         :label="$t('cost-center.form.parent')"
@@ -67,13 +74,35 @@ const parentOptions = computed(() =>
         :empty-message="$t('cost-center.form.parent-search-empty')"
         @search="(text) => run(() => store.findByName(text))"
       />
-      <InputField name="incomeBudget" type="number" :label="$t('cost-center.form.income-budget')" />
+      <StatusToggle
+        v-if="updating"
+        name="active"
+        :label="$t('cost-center.form.active-label')"
+        :hint="$t('cost-center.form.active-hint')"
+      />
+      <InputField
+        name="description"
+        :label="$t('cost-center.form.description')"
+        multiline
+        class="md:col-span-2"
+      />
+    </FormSection>
+    <FormSection
+      :title="$t('cost-center.sections.budget')"
+      :description="$t('cost-center.sections.budget-help')"
+    >
+      <InputField
+        name="incomeBudget"
+        type="number"
+        :label="$t('cost-center.form.income-budget')"
+        mono
+      />
       <InputField
         name="expenseBudget"
         type="number"
         :label="$t('cost-center.form.expense-budget')"
+        mono
       />
-    </div>
-    <InputField name="description" :label="$t('cost-center.form.description')" multiline />
+    </FormSection>
   </FormCard>
 </template>

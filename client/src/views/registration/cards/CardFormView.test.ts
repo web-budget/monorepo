@@ -62,7 +62,7 @@ async function chooseType(wrapper: Wrapper, type: string) {
   await settle()
 }
 
-async function pickWallet(wrapper: Wrapper, query: string, optionText: string) {
+async function searchWallet(wrapper: Wrapper, query: string) {
   await wrapper.find('button[data-field="wallet"]').trigger('click')
   await settle()
   const search = document.body.querySelector<HTMLInputElement>(
@@ -71,6 +71,10 @@ async function pickWallet(wrapper: Wrapper, query: string, optionText: string) {
   search!.value = query
   search!.dispatchEvent(new Event('input'))
   await settle()
+}
+
+async function pickWallet(wrapper: Wrapper, query: string, optionText: string) {
+  await searchWallet(wrapper, query)
   const option = [...document.body.querySelectorAll<HTMLElement>('[role="option"]')].find(
     (candidate) => candidate.textContent?.trim() === optionText,
   )
@@ -84,34 +88,40 @@ describe('CardFormView', () => {
     document.body.replaceChildren()
   })
 
-  it('asks for the required fields', async () => {
+  it('shows the title, the required marks and asks for the required fields', async () => {
     const { wrapper } = await mountView(CardFormView, 'cards')
 
-    expect(wrapper.text()).toContain('Novo cartão')
+    expect(wrapper.find('h1').text()).toBe('Novo cartão')
+    expect(buttonWithText(wrapper, 'Criar cartão')).toBeDefined()
+    expect(wrapper.findAll('label').filter((label) => label.text().endsWith('*'))).toHaveLength(3)
+
     await submit(wrapper)
 
     expect(wrapper.text()).toContain('Campo obrigatório')
     expect(cardsApi.create).not.toHaveBeenCalled()
+    expect(document.activeElement).toBe(field(wrapper, 'name').element)
   })
 
-  it('locks the wallet for a credit card and the invoice day for a debit card', async () => {
+  it('shows the wallet only for a debit card and the invoice day only for a credit card', async () => {
     const { wrapper } = await mountView(CardFormView, 'cards')
 
-    expect(field(wrapper, 'invoicePaymentDay').attributes('disabled')).toBeUndefined()
-    expect(wrapper.find('button[data-field="wallet"]').attributes('disabled')).toBeUndefined()
+    expect(wrapper.find('button[data-field="wallet"]').exists()).toBe(false)
+    expect(field(wrapper, 'invoicePaymentDay').exists()).toBe(false)
 
     await chooseType(wrapper, 'CREDIT')
-    expect(wrapper.find('button[data-field="wallet"]').attributes('disabled')).toBeDefined()
-    expect(field(wrapper, 'invoicePaymentDay').attributes('disabled')).toBeUndefined()
+    expect(wrapper.find('button[data-field="wallet"]').exists()).toBe(false)
+    expect(field(wrapper, 'invoicePaymentDay').exists()).toBe(true)
+    expect(wrapper.text()).toContain('Fatura')
 
     await chooseType(wrapper, 'DEBIT')
-    expect(wrapper.find('button[data-field="wallet"]').attributes('disabled')).toBeUndefined()
-    expect(field(wrapper, 'invoicePaymentDay').attributes('disabled')).toBeDefined()
+    expect(wrapper.find('button[data-field="wallet"]').exists()).toBe(true)
+    expect(field(wrapper, 'invoicePaymentDay').exists()).toBe(false)
+    expect(wrapper.text()).toContain('Carteira')
   })
 
-  it('creates a credit card and clears the form', async () => {
-    vi.mocked(cardsApi.create).mockResolvedValue(undefined)
-    const { wrapper } = await mountView(CardFormView, 'cards')
+  it('creates a credit card and goes to its detail', async () => {
+    vi.mocked(cardsApi.create).mockResolvedValue('k-9')
+    const { wrapper, router } = await mountView(CardFormView, 'cards')
 
     await field(wrapper, 'name').setValue('Travel')
     await chooseType(wrapper, 'CREDIT')
@@ -128,16 +138,17 @@ describe('CardFormView', () => {
       wallet: null,
       invoicePaymentDay: 10,
     })
-    expect(toast.success).toHaveBeenCalledWith('Registro criado', {
-      description: 'Cartão criado com sucesso',
+    expect(toast.success).toHaveBeenCalledWith('Cartão criado', {
+      description: '“Travel” já aparece nos lançamentos.',
       duration: 4000,
     })
-    expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('')
+    expect(router.currentRoute.value.name).toBe('cards.detail')
+    expect(router.currentRoute.value.params.id).toBe('k-9')
   })
 
   it('creates a debit card linked to a wallet found by name', async () => {
     vi.mocked(walletsApi.findAll).mockResolvedValue(pageOf([wallet]))
-    vi.mocked(cardsApi.create).mockResolvedValue(undefined)
+    vi.mocked(cardsApi.create).mockResolvedValue('k-9')
     const { wrapper } = await mountView(CardFormView, 'cards')
 
     await field(wrapper, 'name').setValue('Daily')
@@ -187,26 +198,43 @@ describe('CardFormView', () => {
     expect(toast.success).not.toHaveBeenCalled()
   })
 
+  it('marks the field the server says is already in use', async () => {
+    vi.mocked(cardsApi.create).mockRejectedValue(
+      problem(409, { error: 'conflict', parameters: { 'card.last-four-digits': '1234' } }),
+    )
+    const { wrapper } = await mountView(CardFormView, 'cards')
+
+    await field(wrapper, 'name').setValue('Travel')
+    await chooseType(wrapper, 'CREDIT')
+    await field(wrapper, 'lastFourDigits').setValue('1234')
+    await submit(wrapper)
+
+    expect(field(wrapper, 'lastFourDigits').attributes('aria-invalid')).toBe('true')
+    expect(field(wrapper, 'name').attributes('aria-invalid')).toBe('false')
+  })
+
   it('loads a debit card for editing with the type locked', async () => {
     vi.mocked(cardsApi.findById).mockResolvedValue(debitCard)
 
     const { wrapper } = await mountView(CardFormView, 'cards', { id: 'k-1' })
 
-    expect(wrapper.text()).toContain('Editando cartão')
+    expect(wrapper.find('h1').text()).toBe('Editando cartão')
+    expect(wrapper.find('[data-slot="page-description"]').text()).toBe('Daily')
     expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('Daily')
     expect((field(wrapper, 'lastFourDigits').element as HTMLInputElement).value).toBe('4321')
     expect(wrapper.find('button[data-field="wallet"]').text()).toContain('Main')
     expect(wrapper.find('button[role="combobox"]').attributes('disabled')).toBeDefined()
-    expect(field(wrapper, 'invoicePaymentDay').attributes('disabled')).toBeDefined()
+    expect(field(wrapper, 'invoicePaymentDay').exists()).toBe(false)
+    expect(wrapper.text()).toContain('O tipo não muda depois de criado.')
   })
 
-  it('saves the changes of a credit card and its status', async () => {
+  it('saves the changes of a credit card and its status, and goes to the detail', async () => {
     vi.mocked(cardsApi.findById).mockResolvedValue(creditCard)
     vi.mocked(cardsApi.update).mockResolvedValue(creditCard)
-    const { wrapper } = await mountView(CardFormView, 'cards', { id: 'k-2' })
+    const { wrapper, router } = await mountView(CardFormView, 'cards', { id: 'k-2' })
 
     await field(wrapper, 'invoicePaymentDay').setValue('15')
-    await buttonWithText(wrapper, 'Inativo').trigger('click')
+    await wrapper.find('button[role="switch"]').trigger('click')
     await submit(wrapper)
 
     expect(cardsApi.update).toHaveBeenCalledWith('k-2', {
@@ -217,10 +245,11 @@ describe('CardFormView', () => {
       wallet: null,
       invoicePaymentDay: 15,
     })
-    expect(toast.success).toHaveBeenCalledWith('Registro atualizado', {
-      description: 'Cartão atualizado com sucesso',
+    expect(toast.success).toHaveBeenCalledWith('Alterações salvas', {
+      description: '“Travel” foi atualizado.',
       duration: 4000,
     })
+    expect(router.currentRoute.value.name).toBe('cards.detail')
   })
 
   it('shows the server error when the update is rejected', async () => {
@@ -238,25 +267,19 @@ describe('CardFormView', () => {
   it('shows the server error when the wallet search fails', async () => {
     vi.mocked(walletsApi.findAll).mockRejectedValue(problem(500))
     const { wrapper } = await mountView(CardFormView, 'cards')
+    await chooseType(wrapper, 'DEBIT')
 
-    await wrapper.find('button[data-field="wallet"]').trigger('click')
-    await settle()
-    const search = document.body.querySelector<HTMLInputElement>(
-      '[data-slot="popover-content"] input',
-    )
-    search!.value = 'Ma'
-    search!.dispatchEvent(new Event('input'))
-    await settle()
+    await searchWallet(wrapper, 'Ma')
 
     expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
       'Tente novamente mais tarde',
     )
   })
 
-  it('goes back to the listing', async () => {
+  it('goes back to the listing with Cancelar', async () => {
     const { wrapper, router } = await mountView(CardFormView, 'cards')
 
-    await buttonWithText(wrapper, 'Voltar').trigger('click')
+    await buttonWithText(wrapper, 'Cancelar').trigger('click')
     await settle()
 
     expect(router.currentRoute.value.name).toBe('cards')

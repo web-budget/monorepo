@@ -75,7 +75,7 @@ describe('useUsersAdminStore', () => {
   })
 
   it('creates a user', async () => {
-    vi.mocked(usersApi.create).mockResolvedValue()
+    vi.mocked(usersApi.create).mockResolvedValue('new-id')
     const store = useUsersAdminStore()
     const form = {
       name: 'Ana',
