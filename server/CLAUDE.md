@@ -28,12 +28,12 @@ O Kover pendura o `koverVerify` no `check`, então o `build` já falha quando a 
 ## Stack
 
 - Kotlin 2.4.21 (`jvm` e `plugin.spring`) com `jvmTarget` 25, `languageVersion` e `apiVersion` 2.4 e os argumentos `-Xjsr305=strict` e `-Xemit-jvm-type-annotations`. O toolchain Java é o 25 e o Gradle vem do wrapper.
-- Spring Boot 4.1.2 com os starters `webmvc` (servlet, não WebFlux), `jooq`, `liquibase`, `security`, `validation` e `actuator`. As threads virtuais estão ligadas.
+- Spring Boot 4.1.2 com os starters `webmvc` (servlet, não WebFlux), `jooq`, `liquibase`, `security`, `validation`, `actuator`, `mail` e `thymeleaf` (só para os e-mails), mais `spring-data-commons` explícito para `Pageable` e `PagedModel`. As threads virtuais estão ligadas.
 - PostgreSQL 18 (`postgres:18-alpine`), tanto no `compose.yaml` quanto no Testcontainers.
 - jOOQ 3.21.7 com o plugin `org.jooq.jooq-codegen-gradle`, que gera as classes Kotlin das tabelas no build (veja [Codegen do jOOQ](#codegen-do-jooq)).
 - Jackson 3 (`tools.jackson.module:jackson-module-kotlin`) e `kotlin-reflect` para Jackson e Spring.
 - `io.github.oshai:kotlin-logging-jvm` para log com `KotlinLogging.logger {}`.
-- Kover 0.9.9 para cobertura.
+- Kover 0.9.9 para cobertura. Nos testes, GreenMail recebe os e-mails e o `RestTestClient` chama a API (veja [Testes e cobertura](#testes-e-cobertura)).
 
 ## Convenções de código
 
@@ -66,15 +66,15 @@ A regra vale tanto para o nome da variável em Kotlin quanto para a string do al
 
 ## Arquitetura
 
-Hoje o `server/` tem só o `ServerApplication.kt`, o bootstrap `@SpringBootApplication`. O código portado da v4 entra na estrutura em três camadas dela, agora sob `br.com.webbudget.server`:
+O código portado da v4 vive nas três camadas dela, sob `br.com.webbudget.server`. Os módulos `administration`, `registration` e `financial` já estão portados, e o `administration` é a referência dos padrões das seções abaixo:
 
 | Pacote | O que fica nele |
 |---|---|
 | `application/` | Controllers, payloads (requisição e resposta) e mappers. Nenhuma regra de negócio. |
 | `domain/` | Serviços, entidades, validadores, exceções e e-mails (`mail/`). Todas as regras de negócio. |
-| `infrastructure/` | Configuração do Spring (`config/`), repositórios (`repositories/`) e utilitários (`utilities/`). Usada pelas outras duas camadas. |
+| `infrastructure/` | Configuração do Spring (`config/`), repositórios (`repository/`) e utilitários (`utilities/`). Usada pelas outras duas camadas. |
 
-Dentro de cada camada, o código se divide pelas áreas da v4, que são também os schemas do banco: `administration`, `registration` e `financial` (por exemplo `application/controllers/registration`, `domain/services/financial`, `infrastructure/repositories/administration`). Não existem pacotes planos por funcionalidade: todo código novo entra numa das três camadas.
+Dentro de cada camada, o código se divide pelas áreas da v4, que são também os schemas do banco: `administration`, `registration` e `financial` (por exemplo `application/controllers/registration`, `domain/services/financial`, `infrastructure/repository/administration`). Não existem pacotes planos por funcionalidade: todo código novo entra numa das três camadas.
 
 ### Validadores
 
@@ -106,6 +106,43 @@ class WalletService(
 
 Uma regra nova é um validador novo com a anotação certa, não um `if` a mais no serviço.
 
+### Persistência com jOOQ
+
+Os repositórios são classes `@Repository` com o `DSLContext` injetado, em `infrastructure/repository/<módulo>/`, sobre as tabelas de `br.com.webbudget.server.jooq`. Não existe `JpaRepository`, `Specification` nem camada ORM. As regras:
+
+- **Entidades são classes Kotlin simples** em `domain/entities/<módulo>/`, sem anotação de persistência e herdando de `PersistentEntity` (`id`, `externalId`, `version`, `createdOn`, `lastUpdate`). Não use `data class` em entidades que se referenciam (`toString` e `hashCode` recursivos). As relações são carregadas explicitamente pelo repositório: `User.grants` vem de `GrantRepository.findByUserIds`, uma consulta só para a página inteira, e nunca de um lazy-load.
+- **Aliases com nome completo**, como no resto do código: `val users = USERS.as("users")` nas consultas. `INSERT`, `UPDATE` e `DELETE` usam a tabela sem alias.
+- **Quem preenche os campos de controle é o repositório**: `externalId` (`UUID.randomUUID()`), `version = 0` e `createdOn` na inserção, `lastUpdate` e `version + 1` na atualização. O `INSERT ... RETURNING` e o `UPDATE ... RETURNING` devolvem a linha, e o repositório devolve a mesma entidade preenchida pelo `restore(...)`.
+- **Controle otimista de `version` no `UPDATE`**: `UPDATE ... WHERE id = ? AND version = ?`. Nenhuma linha atualizada lança `concurrentUpdate()` (`OptimisticLocking.kt`), um `DomainException.conflict` com o erro `concurrent-update` e status 409. Todo `update` de repositório novo segue isso.
+- **Os filtros que a v4 fazia com `Specification` viram `Condition` do jOOQ montado dentro do repositório**, a partir de parâmetros simples (`filter: String?`, `active: Boolean?`). O payload de filtro (`UserFilter`) não conhece jOOQ.
+- **Exclusões que o JPA fazia em cascata são explícitas no serviço**: apagar um usuário apaga antes os grants e as tentativas de ativação e de recuperação.
+- As consultas `existsBy...` do jOOQ (`dsl.fetchExists`) substituem os `findBy...` que os validadores usavam só para checar existência.
+- **Um módulo que referencia dados de outro lê uma projeção pequena, não a entidade do outro módulo.** Os movimentos do `financial` carregam `ClassificationReference`, `CostCenterReference` e `FinancialPeriodReference` (em `domain/entities/financial/MovementReferences.kt`), que o `MovementReferenceRepository` resolve pelo `externalId` com jOOQ direto nas tabelas de `registration`, e as consultas de movimento fazem `JOIN` nelas. Um id desconhecido vira `ResourceNotFoundException` (`404`) no mapper.
+- **O módulo `registration` segue o mesmo padrão** (`infrastructure/repository/registration/`). A busca textual dos filtros é `containsIgnoreCase` do jOOQ, que escapa `%` e `_`. O `CostCenter` carrega o pai um nível só, com o `full_name` gravado dele, e o nome completo do filho vem desse valor (`updateFullName`); o `CostCenterService` refaz o nome dos filhos e netos ao renomear ou mover um centro, e o `CostCenterParentValidator` recusa um pai que seja o próprio centro ou um descendente. O `CardRepository.findByExternalId` traz a carteira (o `CardView` a expõe); a listagem não. O `WalletRepository.update` não grava o `current_balance`, que é do financial. `GET /registration/financial-periods` sem `status` devolve só os períodos `ACCOUNTED`, como na v4 (`OPEN` são `ACTIVE` e `ENDED`, `ALL` são todos).
+
+### Paginação
+
+`infrastructure/repository/Paging.kt` concentra o padrão, e o `WebMvcConfiguration` liga o `@EnableSpringDataWebSupport` que resolve o `Pageable` dos controllers:
+
+- `pagedModelOf(content, pageable, total)` devolve o `PagedModel<T>` que o repositório retorna. O JSON sai como `content` mais `page { size, number, totalElements, totalPages }`, o mesmo da v4.
+- `PagedModel<T>.map { }` converte as entidades em views no controller, sem o repositório conhecer o payload.
+- `Pageable.toOrderBy(sortable, tiebreaker)` traduz o `sort` da requisição para colunas conhecidas (um `Map<String, Field<*>>` por repositório) e sempre acrescenta um desempate por `id`, então a ordem é determinística. Propriedades de `sort` desconhecidas são ignoradas.
+- A contagem é `dsl.fetchCount(tabela, condição)` com a mesma condição da página.
+
+### Rotas e erros
+
+- **Todo `@RestController` sai sob `/private/{version}`**: o `WebMvcConfiguration` acrescenta o prefixo a todo controller (versionamento por segmento, `v1` como padrão). O `@RequestMapping` do controller leva só o caminho do módulo, por exemplo `@RequestMapping("/administration/users")`, que responde em `/private/v1/administration/users`. O `Location` de um `201` já sai com o prefixo.
+- **Erros são `ProblemDetail` (RFC 7807)**, produzidos pelo `ExceptionHandlerAdvice` (uma subclasse de `ResponseEntityExceptionHandler`). O código de máquina fica na propriedade **`error`** (`field-validation-failed`, `resource-not-found`, `conflicting-properties`, `concurrent-update`, `invalid-token`, `bad-request`, `data-integrity-violation`, `internal-error`), e `parameters` leva os valores de contexto, por exemplo o mapa campo → código das violações de validação (`422`) ou a propriedade em conflito (`409`). A v4 chamava o campo de `code`; o client lê `error`.
+- As exceções de domínio são `DomainException` (regra violada, `400` por padrão, `DomainException.conflict(...)` para `409`) e `ApplicationException` (`ResourceNotFoundException` é `404`). Os códigos de domínio ficam em `domain/exceptions/ErrorCodes.kt`, e os códigos das mensagens de validação de campo (`is-null-or-blank` e afins) em `application/payloads/ErrorCodes.kt`. `IllegalArgumentException`, violações de integridade e erros de acesso a dados respondem `400` genérico, e qualquer outra exceção `500` genérico: a mensagem real só vai para o log. Um `AccessDeniedException` ou `AuthenticationException` é relançado para o Spring Security tratar (veja [Autenticação e autorização](#autenticação-e-autorização)).
+- **Status herdados da v4, de propósito**: `DELETE` e `PATCH` sem corpo respondem `200` (`ResponseEntity<Void>`), não `204`; `POST` responde `201` com `Location`; validação de corpo responde `422`.
+- **O `JacksonConfiguration` define a leitura dos payloads**: strings viram `null` quando vazias ou só com espaços (então `""` cai em `is-null-or-blank` e não em erro de formato), enum desconhecido vira `null`, propriedades desconhecidas são ignoradas e `null` não é serializado.
+- **A segurança está descrita em [Autenticação e autorização](#autenticação-e-autorização).** O `SecurityConfiguration` traz as regras de caminho por role de área sob `/private/v1` (`/administration` para `ADMINISTRATION`, `/registration`, `/financial` e `/dashboards` para as outras), `/private/v1/accounts/**`, `/private/v1/auth/login` e os endpoints `health` e `info` do Actuator públicos e o resto autenticado. O `UserDetailsService` é um `InMemoryUserDetailsManager` vazio só para o Spring Boot não gerar um usuário com senha aleatória. As roles são autoridades `ROLE_<NOME>`.
+- **O admin inicial** (`admin@webbudget.com.br`, `APPROVED`, com todas as roles) é criado na subida pelo `AdminUserBootstrap` quando não existe. A senha vem de `ADMIN_DEFAULT_PASSWORD` (`web-budget.security.admin-default-password`); se a variável não existir, o bootstrap gera uma senha aleatória que sai só no log, e não há senha padrão fixa.
+
+### E-mails
+
+Os e-mails do módulo (ativação de conta e recuperação de senha) saem pelo `MailSenderService`, que renderiza um template Thymeleaf de `src/main/resources/mail-templates/` (um por idioma, `<nome>-<en_US|pt_BR>.html`, escolhido pelo `defaultLanguage` do usuário) e envia pelo SMTP de `spring.mail.*` (o Maildev do `compose.yaml` no `bootRun`, interface em `http://localhost:1080`). Uma classe `MailTemplate` por e-mail, em `domain/mail/`, define o assunto e as variáveis. O envio é `@Async` (fora do perfil `test`, onde roda síncrono). As propriedades `web-budget.mail.*` e a `web-budget.frontend-url`, usada só para montar os links dos e-mails, vêm do `application.yaml`.
+
 ## Portabilidade da v4
 
 O código de origem fica em `D:/desenvolvimento/web-budget/back-end`, o clone do repositório arquivado `web-budget/back-end`. Ele é só referência: leia-o para portar as regras de negócio e os payloads, mas nunca o altere.
@@ -118,6 +155,40 @@ O port mantém as regras de negócio e os payloads da v4. O que muda:
 - As rotas saem de `/api/...`, `/auth` e `/accounts` para `/private/v1/...`, e os erros respondem como `ProblemDetail`.
 - O módulo de investimentos não é portado, e a role `INVESTMENTS` não existe.
 - O build não tem Detekt.
+
+## Autenticação e autorização
+
+A autenticação é por **sessão no servidor**, na memória do Tomcat (nenhuma tabela de sessão: reiniciar o server derruba as sessões). O padrão vem do investlog, com uma diferença: lá a role é única, aqui as roles são por área. Não existe JWT, `httpBasic` nem CORS, e nenhuma issue os traz de volta: o client fala com o server pelo proxy do Vite, na mesma origem.
+
+### Login e sessão
+
+- `POST /private/v1/auth/login` (`email` e `password`, em JSON) cria a sessão e responde `SessionView` (`name`, `email`, `status` e `roles`). `GET /private/v1/auth/session` devolve a mesma `SessionView`, lida do banco a cada chamada, e `POST /private/v1/auth/logout` invalida a sessão. A senha é BCrypt com força 11, como na v4.
+- **`AuthService.establishSession` é o único caminho que emite sessão.** Todo login futuro (auto-cadastro aprovado, TOTP, Google) passa por ele, para que uma regra posta num fluxo não deixe de valer em outro. Ele troca o id da sessão (`changeSessionId`, contra fixação de sessão) e grava o `CurrentUser` como principal, com as autoridades `ROLE_<ROLE>` e `STATUS_<STATUS>`.
+- Senha errada e e-mail desconhecido respondem o mesmo `401` `invalid-credentials`, e o e-mail desconhecido gasta o mesmo tempo de um BCrypt. Conta inativa (`active = false`) ou `BLOCKED`, que enviou a senha certa, responde `401` `account-disabled`. Uma conta `PENDING` entra e vê o próprio status, mas as rotas de negócio respondem `403`.
+- O cookie é o `JSESSIONID`, com `HttpOnly`, `SameSite=Lax` e timeout de 30 minutos (`server.servlet.session`, o mesmo valor que o client usa). O `Secure` quem põe é o Tomcat quando a requisição chega por https, e o perfil `prod` liga `server.forward-headers-strategy: native` para que ele enxergue o https que o proxy terminou.
+
+### O que a sessão guarda e o que o banco decide
+
+O principal da sessão (`CurrentUser`, com `externalId`, `status`, `credentialsVersion` e as roles) é só uma foto do login. As autoridades dela alimentam apenas as regras de caminho do `SecurityConfiguration`, que são a primeira barreira: uma role **acrescentada** vale no próximo login, e uma role **removida** continua passando por essa barreira até a sessão acabar. Por isso o que decide de verdade é a leitura viva:
+
+- **`CurrentUserProvider.getCurrentUser()`** (implementação `SecurityContextCurrentUserProvider`) relê o usuário no banco **por `externalId`**, a cada chamada, e recarrega as roles dos grants. Por `externalId`, e não por e-mail, porque o admin edita o e-mail e porque um e-mail apagado e cadastrado de novo é outra conta: a sessão da conta antiga não pode servir a nova. Falhas: sem sessão `401` `unauthenticated`; conta apagada, inativa ou com `credentials_version` diferente `401` `session-revoked` (e o entry point invalida a sessão); `status` diferente de `APPROVED` `403` `pending_approval`.
+- **`getSessionUser()`** faz as mesmas checagens menos a de aprovação. É o que o `GET /auth/session` usa, para que um usuário pendente ou bloqueado ainda consiga ler o próprio status.
+- **Toda rota de negócio leva `@RequiresRole(Role.X)`**, no controller ou no método. A anotação é um `@PreAuthorize("@roleGuard.hasRole('{role}')")` (meta-anotação com `AnnotationTemplateExpressionDefaults`), e o `RoleGuard` consulta o `CurrentUserProvider`: sem a role responde `403` `forbidden`, e os erros acima viram os mesmos `401` e `403`. Um controller novo sem `@RequiresRole` só tem a barreira cacheada do caminho, que **não enxerga bloqueio, remoção de role nem troca de senha**. A #14 e a #15 aplicam nos controllers delas.
+- **`credentials_version` sobe em toda troca de senha**, e isso mora no repositório: `UserRepository.updatePassword` é o único jeito de gravar a senha, e o `update` genérico nem escreve `password`. Assim o admin, a recuperação por e-mail e qualquer fluxo futuro invalidam as outras sessões sem depender de lembrar de incrementar. O `UserController.updatePassword` reemite a sessão de quem trocou a senha pelo `SessionPrincipalRefresher`, que **só atua quando o `externalId` do principal é o do usuário alterado**: o admin que troca a senha de outra pessoa continua sendo o admin.
+- **O `RequiresRoleCoverageTest` garante a regra**: ele varre os handlers do `RequestMappingHandlerMapping` e falha se uma rota sob `/private/{version}` não tiver `@RequiresRole` no método nem na classe. Ficam de fora só `auth/**`, `accounts/**` e o `error-probe` de teste; uma rota pública nova entra na lista do teste, de propósito.
+- "Bloquear" hoje é `active = false` (o `PUT` do admin). O `status` `BLOCKED` e a aprovação de `PENDING` vêm da #27, mas a leitura viva dos dois já existe.
+
+### Erros de segurança
+
+O `ProblemDetailAuthenticationEntryPoint` (`401`) e o `ProblemDetailAccessDeniedHandler` (`403`) respondem `ProblemDetail` com a propriedade `error`: `unauthenticated`, `invalid-credentials`, `account-disabled`, `session-revoked`, `forbidden`, `invalid-csrf-token` e `pending_approval`. Este último é snake_case de propósito, porque é o literal que o client compara; os outros seguem o kebab-case do `ErrorCodes`. As exceções de `401` são `AuthenticationException` (`AuthenticationFailedException`) e a de aprovação é um `AccessDeniedException`: o `ExceptionHandlerAdvice` as relança, e é a cadeia do Spring Security que responde.
+
+### CSRF: ligado
+
+**Decisão: o CSRF fica ligado**, com `CookieCsrfTokenRepository.withHttpOnlyFalse()` e o tratador de SPA do Spring Security, ligados pelo `spa()` do configurador Java (`http.csrf { csrf -> csrf.spa()... }`, fora do bloco do DSL do Kotlin, que não tem `spa()`). O investlog desliga e confia em `SameSite` e na mesma origem, mas aqui nada impede ligar: o client e o server falam na mesma origem pelo proxy, e o axios já lê o cookie `XSRF-TOKEN` e manda o header `X-XSRF-TOKEN` nas requisições de escrita, sem código novo. O que o `SameSite=Lax` não cobre (irmãos do mesmo site, subdomínios) o token cobre. O custo é só este contrato:
+
+- Toda requisição que não é `GET`, `HEAD`, `OPTIONS` ou `TRACE` precisa do header `X-XSRF-TOKEN` igual ao cookie `XSRF-TOKEN`, **inclusive as anônimas** (`POST /auth/login` e `PATCH /accounts/**`). Sem ele a resposta é `403` `invalid-csrf-token`, e isso acontece antes da autorização: um `POST` anônimo sem token dá `403`, não `401`.
+- O cookie `XSRF-TOKEN` (`SameSite=Lax`, legível pelo JavaScript) sai em toda resposta enquanto o navegador não o tem, mesmo num `401`. O client o obtém com o primeiro `GET /private/v1/auth/session`, que ele já faz ao abrir a aplicação.
+- O `RequestCache` é o `NullRequestCache`, para que um `401` anônimo não crie uma `HttpSession` à toa.
 
 ## Acesso a dados
 
@@ -134,6 +205,7 @@ O Liquibase cria e evolui o schema na subida da aplicação (no `bootRun` e nos 
 | `changes/2026/11/16-1020-create-registration-tables.xml` | As tabelas `cost_centers`, `wallets`, `cards`, `financial_periods` e `classifications`. |
 | `changes/2026/11/16-1030-create-financial-tables.xml` | As tabelas `recurring_movements`, `credit_card_invoices`, `payments`, `transferences`, `period_movements` e `wallet_balances`. |
 | `changes/2026/11/16-1040-insert-roles.xml` | As roles `DASHBOARDS`, `REGISTRATION`, `FINANCIAL` e `ADMINISTRATION`, com os mesmos `external_id` da v4. |
+| `changes/2026/11/16-1100-add-user-session-columns.xml` | As colunas `status` (`PENDING`, `APPROVED`, `BLOCKED`), `credentials_version` e `auth_provider` (`LOCAL`, `GOOGLE`) de `administration.users`, com padrão `APPROVED`, `0` e `LOCAL` para os registros existentes. |
 
 O DDL é SQL puro em `<sql>`, uma tabela por changeset, com cada constraint nomeada explicitamente. O `pg_dump --schema-only` desse schema é igual ao da v4, tirando o schema `investments`, inclusive nas esquisitices herdadas: a extensão `uuid-ossp` sem uso, o `UNIQUE (id)` redundante nas tabelas de `financial`, o `UNIQUE (id, external_id)` duplicado nas duas tabelas de tentativas, nomes de FK como `fk_wallets_on_payments` em `wallet_balances` e as colunas acrescentadas por último (`id_parent`, `full_name`, `id_cost_center`). Corrigir qualquer uma delas é mudança de modelo e entra num changelog novo. As constraints redundantes vão num `ALTER TABLE` depois do `CREATE TABLE`, porque o Postgres descarta em silêncio uma constraint declarada dentro do `CREATE TABLE` que repete outra. Os dados de teste não estão no changelog: cada subtarefa de portabilidade traz os do seu módulo.
 
@@ -153,19 +225,24 @@ As classes do jOOQ são geradas no build, a partir do changelog, e nunca vão pa
 - O código gerado fica em `build/generated-sources/jooq/main`, no pacote `br.com.webbudget.server.jooq` (por exemplo `br.com.webbudget.server.jooq.registration.tables.Wallets`), e está fora do git (pelo `build/` do `.gitignore`) e da cobertura do Kover.
 - Um SHA-256 de todos os arquivos de `db/changelog` fica em `build/jooq-codegen-changelog.sha256`. Enquanto o digest não muda, `startJooqDb`, `jooqCodegen` e `stopJooqDb` são puladas e o Docker nem é tocado nessa etapa. Mudou um changelog, a geração roda de novo; um `./gradlew clean` apaga o marcador e também força a regeneração.
 - O gerador avisa `Ambiguous key name` para `registration.fk_parent_on_cost_centers` (a FK de `cost_centers` para ela mesma, herdada da v4). É só um aviso das *implicit join paths*, e a geração termina normalmente.
-- O jOOQ gerado só serve de base para os repositórios da tarefa #12; o build não traz nenhum repositório jOOQ ainda.
+- O jOOQ gerado é a base dos repositórios (veja [Persistência com jOOQ](#persistência-com-jooq)).
 
 ## Testes e cobertura
 
 - JUnit 5 com `kotlin-test-junit5`, `useJUnitPlatform()` e `maxParallelForks = 4`. O número de forks é limitado para evitar disputa no Docker quando vários forks sobem um contêiner do Testcontainers ao mesmo tempo.
-- `TestcontainersConfiguration` registra um Postgres `postgres:18-alpine` como `@ServiceConnection`, e os testes `@SpringBootTest` o importam com `@Import(TestcontainersConfiguration::class)`, como faz `ServerApplicationTests`. O Docker precisa estar ligado para rodar os testes.
-- Os testes de integração rodam contra esse Postgres real, sem MockK nem outro framework de mock de objetos.
+- `TestcontainersConfiguration` registra um Postgres `postgres:18-alpine` como `@ServiceConnection`, e os testes de integração o recebem do `BaseIntegrationTest`, que já o importa. O Docker precisa estar ligado para rodar os testes.
+- Os testes de integração rodam contra esse Postgres real, sem MockK nem outro framework de mock de objetos. O que na v4 era teste de controller com mock é teste de integração: a chamada passa pelo controller, pelo serviço e pelo repositório de verdade.
+- **Todo teste de integração estende `BaseIntegrationTest`**: `@SpringBootTest` com servidor de verdade (`RANDOM_PORT`, porque o MockMvc não devolve nem reenvia o cookie de sessão), `@AutoConfigureRestTestClient`, perfil `test` e o `@Import` do `TestcontainersConfiguration`, do `MailTestConfiguration` e do `RestClientTestConfiguration`. Todas as classes compartilham o mesmo contexto (um contêiner Postgres por fork), então **não use `@DirtiesContext`** nem configuração própria por classe. O `RestTestClient` (`restTestClient`) fala com o Tomcat local, com a cadeia do Spring Security inteira, e as URLs são as reais, com `/private/v1` (o `Location` de um `201` leva a porta aleatória).
+- **A autenticação dos testes é login real**, num helper só, no `BaseIntegrationTest`: cada teste começa logado como o admin da subida (todas as roles, senha `test-admin-password`, de `web-budget.security.admin-default-password` no `application-test.yaml`). `authenticateWithRoles(...)` cria (e apaga no fim do teste) um usuário só com as roles pedidas e faz login com ele, `authenticateAnonymously()` fica só com o cookie `XSRF-TOKEN`, `authenticateAs(email, senha)` troca a sessão e `login(email, senha)` devolve o cabeçalho `Cookie` de uma sessão nova sem trocar a do teste (para enviar com `.header("Cookie", ...)`, como nos testes de revogação). `createLoginUser(...)` cria um usuário que entra no login e que o `BaseIntegrationTest` apaga ao fim. O `RestClientTestConfiguration` põe no `RestTestClient` um interceptor que reenvia o cookie da sessão atual e copia o `XSRF-TOKEN` para o header `X-XSRF-TOKEN` das escritas; o header `X-Test-Skip-Csrf-Token` desliga só essa cópia, para testar o `403` de CSRF. Os testes de login, revogação e acesso por área estão em `AuthControllerTest` e `SessionRevocationTest`.
+- **O e-mail dos testes** é um `GreenMail` com porta dinâmica (nunca fixa, por causa dos forks em paralelo), exposto como o bean `greenMail`. O `BaseIntegrationTest` limpa as caixas antes de cada teste, e o teste lê `greenMail.receivedMessages`.
+- **Dados de teste são SQL em `src/test/resources/sql/<módulo>/`**, carregados com `@Sql`. O `clear-tables.sql` apaga só o que o teste cria e **preserva as quatro roles do changelog e o admin criado na subida**; as roles de teste (`ANY_ROLE` e afins) e os usuários de teste entram por `create-authorities.sql` e `create-user.sql`, referenciando as roles do changelog pelo nome, sem ids fixos de coluna de identidade. Um módulo novo traz os seus próprios arquivos e o seu `clear-tables.sql`. Os testes do `financial` precisam de linhas de `registration` (período, classificação e centro de custo) e as criam em `sql/financial/create-registration-data.sql`, com ids na faixa 9101 em diante; o `clear-tables.sql` do módulo roda antes **e depois** de cada teste (`@Sql(..., executionPhase = AFTER_TEST_METHOD)`) e apaga essas linhas, para que as chaves estrangeiras dos movimentos não travem a limpeza de outro módulo.
+- Um controller que só existe para os testes (como o `ErrorProbeController`, que exercita o `ExceptionHandlerAdvice`) fica em `src/test/kotlin`, no pacote que ele testa.
 - `TestServerApplication` é um `main` alternativo que sobe a aplicação com o `TestcontainersConfiguration`, contra um Postgres descartável.
 
 O Kover mede a suíte, e o `koverVerify` impõe pisos sobre ela em `kover.reports.verify`, no `build.gradle.kts`. Os filtros excluem `ServerApplication`, `ServerApplicationKt` e o pacote gerado `br.com.webbudget.server.jooq`, e valem igual para os relatórios XML e HTML e para o `koverVerify`.
 
-**Os pisos de LINE, INSTRUCTION e BRANCH começam em 0 e só sobem.** Eles sobem ao fim de cada subtarefa de portabilidade, até o que a suíte atinge naquele momento. Um PR pode subir um número, nunca baixá-lo: baixar um piso é a cara de uma regressão de cobertura num diff. Com os pisos no que a suíte atinge, um PR que traz código de produção sem teste fica vermelho, então os testes entram junto com a funcionalidade.
+**Os pisos de LINE, INSTRUCTION e BRANCH só sobem.** Eles começaram em 0, subiram para 99, 99 e 84 com o módulo `administration` (#13), para 99, 99 e 85 com a sessão no servidor (#26), para 99, 99 e 89 com o módulo `registration` (#14), para 99, 99 e 90 com o módulo `financial` (#15) e sobem ao fim de cada subtarefa de portabilidade, até o que a suíte atinge naquele momento, arredondado para baixo. Um PR pode subir um número, nunca baixá-lo: baixar um piso é a cara de uma regressão de cobertura num diff. Com os pisos no que a suíte atinge, um PR que traz código de produção sem teste fica vermelho, então os testes entram junto com a funcionalidade.
 
 ## Manutenção deste arquivo
 
-Todo PR que muda algo descrito aqui atualiza este arquivo no mesmo PR. As tarefas #12 e #25 acrescentam as seções de persistência (repositórios jOOQ), de testes e de autenticação, quando o código delas existir.
+Todo PR que muda algo descrito aqui atualiza este arquivo no mesmo PR. A #27, a #28 e a #29 (auto-cadastro e aprovação, TOTP e Google) estendem a seção de autenticação e autorização quando o código delas existir.

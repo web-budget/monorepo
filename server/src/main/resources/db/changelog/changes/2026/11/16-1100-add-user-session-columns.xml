@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <changeSet id="16-1100-1" author="${claude}">
+        <sql>
+            ALTER TABLE administration.users
+                ADD COLUMN status varchar(20) NOT NULL DEFAULT 'APPROVED',
+                ADD COLUMN credentials_version integer NOT NULL DEFAULT 0,
+                ADD COLUMN auth_provider varchar(20) NOT NULL DEFAULT 'LOCAL';
+
+            ALTER TABLE administration.users
+                ADD CONSTRAINT ck_users_on_status CHECK (status IN ('PENDING', 'APPROVED', 'BLOCKED')),
+                ADD CONSTRAINT ck_users_on_auth_provider CHECK (auth_provider IN ('LOCAL', 'GOOGLE'));
+        </sql>
+        <rollback>
+            <sql>
+                ALTER TABLE administration.users
+                    DROP CONSTRAINT ck_users_on_auth_provider,
+                    DROP CONSTRAINT ck_users_on_status,
+                    DROP COLUMN auth_provider,
+                    DROP COLUMN credentials_version,
+                    DROP COLUMN status;
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

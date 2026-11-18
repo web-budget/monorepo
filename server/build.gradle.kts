@@ -51,26 +51,30 @@ repositories {
 
 val kotlinLoggingJvmVersion = "8.0.4"
 val postgresDriverVersion = "42.7.14"
+val greenMailVersion = "2.1.14"
 
 dependencies {
     // spring stuff
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-jooq")
     implementation("org.springframework.boot:spring-boot-starter-liquibase")
+    implementation("org.springframework.boot:spring-boot-starter-mail")
     implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
+
+    developmentOnly("org.springframework.boot:spring-boot-docker-compose")
+    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+
+    implementation("org.springframework.data:spring-data-commons")
 
     // logging
     implementation("io.github.oshai:kotlin-logging-jvm:$kotlinLoggingJvmVersion")
 
-    // kotlin thing
+    // kotlin things
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("tools.jackson.module:jackson-module-kotlin")
-
-    // dev utils
-    developmentOnly("org.springframework.boot:spring-boot-docker-compose")
-    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
     // database
     runtimeOnly("org.postgresql:postgresql")
@@ -80,6 +84,7 @@ dependencies {
     testImplementation("org.springframework.boot:spring-boot-starter-actuator-test")
     testImplementation("org.springframework.boot:spring-boot-starter-jooq-test")
     testImplementation("org.springframework.boot:spring-boot-starter-liquibase-test")
+    testImplementation("org.springframework.boot:spring-boot-starter-mail-test")
     testImplementation("org.springframework.boot:spring-boot-starter-security-test")
     testImplementation("org.springframework.boot:spring-boot-starter-validation-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
@@ -89,6 +94,8 @@ dependencies {
 
     testImplementation("org.testcontainers:testcontainers-junit-jupiter")
     testImplementation("org.testcontainers:testcontainers-postgresql")
+
+    testImplementation("com.icegreen:greenmail:$greenMailVersion")
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
@@ -123,17 +130,17 @@ kover {
                 bound {
                     coverageUnits = LINE
                     aggregationForGroup = COVERED_PERCENTAGE
-                    minValue = 0
+                    minValue = 99
                 }
                 bound {
                     coverageUnits = INSTRUCTION
                     aggregationForGroup = COVERED_PERCENTAGE
-                    minValue = 0
+                    minValue = 99
                 }
                 bound {
                     coverageUnits = BRANCH
                     aggregationForGroup = COVERED_PERCENTAGE
-                    minValue = 0
+                    minValue = 90
                 }
             }
         }

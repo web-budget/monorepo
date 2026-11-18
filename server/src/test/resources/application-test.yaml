@@ -1,0 +1,7 @@
+web-budget:
+  security:
+    admin-default-password: test-admin-password
+
+logging:
+  level:
+    br.com.webbudget: debug
