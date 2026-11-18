@@ -15,5 +15,6 @@
     <include file="db/changelog/changes/2026/11/16-1100-add-user-session-columns.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/changes/2026/11/17-1000-widen-user-email.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/changes/2026/11/17-1100-add-totp-and-trusted-devices.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/changes/2026/11/18-1000-add-google-login.xml" relativeToChangelogFile="false"/>
 
 </databaseChangeLog>

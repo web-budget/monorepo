@@ -73,6 +73,11 @@ web-budget:
       expiry: ${TRUSTED_DEVICE_EXPIRY:30d}
     client-ip:
       trusted-proxy-count: ${CLIENT_IP_TRUSTED_PROXY_COUNT:0}
+  google-auth:
+    enabled: ${GOOGLE_AUTH_ENABLED:false}
+    client-id: ${GOOGLE_CLIENT_ID:}
+    client-secret: ${GOOGLE_CLIENT_SECRET:}
+    client-base-url: ${CLIENT_BASE_URL:${web-budget.frontend-url}}
   frontend-url: ${APPLICATION_FRONTEND_URL:http://localhost:8086}
   mail:
     reply-to-address: ${MAIL_REPLY_TO_ADDRESS:noreply@webbudget.com.br}

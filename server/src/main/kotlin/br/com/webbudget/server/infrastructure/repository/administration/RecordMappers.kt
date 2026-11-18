@@ -14,13 +14,14 @@ internal fun UsersRecord.toUser(grants: List<Grant> = emptyList()): User = User(
     active = active!!,
     name = name!!,
     email = email!!,
-    password = password!!,
+    password = password,
     defaultLanguage = Language.valueOf(defaultLanguage!!),
     grants = grants.toMutableList(),
     status = UserStatus.valueOf(status!!),
     authProvider = AuthProvider.valueOf(authProvider!!),
     credentialsVersion = credentialsVersion!!,
-    totpEnabled = totpEnabled!!
+    totpEnabled = totpEnabled!!,
+    googleSub = googleSub
 ).also { user -> user.restore(id, externalId, version, createdOn, lastUpdate) }
 
 internal fun RolesRecord.toRole(): Role = Role(name!!)

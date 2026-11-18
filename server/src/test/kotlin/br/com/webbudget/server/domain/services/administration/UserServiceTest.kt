@@ -60,6 +60,24 @@ class UserServiceTest : BaseIntegrationTest() {
     }
 
     @Test
+    fun `should not create a local account without a password`() {
+
+        assertThatThrownBy { userService.createAccount(createUser(password = null), listOf("ANY_ROLE")) }
+            .isInstanceOf(IllegalArgumentException::class.java)
+    }
+
+    @Test
+    fun `should not create a google account whose e-mail is taken`() {
+
+        userService.createAccount(createUser(), listOf("ANY_ROLE"))
+
+        assertThatThrownBy { userService.createGoogleAccount(createUser(password = null)) }
+            .isInstanceOfSatisfying(DomainException::class.java) { exception ->
+                assertThat(exception.status).isEqualTo(HttpStatus.CONFLICT)
+            }
+    }
+
+    @Test
     fun `should grant every known role and ignore the unknown ones`() {
 
         val roles = listOf("SOME_ROLE", "ANY_ROLE", "ANY_OTHER_ROLE", "UNKNOWN_ROLE")

@@ -1,5 +1,6 @@
 package br.com.webbudget.server.infrastructure.repository.administration
 
+import br.com.webbudget.server.domain.entities.administration.AuthProvider
 import br.com.webbudget.server.domain.entities.administration.Role
 import br.com.webbudget.server.domain.entities.administration.User
 import br.com.webbudget.server.domain.entities.administration.UserStatus
@@ -36,6 +37,11 @@ class UserRepository(
     fun findByExternalId(externalId: UUID): User? = findOne { users -> users.EXTERNAL_ID.eq(externalId) }
 
     fun findByEmail(email: String): User? = findOne { users -> users.EMAIL.eq(email) }
+
+    fun findByEmailIgnoreCase(email: String): User? =
+        findOne { users -> DSL.lower(users.EMAIL).eq(email.lowercase()) }
+
+    fun findByGoogleSub(googleSub: String): User? = findOne { users -> users.GOOGLE_SUB.eq(googleSub) }
 
     fun findApprovedAdministrators(): List<User> {
 
@@ -102,10 +108,32 @@ class UserRepository(
             .set(USERS.DEFAULT_LANGUAGE, user.defaultLanguage.name)
             .set(USERS.STATUS, user.status.name)
             .set(USERS.AUTH_PROVIDER, user.authProvider.name)
+            .set(USERS.GOOGLE_SUB, user.googleSub)
             .returning()
             .fetchSingle()
 
         user.restore(record.id, record.externalId, record.version, record.createdOn, record.lastUpdate)
+        user.credentialsVersion = record.credentialsVersion!!
+        return user
+    }
+
+    fun linkGoogleAccount(user: User, googleSub: String): User {
+        val record = dsl.update(USERS)
+            .set(USERS.GOOGLE_SUB, googleSub)
+            .set(USERS.AUTH_PROVIDER, AuthProvider.GOOGLE.name)
+            .setNull(USERS.PASSWORD)
+            .set(USERS.CREDENTIALS_VERSION, USERS.CREDENTIALS_VERSION.plus(1))
+            .set(USERS.VERSION, USERS.VERSION.plus(1))
+            .set(USERS.LAST_UPDATE, LocalDateTime.now())
+            .where(USERS.ID.eq(user.id))
+            .and(USERS.VERSION.eq(user.version))
+            .returning()
+            .fetchOne() ?: throw concurrentUpdate()
+
+        user.restore(record.id, record.externalId, record.version, record.createdOn, record.lastUpdate)
+        user.password = null
+        user.googleSub = googleSub
+        user.authProvider = AuthProvider.GOOGLE
         user.credentialsVersion = record.credentialsVersion!!
         return user
     }
