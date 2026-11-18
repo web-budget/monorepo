@@ -15,7 +15,7 @@ export const buttonVariants = cva(
           'border-input bg-card text-foreground hover:bg-accent hover:text-accent-foreground',
         secondary: 'bg-secondary text-secondary-foreground hover:bg-accent',
         ghost: 'text-foreground hover:bg-accent hover:text-accent-foreground',
-        link: 'h-auto px-0 text-primary underline-offset-4 hover:underline',
+        link: 'text-primary underline-offset-4 hover:underline',
       },
       size: {
         default: 'h-9 px-4 has-[>svg]:px-3',
@@ -28,6 +28,7 @@ export const buttonVariants = cva(
         'icon-lg': 'size-10 px-0',
       },
     },
+    compoundVariants: [{ variant: 'link', class: 'h-auto px-0 has-[>svg]:px-0' }],
     defaultVariants: {
       variant: 'default',
       size: 'default',
