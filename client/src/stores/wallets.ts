@@ -28,6 +28,7 @@ export const useWalletsStore = defineStore('wallets', () => {
     pageResponse: resource.pageResponse,
     loading: resource.loading,
     findAll: resource.findAll,
+    count: resource.count,
     findByName,
     findOne: resource.findOne,
     create: resource.create,

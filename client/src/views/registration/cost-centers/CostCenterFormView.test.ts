@@ -45,7 +45,7 @@ async function submit(wrapper: Wrapper) {
   await settle()
 }
 
-async function pickParent(wrapper: Wrapper, query: string, optionText: string) {
+async function searchParent(wrapper: Wrapper, query: string) {
   await wrapper.find('button[role="combobox"]').trigger('click')
   await settle()
   const search = document.body.querySelector<HTMLInputElement>(
@@ -57,6 +57,10 @@ async function pickParent(wrapper: Wrapper, query: string, optionText: string) {
   search.value = query
   search.dispatchEvent(new Event('input'))
   await settle()
+}
+
+async function pickParent(wrapper: Wrapper, query: string, optionText: string) {
+  await searchParent(wrapper, query)
   const option = [...document.body.querySelectorAll<HTMLElement>('[role="option"]')].find(
     (candidate) => candidate.textContent?.trim() === optionText,
   )
@@ -73,20 +77,27 @@ describe('CostCenterFormView', () => {
     document.body.replaceChildren()
   })
 
-  it('asks for the name', async () => {
+  it('shows the title and asks for the name', async () => {
     const { wrapper } = await mountView(CostCenterFormView, 'cost-centers')
 
-    expect(wrapper.text()).toContain('Novo centro de custo')
+    expect(wrapper.find('h1').text()).toBe('Novo centro de custo')
+    expect(buttonWithText(wrapper, 'Criar centro de custo')).toBeDefined()
+    expect(wrapper.findAll('h2').map((title) => title.text())).toEqual([
+      'Identificação',
+      'Orçamento',
+    ])
+
     await submit(wrapper)
 
     expect(wrapper.text()).toContain('Campo obrigatório')
     expect(costCentersApi.create).not.toHaveBeenCalled()
+    expect(document.activeElement).toBe(field(wrapper, 'name').element)
   })
 
-  it('creates a cost center under a parent found by name and clears the form', async () => {
+  it('creates a cost center under a parent found by name and goes to its detail', async () => {
     vi.mocked(costCentersApi.findAll).mockResolvedValue(pageOf([home]))
-    vi.mocked(costCentersApi.create).mockResolvedValue(undefined)
-    const { wrapper } = await mountView(CostCenterFormView, 'cost-centers')
+    vi.mocked(costCentersApi.create).mockResolvedValue('cc-9')
+    const { wrapper, router } = await mountView(CostCenterFormView, 'cost-centers')
 
     await field(wrapper, 'name').setValue('Kitchen')
     await pickParent(wrapper, 'Ho', 'Home')
@@ -102,15 +113,16 @@ describe('CostCenterFormView', () => {
       expenseBudget: null,
       parentCostCenter: 'cc-1',
     })
-    expect(toast.success).toHaveBeenCalledWith('Registro criado', {
-      description: 'Centro de custo criado com sucesso',
+    expect(toast.success).toHaveBeenCalledWith('Centro de custo criado', {
+      description: '“Kitchen” já aparece nos lançamentos.',
       duration: 4000,
     })
-    expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('')
+    expect(router.currentRoute.value.name).toBe('cost-centers.detail')
+    expect(router.currentRoute.value.params.id).toBe('cc-9')
   })
 
   it('creates a top level cost center without a parent', async () => {
-    vi.mocked(costCentersApi.create).mockResolvedValue(undefined)
+    vi.mocked(costCentersApi.create).mockResolvedValue('cc-9')
     const { wrapper } = await mountView(CostCenterFormView, 'cost-centers')
 
     await field(wrapper, 'name').setValue('Home')
@@ -125,7 +137,7 @@ describe('CostCenterFormView', () => {
     })
   })
 
-  it('shows the server error inside the form', async () => {
+  it('shows the server error on top and marks the field in conflict', async () => {
     vi.mocked(costCentersApi.create).mockRejectedValue(
       problem(409, { error: 'conflict', parameters: { 'cost-center.name': 'Home' } }),
     )
@@ -137,6 +149,7 @@ describe('CostCenterFormView', () => {
     expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
       'Nome "Home" já esta em uso',
     )
+    expect(field(wrapper, 'name').attributes('aria-invalid')).toBe('true')
     expect(toast.success).not.toHaveBeenCalled()
   })
 
@@ -145,7 +158,7 @@ describe('CostCenterFormView', () => {
 
     const { wrapper } = await mountView(CostCenterFormView, 'cost-centers', { id: 'cc-2' })
 
-    expect(wrapper.text()).toContain('Editando centro de custo')
+    expect(wrapper.find('h1').text()).toBe('Editando centro de custo')
     expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('Kitchen')
     expect((field(wrapper, 'expenseBudget').element as HTMLInputElement).value).toBe('250.5')
     expect(wrapper.find('button[role="combobox"]').text()).toContain('Home')
@@ -154,7 +167,7 @@ describe('CostCenterFormView', () => {
   it('saves the changes keeping the parent and clears it on request', async () => {
     vi.mocked(costCentersApi.findById).mockResolvedValue(kitchen)
     vi.mocked(costCentersApi.update).mockResolvedValue(kitchen)
-    const { wrapper } = await mountView(CostCenterFormView, 'cost-centers', { id: 'cc-2' })
+    const { wrapper, router } = await mountView(CostCenterFormView, 'cost-centers', { id: 'cc-2' })
 
     await submit(wrapper)
     expect(costCentersApi.update).toHaveBeenLastCalledWith('cc-2', {
@@ -165,14 +178,22 @@ describe('CostCenterFormView', () => {
       expenseBudget: 250.5,
       parentCostCenter: 'cc-1',
     })
-    expect(toast.success).toHaveBeenCalledWith('Registro atualizado', {
-      description: 'Centro de custo atualizado com sucesso',
+    expect(toast.success).toHaveBeenCalledWith('Alterações salvas', {
+      description: '“Kitchen” foi atualizado.',
       duration: 4000,
     })
+    expect(router.currentRoute.value.name).toBe('cost-centers.detail')
+  })
+
+  it('clears the parent and the status on request', async () => {
+    vi.mocked(costCentersApi.findById).mockResolvedValue(kitchen)
+    vi.mocked(costCentersApi.update).mockResolvedValue(kitchen)
+    const { wrapper } = await mountView(CostCenterFormView, 'cost-centers', { id: 'cc-2' })
 
     await wrapper.find('button[aria-label="Limpar seleção"]').trigger('click')
-    await buttonWithText(wrapper, 'Inativo').trigger('click')
+    await wrapper.find('button[role="switch"]').trigger('click')
     await submit(wrapper)
+
     expect(costCentersApi.update).toHaveBeenLastCalledWith(
       'cc-2',
       expect.objectContaining({ active: false, parentCostCenter: null }),
@@ -186,14 +207,7 @@ describe('CostCenterFormView', () => {
     )
     const { wrapper } = await mountView(CostCenterFormView, 'cost-centers', { id: 'cc-2' })
 
-    await wrapper.find('button[role="combobox"]').trigger('click')
-    await settle()
-    const search = document.body.querySelector<HTMLInputElement>(
-      '[data-slot="popover-content"] input',
-    )
-    search!.value = 'Ki'
-    search!.dispatchEvent(new Event('input'))
-    await settle()
+    await searchParent(wrapper, 'Ki')
 
     const options = [...document.body.querySelectorAll('[role="option"]')].map((option) =>
       option.textContent?.trim(),
@@ -213,21 +227,30 @@ describe('CostCenterFormView', () => {
     )
   })
 
+  it('keeps the form editable while the parent is being searched', async () => {
+    vi.mocked(costCentersApi.findAll).mockReturnValue(new Promise(() => undefined))
+    const { wrapper } = await mountView(CostCenterFormView, 'cost-centers')
+
+    await searchParent(wrapper, 'Ho')
+
+    expect(wrapper.find('fieldset').attributes('disabled')).toBeUndefined()
+  })
+
   it('shows the server error when the parent search fails', async () => {
     vi.mocked(costCentersApi.findAll).mockRejectedValue(problem(500))
     const { wrapper } = await mountView(CostCenterFormView, 'cost-centers')
 
-    await pickParent(wrapper, 'Ho', 'Home').catch(() => undefined)
+    await searchParent(wrapper, 'Ho')
 
     expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
       'Tente novamente mais tarde',
     )
   })
 
-  it('goes back to the listing', async () => {
+  it('goes back to the listing with Cancelar', async () => {
     const { wrapper, router } = await mountView(CostCenterFormView, 'cost-centers')
 
-    await buttonWithText(wrapper, 'Voltar').trigger('click')
+    await buttonWithText(wrapper, 'Cancelar').trigger('click')
     await settle()
 
     expect(router.currentRoute.value.name).toBe('cost-centers')

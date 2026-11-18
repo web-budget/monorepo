@@ -68,7 +68,7 @@ describe('useWalletsStore', () => {
   })
 
   it('creates a wallet', async () => {
-    vi.mocked(walletsApi.create).mockResolvedValue()
+    vi.mocked(walletsApi.create).mockResolvedValue('new-id')
     const store = useWalletsStore()
 
     await store.create({ name: 'New', type: 'BANK_ACCOUNT' })

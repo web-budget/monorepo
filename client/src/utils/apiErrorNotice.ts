@@ -6,6 +6,7 @@ export type NoticeSeverity = 'warn' | 'error'
 export interface LocalizedMessage {
   key: string
   params?: Record<string, unknown>
+  field?: string
 }
 
 export interface ApiErrorNotice {
@@ -41,9 +42,19 @@ function badRequest(error: ApiError): ApiErrorNotice {
   }
 }
 
+function conflictField(parameter: string): string {
+  return parameter
+    .slice(parameter.indexOf('.') + 1)
+    .replace(/-([a-z])/g, (_, letter: string) => letter.toUpperCase())
+}
+
 function conflict(error: ApiError): ApiErrorNotice {
   const details = Object.entries(error.parameters ?? {})
-    .map(([field, value]) => ({ key: `error.conflict.${field}`, params: { value } }))
+    .map(([parameter, value]) => ({
+      key: `error.conflict.${parameter}`,
+      params: { value },
+      field: conflictField(parameter),
+    }))
     .filter(({ key }) => isKnownMessage(key))
   return {
     severity: 'warn',

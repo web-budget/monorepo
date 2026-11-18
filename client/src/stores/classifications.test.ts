@@ -35,7 +35,7 @@ describe('useClassificationsStore', () => {
   })
 
   it('creates, loads, edits and removes a classification', async () => {
-    vi.mocked(classificationsApi.create).mockResolvedValue()
+    vi.mocked(classificationsApi.create).mockResolvedValue('new-id')
     vi.mocked(classificationsApi.findById).mockResolvedValue(view)
     vi.mocked(classificationsApi.update).mockResolvedValue({ ...view, budget: 500 })
     vi.mocked(classificationsApi.remove).mockResolvedValue()

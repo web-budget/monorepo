@@ -51,7 +51,7 @@ describe('useFinancialPeriodsStore', () => {
   })
 
   it('creates, loads, edits and removes a period', async () => {
-    vi.mocked(financialPeriodsApi.create).mockResolvedValue()
+    vi.mocked(financialPeriodsApi.create).mockResolvedValue('new-id')
     vi.mocked(financialPeriodsApi.findById).mockResolvedValue(view)
     vi.mocked(financialPeriodsApi.update).mockResolvedValue({ ...view, expensesGoal: 900 })
     vi.mocked(financialPeriodsApi.remove).mockResolvedValue()

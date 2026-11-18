@@ -12,7 +12,7 @@ import { walletsApi } from './wallets'
 interface CrudResource {
   findAll(query: object): Promise<unknown>
   findById(id: string): Promise<unknown>
-  create(form: object): Promise<void>
+  create(form: object): Promise<string>
   update(id: string, form: object): Promise<unknown>
   remove(id: string): Promise<void>
 }
@@ -28,7 +28,7 @@ beforeEach(() => {
       data: { served: true },
       status: 200,
       statusText: 'OK',
-      headers: {},
+      headers: { location: 'http://localhost/private/v1/resource/new-id' },
       config,
     })
   }
@@ -129,8 +129,8 @@ describe.each([
     expect(lastRequest()).toMatchObject({ method: 'get', url: `${path}/id-1` })
   })
 
-  it('creates without returning a body', async () => {
-    await expect(resource.create({ name: 'New' })).resolves.toBeUndefined()
+  it('creates and returns the id from the location header', async () => {
+    await expect(resource.create({ name: 'New' })).resolves.toBe('new-id')
     expect(lastRequest()).toMatchObject({ method: 'post', url: path, data: { name: 'New' } })
   })
 

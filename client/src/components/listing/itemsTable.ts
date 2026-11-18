@@ -3,6 +3,8 @@ export interface ItemsTableColumn {
   header: string
   sortable?: boolean
   class?: string
+  align?: 'end'
+  mono?: boolean
 }
 
 export interface ItemsTableItem {
@@ -25,6 +27,8 @@ export interface ItemsTableRowEvent<T extends ItemsTableItem = ItemsTableItem> {
   index: number
 }
 
-export const PAGE_SIZE_OPTIONS = [15, 30, 60]
+export const MINIMUM_PAGE_SIZE = 15
+
+export const PAGE_SIZE_OPTIONS = [MINIMUM_PAGE_SIZE, 30, 60]
 
 export const DEFAULT_SORT_FIELD = 'createdOn'

@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'vue-sonner'
 import { usersApi } from '@/api/users'
 import { useConfirmDialog } from '@/composables/useConfirmDialog'
-import { buttonWithText, mountView, pageOf, problem, settle } from '@/test/crud'
+import { buttonWithText, chooseRowAction, mountView, pageOf, problem, settle } from '@/test/crud'
 import type { UserView } from '@/types'
 import UserListView from '@/views/configuration/users/UserListView.vue'
 
@@ -74,7 +74,7 @@ describe('UserListView', () => {
     expect(rowOf(wrapper, 'Admin').text()).toContain('Ativo')
   })
 
-  it('searches by the typed text and by status, and goes back to every status when cleared', async () => {
+  it('searches by the typed text and by status, and clears the text without touching the status', async () => {
     const { wrapper } = await render()
 
     await wrapper.find('input').setValue('bru')
@@ -89,19 +89,18 @@ describe('UserListView', () => {
     await wrapper.find('button[aria-label="Limpar filtro"]').trigger('click')
     await flushPromises()
     expect(usersApi.findAll).toHaveBeenLastCalledWith(
-      expect.objectContaining({ filter: '', status: 'ALL' }),
+      expect.objectContaining({ filter: '', status: 'ACTIVE' }),
     )
   })
 
   it('opens the forms to create and to edit a user', async () => {
     const { wrapper, router } = await render()
 
-    await buttonWithText(wrapper, 'Novo').trigger('click')
+    await buttonWithText(wrapper, 'Novo usuário').trigger('click')
     await flushPromises()
     expect(router.currentRoute.value.name).toBe('users.create')
 
-    await rowOf(wrapper, 'Bruno').find('button[aria-label="Editar"]').trigger('click')
-    await flushPromises()
+    await chooseRowAction(wrapper, 0, 'Editar')
     expect(router.currentRoute.value.name).toBe('users.update')
     expect(router.currentRoute.value.params.id).toBe('u-2')
   })
@@ -113,18 +112,18 @@ describe('UserListView', () => {
 
     expect(own.text()).toContain('Sua conta')
     expect(own.findAll('button[aria-label]')).toHaveLength(0)
-    expect(rowOf(wrapper, 'Bruno').findAll('button[aria-label]')).toHaveLength(3)
+    expect(rowOf(wrapper, 'Bruno').findAll('button[aria-label]')).toHaveLength(2)
   })
 
   it('deletes a user only after confirming, naming the user in the question', async () => {
     const { wrapper } = await render()
     vi.mocked(usersApi.remove).mockResolvedValue(undefined)
 
-    await rowOf(wrapper, 'Bruno').find('button[aria-label="Deletar"]').trigger('click')
     const dialog = useConfirmDialog()
+    await chooseRowAction(wrapper, 0, 'Remover')
 
     expect(dialog.state.open).toBe(true)
-    expect(dialog.state.options.description).toContain('Bruno')
+    expect(dialog.state.options.title).toBe('Remover o usuário “Bruno”?')
     expect(usersApi.remove).not.toHaveBeenCalled()
 
     dialog.accept()
@@ -132,8 +131,8 @@ describe('UserListView', () => {
 
     expect(usersApi.remove).toHaveBeenCalledWith('u-2')
     expect(wrapper.findAll('tbody tr')).toHaveLength(1)
-    expect(toast.success).toHaveBeenCalledWith('Registro excluído', {
-      description: 'Usuário excluído com sucesso',
+    expect(toast.success).toHaveBeenCalledWith('Usuário removido', {
+      description: '“Bruno” saiu da lista.',
       duration: 4000,
     })
   })
@@ -141,7 +140,7 @@ describe('UserListView', () => {
   it('keeps the user when the deletion is not confirmed', async () => {
     const { wrapper } = await render()
 
-    await rowOf(wrapper, 'Bruno').find('button[aria-label="Deletar"]').trigger('click')
+    await chooseRowAction(wrapper, 0, 'Remover')
     useConfirmDialog().cancel()
     await flushPromises()
 

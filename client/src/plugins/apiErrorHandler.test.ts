@@ -6,7 +6,10 @@ import { createMemoryHistory, createRouter } from 'vue-router'
 import { toast } from 'vue-sonner'
 import { toApiError } from '@/api/client'
 import { installApiErrorHandler } from '@/plugins/apiErrorHandler'
+import { markHandled } from '@/utils/handledErrors'
 import { useAuthStore } from '@/stores/auth'
+
+const flushToasts = () => new Promise((resolve) => setTimeout(resolve, 0))
 
 vi.mock('vue-sonner', () => ({
   toast: {
@@ -121,6 +124,7 @@ describe('installApiErrorHandler', () => {
 
     await expect(client.post('/auth/totp')).rejects.toMatchObject({ status: 429 })
 
+    await flushToasts()
     expect(toast.error).toHaveBeenCalledTimes(1)
   })
 
@@ -169,6 +173,7 @@ describe('installApiErrorHandler', () => {
 
     await expect(client.post('/x')).rejects.toMatchObject({ status: 403 })
 
+    await flushToasts()
     expect(toast.error).toHaveBeenCalledWith('Requisição não autorizada', expect.anything())
     expect(router.currentRoute.value.fullPath).toBe('/private')
   })
@@ -190,6 +195,7 @@ describe('installApiErrorHandler', () => {
 
     await expect(client.get('/x')).rejects.toMatchObject({ status: 403 })
 
+    await flushToasts()
     expect(toast.warning).not.toHaveBeenCalled()
     expect(toast.error).not.toHaveBeenCalled()
   })
@@ -200,6 +206,7 @@ describe('installApiErrorHandler', () => {
 
     await expect(client.get('/x')).rejects.toMatchObject({ status: 404 })
 
+    await flushToasts()
     expect(toast.warning).toHaveBeenCalledTimes(1)
   })
 
@@ -209,10 +216,21 @@ describe('installApiErrorHandler', () => {
 
     await expect(client.get('/x')).rejects.toMatchObject({ status: null })
 
+    await flushToasts()
     expect(toast.error).toHaveBeenCalledWith(
       'Falha na conexão',
       expect.objectContaining({ description: expect.any(String) }),
     )
+  })
+
+  it('does not toast an error the screen already shows', async () => {
+    const router = createRouterAt()
+    const client = createClient({ status: 409 }, router)
+
+    await client.post('/x').catch((error: unknown) => markHandled(error))
+
+    await flushToasts()
+    expect(toast.warning).not.toHaveBeenCalled()
   })
 
   it('stays quiet for a request that opted out with silent', async () => {
@@ -221,6 +239,7 @@ describe('installApiErrorHandler', () => {
 
     await expect(client.get('/x', { silent: true })).rejects.toMatchObject({ status: 500 })
 
+    await flushToasts()
     expect(toast.error).not.toHaveBeenCalled()
   })
 
@@ -230,6 +249,7 @@ describe('installApiErrorHandler', () => {
 
     await expect(client.get('/x')).rejects.toBeInstanceOf(CanceledError)
 
+    await flushToasts()
     expect(toast.error).not.toHaveBeenCalled()
   })
 })

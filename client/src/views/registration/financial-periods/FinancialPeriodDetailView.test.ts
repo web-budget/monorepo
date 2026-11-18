@@ -38,67 +38,97 @@ describe('FinancialPeriodDetailView', () => {
     document.body.replaceChildren()
   })
 
-  it('shows the period with status, dates and goals', async () => {
+  it('shows the period with its status next to the title, then dates and goals', async () => {
     const { wrapper } = await render()
 
     expect(financialPeriodsApi.findById).toHaveBeenCalledWith('p-1')
-    expect(wrapper.text()).toContain('Detalhando período financeiro')
-    expect(wrapper.text()).toContain('Encerrado')
-    expect(wrapper.text()).toContain('January')
+    expect(wrapper.find('h1').text()).toBe('January')
+    expect(wrapper.find('[data-slot="page-title"]').element.parentElement!.textContent).toContain(
+      'Encerrado',
+    )
+    expect(wrapper.findAll('h2').map((title) => title.text())).toEqual([
+      'Identificação',
+      'Datas',
+      'Metas',
+    ])
     expect(wrapper.text()).toContain('01/01/2026')
     expect(wrapper.text()).toContain('31/01/2026')
     expect(wrapper.text()).toContain('5.000,00')
     expect(wrapper.text()).toMatch(/R\$\s0,00/)
   })
 
-  it('goes to the listing and to the edit form', async () => {
+  it('shows no status while the period is loading', async () => {
+    vi.mocked(financialPeriodsApi.findById).mockReturnValue(new Promise(() => undefined))
+
+    const { wrapper } = await mountView(FinancialPeriodDetailView, 'financial-periods', {
+      id: 'p-1',
+    })
+
+    expect(wrapper.find('h1').text()).toBe('Detalhando período financeiro')
+    expect(
+      wrapper.find('[data-slot="page-title"]').element.parentElement!.textContent,
+    ).not.toContain('Encerrado')
+  })
+
+  it('goes to the edit form', async () => {
     const { wrapper, router } = await render()
 
     await buttonWithText(wrapper, 'Editar').trigger('click')
     await flushPromises()
-    expect(router.currentRoute.value.name).toBe('financial-periods.update')
 
-    await buttonWithText(wrapper, 'Voltar').trigger('click')
-    await flushPromises()
-    expect(router.currentRoute.value.name).toBe('financial-periods')
+    expect(router.currentRoute.value.name).toBe('financial-periods.update')
   })
 
-  it('deletes after confirmation and goes to the listing', async () => {
+  it('asks first, naming the period, then removes it and goes to the listing', async () => {
     const { wrapper, router } = await render()
     vi.mocked(financialPeriodsApi.remove).mockResolvedValue(undefined)
+    const dialog = useConfirmDialog()
 
-    await buttonWithText(wrapper, 'Excluir').trigger('click')
-    useConfirmDialog().accept()
+    await buttonWithText(wrapper, 'Remover').trigger('click')
+    expect(dialog.state.options.title).toBe('Remover o período financeiro “January”?')
+    dialog.accept()
     await flushPromises()
 
     expect(financialPeriodsApi.remove).toHaveBeenCalledWith('p-1')
-    expect(toast.success).toHaveBeenCalledWith('Registro excluído', {
-      description: 'Período financeiro excluído com sucesso',
+    expect(toast.success).toHaveBeenCalledWith('Período financeiro removido', {
+      description: '“January” saiu da lista.',
       duration: 4000,
     })
     expect(router.currentRoute.value.name).toBe('financial-periods')
   })
 
-  it('shows the server error when the deletion fails', async () => {
+  it('does nothing when the removal is not confirmed', async () => {
+    const { wrapper, router } = await render()
+
+    await buttonWithText(wrapper, 'Remover').trigger('click')
+    useConfirmDialog().cancel()
+    await flushPromises()
+
+    expect(financialPeriodsApi.remove).not.toHaveBeenCalled()
+    expect(router.currentRoute.value.name).not.toBe('financial-periods')
+  })
+
+  it('shows the server error when the removal fails', async () => {
     const { wrapper } = await render()
     vi.mocked(financialPeriodsApi.remove).mockRejectedValue(
       problem(400, { error: 'financial-period-not-open' }),
     )
 
-    await buttonWithText(wrapper, 'Excluir').trigger('click')
+    await buttonWithText(wrapper, 'Remover').trigger('click')
     useConfirmDialog().accept()
     await flushPromises()
 
     expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
       'O período financeiro não esta aberto',
     )
+    expect(toast.success).not.toHaveBeenCalled()
   })
 
   it('shows the server error when the period cannot be loaded', async () => {
     vi.mocked(financialPeriodsApi.findById).mockRejectedValue(problem(404))
 
     const { wrapper } = await mountView(FinancialPeriodDetailView, 'financial-periods', {
-      id: 'x',
+      id: 'p-9',
     })
 
     expect(wrapper.find('[data-slot="server-error"]').text()).toContain(

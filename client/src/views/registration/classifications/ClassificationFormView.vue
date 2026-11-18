@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { storeToRefs } from 'pinia'
 import { useForm } from 'vee-validate'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import FormCard from '@/components/forms/FormCard.vue'
+import FormSection from '@/components/forms/FormSection.vue'
 import InputField from '@/components/forms/InputField.vue'
 import SelectField from '@/components/forms/SelectField.vue'
 import StatusToggle from '@/components/forms/StatusToggle.vue'
@@ -24,25 +24,22 @@ const props = defineProps<{ id?: string }>()
 const { t } = useI18n()
 
 const store = useClassificationsStore()
-const { loading } = storeToRefs(store)
 
 const form = useForm({
   validationSchema: classificationFormSchema,
   initialValues: classificationFormDefaults,
 })
 
-const { messages, changeToList, onSubmit } = useCrudForm({
+const { messages, fields, submitting, loadingRecord, dirty, changeToList, onSubmit } = useCrudForm({
   routeName: 'classifications',
-  notices: {
-    created: 'notification.classification.created',
-    updated: 'notification.classification.updated',
-  },
+  entity: 'classification',
   id: () => props.id,
   form,
   findOne: store.findOne,
   toFormValues: toClassificationFormValues,
   create: (values) => store.create(toClassificationCreateForm(values)),
   update: (id, values) => store.update(id, toClassificationUpdateForm(values)),
+  redirectToDetail: true,
 })
 
 const updating = computed(() => props.id !== undefined)
@@ -52,23 +49,51 @@ const classificationTypes = computed(() => typeOptions('classification', CLASSIF
 <template>
   <FormCard
     :title="updating ? $t('classification.form.editing') : $t('classification.form.new')"
-    :loading="loading"
+    :description="updating ? form.values.name : undefined"
+    :loading="loadingRecord"
+    :submitting="submitting"
+    :dirty="dirty"
     :messages="messages"
+    :fields="fields"
+    :submit-label="updating ? $t('crud.save-changes') : $t('classification.form.create')"
     @submit="onSubmit"
     @back="changeToList"
   >
-    <StatusToggle v-if="updating" name="active" />
-    <div class="grid gap-4 md:grid-cols-3">
-      <InputField name="name" :label="$t('classification.form.name')" />
+    <FormSection
+      :title="$t('classification.sections.identification')"
+      :description="
+        updating
+          ? $t('classification.form.type-hint')
+          : $t('classification.sections.identification-help')
+      "
+    >
+      <InputField name="name" :label="$t('classification.form.name')" required />
       <SelectField
         name="type"
         :label="$t('classification.form.type')"
         :options="classificationTypes"
         :placeholder="$t('classification.form.type-placeholder')"
         :disabled="updating"
+        required
       />
-      <InputField name="budget" type="number" :label="$t('classification.form.budget')" />
-    </div>
-    <InputField name="description" :label="$t('classification.form.description')" multiline />
+      <StatusToggle
+        v-if="updating"
+        name="active"
+        :label="$t('classification.form.active-label')"
+        :hint="$t('classification.form.active-hint')"
+      />
+      <InputField
+        name="description"
+        :label="$t('classification.form.description')"
+        multiline
+        class="md:col-span-2"
+      />
+    </FormSection>
+    <FormSection
+      :title="$t('classification.sections.budget')"
+      :description="$t('classification.sections.budget-help')"
+    >
+      <InputField name="budget" type="number" :label="$t('classification.form.budget')" mono />
+    </FormSection>
   </FormCard>
 </template>
