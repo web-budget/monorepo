@@ -8,7 +8,8 @@ Rode tudo a partir de `server/`:
 
 ```bash
 ./gradlew bootRun                                                         # sobe a aplicação na porta 8085
-./gradlew build                                                           # compila, roda os testes e o koverVerify
+./gradlew build                                                           # gera as classes do jOOQ, compila, roda os testes e o koverVerify
+./gradlew jooqCodegen                                                     # gera as classes do jOOQ a partir do changelog (precisa do Docker)
 ./gradlew test                                                            # roda todos os testes
 ./gradlew test --tests "br.com.webbudget.server.ServerApplicationTests"   # roda uma classe de teste só
 ./gradlew koverXmlReport                                                  # roda os testes e grava build/reports/kover/report.xml
@@ -26,9 +27,10 @@ O Kover pendura o `koverVerify` no `check`, então o `build` já falha quando a 
 
 ## Stack
 
-- Kotlin 2.4.10 (`jvm` e `plugin.spring`) com `jvmTarget` 25, `languageVersion` e `apiVersion` 2.4 e os argumentos `-Xjsr305=strict` e `-Xemit-jvm-type-annotations`. O toolchain Java é o 25 e o Gradle vem do wrapper.
+- Kotlin 2.4.21 (`jvm` e `plugin.spring`) com `jvmTarget` 25, `languageVersion` e `apiVersion` 2.4 e os argumentos `-Xjsr305=strict` e `-Xemit-jvm-type-annotations`. O toolchain Java é o 25 e o Gradle vem do wrapper.
 - Spring Boot 4.1.2 com os starters `webmvc` (servlet, não WebFlux), `jooq`, `liquibase`, `security`, `validation` e `actuator`. As threads virtuais estão ligadas.
 - PostgreSQL 18 (`postgres:18-alpine`), tanto no `compose.yaml` quanto no Testcontainers.
+- jOOQ 3.21.7 com o plugin `org.jooq.jooq-codegen-gradle`, que gera as classes Kotlin das tabelas no build (veja [Codegen do jOOQ](#codegen-do-jooq)).
 - Jackson 3 (`tools.jackson.module:jackson-module-kotlin`) e `kotlin-reflect` para Jackson e Spring.
 - `io.github.oshai:kotlin-logging-jvm` para log com `KotlinLogging.logger {}`.
 - Kover 0.9.9 para cobertura.
@@ -123,7 +125,17 @@ Os dados são compartilhados entre todos os usuários: quem pode ver ou mudar o 
 
 ## Migrations
 
-O Liquibase cria e evolui o schema na subida da aplicação (no `bootRun` e nos testes). O master é `src/main/resources/db/changelog/db.changelog-master.xml`, e as tabelas de controle se chamam `database_changelog` e `database_changelog_lock`. Os schemas `administration`, `registration` e `financial` já existem, criados por `changes/2026/11/16-1000-create-schemas.xml`.
+O Liquibase cria e evolui o schema na subida da aplicação (no `bootRun` e nos testes). O master é `src/main/resources/db/changelog/db.changelog-master.xml`, e as tabelas de controle se chamam `database_changelog` e `database_changelog_lock`. Os changelogs vivem em `src/main/resources/db/changelog/changes/<ano>/<mês>/`, e o master os inclui em ordem cronológica. O changelog inicial é o schema final da v4, consolidado sem Investimentos:
+
+| Arquivo | O que cria |
+|---|---|
+| `changes/2026/11/16-1000-create-schemas.xml` | Os schemas `administration`, `registration` e `financial`. |
+| `changes/2026/11/16-1010-create-administration-tables.xml` | A extensão `uuid-ossp` e as tabelas `users`, `roles`, `grants`, `password_recover_attempts` e `account_activation_attempt`. |
+| `changes/2026/11/16-1020-create-registration-tables.xml` | As tabelas `cost_centers`, `wallets`, `cards`, `financial_periods` e `classifications`. |
+| `changes/2026/11/16-1030-create-financial-tables.xml` | As tabelas `recurring_movements`, `credit_card_invoices`, `payments`, `transferences`, `period_movements` e `wallet_balances`. |
+| `changes/2026/11/16-1040-insert-roles.xml` | As roles `DASHBOARDS`, `REGISTRATION`, `FINANCIAL` e `ADMINISTRATION`, com os mesmos `external_id` da v4. |
+
+O DDL é SQL puro em `<sql>`, uma tabela por changeset, com cada constraint nomeada explicitamente. O `pg_dump --schema-only` desse schema é igual ao da v4, tirando o schema `investments`, inclusive nas esquisitices herdadas: a extensão `uuid-ossp` sem uso, o `UNIQUE (id)` redundante nas tabelas de `financial`, o `UNIQUE (id, external_id)` duplicado nas duas tabelas de tentativas, nomes de FK como `fk_wallets_on_payments` em `wallet_balances` e as colunas acrescentadas por último (`id_parent`, `full_name`, `id_cost_center`). Corrigir qualquer uma delas é mudança de modelo e entra num changelog novo. As constraints redundantes vão num `ALTER TABLE` depois do `CREATE TABLE`, porque o Postgres descarta em silêncio uma constraint declarada dentro do `CREATE TABLE` que repete outra. Os dados de teste não estão no changelog: cada subtarefa de portabilidade traz os do seu módulo.
 
 **Nunca edite um changelog já integrado** em `src/main/resources/db/changelog/changes/**`, nem para acrescentar "só mais um changeset" a um arquivo recente. O Liquibase registra cada changeset aplicado por id, autor e checksum em `database_changelog`; editar um que já rodou quebra a subida (checksum diferente) ou pula o SQL novo em silêncio. Sempre crie um arquivo novo e inclua-o no master:
 
@@ -133,6 +145,16 @@ O Liquibase cria e evolui o schema na subida da aplicação (no `bootRun` e nos 
 - Changesets escritos pelo Claude usam `author="${claude}"`, a propriedade definida no master.
 - Cada changeset traz o seu `<rollback>`.
 
+## Codegen do jOOQ
+
+As classes do jOOQ são geradas no build, a partir do changelog, e nunca vão para o git. O `compileKotlin` depende do `jooqCodegen`, então **o `build` e qualquer compilação precisam do Docker ligado**, não só os testes e o `bootRun`:
+
+- A tarefa `startJooqDb` sobe um `postgres:18-alpine` descartável pelo Testcontainers e aplica o `db/changelog/db.changelog-master.xml` com o Liquibase. O `jooqCodegen` gera o código com o `KotlinGenerator` a partir dos schemas `administration`, `registration` e `financial`, e a `stopJooqDb` derruba o contêiner.
+- O código gerado fica em `build/generated-sources/jooq/main`, no pacote `br.com.webbudget.server.jooq` (por exemplo `br.com.webbudget.server.jooq.registration.tables.Wallets`), e está fora do git (pelo `build/` do `.gitignore`) e da cobertura do Kover.
+- Um SHA-256 de todos os arquivos de `db/changelog` fica em `build/jooq-codegen-changelog.sha256`. Enquanto o digest não muda, `startJooqDb`, `jooqCodegen` e `stopJooqDb` são puladas e o Docker nem é tocado nessa etapa. Mudou um changelog, a geração roda de novo; um `./gradlew clean` apaga o marcador e também força a regeneração.
+- O gerador avisa `Ambiguous key name` para `registration.fk_parent_on_cost_centers` (a FK de `cost_centers` para ela mesma, herdada da v4). É só um aviso das *implicit join paths*, e a geração termina normalmente.
+- O jOOQ gerado só serve de base para os repositórios da tarefa #12; o build não traz nenhum repositório jOOQ ainda.
+
 ## Testes e cobertura
 
 - JUnit 5 com `kotlin-test-junit5`, `useJUnitPlatform()` e `maxParallelForks = 4`. O número de forks é limitado para evitar disputa no Docker quando vários forks sobem um contêiner do Testcontainers ao mesmo tempo.
@@ -140,10 +162,10 @@ O Liquibase cria e evolui o schema na subida da aplicação (no `bootRun` e nos 
 - Os testes de integração rodam contra esse Postgres real, sem MockK nem outro framework de mock de objetos.
 - `TestServerApplication` é um `main` alternativo que sobe a aplicação com o `TestcontainersConfiguration`, contra um Postgres descartável.
 
-O Kover mede a suíte, e o `koverVerify` impõe pisos sobre ela em `kover.reports.verify`, no `build.gradle.kts`. Os filtros excluem só `ServerApplication` e `ServerApplicationKt`, e valem igual para os relatórios XML e HTML e para o `koverVerify`.
+O Kover mede a suíte, e o `koverVerify` impõe pisos sobre ela em `kover.reports.verify`, no `build.gradle.kts`. Os filtros excluem `ServerApplication`, `ServerApplicationKt` e o pacote gerado `br.com.webbudget.server.jooq`, e valem igual para os relatórios XML e HTML e para o `koverVerify`.
 
 **Os pisos de LINE, INSTRUCTION e BRANCH começam em 0 e só sobem.** Eles sobem ao fim de cada subtarefa de portabilidade, até o que a suíte atinge naquele momento. Um PR pode subir um número, nunca baixá-lo: baixar um piso é a cara de uma regressão de cobertura num diff. Com os pisos no que a suíte atinge, um PR que traz código de produção sem teste fica vermelho, então os testes entram junto com a funcionalidade.
 
 ## Manutenção deste arquivo
 
-Todo PR que muda algo descrito aqui atualiza este arquivo no mesmo PR. As tarefas #9, #12 e #25 acrescentam as seções de persistência (jOOQ), de testes e de autenticação, quando o código delas existir.
+Todo PR que muda algo descrito aqui atualiza este arquivo no mesmo PR. As tarefas #12 e #25 acrescentam as seções de persistência (repositórios jOOQ), de testes e de autenticação, quando o código delas existir.
