@@ -19,7 +19,8 @@ internal fun UsersRecord.toUser(grants: List<Grant> = emptyList()): User = User(
     grants = grants.toMutableList(),
     status = UserStatus.valueOf(status!!),
     authProvider = AuthProvider.valueOf(authProvider!!),
-    credentialsVersion = credentialsVersion!!
+    credentialsVersion = credentialsVersion!!,
+    totpEnabled = totpEnabled!!
 ).also { user -> user.restore(id, externalId, version, createdOn, lastUpdate) }
 
 internal fun RolesRecord.toRole(): Role = Role(name!!)

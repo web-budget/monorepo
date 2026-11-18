@@ -97,6 +97,17 @@ class UserController(
         return ResponseEntity.ok().build()
     }
 
+    @PatchMapping("/{id}/totp-reset")
+    fun resetTotp(@PathVariable id: UUID): ResponseEntity<Void> {
+
+        val user = userRepository.findByExternalId(id)
+            ?: throw ResourceNotFoundException()
+
+        userService.resetTotp(user)
+
+        return ResponseEntity.ok().build()
+    }
+
     @PatchMapping("/{id}/block")
     fun block(@PathVariable id: UUID): ResponseEntity<Void> {
 

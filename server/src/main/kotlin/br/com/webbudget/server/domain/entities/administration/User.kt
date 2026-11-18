@@ -11,7 +11,8 @@ class User(
     var grants: MutableList<Grant> = mutableListOf(),
     var status: UserStatus = UserStatus.APPROVED,
     var authProvider: AuthProvider = AuthProvider.LOCAL,
-    var credentialsVersion: Int = 0
+    var credentialsVersion: Int = 0,
+    var totpEnabled: Boolean = false
 ) : PersistentEntity() {
 
     fun isMainAdmin(): Boolean = this.email == ADMIN_USERNAME

@@ -17,6 +17,8 @@ data class SecurityProperties(
         baseDuration = Duration.ofMinutes(15),
         failureWindow = Duration.ofHours(1)
     ),
+    val totp: TotpProperties = TotpProperties(),
+    val trustedDevice: TrustedDeviceProperties = TrustedDeviceProperties(),
     val clientIp: ClientIpProperties = ClientIpProperties()
 ) {
 
@@ -24,6 +26,15 @@ data class SecurityProperties(
         val maxAttempts: Int,
         val baseDuration: Duration,
         val failureWindow: Duration? = null
+    )
+
+    data class TotpProperties(
+        val required: Boolean = true,
+        val lockout: LockoutProperties = LockoutProperties(maxAttempts = 5, baseDuration = Duration.ofSeconds(60))
+    )
+
+    data class TrustedDeviceProperties(
+        val expiry: Duration = Duration.ofDays(30)
     )
 
     data class ClientIpProperties(

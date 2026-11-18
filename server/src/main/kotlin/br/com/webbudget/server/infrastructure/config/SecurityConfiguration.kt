@@ -48,6 +48,8 @@ class SecurityConfiguration {
                 authorize("/private/v1/accounts/**", permitAll)
                 authorize("/private/v1/auth/login", permitAll)
                 authorize("/private/v1/auth/register", permitAll)
+                authorize("/private/v1/auth/totp/enroll", permitAll)
+                authorize("/private/v1/auth/totp/verify", permitAll)
                 authorize("/private/v1/administration/**", hasRole(Role.ADMINISTRATION))
                 authorize("/private/v1/registration/**", hasRole(Role.REGISTRATION))
                 authorize("/private/v1/financial/**", hasRole(Role.FINANCIAL))

@@ -162,6 +162,32 @@ class UserRepository(
         return user
     }
 
+    fun findTotpSecret(userId: Long): String? = dsl.select(USERS.TOTP_SECRET)
+        .from(USERS)
+        .where(USERS.ID.eq(userId))
+        .fetchOne(USERS.TOTP_SECRET)
+
+    fun updateTotpSecret(userId: Long, secret: String): Boolean = dsl.update(USERS)
+        .set(USERS.TOTP_SECRET, secret)
+        .where(USERS.ID.eq(userId))
+        .and(USERS.TOTP_ENABLED.isFalse)
+        .execute() == 1
+
+    fun enableTotp(userId: Long, secret: String): Boolean = dsl.update(USERS)
+        .set(USERS.TOTP_ENABLED, true)
+        .where(USERS.ID.eq(userId))
+        .and(USERS.TOTP_ENABLED.isFalse)
+        .and(USERS.TOTP_SECRET.eq(secret))
+        .execute() == 1
+
+    fun resetTotp(userId: Long) {
+        dsl.update(USERS)
+            .setNull(USERS.TOTP_SECRET)
+            .set(USERS.TOTP_ENABLED, false)
+            .where(USERS.ID.eq(userId))
+            .execute()
+    }
+
     fun delete(user: User) {
         dsl.deleteFrom(USERS)
             .where(USERS.ID.eq(user.id))

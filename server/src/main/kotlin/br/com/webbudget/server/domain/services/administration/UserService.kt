@@ -11,6 +11,7 @@ import br.com.webbudget.server.infrastructure.repository.administration.AccountA
 import br.com.webbudget.server.infrastructure.repository.administration.GrantRepository
 import br.com.webbudget.server.infrastructure.repository.administration.PasswordRecoverAttemptRepository
 import br.com.webbudget.server.infrastructure.repository.administration.RoleRepository
+import br.com.webbudget.server.infrastructure.repository.administration.TrustedDeviceRepository
 import br.com.webbudget.server.infrastructure.repository.administration.UserRepository
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -29,6 +30,7 @@ class UserService(
     private val accountActivationService: AccountActivationService,
     private val passwordRecoverAttemptRepository: PasswordRecoverAttemptRepository,
     private val accountActivationAttemptRepository: AccountActivationAttemptRepository,
+    private val trustedDeviceRepository: TrustedDeviceRepository,
     @OnCreateValidation
     private val creationValidators: List<UserValidator>,
     @OnUpdateValidation
@@ -113,6 +115,17 @@ class UserService(
     }
 
     @Transactional
+    fun resetTotp(user: User) {
+
+        selfActionGuard.assertNotSelf(user)
+
+        val userId = requireNotNull(user.id) { "user.errors.null-id" }
+
+        trustedDeviceRepository.deleteByUserId(userId)
+        userRepository.resetTotp(userId)
+    }
+
+    @Transactional
     fun deleteAccount(user: User) {
 
         require(!user.isMainAdmin()) { "user.errors.cannot-delete-admin" }
@@ -124,6 +137,7 @@ class UserService(
         grantRepository.deleteByUserId(userId)
         passwordRecoverAttemptRepository.deleteByUserId(userId)
         accountActivationAttemptRepository.deleteByUserId(userId)
+        trustedDeviceRepository.deleteByUserId(userId)
 
         userRepository.delete(user)
     }

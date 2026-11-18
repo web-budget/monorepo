@@ -64,6 +64,13 @@ web-budget:
       max-attempts: ${REGISTRATION_LIMIT_MAX_ATTEMPTS:10}
       base-duration: ${REGISTRATION_LIMIT_BASE_DURATION:15m}
       failure-window: ${REGISTRATION_LIMIT_FAILURE_WINDOW:1h}
+    totp:
+      required: ${TOTP_REQUIRED:true}
+      lockout:
+        max-attempts: ${TOTP_LOCKOUT_MAX_ATTEMPTS:5}
+        base-duration: ${TOTP_LOCKOUT_BASE_DURATION:60s}
+    trusted-device:
+      expiry: ${TRUSTED_DEVICE_EXPIRY:30d}
     client-ip:
       trusted-proxy-count: ${CLIENT_IP_TRUSTED_PROXY_COUNT:0}
   frontend-url: ${APPLICATION_FRONTEND_URL:http://localhost:8086}
