@@ -1,4 +1,5 @@
 import { apiClient } from './client'
+import { createdId } from './createdId'
 import type {
   CardListView,
   CardView,
@@ -19,8 +20,8 @@ export const cardsApi = {
     return apiClient.get<CardView>(`${PATH}/${id}`).then((r) => r.data)
   },
 
-  create(form: CardCreateForm): Promise<void> {
-    return apiClient.post(PATH, form).then(() => undefined)
+  create(form: CardCreateForm): Promise<string> {
+    return apiClient.post(PATH, form).then(createdId)
   },
 
   update(id: string, form: CardUpdateForm): Promise<CardView> {

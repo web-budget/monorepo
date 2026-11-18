@@ -98,7 +98,7 @@ describe('UserFormView', () => {
     })
 
     it('creates the user only after confirming, asking for the activation e-mail', async () => {
-      vi.mocked(usersApi.create).mockResolvedValue(undefined)
+      vi.mocked(usersApi.create).mockResolvedValue('u-9')
       const { wrapper } = await render()
       await fillNewUser(wrapper)
 
@@ -120,15 +120,15 @@ describe('UserFormView', () => {
         roles: ['REGISTRATION'],
         sendActivationEmail: true,
       })
-      expect(toast.success).toHaveBeenCalledWith('Registro criado', {
-        description: 'Usuário criado com sucesso',
+      expect(toast.success).toHaveBeenCalledWith('Usuário criado', {
+        description: '“Ana” foi cadastrado.',
         duration: 4000,
       })
       expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('')
     })
 
     it('sends the chosen language, roles and activation preference', async () => {
-      vi.mocked(usersApi.create).mockResolvedValue(undefined)
+      vi.mocked(usersApi.create).mockResolvedValue('u-9')
       const { wrapper } = await render()
       await fillNewUser(wrapper)
       await roleBox(wrapper, 'FINANCIAL').trigger('click')
@@ -193,7 +193,7 @@ describe('UserFormView', () => {
     it('goes back to the listing', async () => {
       const { wrapper, router } = await render()
 
-      await buttonWithText(wrapper, 'Voltar').trigger('click')
+      await buttonWithText(wrapper, 'Cancelar').trigger('click')
       await settle()
 
       expect(router.currentRoute.value.name).toBe('users')
@@ -216,7 +216,7 @@ describe('UserFormView', () => {
       expect(wrapper.text()).toContain('Inglês (Estados Unidos)')
       expect(roleBox(wrapper, 'FINANCIAL').attributes('aria-checked')).toBe('true')
       expect(roleBox(wrapper, 'REGISTRATION').attributes('aria-checked')).toBe('false')
-      expect(buttonWithText(wrapper, 'Inativo').attributes('aria-pressed')).toBe('true')
+      expect(wrapper.find('button[role="switch"]').attributes('aria-checked')).toBe('false')
     })
 
     it('saves the new roles and status only after confirming, without e-mail nor password', async () => {
@@ -225,7 +225,7 @@ describe('UserFormView', () => {
       const { wrapper } = await render({ id: 'u-2' })
 
       await roleBox(wrapper, 'REGISTRATION').trigger('click')
-      await buttonWithText(wrapper, 'Ativo').trigger('click')
+      await wrapper.find('button[role="switch"]').trigger('click')
       await submit(wrapper)
 
       expect(useConfirmDialog().state.options.description).toContain('Bruno')
@@ -240,8 +240,8 @@ describe('UserFormView', () => {
         defaultLanguage: 'EN_US',
         roles: ['FINANCIAL', 'REGISTRATION'],
       })
-      expect(toast.success).toHaveBeenCalledWith('Registro atualizado', {
-        description: 'Usuário atualizado com sucesso',
+      expect(toast.success).toHaveBeenCalledWith('Alterações salvas', {
+        description: 'Os dados de “Bruno” foram salvos.',
         duration: 4000,
       })
     })

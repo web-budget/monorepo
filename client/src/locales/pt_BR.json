@@ -188,7 +188,13 @@
     },
     "all": "Todos",
     "active": "Ativos",
-    "inactive": "Inativos"
+    "inactive": "Inativos",
+    "status": "Situação",
+    "feminine": {
+      "active": "Ativas",
+      "inactive": "Inativas",
+      "all": "Todas"
+    }
   },
   "items-table": {
     "state": {
@@ -201,7 +207,8 @@
     },
     "footer": {
       "until": " até ",
-      "total": ", total "
+      "total": ", total ",
+      "range": "{first}–{last} de {total}"
     },
     "pagination": {
       "rows-per-page": "Linhas por página",
@@ -253,7 +260,8 @@
       "password": "Senha",
       "language": "Idioma",
       "roles": "Permissões",
-      "send-activation-email": "Enviar email de ativação da conta"
+      "send-activation-email": "Enviar email de ativação da conta",
+      "create": "Criar usuário"
     },
     "confirm": {
       "create-title": "Criar usuário",
@@ -269,6 +277,27 @@
       "password": "Nova senha",
       "confirmation": "Confirmação",
       "submit": "Redefinir senha"
+    },
+    "list": {
+      "description": "Quem tem acesso ao sistema e com quais permissões.",
+      "empty-title": "Nenhum usuário ainda",
+      "empty-description": "Cadastre as pessoas que vão usar o sistema.",
+      "plural": "os usuários"
+    },
+    "remove": {
+      "title": "Remover o usuário “{name}”?",
+      "description": "Não dá para desfazer. O acesso da pessoa ao sistema é encerrado."
+    },
+    "toast": {
+      "created": "Usuário criado",
+      "created-detail": "“{name}” foi cadastrado.",
+      "updated": "Alterações salvas",
+      "updated-detail": "Os dados de “{name}” foram salvos.",
+      "removed": "Usuário removido",
+      "removed-detail": "“{name}” saiu da lista."
+    },
+    "sections": {
+      "data": "Dados do usuário"
     }
   },
   "period-movement": {
@@ -309,12 +338,42 @@
       "bank": "Banco",
       "agency": "Agência",
       "number": "Número da conta",
-      "type-placeholder": "Selecione um tipo"
+      "type-placeholder": "Selecione um tipo",
+      "create": "Criar carteira",
+      "active-label": "Ativa",
+      "active-hint": "Inativa, ela some das escolhas nos lançamentos novos, mas continua no histórico.",
+      "type-hint": "O tipo não muda depois de criada.",
+      "balance": "Saldo atual"
     },
     "type": {
       "bank-account": "Conta Bancária",
       "personal": "Pessoal",
       "investment": "Investimento"
+    },
+    "list": {
+      "description": "Contas bancárias, investimentos e dinheiro em espécie de onde saem e entram os lançamentos.",
+      "empty-title": "Nenhuma carteira ainda",
+      "empty-description": "Cadastre as contas e o dinheiro em espécie que você usa. Os lançamentos sempre saem de uma carteira.",
+      "plural": "as carteiras"
+    },
+    "remove": {
+      "title": "Remover a carteira “{name}”?",
+      "description": "Não dá para desfazer. Se ela já tem lançamentos, o servidor recusa a remoção; nesse caso, marque a carteira como inativa."
+    },
+    "toast": {
+      "created": "Carteira criada",
+      "created-detail": "“{name}” já aparece nos lançamentos.",
+      "updated": "Alterações salvas",
+      "updated-detail": "“{name}” foi atualizada.",
+      "removed": "Carteira removida",
+      "removed-detail": "“{name}” saiu da lista."
+    },
+    "sections": {
+      "identification": "Identificação",
+      "identification-help": "Como a carteira aparece nos lançamentos e dashboards.",
+      "bank": "Dados do banco",
+      "bank-help": "Aparece para Conta bancária e Investimento.",
+      "balance": "Saldo"
     }
   },
   "card": {
@@ -345,7 +404,37 @@
       "invoice-payment-day": "Dia do vencimento",
       "type-placeholder": "Selecione um tipo",
       "wallet-search-empty": "Nenhuma carteira encontrada",
-      "wallet-search-placeholder": "Digite o nome"
+      "wallet-search-placeholder": "Digite o nome",
+      "create": "Criar cartão",
+      "active-label": "Ativo",
+      "active-hint": "Inativo, ele some das escolhas nos lançamentos novos, mas continua no histórico.",
+      "type-hint": "O tipo não muda depois de criado."
+    },
+    "list": {
+      "description": "Cartões de crédito e débito usados nos lançamentos.",
+      "empty-title": "Nenhum cartão ainda",
+      "empty-description": "Cadastre os cartões que você usa. Os de débito saem de uma carteira; os de crédito entram na fatura.",
+      "plural": "os cartões"
+    },
+    "remove": {
+      "title": "Remover o cartão “{name}”?",
+      "description": "Não dá para desfazer. Se ele já tem lançamentos, o servidor recusa a remoção; nesse caso, marque o cartão como inativo."
+    },
+    "toast": {
+      "created": "Cartão criado",
+      "created-detail": "“{name}” já aparece nos lançamentos.",
+      "updated": "Alterações salvas",
+      "updated-detail": "“{name}” foi atualizado.",
+      "removed": "Cartão removido",
+      "removed-detail": "“{name}” saiu da lista."
+    },
+    "sections": {
+      "identification": "Identificação",
+      "identification-help": "Como o cartão aparece nos lançamentos.",
+      "wallet": "Carteira",
+      "wallet-help": "O cartão de débito sai desta carteira.",
+      "invoice": "Fatura",
+      "invoice-help": "Dia do mês em que a fatura do cartão de crédito vence."
     }
   },
   "financial-period": {
@@ -379,12 +468,39 @@
       "starting-at": "Início",
       "ending-at": "Fim",
       "expenses-goal": "Meta de despesas",
-      "revenues-goal": "Meta de receitas"
+      "revenues-goal": "Meta de receitas",
+      "create": "Criar período financeiro"
     },
     "errors": {
       "overlapping-dates": "Data de início e fim estão sobrepondo com outro período financeiro existente",
       "invalid-dates": "Data de início e fim são inválidas",
       "period-not-open": "Período financeiro não está aberto e não pode ser alterado ou excluído"
+    },
+    "list": {
+      "description": "Os períodos em que os lançamentos são fechados e contabilizados.",
+      "empty-title": "Nenhum período financeiro ainda",
+      "empty-description": "Crie um período financeiro para começar a registrar os lançamentos.",
+      "plural": "os períodos financeiros"
+    },
+    "remove": {
+      "title": "Remover o período financeiro “{name}”?",
+      "description": "Não dá para desfazer. Se ele já tem lançamentos ou foi contabilizado, o servidor recusa a remoção."
+    },
+    "toast": {
+      "created": "Período financeiro criado",
+      "created-detail": "“{name}” já aceita lançamentos.",
+      "updated": "Alterações salvas",
+      "updated-detail": "“{name}” foi atualizado.",
+      "removed": "Período financeiro removido",
+      "removed-detail": "“{name}” saiu da lista."
+    },
+    "sections": {
+      "identification": "Identificação",
+      "identification-help": "Como o período aparece nos lançamentos.",
+      "dates": "Datas",
+      "dates-help": "As datas não mudam depois de criado.",
+      "goals": "Metas",
+      "goals-help": "Valores previstos de receitas e despesas no período."
     }
   },
   "classification": {
@@ -411,7 +527,35 @@
       "description": "Descrição",
       "type": "Tipo",
       "budget": "Orçamento",
-      "type-placeholder": "Selecione um tipo"
+      "type-placeholder": "Selecione um tipo",
+      "create": "Criar classificação",
+      "active-label": "Ativa",
+      "active-hint": "Inativa, ela some das escolhas nos lançamentos novos, mas continua no histórico.",
+      "type-hint": "O tipo não muda depois de criada."
+    },
+    "list": {
+      "description": "Como as receitas e despesas são agrupadas nos relatórios e orçamentos.",
+      "empty-title": "Nenhuma classificação ainda",
+      "empty-description": "Crie classificações para agrupar suas receitas e despesas.",
+      "plural": "as classificações"
+    },
+    "remove": {
+      "title": "Remover a classificação “{name}”?",
+      "description": "Não dá para desfazer. Se ela já tem lançamentos, o servidor recusa a remoção; nesse caso, marque a classificação como inativa."
+    },
+    "toast": {
+      "created": "Classificação criada",
+      "created-detail": "“{name}” já aparece nos lançamentos.",
+      "updated": "Alterações salvas",
+      "updated-detail": "“{name}” foi atualizada.",
+      "removed": "Classificação removida",
+      "removed-detail": "“{name}” saiu da lista."
+    },
+    "sections": {
+      "identification": "Identificação",
+      "identification-help": "Como a classificação aparece nos lançamentos.",
+      "budget": "Orçamento",
+      "budget-help": "Limite opcional para o que for classificado aqui."
     }
   },
   "cost-center": {
@@ -431,12 +575,39 @@
       "expense-budget": "Orçamento despesas",
       "parent": "Subcentro de custo de",
       "parent-search-empty": "Nenhum centro de custo encontrado",
-      "parent-search-placeholder": "Digite o nome"
+      "parent-search-placeholder": "Digite o nome",
+      "create": "Criar centro de custo",
+      "active-label": "Ativo",
+      "active-hint": "Inativo, ele some das escolhas nos lançamentos novos, mas continua no histórico."
     },
     "table-columns": {
       "full-name": "Nome",
       "income-budget": "Orçamento receitas",
       "expense-budget": "Orçamento despesas"
+    },
+    "list": {
+      "description": "A hierarquia de áreas e projetos em que o dinheiro é gasto ou recebido.",
+      "empty-title": "Nenhum centro de custo ainda",
+      "empty-description": "Crie centros de custo para saber onde o dinheiro é gasto e recebido.",
+      "plural": "os centros de custo"
+    },
+    "remove": {
+      "title": "Remover o centro de custo “{name}”?",
+      "description": "Não dá para desfazer. Se ele já tem lançamentos ou subcentros, o servidor recusa a remoção; nesse caso, marque o centro de custo como inativo."
+    },
+    "toast": {
+      "created": "Centro de custo criado",
+      "created-detail": "“{name}” já aparece nos lançamentos.",
+      "updated": "Alterações salvas",
+      "updated-detail": "“{name}” foi atualizado.",
+      "removed": "Centro de custo removido",
+      "removed-detail": "“{name}” saiu da lista."
+    },
+    "sections": {
+      "identification": "Identificação",
+      "identification-help": "O nome e o lugar do centro de custo na hierarquia.",
+      "budget": "Orçamento",
+      "budget-help": "Limites opcionais de receitas e despesas."
     }
   },
   "layout": {
@@ -467,5 +638,38 @@
     "number-min": "O valor mínimo é {minimum}",
     "number-max": "O valor máximo é {maximum}",
     "end-before-start": "A data de fim não pode ser anterior à data de início"
+  },
+  "crud": {
+    "required-hint": "Campos com * são obrigatórios.",
+    "unsaved": "Alterações não salvas",
+    "saving": "Salvando…",
+    "status": "Situação",
+    "save-changes": "Salvar alterações",
+    "actions": {
+      "edit": "Editar",
+      "remove": "Remover",
+      "more": "Mais ações"
+    },
+    "discard": {
+      "title": "Sair sem salvar?",
+      "description": "Os dados informados vão se perder.",
+      "description-named": "As alterações em “{name}” vão se perder.",
+      "stay": "Continuar editando",
+      "leave": "Sair sem salvar"
+    },
+    "list": {
+      "no-result": {
+        "title-query": "Nada encontrado para “{query}”",
+        "title-filter": "Nada encontrado neste filtro",
+        "hint": "Confira a grafia ou procure em outra situação.",
+        "clear": "Limpar busca",
+        "show-all": "Mostrar todos"
+      },
+      "error": {
+        "title": "Não foi possível carregar {plural}",
+        "description": "O servidor não respondeu. Confira sua conexão e tente de novo.",
+        "retry": "Tentar de novo"
+      }
+    }
   }
 }

@@ -34,6 +34,7 @@ export const useUsersAdminStore = defineStore('usersAdmin', () => {
     pageResponse: resource.pageResponse,
     loading: resource.loading,
     findAll: resource.findAll,
+    count: resource.count,
     findOne: resource.findOne,
     findRoles,
     create: resource.create,

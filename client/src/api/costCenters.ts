@@ -1,4 +1,5 @@
 import { apiClient } from './client'
+import { createdId } from './createdId'
 import type {
   CostCenterListView,
   CostCenterView,
@@ -21,8 +22,8 @@ export const costCentersApi = {
     return apiClient.get<CostCenterView>(`${PATH}/${id}`).then((r) => r.data)
   },
 
-  create(form: CostCenterCreateForm): Promise<void> {
-    return apiClient.post(PATH, form).then(() => undefined)
+  create(form: CostCenterCreateForm): Promise<string> {
+    return apiClient.post(PATH, form).then(createdId)
   },
 
   update(id: string, form: CostCenterUpdateForm): Promise<CostCenterView> {

@@ -29,7 +29,7 @@ describe('useCardsStore', () => {
   })
 
   it('creates, loads, edits and removes a card', async () => {
-    vi.mocked(cardsApi.create).mockResolvedValue()
+    vi.mocked(cardsApi.create).mockResolvedValue('new-id')
     vi.mocked(cardsApi.findById).mockResolvedValue(view)
     vi.mocked(cardsApi.update).mockResolvedValue({ ...view, flag: 'Master' })
     vi.mocked(cardsApi.remove).mockResolvedValue()

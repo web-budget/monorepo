@@ -100,8 +100,8 @@ describe('describeApiError', () => {
       severity: 'warn',
       title: { key: 'error.conflict.title' },
       details: [
-        { key: 'error.conflict.wallet.name', params: { value: 'Main' } },
-        { key: 'error.conflict.wallet.number', params: { value: '123' } },
+        { key: 'error.conflict.wallet.name', params: { value: 'Main' }, field: 'name' },
+        { key: 'error.conflict.wallet.number', params: { value: '123' }, field: 'number' },
       ],
     })
   })
@@ -112,7 +112,7 @@ describe('describeApiError', () => {
     )
 
     expect(notice?.details).toEqual([
-      { key: 'error.conflict.wallet.name', params: { value: 'Main' } },
+      { key: 'error.conflict.wallet.name', params: { value: 'Main' }, field: 'name' },
     ])
   })
 

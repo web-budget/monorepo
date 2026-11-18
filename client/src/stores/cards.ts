@@ -13,6 +13,7 @@ export const useCardsStore = defineStore('cards', () => {
     pageResponse: resource.pageResponse,
     loading: resource.loading,
     findAll: resource.findAll,
+    count: resource.count,
     findOne: resource.findOne,
     create: resource.create,
     update: resource.update,

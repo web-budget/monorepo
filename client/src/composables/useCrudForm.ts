@@ -1,52 +1,117 @@
 import type { FormContext, GenericObject } from 'vee-validate'
-import { onMounted } from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import { useNotification } from '@/composables/useNotification'
 import { useServerErrors } from '@/composables/useServerErrors'
+import { isPublicRoute } from '@/router/publicRoutes'
+
+type Resettable<Values extends GenericObject, Output extends GenericObject> = NonNullable<
+  Parameters<FormContext<Values, Output>['resetForm']>[0]
+>['values']
 
 interface CrudFormOptions<Values extends GenericObject, Output extends GenericObject, Entity> {
   routeName: string
-  notices: { created: string; updated: string }
+  entity: string
   id: () => string | undefined
-  form: Pick<FormContext<Values, Output>, 'handleSubmit' | 'setValues' | 'resetForm'>
+  form: Pick<FormContext<Values, Output>, 'handleSubmit' | 'resetForm' | 'values' | 'meta'>
   findOne: (id: string) => Promise<Entity>
   toFormValues: (entity: Entity) => Parameters<FormContext<Values, Output>['setValues']>[0]
-  create: (values: Output) => Promise<void>
+  create: (values: Output) => Promise<string>
   update: (id: string, values: Output) => Promise<unknown>
   confirm?: (updating: boolean) => Promise<boolean>
+  redirectToDetail?: boolean
+}
+
+function focusFirstInvalidControl() {
+  document.querySelector<HTMLElement>('form [aria-invalid="true"]')?.focus()
 }
 
 export function useCrudForm<Values extends GenericObject, Output extends GenericObject, Entity>(
   options: CrudFormOptions<Values, Output, Entity>,
 ) {
   const router = useRouter()
+  const { confirmDiscard } = useConfirmDialog()
   const { showSuccess } = useNotification()
-  const { messages, run } = useServerErrors()
+  const { messages, fields, clearFields, run } = useServerErrors()
+
+  const submitting = ref(false)
+  const saved = ref(false)
+  const loadingRecord = ref(false)
+  const dirty = computed(() => options.form.meta.value.dirty)
 
   function changeToList() {
     return router.push({ name: options.routeName })
   }
 
   async function load(id: string) {
-    options.form.setValues(options.toFormValues(await options.findOne(id)))
+    loadingRecord.value = true
+    try {
+      const values = options.toFormValues(await options.findOne(id))
+      options.form.resetForm({ values: values as Resettable<Values, Output> })
+    } finally {
+      loadingRecord.value = false
+    }
   }
 
-  const onSubmit = options.form.handleSubmit((values) =>
-    run(async () => {
-      const id = options.id()
-      if (options.confirm && !(await options.confirm(id !== undefined))) {
-        return
+  function recordName(): string {
+    const value = options.form.values.name
+    return typeof value === 'string' ? value : ''
+  }
+
+  async function finish(id: string | undefined, updating: boolean) {
+    if (!options.redirectToDetail) {
+      options.form.resetForm(
+        updating ? { values: options.form.values as Resettable<Values, Output> } : undefined,
+      )
+      return
+    }
+    saved.value = true
+    await (id
+      ? router.push({ name: `${options.routeName}.detail`, params: { id } })
+      : changeToList())
+  }
+
+  async function save(values: Output) {
+    const id = options.id()
+    const updating = id !== undefined
+    if (options.confirm && !(await options.confirm(updating))) {
+      return
+    }
+    let savedId: string
+    if (updating) {
+      await options.update(id, values)
+      savedId = id
+    } else {
+      savedId = await options.create(values)
+    }
+    const kind = updating ? 'updated' : 'created'
+    showSuccess(`${options.entity}.toast.${kind}`, `${options.entity}.toast.${kind}-detail`, true, {
+      name: recordName(),
+    })
+    await finish(savedId, updating)
+  }
+
+  const onSubmit = options.form.handleSubmit(
+    async (values) => {
+      submitting.value = true
+      try {
+        await run(() => save(values))
+      } finally {
+        submitting.value = false
       }
-      if (id !== undefined) {
-        await options.update(id, values)
-        showSuccess('notification.record-updated', options.notices.updated)
-      } else {
-        await options.create(values)
-        showSuccess('notification.record-created', options.notices.created)
-        options.form.resetForm()
-      }
-    }),
+    },
+    () => nextTick(focusFirstInvalidControl),
   )
+
+  const removeGuard = router.beforeEach((to) => {
+    if (saved.value || !dirty.value || isPublicRoute(to)) {
+      return true
+    }
+    return confirmDiscard(recordName())
+  })
+
+  watch(() => options.form.values, clearFields, { deep: true })
 
   onMounted(() => {
     const id = options.id()
@@ -55,5 +120,7 @@ export function useCrudForm<Values extends GenericObject, Output extends Generic
     }
   })
 
-  return { messages, changeToList, onSubmit, run }
+  onBeforeUnmount(removeGuard)
+
+  return { messages, fields, submitting, loadingRecord, dirty, changeToList, onSubmit, run }
 }

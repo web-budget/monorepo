@@ -1,4 +1,5 @@
 import { apiClient } from './client'
+import { createdId } from './createdId'
 import type {
   ClassificationListView,
   ClassificationView,
@@ -21,8 +22,8 @@ export const classificationsApi = {
     return apiClient.get<ClassificationView>(`${PATH}/${id}`).then((r) => r.data)
   },
 
-  create(form: ClassificationCreateForm): Promise<void> {
-    return apiClient.post(PATH, form).then(() => undefined)
+  create(form: ClassificationCreateForm): Promise<string> {
+    return apiClient.post(PATH, form).then(createdId)
   },
 
   update(id: string, form: ClassificationUpdateForm): Promise<ClassificationView> {

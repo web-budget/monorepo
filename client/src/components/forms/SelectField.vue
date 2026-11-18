@@ -15,15 +15,17 @@ withDefaults(
     options: { label: string; value: string }[]
     placeholder?: string
     disabled?: boolean
+    required?: boolean
+    class?: string
   }>(),
-  { placeholder: undefined, disabled: false },
+  { placeholder: undefined, disabled: false, required: false, class: undefined },
 )
 </script>
 
 <template>
   <FormField v-slot="{ componentField }" :name="name">
-    <FormItem>
-      <FormLabel>{{ label }}</FormLabel>
+    <FormItem :class="$props.class">
+      <FormLabel :required="required">{{ label }}</FormLabel>
       <Select v-bind="componentField" :disabled="disabled">
         <FormControl>
           <SelectTrigger class="w-full">

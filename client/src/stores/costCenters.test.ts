@@ -56,7 +56,7 @@ describe('useCostCentersStore', () => {
   it('keeps the cost center being viewed and edited', async () => {
     vi.mocked(costCentersApi.findById).mockResolvedValue(view)
     vi.mocked(costCentersApi.update).mockResolvedValue({ ...view, active: false })
-    vi.mocked(costCentersApi.create).mockResolvedValue()
+    vi.mocked(costCentersApi.create).mockResolvedValue('new-id')
     vi.mocked(costCentersApi.remove).mockResolvedValue()
     const store = useCostCentersStore()
 

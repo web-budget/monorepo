@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { ApiError } from '@/api/client'
 import { useServerErrors } from '@/composables/useServerErrors'
+import { isHandled } from '@/utils/handledErrors'
 
 describe('useServerErrors', () => {
   it('reports success and keeps no message', async () => {
@@ -21,6 +22,40 @@ describe('useServerErrors', () => {
 
     expect(result).toBe(false)
     expect(messages.value).toEqual(['Nome "Main" já esta em uso'])
+  })
+
+  it('names the fields the server says are in conflict and forgets them on the next run', async () => {
+    const { fields, run } = useServerErrors()
+
+    await run(() =>
+      Promise.reject(
+        new ApiError({ error: 'conflict', parameters: { 'card.last-four-digits': '1234' } }, 409),
+      ),
+    )
+    expect(fields.value).toEqual(['lastFourDigits'])
+
+    await run(() => Promise.resolve())
+    expect(fields.value).toEqual([])
+  })
+
+  it('drops the marks of the fields on demand', async () => {
+    const { fields, clearFields, run } = useServerErrors()
+    await run(() =>
+      Promise.reject(new ApiError({ error: 'conflict', parameters: { 'wallet.name': 'A' } }, 409)),
+    )
+
+    clearFields()
+
+    expect(fields.value).toEqual([])
+  })
+
+  it('marks the error as handled so no toast repeats it', async () => {
+    const { run } = useServerErrors()
+    const failure = new ApiError(null, 500)
+
+    await run(() => Promise.reject(failure))
+
+    expect(isHandled(failure)).toBe(true)
   })
 
   it('translates a detail that has no parameters', async () => {
