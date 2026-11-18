@@ -1,16 +1,11 @@
 <script setup lang="ts">
-import { Loader2 } from 'lucide-vue-next'
-import { storeToRefs } from 'pinia'
-import { useForm } from 'vee-validate'
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { ApiError } from '@/api/client'
-import PasswordInput from '@/components/forms/PasswordInput.vue'
-import { Button } from '@/components/ui/button'
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
-import { Input } from '@/components/ui/input'
+import CredentialsStep, { type CredentialsFailure } from '@/components/auth/CredentialsStep.vue'
+import { useAuthConfig } from '@/composables/useAuthConfig'
 import { useNotification } from '@/composables/useNotification'
-import { loginFormSchema } from '@/schemas/loginSchema'
+import type { LoginFormValues } from '@/schemas/loginSchema'
 import { useAuthStore } from '@/stores/auth'
 import { describeApiError } from '@/utils/apiErrorNotice'
 import { queryValue } from '@/utils/queryValue'
@@ -19,35 +14,42 @@ import { safeRedirect } from '@/utils/safeRedirect'
 const route = useRoute()
 const router = useRouter()
 const auth = useAuthStore()
-const { loading } = storeToRefs(auth)
-const { showError, showWarn } = useNotification()
+const { googleAuthEnabled } = useAuthConfig()
+const { showWarn } = useNotification()
 
 const SESSION_END_REASONS = ['inactivity', 'expired']
+const TOO_MANY_REQUESTS = 429
 
-const { handleSubmit } = useForm({
-  validationSchema: loginFormSchema,
-  initialValues: { email: '', password: '' },
-})
+const failure = ref<CredentialsFailure | null>(null)
+const signingIn = ref(false)
 
 async function goAfterLogin() {
   await router.push(safeRedirect(route.query.redirect) ?? { name: 'home' })
 }
 
-function notifyFailure(error: unknown) {
-  if (error instanceof ApiError && describeApiError(error) === null) {
-    showError('error.login.detail', 'error.login.description')
+function failureOf(error: unknown): CredentialsFailure | null {
+  if (!(error instanceof ApiError)) {
+    return null
   }
+  if (error.status === TOO_MANY_REQUESTS) {
+    return 'rate-limit'
+  }
+  return describeApiError(error) === null ? 'credentials' : null
 }
 
-const submit = handleSubmit(async (values) => {
+async function submit(values: LoginFormValues) {
+  failure.value = null
+  signingIn.value = true
   try {
     await auth.login(values)
   } catch (error) {
-    notifyFailure(error)
+    failure.value = failureOf(error)
     return
+  } finally {
+    signingIn.value = false
   }
   await goAfterLogin()
-})
+}
 
 function notifySessionEnded() {
   const reason = queryValue(route.query.reason)
@@ -68,44 +70,10 @@ onMounted(async () => {
 </script>
 
 <template>
-  <h1 class="text-muted-foreground mb-8 text-center font-medium">{{ $t('login.title') }}</h1>
-  <form class="grid gap-6" novalidate @submit="submit">
-    <FormField v-slot="{ componentField }" name="email">
-      <FormItem>
-        <FormLabel>{{ $t('login.form.email') }}</FormLabel>
-        <FormControl>
-          <Input
-            type="email"
-            autocomplete="username"
-            :placeholder="$t('login.form.email-placeholder')"
-            v-bind="componentField"
-          />
-        </FormControl>
-        <FormMessage />
-      </FormItem>
-    </FormField>
-    <FormField v-slot="{ componentField }" name="password">
-      <FormItem>
-        <FormLabel>{{ $t('login.form.password') }}</FormLabel>
-        <FormControl>
-          <PasswordInput
-            autocomplete="current-password"
-            :placeholder="$t('login.form.password-placeholder')"
-            v-bind="componentField"
-          />
-        </FormControl>
-        <FormMessage />
-      </FormItem>
-    </FormField>
-    <Button type="submit" class="w-full" :disabled="loading">
-      <Loader2 v-if="loading" class="animate-spin" />
-      {{ $t('login.form.sign-in') }}
-    </Button>
-    <RouterLink
-      :to="{ name: 'forgot-password' }"
-      class="text-primary text-center text-sm font-medium hover:underline"
-    >
-      {{ $t('login.form.forgot-password') }}
-    </RouterLink>
-  </form>
+  <CredentialsStep
+    :loading="signingIn"
+    :failure="failure"
+    :google-enabled="googleAuthEnabled"
+    @submit="submit"
+  />
 </template>

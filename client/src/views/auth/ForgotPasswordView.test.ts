@@ -1,21 +1,11 @@
 import { mount } from '@vue/test-utils'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
-import { toast } from 'vue-sonner'
 import { ApiError } from '@/api/client'
 import { installZodErrorMap } from '@/schemas/zodErrorMap'
 import { useAccountStore } from '@/stores/account'
 import { createTestPlugins } from '@/test/mounting'
 import { settle } from '@/test/settle'
 import ForgotPasswordView from '@/views/auth/ForgotPasswordView.vue'
-
-vi.mock('vue-sonner', () => ({
-  toast: {
-    success: vi.fn<() => void>(),
-    info: vi.fn<() => void>(),
-    warning: vi.fn<() => void>(),
-    error: vi.fn<() => void>(),
-  },
-}))
 
 async function render(loading = false) {
   const { router, plugins } = createTestPlugins({
@@ -49,9 +39,9 @@ describe('ForgotPasswordView', () => {
   it('renders the email field and a way back to the login', async () => {
     const { wrapper } = await render()
 
-    expect(wrapper.text()).toContain('Recuperar senha')
+    expect(wrapper.find('h1').text()).toBe('Esqueci a senha')
     expect(wrapper.find('input[type="email"]').exists()).toBe(true)
-    expect(wrapper.find('a[href="/login"]').text()).toBe('Voltar')
+    expect(wrapper.find('a[href="/login"]').text()).toBe('Voltar para o login')
   })
 
   it('validates the email before sending', async () => {
@@ -63,17 +53,16 @@ describe('ForgotPasswordView', () => {
     expect(account.forgotPassword).not.toHaveBeenCalled()
   })
 
-  it('requests the recovery, confirms it and clears the form', async () => {
+  it('requests the recovery and tells the user to check the inbox', async () => {
     const { wrapper, account } = await render()
 
     await submit(wrapper, 'ana@example.com')
 
     expect(account.forgotPassword).toHaveBeenCalledWith({ email: 'ana@example.com' })
-    expect(toast.success).toHaveBeenCalledWith('Sucesso!', {
-      description: 'Solicitação realizada, aguarde pelo email de recuperação',
-      duration: 4000,
-    })
-    expect((wrapper.find('input[type="email"]').element as HTMLInputElement).value).toBe('')
+    expect(wrapper.find('h1').text()).toBe('Confira seu e-mail')
+    expect(wrapper.text()).toContain('ana@example.com')
+    expect(wrapper.find('form').exists()).toBe(false)
+    expect(wrapper.find('a[href="/login"]').text()).toBe('Voltar para o login')
   })
 
   it('keeps the form when the request fails', async () => {
@@ -82,7 +71,7 @@ describe('ForgotPasswordView', () => {
 
     await submit(wrapper, 'ana@example.com')
 
-    expect(toast.success).not.toHaveBeenCalled()
+    expect(wrapper.find('h1').text()).toBe('Esqueci a senha')
     expect((wrapper.find('input[type="email"]').element as HTMLInputElement).value).toBe(
       'ana@example.com',
     )
@@ -91,6 +80,8 @@ describe('ForgotPasswordView', () => {
   it('disables the button while the request runs', async () => {
     const { wrapper } = await render(true)
 
-    expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBeDefined()
+    const button = wrapper.find('button[type="submit"]')
+    expect(button.attributes('disabled')).toBeDefined()
+    expect(button.text()).toBe('Enviando…')
   })
 })

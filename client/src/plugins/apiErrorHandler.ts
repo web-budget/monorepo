@@ -8,6 +8,8 @@ import { describeApiError } from '@/utils/apiErrorNotice'
 
 const LOGIN_REJECTIONS = new Set(['invalid-credentials', 'account-disabled'])
 
+const LOGIN_RATE_LIMIT = 'too_many_login_attempts'
+
 function isSilent(error: ApiError): boolean {
   return (error.cause as AxiosError | undefined)?.config?.silent === true
 }
@@ -31,6 +33,9 @@ async function handleUnauthenticated(error: ApiError, router: Router) {
 async function handleApiError(error: ApiError, router: Router) {
   if (error.status === 401) {
     await handleUnauthenticated(error, router)
+    return
+  }
+  if (error.status === 429 && error.error === LOGIN_RATE_LIMIT) {
     return
   }
   if (error.status === 403 && error.error === 'forbidden') {

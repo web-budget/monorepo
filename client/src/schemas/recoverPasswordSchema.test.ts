@@ -7,24 +7,29 @@ describe('recoverPasswordFormSchema', () => {
     installZodErrorMap()
   })
 
-  it('accepts matching passwords', async () => {
+  it('accepts matching passwords that meet the requirements', async () => {
     const result = await recoverPasswordFormSchema.parse({
-      password: 'secret',
-      confirmation: 'secret',
+      password: 'Caderno1',
+      confirmation: 'Caderno1',
     })
 
     expect(result.errors).toEqual([])
   })
 
-  it('requires at least three characters', async () => {
-    const result = await recoverPasswordFormSchema.parse({ password: 'ab', confirmation: 'ab' })
+  it('requires a password that meets the requirements', async () => {
+    const result = await recoverPasswordFormSchema.parse({
+      password: 'caderno',
+      confirmation: 'caderno',
+    })
 
-    expect(result.errors).toEqual([{ path: 'password', errors: ['Informe ao menos 3 caracteres'] }])
+    expect(result.errors).toEqual([
+      { path: 'password', errors: ['A senha não atende aos requisitos'] },
+    ])
   })
 
   it('rejects a confirmation that differs from the password', async () => {
     const result = await recoverPasswordFormSchema.parse({
-      password: 'secret',
+      password: 'Caderno1',
       confirmation: 'other',
     })
 
