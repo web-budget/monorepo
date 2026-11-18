@@ -16,7 +16,7 @@ const props = withDefaults(
     }
   >(),
   {
-    size: 'icon',
+    size: 'icon-sm',
   },
 )
 

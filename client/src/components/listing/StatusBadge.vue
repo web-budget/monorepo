@@ -5,8 +5,7 @@ const props = withDefaults(defineProps<{ active?: boolean }>(), { active: false 
 </script>
 
 <template>
-  <Badge v-if="props.active" class="bg-emerald-600 text-white dark:bg-emerald-700">
-    {{ $t('status.active') }}
+  <Badge variant="neutral" :class="{ 'opacity-70': !props.active }">
+    {{ props.active ? $t('status.active') : $t('status.inactive') }}
   </Badge>
-  <Badge v-else variant="destructive">{{ $t('status.inactive') }}</Badge>
 </template>

@@ -99,11 +99,7 @@ function resetFilter() {
     <Button type="button" class="md:w-32" @click="fireFilterChange()">
       {{ $t('search-control.actions.search') }}
     </Button>
-    <Button
-      type="button"
-      class="bg-emerald-600 text-white hover:bg-emerald-700 md:w-32"
-      @click="emit('onNew')"
-    >
+    <Button type="button" class="md:w-32" @click="emit('onNew')">
       {{ $t('search-control.actions.new') }}
     </Button>
   </div>
