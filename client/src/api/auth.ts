@@ -1,5 +1,5 @@
 import { apiClient } from './client'
-import type { LoginRequest, SessionResponse } from '@/types'
+import type { AuthConfigResponse, LoginRequest, SessionResponse } from '@/types'
 
 export const authApi = {
   login(credentials: LoginRequest): Promise<SessionResponse> {
@@ -8,6 +8,10 @@ export const authApi = {
 
   fetchSession(): Promise<SessionResponse> {
     return apiClient.get<SessionResponse>('/auth/session', { silent: true }).then((r) => r.data)
+  },
+
+  fetchConfig(): Promise<AuthConfigResponse> {
+    return apiClient.get<AuthConfigResponse>('/auth/config', { silent: true }).then((r) => r.data)
   },
 
   logout(options: { silent?: boolean } = {}): Promise<void> {

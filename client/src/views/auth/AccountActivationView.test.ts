@@ -29,18 +29,17 @@ describe('AccountActivationView', () => {
     await flushPromises()
 
     expect(account.activate).toHaveBeenCalledWith({ token: 'abc', email: 'ana@example.com' })
-    expect(wrapper.find('[role="status"]').text()).toBe('Conta ativada com sucesso!')
-    expect(wrapper.find('[role="status"]').classes()).not.toContain('text-destructive')
+    expect(wrapper.find('h1').text()).toBe('Conta ativada')
+    expect(wrapper.text()).toContain('ana@example.com')
+    expect(wrapper.find('a[href="/login"]').text()).toBe('Ir para o login')
   })
 
-  it('explains the failure when the token is not accepted', async () => {
+  it('explains the failure when the link is not accepted', async () => {
     const { wrapper } = await render(() => Promise.reject(new ApiError(null, 400)))
     await flushPromises()
 
-    expect(wrapper.find('[role="status"]').text()).toBe(
-      'Token inválido ou expirado, entre em contato com o administrador',
-    )
-    expect(wrapper.find('[role="status"]').classes()).toContain('text-destructive')
+    expect(wrapper.find('h1').text()).toBe('Link inválido ou expirado')
+    expect(wrapper.find('a[href="/login"]').text()).toBe('Voltar para o login')
   })
 
   it('still tries to activate when the link carries no parameters', async () => {
@@ -48,11 +47,5 @@ describe('AccountActivationView', () => {
     await flushPromises()
 
     expect(account.activate).toHaveBeenCalledWith({ token: '', email: '' })
-  })
-
-  it('links back to the login', async () => {
-    const { wrapper } = await render(() => Promise.resolve())
-
-    expect(wrapper.find('a[href="/login"]').text()).toBe('Voltar ao login')
   })
 })

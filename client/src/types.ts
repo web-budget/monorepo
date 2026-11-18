@@ -39,6 +39,10 @@ export interface LoginRequest {
   password: string
 }
 
+export interface AuthConfigResponse {
+  googleAuthEnabled: boolean
+}
+
 export interface SessionResponse {
   name: string
   email: string
