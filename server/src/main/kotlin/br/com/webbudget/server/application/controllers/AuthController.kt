@@ -1,5 +1,7 @@
 package br.com.webbudget.server.application.controllers
 
+import br.com.webbudget.server.application.payloads.AuthConfigView
+import br.com.webbudget.server.application.payloads.GoogleLinkForm
 import br.com.webbudget.server.application.payloads.LoginForm
 import br.com.webbudget.server.application.payloads.LoginStepView
 import br.com.webbudget.server.application.payloads.RegisterForm
@@ -11,9 +13,11 @@ import br.com.webbudget.server.application.payloads.TrustedDeviceView
 import br.com.webbudget.server.domain.entities.administration.Language
 import br.com.webbudget.server.domain.services.administration.AccountRegistrationService
 import br.com.webbudget.server.domain.services.administration.AuthService
+import br.com.webbudget.server.domain.services.administration.GoogleLinkResult
 import br.com.webbudget.server.domain.services.administration.LoginResult
 import br.com.webbudget.server.domain.services.administration.TrustedDeviceService
 import br.com.webbudget.server.infrastructure.config.security.ClientIpResolver
+import br.com.webbudget.server.infrastructure.config.security.GoogleAuthProperties
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
@@ -34,7 +38,8 @@ class AuthController(
     private val authService: AuthService,
     private val clientIpResolver: ClientIpResolver,
     private val accountRegistrationService: AccountRegistrationService,
-    private val trustedDeviceService: TrustedDeviceService
+    private val trustedDeviceService: TrustedDeviceService,
+    private val googleAuthProperties: GoogleAuthProperties
 ) {
 
     @PostMapping("/login")
@@ -58,6 +63,31 @@ class AuthController(
             is LoginResult.Authenticated -> ResponseEntity.ok(SessionView.from(result.user))
             is LoginResult.EnrollmentRequired -> ResponseEntity.status(HttpStatus.ACCEPTED).body(LoginStepView.NEEDS_ENROLLMENT)
             is LoginResult.TotpRequired -> ResponseEntity.status(HttpStatus.ACCEPTED).body(LoginStepView.NEEDS_TOTP)
+        }
+    }
+
+    @GetMapping("/config")
+    fun config(): ResponseEntity<AuthConfigView> = ResponseEntity.ok(AuthConfigView(googleAuthProperties.enabled))
+
+    @PostMapping("/google/link")
+    fun linkGoogleAccount(
+        @RequestBody @Valid form: GoogleLinkForm,
+        request: HttpServletRequest,
+        response: HttpServletResponse
+    ): ResponseEntity<*> {
+
+        val result = authService.linkGoogleAccount(
+            form.linkToken!!,
+            form.password!!,
+            form.totpCode,
+            clientIpResolver.resolve(request),
+            request,
+            response
+        )
+
+        return when (result) {
+            is GoogleLinkResult.Linked -> ResponseEntity.ok(SessionView.from(result.user))
+            is GoogleLinkResult.TotpRequired -> ResponseEntity.status(HttpStatus.ACCEPTED).body(LoginStepView.NEEDS_TOTP)
         }
     }
 

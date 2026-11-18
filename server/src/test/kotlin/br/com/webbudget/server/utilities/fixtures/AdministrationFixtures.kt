@@ -10,7 +10,7 @@ fun createUser(
     active: Boolean = false,
     name: String = "User",
     email: String = "user@test.com",
-    password: String = "s3cr3t",
+    password: String? = "s3cr3t",
     language: Language = PT_BR,
     vararg roles: String
 ) = User(

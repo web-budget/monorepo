@@ -1,6 +1,7 @@
 package br.com.webbudget.server.application.controllers
 
 import br.com.webbudget.server.BaseIntegrationTest
+import br.com.webbudget.server.TotpAndGoogleEnabled
 import br.com.webbudget.server.domain.entities.administration.User
 import br.com.webbudget.server.domain.services.administration.TotpService
 import br.com.webbudget.server.domain.services.administration.UserService
@@ -20,19 +21,12 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
-import org.springframework.test.context.TestPropertySource
 import org.springframework.test.web.servlet.client.RestTestClient.ResponseSpec
 import java.time.LocalDateTime
 import java.util.UUID
 import java.util.concurrent.atomic.AtomicInteger
 
-@TestPropertySource(
-    properties = [
-        "web-budget.security.totp.required=true",
-        "web-budget.security.totp.lockout.max-attempts=3",
-        "web-budget.security.ip-lockout.max-attempts=5"
-    ]
-)
+@TotpAndGoogleEnabled
 class TotpAuthenticationTest : BaseIntegrationTest() {
 
     @Autowired

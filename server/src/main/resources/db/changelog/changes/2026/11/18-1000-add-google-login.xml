@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <changeSet id="18-1000-1" author="${claude}">
+        <sql>
+            ALTER TABLE administration.users
+                ALTER COLUMN password DROP NOT NULL,
+                ADD COLUMN google_sub varchar(255),
+                ADD CONSTRAINT users_google_sub_key UNIQUE (google_sub),
+                ADD CONSTRAINT ck_users_on_password_or_google CHECK (auth_provider = 'GOOGLE' OR password IS NOT NULL);
+        </sql>
+        <rollback>
+            <sql>
+                ALTER TABLE administration.users
+                    DROP CONSTRAINT ck_users_on_password_or_google,
+                    DROP CONSTRAINT users_google_sub_key,
+                    DROP COLUMN google_sub;
+                UPDATE administration.users SET password = '' WHERE password IS NULL;
+                ALTER TABLE administration.users ALTER COLUMN password SET NOT NULL;
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

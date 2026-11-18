@@ -51,6 +51,21 @@ data class TotpVerifyForm(
     val code: String?
 )
 
+data class GoogleLinkForm(
+    @field:NotBlank(message = IS_NULL_OR_BLANK)
+    @field:Size(max = MAX_LINK_TOKEN_LENGTH, message = MAX_CHARS)
+    val linkToken: String?,
+    @field:NotBlank(message = IS_NULL_OR_BLANK)
+    @field:Size(max = MAX_PASSWORD_LENGTH, message = MAX_CHARS)
+    val password: String?,
+    @field:Size(max = MAX_TOTP_CODE_LENGTH, message = MAX_CHARS)
+    val totpCode: String? = null
+)
+
+data class AuthConfigView(
+    val googleAuthEnabled: Boolean
+)
+
 data class LoginStepView(
     val status: String
 ) {
@@ -105,6 +120,7 @@ private const val MAX_NAME_LENGTH = 100
 private const val MAX_EMAIL_LENGTH = 254
 private const val MAX_PASSWORD_LENGTH = 128
 private const val MAX_TOTP_CODE_LENGTH = 16
+private const val MAX_LINK_TOKEN_LENGTH = 128
 private const val MAX_REGISTRATION_PASSWORD_BYTES = 72
 
 data class SessionView(

@@ -42,7 +42,7 @@ class UserService(
 
         creationValidators.forEach { it.validate(user) }
 
-        user.password = passwordEncoder.encode(user.password)!!
+        user.password = passwordEncoder.encode(requireNotNull(user.password) { "user.errors.null-password" })!!
 
         val saved = userRepository.insert(user)
 
@@ -53,6 +53,18 @@ class UserService(
         }
 
         return saved.externalId!!
+    }
+
+    @Transactional
+    fun createGoogleAccount(user: User): User {
+
+        creationValidators.forEach { it.validate(user) }
+
+        val saved = userRepository.insert(user)
+
+        accountMailNotifier.notifyPendingApproval(saved)
+
+        return saved
     }
 
     @Transactional
