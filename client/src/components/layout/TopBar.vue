@@ -2,6 +2,8 @@
 import { LogOut, Moon, Sun, User } from 'lucide-vue-next'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
+import BrandMark from '@/components/brand/BrandMark.vue'
+import BrandWordmark from '@/components/brand/BrandWordmark.vue'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -42,8 +44,9 @@ const currentSection = computed(() =>
       <Separator orientation="vertical" class="mr-2 h-4" />
     </template>
 
-    <RouterLink to="/" class="text-lg">
-      <span class="font-light">web</span><span class="font-bold">Budget</span>
+    <RouterLink to="/" class="flex items-center gap-2 text-base">
+      <BrandMark :size="24" />
+      <BrandWordmark />
     </RouterLink>
 
     <nav :aria-label="$t('layout.main-menu')" class="ml-6 hidden items-center gap-1 md:flex">

@@ -132,7 +132,8 @@ Os componentes se organizam pelo papel, não pela view que primeiro precisou del
 
 | Pasta | O que tem |
 |---|---|
-| `components/ui/` | os primitivos do shadcn-vue, gerados pela CLI. Não escreva testes para eles (ficam fora da cobertura) e evite editá-los à mão |
+| `components/ui/` | os primitivos do shadcn-vue, já ajustados ao Caderno verde (veja [Estilos](#estilos)). Não escreva testes para eles (ficam fora da cobertura). **Estão editados à mão:** rodar `shadcn-vue add` sobre um que já existe sobrescreve as variantes do design, então confira o diff e refaça o ajuste |
+| `components/brand/` | `BrandMark` (o símbolo “wB”, com a prop `size`) e `BrandWordmark` (“web” em cinza e “Budget” com o `marker`; herda o tamanho da fonte de quem o usa) |
 | `components/layout/` | o shell: `TopBar`, `SideMenu`, `MenuItem`, `PageBreadcrumb`, `PageFooter`, os layouts por seção (`HomeLayout`, `RegistrationLayout`, `FinancialLayout`, `ConfigurationLayout`, `AuthLayout`) e o tipo `menu.ts` |
 | `components/` (raiz) | `PageStructure` (a moldura com barra superior, menu lateral, breadcrumb e rodapé) e `ErrorPage` |
 | `components/listing/` | `ItemsTable`, `SearchControls`, `ActionButtons`, `StatusBadge`, `PeriodStatusBadge` |
@@ -147,7 +148,8 @@ Um componente reutilizável e só de apresentação vai num diretório compartil
 - `SearchControls`: os mesmos `v-model:status` e `v-model:filter` e os eventos `onFilterChange`, `onFilterReset` e `onNew`.
 - `ActionButtons`: `onEdit` e `onDelete`.
 - `StatusToggle`: recebe só o `name` e se liga ao formulário pelo `useField` do vee-validate, então vai dentro de um `useForm`.
-- `CurrencyDisplay` mostra `R$ 0,00` para o zero (a v4 não mostrava nada); `null` só mostra algo com `zeroIfNull`.
+- `CurrencyDisplay` mostra `R$ 0,00` para o zero (a v4 não mostrava nada); `null` só mostra algo com `zeroIfNull`. Sai sempre em `font-mono tabular-nums`. Com `signed`, o valor ganha `+ ` ou `− ` (U+2212) e a cor de receita (`text-income`) ou de despesa (`text-expense`); o zero fica sem sinal e sem cor. Use `signed` onde o valor é movimento de dinheiro: a cor sozinha nunca basta.
+- `StatusBadge` usa o `Badge` neutro (inativo com `opacity-70`) e `PeriodStatusBadge` usa `approved`, `pending` e `neutral` para ativo, encerrado e contabilizado.
 
 ### Layout e rotas
 
@@ -244,9 +246,14 @@ As rotas públicas ficam em `router/publicRoutes.ts`. O login é `/login`; esque
 
 ## Estilos
 
-O estilo é o padrão neutro do shadcn-vue sobre o Tailwind 4, sem arquivo de configuração em JavaScript: o plugin `@tailwindcss/vite` está no `vite.config.ts` e o `src/assets/theme.css` importa o Tailwind e define os tokens (`--background`, `--primary`, `--sidebar` e companhia) para o claro e o escuro, mais o `@theme inline` que os expõe como classes. Mexer no visual é mexer nos tokens desse arquivo; o design novo vem no épico #33.
+O estilo é o **Caderno verde** (#66, #73), sobre o Tailwind 4, sem arquivo de configuração em JavaScript: o plugin `@tailwindcss/vite` está no `vite.config.ts` e o `src/assets/theme.css` importa o Tailwind e define os tokens (`--background`, `--primary`, `--sidebar` e companhia) para o claro e o escuro, mais o `@theme inline` que os expõe como classes. Mexer no visual é mexer nos tokens desse arquivo; entre os temas só mudam luminosidade e croma, nunca o matiz. Os mockups (linguagem visual, shell, login, usuários e listagem/formulário/detalhe) estão linkados na #73 e na #66.
 
-- **Use os tokens, não cores fixas.** `bg-background`, `text-muted-foreground`, `border` e afins trocam sozinhos com o tema. Uma cor fixa (como o verde do `StatusBadge`) precisa de uma variante `dark:`.
+- **A linguagem:** IBM Plex Sans na interface e IBM Plex Mono nos valores, datas, códigos e na marca; raio de 3px (`--radius`), bordas de 1px, controles de 36px (`h-9`), linhas de tabela de 40px e escala de 4px. Sombra só em menu, popover, toast e diálogo; cartão não tem sombra. Ícones Lucide em 16px, com o traço de 1,75 aplicado por `svg.lucide` no `theme.css`, sempre ao lado de texto.
+- **Fontes pelo bundle:** `@fontsource-variable/ibm-plex-sans` e `@fontsource/ibm-plex-mono` (400, 500 e 600), importados no `main.ts`. Não use Google Fonts nem outra fonte externa.
+- **Tokens além do shadcn-vue:** `--destructive-foreground`, `--highlight` e `--highlight-foreground`, `--income`/`--income-muted` e `--expense`/`--expense-muted`. O **marca-texto** (`highlight`) só aparece no que pede atenção (usuário pendente, item ativo do menu, linha selecionada) e nunca em texto de tabela; no escuro ele escurece para o texto claro continuar legível. **Dinheiro** de receita e despesa sempre leva sinal (`+`/`−`) ou seta, nunca só a cor (veja `CurrencyDisplay` com `signed`). O utilitário `marker` desenha o traço de marca-texto atrás do texto.
+- **Variantes dos componentes** (`components/ui/`): `Button` (`default`, `secondary`, `outline`, `ghost`, `destructive`, `link`; tamanhos `sm`, `default`, `lg` e `icon`), `Badge` (`approved`, `pending` e `blocked` com o ponto, `neutral` e `outline` em mono), `Alert` (`default`, `destructive` e `attention`; o `ServerErrorAlert` é um `Alert` destrutivo), `Table` (cabeçalho em versalete de 11px, linhas de 40px; `data-state="selected"` na `TableRow` marca a linha com o marca-texto), `Switch` de cantos retos. O bloco do campo (`FormItem`) alinha pelo topo (`content-start`) para a mensagem de erro crescer para baixo sem desalinhar a linha; `Input` e `Textarea` ficam em `text-base` no celular e `text-sm` a partir de `md`, para o iOS não dar zoom ao focar.
+- **Marca:** `BrandMark` e `BrandWordmark` (`components/brand/`) seguem o tema. O `src/assets/brand/mark.svg` é o símbolo “wB” com as letras em contorno e as cores fixas, para uso fora do app; o `public/favicon.svg` usa só o “B”, porque o “wB” a 16px não se lê. Para gerar o contorno de outra palavra, converta com o opentype.js a partir do arquivo `.woff` da fonte, sem acrescentar a dependência ao projeto.
+- **Use os tokens, não cores fixas.** `bg-background`, `text-muted-foreground`, `border` e afins trocam sozinhos com o tema. Não use `text-white`, `bg-black/…` nem as cores do Tailwind (`emerald-600`): o texto sobre `destructive` é `text-destructive-foreground`, o fundo do diálogo é o `--popover`, e o status vem das variantes do `Badge`.
 - **O tema escuro é a classe `dark` no `<html>`.** O store `appearance` (`stores/appearance.ts`) guarda a escolha em `localStorage` (`webbudget.appearance`) e aplica a classe; ele é instanciado no `main.ts`, para valer também nas telas públicas. A troca fica no menu do usuário, na `TopBar`.
 - **Ícones vêm do `lucide-vue-next`.**
 - **Componente novo do shadcn-vue:** o `components.json` já está pronto, mas a CLI só acha o alias `@/*` com um `compilerOptions.paths` no `tsconfig.json` da raiz, que aqui só tem referências. Acrescente-o à mão antes do comando, rode `pnpm dlx shadcn-vue@latest add <componente>` e **desfaça o `tsconfig.json`** depois. Confira o resultado: a CLI importou o `cn` de um pacote `cn` e os ícones do `@lucide/vue` (troque por `@/lib/utils` e `lucide-vue-next` e tire os dois do `package.json`), e o código gerado vem com aspas duplas (rode o Prettier nele).
