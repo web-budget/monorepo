@@ -5,6 +5,9 @@ import br.com.webbudget.server.domain.exceptions.AccountDisabledException
 import br.com.webbudget.server.domain.exceptions.InvalidCredentialsException
 import br.com.webbudget.server.domain.security.CurrentUser
 import br.com.webbudget.server.domain.security.CurrentUserProvider
+import br.com.webbudget.server.infrastructure.config.security.AttemptKeys
+import br.com.webbudget.server.infrastructure.config.security.IpAttemptLimiter
+import br.com.webbudget.server.infrastructure.config.security.LoginAttemptLimiter
 import br.com.webbudget.server.infrastructure.config.security.toAuthorities
 import br.com.webbudget.server.infrastructure.repository.administration.UserRepository
 import jakarta.servlet.http.HttpServletRequest
@@ -21,21 +24,38 @@ import org.springframework.transaction.annotation.Transactional
 class AuthService(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
+    private val ipAttemptLimiter: IpAttemptLimiter,
+    private val loginAttemptLimiter: LoginAttemptLimiter,
     private val currentUserProvider: CurrentUserProvider,
     private val securityContextRepository: SecurityContextRepository
 ) {
 
     private val unknownUserPasswordHash: String by lazy { passwordEncoder.encode(UNKNOWN_USER_PASSWORD)!! }
 
-    fun login(email: String, password: String, request: HttpServletRequest, response: HttpServletResponse): CurrentUser {
+    fun login(
+        email: String,
+        password: String,
+        clientIp: String,
+        request: HttpServletRequest,
+        response: HttpServletResponse
+    ): CurrentUser {
+
+        val attemptKey = AttemptKeys.of(email, clientIp)
+
+        ipAttemptLimiter.checkNotLocked(clientIp)
+        loginAttemptLimiter.checkNotLocked(attemptKey)
 
         val user = userRepository.findByEmail(email)
 
         val passwordMatches = passwordEncoder.matches(password, user?.password ?: unknownUserPasswordHash)
 
         if (user == null || !passwordMatches) {
+            loginAttemptLimiter.recordFailure(attemptKey)
+            ipAttemptLimiter.recordFailure(clientIp)
             throw InvalidCredentialsException()
         }
+
+        loginAttemptLimiter.recordSuccess(attemptKey)
 
         if (!user.active || user.status == UserStatus.BLOCKED) {
             throw AccountDisabledException()

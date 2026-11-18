@@ -1,19 +1,46 @@
 package br.com.webbudget.server.application.payloads
 
 import br.com.webbudget.server.application.payloads.ErrorCodes.EMAIL_IS_INVALID
+import br.com.webbudget.server.application.payloads.ErrorCodes.HAS_CONTROL_CHARACTERS
 import br.com.webbudget.server.application.payloads.ErrorCodes.IS_NULL_OR_BLANK
+import br.com.webbudget.server.application.payloads.ErrorCodes.MAX_CHARS
+import br.com.webbudget.server.domain.entities.administration.Language
 import br.com.webbudget.server.domain.entities.administration.UserStatus
 import br.com.webbudget.server.domain.security.CurrentUser
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.Pattern
+import jakarta.validation.constraints.Size
 
 data class LoginForm(
     @field:Email(message = EMAIL_IS_INVALID)
     @field:NotBlank(message = IS_NULL_OR_BLANK)
+    @field:Size(max = MAX_EMAIL_LENGTH, message = MAX_CHARS)
     val email: String?,
     @field:NotBlank(message = IS_NULL_OR_BLANK)
+    @field:Size(max = MAX_PASSWORD_LENGTH, message = MAX_CHARS)
     val password: String?
 )
+
+data class RegisterForm(
+    @field:NotBlank(message = IS_NULL_OR_BLANK)
+    @field:Size(max = MAX_NAME_LENGTH, message = MAX_CHARS)
+    @field:Pattern(regexp = "[^\\p{Cc}\\p{Zl}\\p{Zp}]*", message = HAS_CONTROL_CHARACTERS)
+    val name: String?,
+    @field:Email(message = EMAIL_IS_INVALID)
+    @field:NotBlank(message = IS_NULL_OR_BLANK)
+    @field:Size(max = MAX_EMAIL_LENGTH, message = MAX_CHARS)
+    val email: String?,
+    @field:NotBlank(message = IS_NULL_OR_BLANK)
+    @field:MaxUtf8Bytes(max = MAX_REGISTRATION_PASSWORD_BYTES)
+    val password: String?,
+    val defaultLanguage: Language? = null
+)
+
+private const val MAX_NAME_LENGTH = 100
+private const val MAX_EMAIL_LENGTH = 254
+private const val MAX_PASSWORD_LENGTH = 128
+private const val MAX_REGISTRATION_PASSWORD_BYTES = 72
 
 data class SessionView(
     val name: String,

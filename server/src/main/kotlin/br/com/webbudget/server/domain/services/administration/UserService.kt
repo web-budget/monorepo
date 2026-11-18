@@ -1,9 +1,12 @@
 package br.com.webbudget.server.domain.services.administration
 
 import br.com.webbudget.server.domain.entities.administration.User
+import br.com.webbudget.server.domain.entities.administration.UserStatus
+import br.com.webbudget.server.domain.exceptions.InvalidUserStatusTransitionException
 import br.com.webbudget.server.domain.validators.OnCreateValidation
 import br.com.webbudget.server.domain.validators.OnUpdateValidation
 import br.com.webbudget.server.domain.validators.administration.UserValidator
+import br.com.webbudget.server.infrastructure.config.security.SelfActionGuard
 import br.com.webbudget.server.infrastructure.repository.administration.AccountActivationAttemptRepository
 import br.com.webbudget.server.infrastructure.repository.administration.GrantRepository
 import br.com.webbudget.server.infrastructure.repository.administration.PasswordRecoverAttemptRepository
@@ -21,6 +24,8 @@ class UserService(
     private val grantRepository: GrantRepository,
     private val passwordEncoder: PasswordEncoder,
     private val roleRepository: RoleRepository,
+    private val selfActionGuard: SelfActionGuard,
+    private val accountMailNotifier: AccountMailNotifier,
     private val accountActivationService: AccountActivationService,
     private val passwordRecoverAttemptRepository: PasswordRecoverAttemptRepository,
     private val accountActivationAttemptRepository: AccountActivationAttemptRepository,
@@ -51,6 +56,8 @@ class UserService(
     @Transactional
     fun updateAccount(user: User, roles: List<String>): User {
 
+        selfActionGuard.assertRolesAndActivationUnchanged(user, roles)
+
         updateValidators.forEach { it.validate(user) }
 
         val saved = userRepository.update(user)
@@ -68,9 +75,49 @@ class UserService(
         userRepository.updatePassword(user, passwordEncoder.encode(password)!!)
 
     @Transactional
+    fun resetPassword(user: User, password: String): User {
+
+        selfActionGuard.assertNotSelf(user)
+
+        return updatePassword(user, password)
+    }
+
+    @Transactional
+    fun approve(user: User): User {
+
+        requireStatus(user, UserStatus.PENDING)
+
+        val approved = userRepository.updateStatus(user, UserStatus.PENDING, UserStatus.APPROVED)
+
+        accountMailNotifier.notifyAccountApproved(approved)
+
+        return approved
+    }
+
+    @Transactional
+    fun block(user: User): User {
+
+        selfActionGuard.assertNotSelf(user)
+
+        requireStatus(user, UserStatus.APPROVED)
+
+        return userRepository.updateStatus(user, UserStatus.APPROVED, UserStatus.BLOCKED, revokeSessions = true)
+    }
+
+    @Transactional
+    fun unblock(user: User): User {
+
+        requireStatus(user, UserStatus.BLOCKED)
+
+        return userRepository.updateStatus(user, UserStatus.BLOCKED, UserStatus.APPROVED)
+    }
+
+    @Transactional
     fun deleteAccount(user: User) {
 
         require(!user.isMainAdmin()) { "user.errors.cannot-delete-admin" }
+
+        selfActionGuard.assertNotSelf(user)
 
         val userId = requireNotNull(user.id) { "user.errors.null-id" }
 
@@ -79,6 +126,12 @@ class UserService(
         accountActivationAttemptRepository.deleteByUserId(userId)
 
         userRepository.delete(user)
+    }
+
+    private fun requireStatus(user: User, expected: UserStatus) {
+        if (user.status != expected) {
+            throw InvalidUserStatusTransitionException(user.status, expected)
+        }
     }
 
     private fun grantRoles(user: User, roles: List<String>) {

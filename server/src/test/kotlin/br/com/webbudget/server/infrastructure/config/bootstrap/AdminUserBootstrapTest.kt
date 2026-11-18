@@ -61,7 +61,7 @@ class AdminUserBootstrapTest : BaseIntegrationTest() {
 
         adminUserBootstrap.run(DefaultApplicationArguments())
 
-        val admins = userRepository.findAll("admin@webbudget.com.br", null, PageRequest.of(0, 10))
+        val admins = userRepository.findAll("admin@webbudget.com.br", null, null, PageRequest.of(0, 10))
 
         assertThat(admins.content).hasSize(1)
     }
