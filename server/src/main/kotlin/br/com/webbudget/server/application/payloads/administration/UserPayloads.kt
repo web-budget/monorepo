@@ -38,6 +38,10 @@ data class UserUpdateForm(
     var roles: List<String>?
 )
 
+data class UserApproveForm(
+    val roles: List<String?>?
+)
+
 data class PasswordChangeForm(
     @field:NotNull(message = IS_NULL)
     val temporary: Boolean,

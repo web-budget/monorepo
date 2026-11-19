@@ -275,17 +275,12 @@ class AccountRegistrationTest : BaseIntegrationTest() {
 
         restTestClient.patch()
             .uri("/private/v1/administration/users/${user.externalId}/approve")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"roles": ["ADMINISTRATION"]}""")
             .exchange()
             .expectStatus().isOk
 
         assertThat(greenMail.receivedMessages.single().subject).isEqualTo("Sua conta foi aprovada")
-
-        restTestClient.put()
-            .uri("/private/v1/administration/users/${user.externalId}")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body("""{"active": true, "name": "New User", "defaultLanguage": "PT_BR", "roles": ["ADMINISTRATION"]}""")
-            .exchange()
-            .expectStatus().isOk
 
         restTestClient.get()
             .uri("/private/v1/administration/roles")

@@ -25,15 +25,7 @@ export const useUsersAdminStore = defineStore('usersAdmin', () => {
   }
 
   function approve(user: UserView, grantedRoles: string[]): Promise<void> {
-    return resource.track(async () => {
-      await usersApi.update(user.id, {
-        active: user.active,
-        name: user.name,
-        defaultLanguage: user.defaultLanguage,
-        roles: grantedRoles,
-      })
-      await usersApi.approve(user.id)
-    })
+    return resource.track(() => usersApi.approve(user.id, grantedRoles))
   }
 
   function block(id: string): Promise<void> {

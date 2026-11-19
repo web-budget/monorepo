@@ -1,8 +1,10 @@
 package br.com.webbudget.server.domain.services.administration
 
+import br.com.webbudget.server.domain.entities.administration.Role
 import br.com.webbudget.server.domain.entities.administration.User
 import br.com.webbudget.server.domain.entities.administration.UserStatus
 import br.com.webbudget.server.domain.exceptions.InvalidUserStatusTransitionException
+import br.com.webbudget.server.domain.exceptions.UnknownRolesException
 import br.com.webbudget.server.domain.validators.OnCreateValidation
 import br.com.webbudget.server.domain.validators.OnUpdateValidation
 import br.com.webbudget.server.domain.validators.administration.UserValidator
@@ -97,9 +99,16 @@ class UserService(
     }
 
     @Transactional
-    fun approve(user: User): User {
+    fun approve(user: User, roleNames: List<String>): User {
+
+        selfActionGuard.assertNotSelf(user)
 
         requireStatus(user, UserStatus.PENDING)
+
+        val roles = resolveRoles(roleNames)
+
+        grantRepository.deleteByUserId(user.id!!)
+        roles.forEach { role -> grantRepository.insert(user.id!!, role) }
 
         val approved = userRepository.updateStatus(user, UserStatus.PENDING, UserStatus.APPROVED)
 
@@ -158,6 +167,18 @@ class UserService(
         if (user.status != expected) {
             throw InvalidUserStatusTransitionException(user.status, expected)
         }
+    }
+
+    private fun resolveRoles(roleNames: List<String>): List<Role> {
+
+        val found = roleNames.distinct().associateWith { roleRepository.findByName(it) }
+        val unknown = found.filterValues { it == null }.keys
+
+        if (unknown.isNotEmpty()) {
+            throw UnknownRolesException(unknown)
+        }
+
+        return found.values.filterNotNull()
     }
 
     private fun grantRoles(user: User, roles: List<String>) {

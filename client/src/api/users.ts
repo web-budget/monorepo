@@ -47,8 +47,8 @@ export const usersApi = {
     return apiClient.patch(`${PATH}/${id}/update-password`, form).then(() => undefined)
   },
 
-  approve(id: string): Promise<void> {
-    return patch(id, 'approve')
+  approve(id: string, roles: string[]): Promise<void> {
+    return apiClient.patch(`${PATH}/${id}/approve`, { roles }).then(() => undefined)
   },
 
   block(id: string): Promise<void> {
