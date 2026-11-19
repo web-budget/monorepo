@@ -50,7 +50,7 @@ class ClassificationRepository(
 
         val content = dsl.selectFrom(classifications)
             .where(condition)
-            .orderBy(pageable.toOrderBy(sortable, classifications.ID.asc()))
+            .orderBy(pageable.toOrderBy(sortable, classifications.CREATED_ON, classifications.ID))
             .limit(pageable.pageSize)
             .offset(pageable.offset)
             .fetch { record -> record.toClassification() }
