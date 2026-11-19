@@ -83,7 +83,7 @@ class UserRepository(
 
         val records = dsl.selectFrom(users)
             .where(condition)
-            .orderBy(pageable.toOrderBy(sortable, users.ID.asc()))
+            .orderBy(pageable.toOrderBy(sortable, users.CREATED_ON, users.ID))
             .limit(pageable.pageSize)
             .offset(pageable.offset)
             .fetch()

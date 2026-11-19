@@ -140,7 +140,7 @@ class PeriodMovementControllerTest : BaseIntegrationTest() {
             .exchange()
             .expectStatus().isOk
             .expectBody()
-            .jsonPath("$.content[0].name").isEqualTo("Gym")
+            .jsonPath("$.content[0].name").isEqualTo("Groceries")
             .jsonPath("$.page.totalElements").isEqualTo(3)
     }
 

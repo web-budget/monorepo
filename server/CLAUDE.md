@@ -127,7 +127,8 @@ Os repositórios são classes `@Repository` com o `DSLContext` injetado, em `inf
 
 - `pagedModelOf(content, pageable, total)` devolve o `PagedModel<T>` que o repositório retorna. O JSON sai como `content` mais `page { size, number, totalElements, totalPages }`, o mesmo da v4.
 - `PagedModel<T>.map { }` converte as entidades em views no controller, sem o repositório conhecer o payload.
-- `Pageable.toOrderBy(sortable, tiebreaker)` traduz o `sort` da requisição para colunas conhecidas (um `Map<String, Field<*>>` por repositório) e sempre acrescenta um desempate por `id`, então a ordem é determinística. Propriedades de `sort` desconhecidas são ignoradas.
+- `Pageable.toOrderBy(sortable, createdOn, id)` traduz o `sort` da requisição para colunas conhecidas (um `Map<String, Field<*>>` por repositório) e sempre acrescenta o desempate `id desc`, então a ordem é determinística. Propriedades de `sort` desconhecidas são ignoradas.
+- **Regra de produto para toda listagem: sem `sort`, a ordem é pela data de criação, do mais recente para o mais antigo** (`created_on desc`, desempate `id desc`), e a listagem **sempre aceita `name` em `sort`**. Todo repositório paginado novo declara `name` e `createdOn` no mapa `sortable` e chama `toOrderBy(sortable, tabela.CREATED_ON, tabela.ID)`. Uma listagem não paginada que serve de lista ao usuário segue a mesma ordem; listas auxiliares (roles, dispositivos confiáveis, tentativas) ficam como estão. **Se um recurso listado não tiver o campo `name`, a ordenação alternativa se decide com o usuário: pare e pergunte, não escolha uma coluna por conta própria.** O `ListingSortOrderTest` confere a ordem padrão e o `sort=name` de cada listagem.
 - A contagem é `dsl.fetchCount(tabela, condição)` com a mesma condição da página.
 
 ### Rotas e erros
