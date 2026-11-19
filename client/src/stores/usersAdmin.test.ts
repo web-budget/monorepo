@@ -133,38 +133,23 @@ describe('useUsersAdminStore', () => {
     expect(store.user).toBeNull()
   })
 
-  it('approves a user by granting the roles first, so a failed grant leaves the account pending', async () => {
-    vi.mocked(usersApi.update).mockResolvedValue(user)
+  it('approves a user and grants the roles in a single call', async () => {
     vi.mocked(usersApi.approve).mockResolvedValue()
     const store = useUsersAdminStore()
-    const order: string[] = []
-    vi.mocked(usersApi.update).mockImplementation(() => {
-      order.push('update')
-      return Promise.resolve(user)
-    })
-    vi.mocked(usersApi.approve).mockImplementation(() => {
-      order.push('approve')
-      return Promise.resolve()
-    })
 
     await store.approve({ ...user, status: 'PENDING' }, ['FINANCIAL'])
 
-    expect(usersApi.update).toHaveBeenCalledWith('u-1', {
-      active: false,
-      name: 'Ana',
-      defaultLanguage: 'PT_BR',
-      roles: ['FINANCIAL'],
-    })
-    expect(order).toEqual(['update', 'approve'])
+    expect(usersApi.approve).toHaveBeenCalledExactlyOnceWith('u-1', ['FINANCIAL'])
+    expect(usersApi.update).not.toHaveBeenCalled()
   })
 
-  it('does not approve a user when the roles could not be granted', async () => {
-    vi.mocked(usersApi.update).mockRejectedValue(new Error('boom'))
+  it('propagates the error when the approval fails', async () => {
+    vi.mocked(usersApi.approve).mockRejectedValue(new Error('boom'))
     const store = useUsersAdminStore()
 
     await expect(store.approve(user, ['FINANCIAL'])).rejects.toThrow('boom')
 
-    expect(usersApi.approve).not.toHaveBeenCalled()
+    expect(usersApi.update).not.toHaveBeenCalled()
   })
 
   it.each([

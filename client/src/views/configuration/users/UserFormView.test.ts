@@ -440,7 +440,6 @@ describe('UserFormView', () => {
 
       it('approves a pending account choosing the areas', async () => {
         vi.mocked(usersApi.findById).mockResolvedValue({ ...existing, status: 'PENDING' })
-        vi.mocked(usersApi.update).mockResolvedValue(existing)
         vi.mocked(usersApi.approve).mockResolvedValue()
         vi.mocked(rolesApi.findAll).mockResolvedValue(['FINANCIAL', 'REGISTRATION'])
         const { wrapper } = await mountView(
@@ -458,7 +457,8 @@ describe('UserFormView', () => {
         approve.click()
         await settle()
 
-        expect(usersApi.approve).toHaveBeenCalledWith('u-2')
+        expect(usersApi.approve).toHaveBeenCalledExactlyOnceWith('u-2', existing.authorities)
+        expect(usersApi.update).not.toHaveBeenCalled()
       })
 
       it('closes the approval dialog without approving', async () => {

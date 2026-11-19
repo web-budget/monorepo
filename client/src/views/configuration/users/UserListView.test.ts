@@ -326,7 +326,6 @@ describe('UserListView', () => {
 
     it('approves a pending account choosing the areas, and reloads the list', async () => {
       const { wrapper } = await render()
-      vi.mocked(usersApi.update).mockResolvedValue(users[1]!)
       vi.mocked(usersApi.approve).mockResolvedValue()
 
       await rowOf(wrapper, 'Bruno').find('[data-slot="approve-shortcut"]').trigger('click')
@@ -338,18 +337,29 @@ describe('UserListView', () => {
       approveDialogButton('Aprovar').click()
       await settle()
 
-      expect(usersApi.update).toHaveBeenCalledWith('u-2', {
-        active: false,
-        name: 'Bruno',
-        defaultLanguage: 'EN_US',
-        roles: ['FINANCIAL', 'DASHBOARDS'],
-      })
-      expect(usersApi.approve).toHaveBeenCalledWith('u-2')
+      expect(usersApi.approve).toHaveBeenCalledExactlyOnceWith('u-2', ['FINANCIAL', 'DASHBOARDS'])
+      expect(usersApi.update).not.toHaveBeenCalled()
       expect(toast.success).toHaveBeenCalledWith('Conta aprovada', {
         description: 'Bruno já pode entrar.',
         duration: 4000,
       })
       expect(document.body.textContent).not.toContain('Aprovar a conta de Bruno?')
+    })
+
+    it('tells the user when the server refuses the areas, and leaves the list as it was', async () => {
+      const { wrapper } = await render()
+      vi.mocked(usersApi.approve).mockRejectedValue(
+        problem(400, { error: 'field-validation-failed' }),
+      )
+
+      await chooseRowAction(wrapper, 1, 'Aprovar')
+      await settle()
+      approveDialogButton('Aprovar').click()
+      await settle()
+
+      expect(wrapper.text()).toContain('Alguma informação está ausente ou inválida')
+      expect(usersApi.update).not.toHaveBeenCalled()
+      expect(toast.success).not.toHaveBeenCalled()
     })
 
     it('closes the approval dialog with Escape', async () => {
@@ -434,7 +444,6 @@ describe('UserListView', () => {
 
     it('tells the user when the account changed status meanwhile', async () => {
       const { wrapper } = await render()
-      vi.mocked(usersApi.update).mockResolvedValue(users[1]!)
       vi.mocked(usersApi.approve).mockRejectedValue(
         problem(409, { error: 'invalid-user-status-transition' }),
       )
