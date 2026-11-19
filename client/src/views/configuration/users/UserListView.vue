@@ -12,6 +12,7 @@ import SearchControls from '@/components/listing/SearchControls.vue'
 import { USER_STATUS_OPTIONS } from '@/components/listing/statusOptions'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
+import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import ApproveUserDialog from '@/components/users/ApproveUserDialog.vue'
 import ResetPasswordDialog from '@/components/users/ResetPasswordDialog.vue'
@@ -85,6 +86,13 @@ const showPendingNotice = computed(
   () => pendingCount.value > 0 && pageRequest.value.status !== 'PENDING',
 )
 
+const nobodyIsWaiting = computed(
+  () =>
+    listState.value === 'no-result' &&
+    pageRequest.value.status === 'PENDING' &&
+    pageRequest.value.filterText === '',
+)
+
 function isOwnAccount(user: UserView): boolean {
   return user.email === auth.session?.email
 }
@@ -98,13 +106,13 @@ onMounted(() => store.findRoles().catch(() => undefined))
 </script>
 
 <template>
-  <PageContainer class="mt-4 grid gap-5">
+  <PageContainer class="mt-4 grid grid-cols-1 gap-5">
     <PageHeader :title="$t('users.title')" :description="$t('users.list.description')">
       <template #actions>
         <Button type="button" @click="changeToAdd()"><Plus />{{ $t('users.form.new') }}</Button>
       </template>
     </PageHeader>
-    <div class="grid gap-3">
+    <div class="grid grid-cols-1 gap-3">
       <SearchControls
         v-model:status="pageRequest.status"
         v-model:filter="pageRequest.filterText"
@@ -127,8 +135,22 @@ onMounted(() => store.findRoles().catch(() => undefined))
         </AlertDescription>
       </Alert>
       <ServerErrorAlert :messages="[...messages, ...actionMessages]" />
+      <Card
+        v-if="nobodyIsWaiting"
+        class="grid justify-items-center gap-2 px-6 py-14 text-center"
+        data-state="no-pending"
+        role="status"
+      >
+        <span class="bg-accent text-accent-foreground grid size-11 place-content-center rounded-md">
+          <UserCheck class="size-5" />
+        </span>
+        <p class="text-base font-semibold">{{ $t('users.no-pending.title') }}</p>
+        <p class="text-muted-foreground max-w-sm text-sm">
+          {{ $t('users.no-pending.description') }}
+        </p>
+      </Card>
       <ListState
-        v-if="listState !== 'table'"
+        v-else-if="listState !== 'table'"
         :kind="listState"
         entity="users"
         :icon="Users"
@@ -166,7 +188,10 @@ onMounted(() => store.findRoles().catch(() => undefined))
           </span>
         </template>
         <template #cell-authorities="{ item }">
-          <span class="flex flex-wrap gap-1">
+          <span v-if="item.authorities.length === 0" class="text-muted-foreground text-xs">
+            {{ $t('users.roles-none') }}
+          </span>
+          <span v-else class="flex flex-wrap gap-1">
             <Badge v-for="role in sortRoles(item.authorities)" :key="role" variant="outline">
               {{ $t(`users.role.${role.toLowerCase()}`) }}
             </Badge>

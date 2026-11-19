@@ -365,6 +365,39 @@ describe('UserListView', () => {
       expect(document.body.textContent).not.toContain('Aprovar a conta de Bruno?')
     })
 
+    it('says nobody is waiting on an empty pending tab, instead of the generic no result', async () => {
+      const { wrapper } = await render()
+      serveListing(vi.mocked(usersApi.findAll), [], 0, { ...USER_COUNTS, PENDING: 0 })
+
+      await buttonWithText(wrapper, 'Pendentes').trigger('click')
+      await flushPromises()
+
+      expect(wrapper.find('[data-state="no-pending"]').text()).toContain(
+        'Nenhuma conta aguardando aprovação',
+      )
+      expect(stateOf(wrapper)).toBeUndefined()
+    })
+
+    it('keeps the generic no result for a search on the pending tab', async () => {
+      const { wrapper } = await render()
+      serveListing(vi.mocked(usersApi.findAll), [], 0, { ...USER_COUNTS, PENDING: 0 })
+
+      await buttonWithText(wrapper, 'Pendentes').trigger('click')
+      await flushPromises()
+      await wrapper.find('input').setValue('zzz')
+      await wrapper.find('input').trigger('keydown', { key: 'Enter' })
+      await flushPromises()
+
+      expect(wrapper.find('[data-state="no-pending"]').exists()).toBe(false)
+      expect(stateOf(wrapper)).toBe('no-result')
+    })
+
+    it('says an account has no area yet, instead of leaving the cell blank', async () => {
+      const { wrapper } = await render([{ ...users[1]!, authorities: [] }])
+
+      expect(rowOf(wrapper, 'Bruno').findAll('td')[1]!.text()).toBe('Nenhuma ainda')
+    })
+
     it('keeps working when the roles to grant cannot be loaded', async () => {
       vi.mocked(rolesApi.findAll).mockRejectedValue(problem(500))
 

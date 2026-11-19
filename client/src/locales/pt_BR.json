@@ -419,6 +419,11 @@
       "enabled": "Ativo",
       "disabled": "Não configurado"
     },
+    "roles-none": "Nenhuma ainda",
+    "no-pending": {
+      "title": "Nenhuma conta aguardando aprovação",
+      "description": "Quando alguém se cadastrar pelo login, a conta aparece aqui para você aprovar."
+    },
     "pending-notice": {
       "title": "Nenhuma conta aguardando aprovação | 1 conta aguardando aprovação | {count} contas aguardando aprovação",
       "description": "Elas se cadastraram pelo login e só entram depois de aprovadas.",

@@ -88,7 +88,7 @@ function resetFilter() {
       </button>
     </div>
     <div
-      class="bg-muted inline-flex h-9 items-center gap-0.5 rounded-md p-1 max-md:w-full"
+      class="bg-muted inline-flex h-9 items-center gap-0.5 rounded-md p-1 max-md:w-full max-md:overflow-x-auto max-md:[scrollbar-width:none]"
       role="group"
       :aria-label="$t('search-control.status')"
     >
@@ -97,7 +97,7 @@ function resetFilter() {
         :key="option.value"
         type="button"
         :aria-pressed="props.status === option.value"
-        class="text-muted-foreground aria-pressed:bg-card aria-pressed:text-foreground aria-pressed:shadow-xs inline-flex h-7 items-center justify-center gap-1.5 rounded-sm px-3 text-sm font-medium transition-colors max-md:flex-1"
+        class="text-muted-foreground aria-pressed:bg-card aria-pressed:text-foreground aria-pressed:shadow-xs inline-flex h-7 items-center justify-center gap-1.5 rounded-sm px-3 text-sm font-medium transition-colors max-md:flex-1 max-md:gap-1 max-md:px-1.5 max-md:text-[13px]"
         @click="selectStatus(option.value)"
       >
         {{ $t(option.label) }}
