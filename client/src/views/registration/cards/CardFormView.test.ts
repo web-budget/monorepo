@@ -1,0 +1,287 @@
+import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { toast } from 'vue-sonner'
+import { cardsApi } from '@/api/cards'
+import { walletsApi } from '@/api/wallets'
+import { Select } from '@/components/ui/select'
+import { buttonWithText, mountView, pageOf, problem, settle } from '@/test/crud'
+import type { CardView } from '@/types'
+import CardFormView from '@/views/registration/cards/CardFormView.vue'
+
+vi.mock('@/api/cards')
+vi.mock('@/api/wallets')
+vi.mock('vue-sonner', () => ({
+  toast: {
+    success: vi.fn<() => void>(),
+    info: vi.fn<() => void>(),
+    warning: vi.fn<() => void>(),
+    error: vi.fn<() => void>(),
+  },
+}))
+
+type Wrapper = Awaited<ReturnType<typeof mountView>>['wrapper']
+
+const wallet = {
+  id: 'w-1',
+  name: 'Main',
+  type: 'BANK_ACCOUNT',
+  bank: 'ACME',
+  active: true,
+} as const
+
+const debitCard: CardView = {
+  id: 'k-1',
+  name: 'Daily',
+  lastFourDigits: '4321',
+  type: 'DEBIT',
+  active: true,
+  flag: 'Elo',
+  wallet,
+  invoicePaymentDay: null,
+}
+
+const creditCard: CardView = {
+  ...debitCard,
+  id: 'k-2',
+  name: 'Travel',
+  type: 'CREDIT',
+  wallet: null,
+  invoicePaymentDay: 10,
+}
+
+function field(wrapper: Wrapper, name: string) {
+  return wrapper.find(`[name="${name}"]`)
+}
+
+async function submit(wrapper: Wrapper) {
+  await wrapper.find('form').trigger('submit')
+  await settle()
+}
+
+async function chooseType(wrapper: Wrapper, type: string) {
+  wrapper.getComponent(Select).vm.$emit('update:modelValue', type)
+  await settle()
+}
+
+async function searchWallet(wrapper: Wrapper, query: string) {
+  await wrapper.find('button[data-field="wallet"]').trigger('click')
+  await settle()
+  const search = document.body.querySelector<HTMLInputElement>(
+    '[data-slot="popover-content"] input',
+  )
+  search!.value = query
+  search!.dispatchEvent(new Event('input'))
+  await settle()
+}
+
+async function pickWallet(wrapper: Wrapper, query: string, optionText: string) {
+  await searchWallet(wrapper, query)
+  const option = [...document.body.querySelectorAll<HTMLElement>('[role="option"]')].find(
+    (candidate) => candidate.textContent?.trim() === optionText,
+  )
+  option!.click()
+  await settle()
+}
+
+describe('CardFormView', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    document.body.replaceChildren()
+  })
+
+  it('shows the title, the required marks and asks for the required fields', async () => {
+    const { wrapper } = await mountView(CardFormView, 'cards')
+
+    expect(wrapper.find('h1').text()).toBe('Novo cartão')
+    expect(buttonWithText(wrapper, 'Criar cartão')).toBeDefined()
+    expect(wrapper.findAll('label').filter((label) => label.text().endsWith('*'))).toHaveLength(3)
+
+    await submit(wrapper)
+
+    expect(wrapper.text()).toContain('Campo obrigatório')
+    expect(cardsApi.create).not.toHaveBeenCalled()
+    expect(document.activeElement).toBe(field(wrapper, 'name').element)
+  })
+
+  it('shows the wallet only for a debit card and the invoice day only for a credit card', async () => {
+    const { wrapper } = await mountView(CardFormView, 'cards')
+
+    expect(wrapper.find('button[data-field="wallet"]').exists()).toBe(false)
+    expect(field(wrapper, 'invoicePaymentDay').exists()).toBe(false)
+
+    await chooseType(wrapper, 'CREDIT')
+    expect(wrapper.find('button[data-field="wallet"]').exists()).toBe(false)
+    expect(field(wrapper, 'invoicePaymentDay').exists()).toBe(true)
+    expect(wrapper.text()).toContain('Fatura')
+
+    await chooseType(wrapper, 'DEBIT')
+    expect(wrapper.find('button[data-field="wallet"]').exists()).toBe(true)
+    expect(field(wrapper, 'invoicePaymentDay').exists()).toBe(false)
+    expect(wrapper.text()).toContain('Carteira')
+  })
+
+  it('creates a credit card and goes to its detail', async () => {
+    vi.mocked(cardsApi.create).mockResolvedValue('k-9')
+    const { wrapper, router } = await mountView(CardFormView, 'cards')
+
+    await field(wrapper, 'name').setValue('Travel')
+    await chooseType(wrapper, 'CREDIT')
+    await field(wrapper, 'invoicePaymentDay').setValue('10')
+    await field(wrapper, 'lastFourDigits').setValue('1234')
+    await field(wrapper, 'flag').setValue('Visa')
+    await submit(wrapper)
+
+    expect(cardsApi.create).toHaveBeenCalledWith({
+      name: 'Travel',
+      type: 'CREDIT',
+      lastFourDigits: '1234',
+      flag: 'Visa',
+      wallet: null,
+      invoicePaymentDay: 10,
+    })
+    expect(toast.success).toHaveBeenCalledWith('Cartão criado', {
+      description: '“Travel” já aparece nos lançamentos.',
+      duration: 4000,
+    })
+    expect(router.currentRoute.value.name).toBe('cards.detail')
+    expect(router.currentRoute.value.params.id).toBe('k-9')
+  })
+
+  it('creates a debit card linked to a wallet found by name', async () => {
+    vi.mocked(walletsApi.findAll).mockResolvedValue(pageOf([wallet]))
+    vi.mocked(cardsApi.create).mockResolvedValue('k-9')
+    const { wrapper } = await mountView(CardFormView, 'cards')
+
+    await field(wrapper, 'name').setValue('Daily')
+    await chooseType(wrapper, 'DEBIT')
+    await pickWallet(wrapper, 'Ma', 'Main')
+    await field(wrapper, 'lastFourDigits').setValue('4321')
+    await submit(wrapper)
+
+    expect(walletsApi.findAll).toHaveBeenCalledWith({ filter: 'Ma', status: 'ACTIVE' })
+    expect(cardsApi.create).toHaveBeenCalledWith({
+      name: 'Daily',
+      type: 'DEBIT',
+      lastFourDigits: '4321',
+      flag: null,
+      wallet: 'w-1',
+      invoicePaymentDay: null,
+    })
+  })
+
+  it('rejects an invoice day outside the month', async () => {
+    const { wrapper } = await mountView(CardFormView, 'cards')
+
+    await field(wrapper, 'name').setValue('Travel')
+    await chooseType(wrapper, 'CREDIT')
+    await field(wrapper, 'invoicePaymentDay').setValue('31')
+    await field(wrapper, 'lastFourDigits').setValue('1234')
+    await submit(wrapper)
+
+    expect(wrapper.text()).toContain('O valor máximo é 30')
+    expect(cardsApi.create).not.toHaveBeenCalled()
+  })
+
+  it('shows the server error inside the form', async () => {
+    vi.mocked(cardsApi.create).mockRejectedValue(
+      problem(400, { error: 'debit-card-without-wallet' }),
+    )
+    const { wrapper } = await mountView(CardFormView, 'cards')
+
+    await field(wrapper, 'name').setValue('Daily')
+    await chooseType(wrapper, 'DEBIT')
+    await field(wrapper, 'lastFourDigits').setValue('4321')
+    await submit(wrapper)
+
+    expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
+      'O cartão de débito deve estar vinculado a uma carteira',
+    )
+    expect(toast.success).not.toHaveBeenCalled()
+  })
+
+  it('marks the field the server says is already in use', async () => {
+    vi.mocked(cardsApi.create).mockRejectedValue(
+      problem(409, { error: 'conflict', parameters: { 'card.last-four-digits': '1234' } }),
+    )
+    const { wrapper } = await mountView(CardFormView, 'cards')
+
+    await field(wrapper, 'name').setValue('Travel')
+    await chooseType(wrapper, 'CREDIT')
+    await field(wrapper, 'lastFourDigits').setValue('1234')
+    await submit(wrapper)
+
+    expect(field(wrapper, 'lastFourDigits').attributes('aria-invalid')).toBe('true')
+    expect(field(wrapper, 'name').attributes('aria-invalid')).toBe('false')
+  })
+
+  it('loads a debit card for editing with the type locked', async () => {
+    vi.mocked(cardsApi.findById).mockResolvedValue(debitCard)
+
+    const { wrapper } = await mountView(CardFormView, 'cards', { id: 'k-1' })
+
+    expect(wrapper.find('h1').text()).toBe('Editando cartão')
+    expect(wrapper.find('[data-slot="page-description"]').text()).toBe('Daily')
+    expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('Daily')
+    expect((field(wrapper, 'lastFourDigits').element as HTMLInputElement).value).toBe('4321')
+    expect(wrapper.find('button[data-field="wallet"]').text()).toContain('Main')
+    expect(wrapper.find('button[role="combobox"]').attributes('disabled')).toBeDefined()
+    expect(field(wrapper, 'invoicePaymentDay').exists()).toBe(false)
+    expect(wrapper.text()).toContain('O tipo não muda depois de criado.')
+  })
+
+  it('saves the changes of a credit card and its status, and goes to the detail', async () => {
+    vi.mocked(cardsApi.findById).mockResolvedValue(creditCard)
+    vi.mocked(cardsApi.update).mockResolvedValue(creditCard)
+    const { wrapper, router } = await mountView(CardFormView, 'cards', { id: 'k-2' })
+
+    await field(wrapper, 'invoicePaymentDay').setValue('15')
+    await wrapper.find('button[role="switch"]').trigger('click')
+    await submit(wrapper)
+
+    expect(cardsApi.update).toHaveBeenCalledWith('k-2', {
+      name: 'Travel',
+      active: false,
+      lastFourDigits: '4321',
+      flag: 'Elo',
+      wallet: null,
+      invoicePaymentDay: 15,
+    })
+    expect(toast.success).toHaveBeenCalledWith('Alterações salvas', {
+      description: '“Travel” foi atualizado.',
+      duration: 4000,
+    })
+    expect(router.currentRoute.value.name).toBe('cards.detail')
+  })
+
+  it('shows the server error when the update is rejected', async () => {
+    vi.mocked(cardsApi.findById).mockResolvedValue(creditCard)
+    vi.mocked(cardsApi.update).mockRejectedValue(problem(422))
+    const { wrapper } = await mountView(CardFormView, 'cards', { id: 'k-2' })
+
+    await submit(wrapper)
+
+    expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
+      'Revise os dados e tente novamente',
+    )
+  })
+
+  it('shows the server error when the wallet search fails', async () => {
+    vi.mocked(walletsApi.findAll).mockRejectedValue(problem(500))
+    const { wrapper } = await mountView(CardFormView, 'cards')
+    await chooseType(wrapper, 'DEBIT')
+
+    await searchWallet(wrapper, 'Ma')
+
+    expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
+      'Tente novamente mais tarde',
+    )
+  })
+
+  it('goes back to the listing with Cancelar', async () => {
+    const { wrapper, router } = await mountView(CardFormView, 'cards')
+
+    await buttonWithText(wrapper, 'Cancelar').trigger('click')
+    await settle()
+
+    expect(router.currentRoute.value.name).toBe('cards')
+  })
+})

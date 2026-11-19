@@ -25,6 +25,9 @@
       },
       "classification": {
         "name": "Nome \"{value}\" já esta em uso"
+      },
+      "user": {
+        "email": "Email \"{value}\" já esta em uso"
       }
     },
     "unprocessable-entity": {
@@ -52,58 +55,117 @@
       "detail": "Não autorizado",
       "description": "Você não tem permissão para acessar este recurso"
     },
+    "invalid-csrf-token": {
+      "title": "Requisição não autorizada",
+      "details": "A verificação de segurança da requisição falhou, recarregue a página e tente novamente"
+    },
     "server-error": {
       "detail": "Falha no servidor",
       "description": "Tente novamente mais tarde ou entre em contato com o administrador"
-    },
-    "login": {
-      "detail": "Falha ao realizar login",
-      "description": "Verifique os dados informados e tente novamente"
     }
   },
+  "auth-aside": {
+    "headline": "Suas contas, passadas a limpo.",
+    "tagline": "Lance receitas e despesas em cada período, acompanhe o saldo das carteiras e veja para onde o dinheiro vai.",
+    "features": {
+      "periods": "Lançamentos por período financeiro",
+      "dashboards": "Dashboards do mês e dos anteriores",
+      "forecast": "Previsão de gastos e receitas"
+    }
+  },
+  "auth-step": {
+    "back-to-login": "Voltar para o login"
+  },
+  "password-rules": {
+    "min-length": "Pelo menos {minimum} caracteres",
+    "uppercase": "Uma letra maiúscula",
+    "number": "Um número",
+    "met": "atendido",
+    "pending": "pendente"
+  },
   "login": {
-    "title": "Faça login para continuar",
+    "title": "Entrar",
+    "description": "Use o e-mail e a senha da sua conta.",
+    "session-ended": {
+      "title": "Sessão encerrada",
+      "inactivity": "Sua sessão foi encerrada por inatividade, entre novamente",
+      "expired": "Sua sessão expirou, entre novamente"
+    },
+    "failure": {
+      "credentials": {
+        "title": "E-mail ou senha incorretos",
+        "description": "Confira os dados e tente de novo."
+      },
+      "rate-limit": {
+        "title": "Muitas tentativas seguidas",
+        "description": "Por segurança, espere alguns minutos antes de tentar de novo."
+      }
+    },
     "form": {
-      "email": "Email",
-      "email-placeholder": "Seu usuário",
+      "email": "E-mail",
+      "email-placeholder": "voce{'@'}exemplo.com.br",
       "password": "Senha",
       "password-placeholder": "Sua senha",
-      "remember-me": "Lembrar-me",
-      "forgot-password": "Esqueceu a senha?",
-      "sign-in": "Entrar"
+      "forgot-password": "Esqueci a senha",
+      "sign-in": "Entrar",
+      "signing-in": "Entrando…"
+    },
+    "divider": "ou",
+    "google": "Entrar com Google",
+    "register": {
+      "prompt": "Não tem conta?",
+      "action": "Criar conta"
     }
   },
   "forgot-password": {
-    "title": "Recuperar senha",
+    "title": "Esqueci a senha",
+    "description": "Informe o e-mail da conta para receber um link de recuperação.",
     "form": {
-      "email": "Email",
-      "recover": "Recuperar",
-      "back": "Voltar",
-      "email-placeholder": "Informe seu email cadastrado"
+      "email": "E-mail",
+      "email-placeholder": "voce{'@'}exemplo.com.br",
+      "submit": "Enviar link",
+      "submitting": "Enviando…"
+    },
+    "sent": {
+      "title": "Confira seu e-mail",
+      "description": "Se {email} estiver cadastrado, você vai receber um link para criar uma nova senha. Olhe também a caixa de spam."
     }
   },
   "recover-password": {
-    "title": "Recuperar senha",
+    "title": "Criar nova senha",
+    "description": "Para a conta {email}.",
     "form": {
-      "confirmation": "Confirmação",
+      "password": "Nova senha",
+      "password-placeholder": "Digite sua nova senha",
+      "confirmation": "Confirme a nova senha",
       "confirmation-placeholder": "Digite sua nova senha novamente",
-      "password": "Senha",
-      "password-placeholder": "Digite sua nova senha"
+      "submit": "Salvar nova senha",
+      "submitting": "Salvando…"
     }
   },
   "account-activation": {
-    "success": "Conta ativada com sucesso!",
-    "error": "Token inválido ou expirado, entre em contato com o administrador",
     "activating": "Ativando conta, aguarde...",
-    "back-to-login": "Voltar ao login"
+    "success": {
+      "title": "Conta ativada",
+      "description": "Tudo certo com {email}. Entre com seu e-mail e senha.",
+      "action": "Ir para o login"
+    },
+    "error": {
+      "title": "Link inválido ou expirado",
+      "description": "Este link de ativação já foi usado ou passou do prazo. Peça um novo a quem administra o webBudget."
+    }
   },
   "menu": {
     "financial": "Financeiro",
     "configuration": "Configurações",
-    "registration": "Cadastros"
+    "registration": "Cadastros",
+    "dashboards": "Dashboards"
   },
   "pages": {
     "quick-access": "Acesso rápido"
+  },
+  "dashboards": {
+    "overview": "Visão geral"
   },
   "action-button": {
     "delete": "Deletar",
@@ -119,7 +181,8 @@
     "back": "Voltar",
     "yes": "Sim",
     "no": "Não",
-    "recover": "Recuperar"
+    "recover": "Recuperar",
+    "clear-selection": "Limpar seleção"
   },
   "notification": {
     "success": "Sucesso!",
@@ -153,6 +216,11 @@
       "created": "Classificação criada com sucesso",
       "updated": "Classificação atualizada com sucesso"
     },
+    "user": {
+      "deleted": "Usuário excluído com sucesso",
+      "created": "Usuário criado com sucesso",
+      "updated": "Usuário atualizado com sucesso"
+    },
     "forgot-password": {
       "requested": "Solicitação realizada, aguarde pelo email de recuperação"
     },
@@ -164,11 +232,18 @@
   "search-control": {
     "actions": {
       "new": "Novo",
-      "search": "Buscar"
+      "search": "Buscar",
+      "clear": "Limpar filtro"
     },
     "all": "Todos",
     "active": "Ativos",
-    "inactive": "Inativos"
+    "inactive": "Inativos",
+    "status": "Situação",
+    "feminine": {
+      "active": "Ativas",
+      "inactive": "Inativas",
+      "all": "Todas"
+    }
   },
   "items-table": {
     "state": {
@@ -181,7 +256,19 @@
     },
     "footer": {
       "until": " até ",
-      "total": ", total "
+      "total": ", total ",
+      "range": "{first}–{last} de {total}"
+    },
+    "pagination": {
+      "rows-per-page": "Linhas por página",
+      "previous": "Página anterior",
+      "next": "Próxima página",
+      "first": "Primeira página",
+      "last": "Última página"
+    },
+    "sort": {
+      "ascending": "Ordenar crescente",
+      "descending": "Ordenar decrescente"
     }
   },
   "status": {
@@ -194,7 +281,100 @@
   },
   "users": {
     "title": "Usuários",
-    "menu": "Usuários"
+    "menu": "Usuários",
+    "own-account": "Sua conta",
+    "search": {
+      "placeholder": "Buscar por nome ou e-mail"
+    },
+    "table-columns": {
+      "name": "Nome",
+      "roles": "Áreas de acesso"
+    },
+    "role": {
+      "administration": "Configurações",
+      "dashboards": "Dashboards",
+      "financial": "Financeiro",
+      "registration": "Cadastros"
+    },
+    "language": {
+      "pt-br": "Português (Brasil)",
+      "en-us": "Inglês (Estados Unidos)"
+    },
+    "form": {
+      "new": "Novo usuário",
+      "editing": "Editando usuário",
+      "name": "Nome",
+      "email": "E-mail",
+      "password": "Senha",
+      "language": "Idioma",
+      "roles": "Áreas de acesso",
+      "send-activation-email": "Enviar e-mail de ativação",
+      "create": "Criar usuário",
+      "email-hint": "O e-mail não muda depois do cadastro.",
+      "active-heading": "Cadastro",
+      "active-label": "Ativo",
+      "active-hint": "Desligado, a pessoa não consegue entrar.",
+      "activation-heading": "Ativação da conta",
+      "activation-hint": "A pessoa ativa a conta pelo link enviado ao e-mail dela."
+    },
+    "confirm": {
+      "create-title": "Criar o usuário “{name}”?",
+      "create": "A conta é cadastrada com as áreas de acesso que você escolheu.",
+      "create-label": "Criar usuário",
+      "update-title": "Salvar as alterações de “{name}”?",
+      "update": "Os dados e as áreas de acesso novos valem já na próxima requisição da pessoa.",
+      "update-label": "Salvar alterações"
+    },
+    "password": {
+      "action": "Redefinir senha",
+      "title": "Redefinir a senha de {name}?",
+      "description": "Defina a nova senha e passe para a pessoa por um canal seguro. As sessões abertas dela serão encerradas.",
+      "password": "Nova senha",
+      "confirmation": "Confirmação",
+      "submit": "Redefinir senha"
+    },
+    "list": {
+      "description": "Quem acessa o webBudget e quais áreas cada pessoa pode usar.",
+      "empty-title": "Nenhum usuário ainda",
+      "empty-description": "Cadastre as pessoas que vão usar o sistema.",
+      "plural": "os usuários"
+    },
+    "remove": {
+      "title": "Remover o usuário “{name}”?",
+      "description": "Não dá para desfazer. A conta é apagada e o acesso da pessoa ao sistema é encerrado.",
+      "action": "Remover usuário"
+    },
+    "toast": {
+      "created": "Usuário criado",
+      "created-detail": "“{name}” foi cadastrado.",
+      "updated": "Alterações salvas",
+      "updated-detail": "Os dados de “{name}” foram salvos.",
+      "removed": "Usuário removido",
+      "removed-detail": "“{name}” saiu da lista.",
+      "password-reset": "Senha redefinida",
+      "password-reset-detail": "A nova senha de “{name}” já vale."
+    },
+    "sections": {
+      "data": "Dados",
+      "data-help": "Como a pessoa aparece no app.",
+      "access": "Acesso",
+      "access-help": "A senha inicial da conta. A pessoa pode trocá-la pelo “Esqueci a senha”.",
+      "roles": "Áreas de acesso",
+      "roles-help": "O que aparece no menu dessa pessoa."
+    },
+    "role-description": {
+      "dashboards": "Painéis do período, histórico e previsão.",
+      "financial": "Lançar receitas e despesas e fechar períodos.",
+      "registration": "Carteiras, cartões, classificações, centros de custo e períodos.",
+      "administration": "Usuários e o acesso de cada pessoa."
+    },
+    "you": "(você)",
+    "aside": {
+      "title": "Conta",
+      "status": "Situação",
+      "language": "Idioma",
+      "roles": "Áreas de acesso"
+    }
   },
   "period-movement": {
     "title": "Movimentos do período",
@@ -234,12 +414,42 @@
       "bank": "Banco",
       "agency": "Agência",
       "number": "Número da conta",
-      "type-placeholder": "Selecione um tipo"
+      "type-placeholder": "Selecione um tipo",
+      "create": "Criar carteira",
+      "active-label": "Ativa",
+      "active-hint": "Inativa, ela some das escolhas nos lançamentos novos, mas continua no histórico.",
+      "type-hint": "O tipo não muda depois de criada.",
+      "balance": "Saldo atual"
     },
     "type": {
       "bank-account": "Conta Bancária",
       "personal": "Pessoal",
       "investment": "Investimento"
+    },
+    "list": {
+      "description": "Contas bancárias, investimentos e dinheiro em espécie de onde saem e entram os lançamentos.",
+      "empty-title": "Nenhuma carteira ainda",
+      "empty-description": "Cadastre as contas e o dinheiro em espécie que você usa. Os lançamentos sempre saem de uma carteira.",
+      "plural": "as carteiras"
+    },
+    "remove": {
+      "title": "Remover a carteira “{name}”?",
+      "description": "Não dá para desfazer. Se ela já tem lançamentos, o servidor recusa a remoção; nesse caso, marque a carteira como inativa."
+    },
+    "toast": {
+      "created": "Carteira criada",
+      "created-detail": "“{name}” já aparece nos lançamentos.",
+      "updated": "Alterações salvas",
+      "updated-detail": "“{name}” foi atualizada.",
+      "removed": "Carteira removida",
+      "removed-detail": "“{name}” saiu da lista."
+    },
+    "sections": {
+      "identification": "Identificação",
+      "identification-help": "Como a carteira aparece nos lançamentos e dashboards.",
+      "bank": "Dados do banco",
+      "bank-help": "Aparece para Conta bancária e Investimento.",
+      "balance": "Saldo"
     }
   },
   "card": {
@@ -270,7 +480,37 @@
       "invoice-payment-day": "Dia do vencimento",
       "type-placeholder": "Selecione um tipo",
       "wallet-search-empty": "Nenhuma carteira encontrada",
-      "wallet-search-placeholder": "Digite o nome"
+      "wallet-search-placeholder": "Digite o nome",
+      "create": "Criar cartão",
+      "active-label": "Ativo",
+      "active-hint": "Inativo, ele some das escolhas nos lançamentos novos, mas continua no histórico.",
+      "type-hint": "O tipo não muda depois de criado."
+    },
+    "list": {
+      "description": "Cartões de crédito e débito usados nos lançamentos.",
+      "empty-title": "Nenhum cartão ainda",
+      "empty-description": "Cadastre os cartões que você usa. Os de débito saem de uma carteira; os de crédito entram na fatura.",
+      "plural": "os cartões"
+    },
+    "remove": {
+      "title": "Remover o cartão “{name}”?",
+      "description": "Não dá para desfazer. Se ele já tem lançamentos, o servidor recusa a remoção; nesse caso, marque o cartão como inativo."
+    },
+    "toast": {
+      "created": "Cartão criado",
+      "created-detail": "“{name}” já aparece nos lançamentos.",
+      "updated": "Alterações salvas",
+      "updated-detail": "“{name}” foi atualizado.",
+      "removed": "Cartão removido",
+      "removed-detail": "“{name}” saiu da lista."
+    },
+    "sections": {
+      "identification": "Identificação",
+      "identification-help": "Como o cartão aparece nos lançamentos.",
+      "wallet": "Carteira",
+      "wallet-help": "O cartão de débito sai desta carteira.",
+      "invoice": "Fatura",
+      "invoice-help": "Dia do mês em que a fatura do cartão de crédito vence."
     }
   },
   "financial-period": {
@@ -304,12 +544,39 @@
       "starting-at": "Início",
       "ending-at": "Fim",
       "expenses-goal": "Meta de despesas",
-      "revenues-goal": "Meta de receitas"
+      "revenues-goal": "Meta de receitas",
+      "create": "Criar período financeiro"
     },
     "errors": {
       "overlapping-dates": "Data de início e fim estão sobrepondo com outro período financeiro existente",
       "invalid-dates": "Data de início e fim são inválidas",
       "period-not-open": "Período financeiro não está aberto e não pode ser alterado ou excluído"
+    },
+    "list": {
+      "description": "Os períodos em que os lançamentos são fechados e contabilizados.",
+      "empty-title": "Nenhum período financeiro ainda",
+      "empty-description": "Crie um período financeiro para começar a registrar os lançamentos.",
+      "plural": "os períodos financeiros"
+    },
+    "remove": {
+      "title": "Remover o período financeiro “{name}”?",
+      "description": "Não dá para desfazer. Se ele já tem lançamentos ou foi contabilizado, o servidor recusa a remoção."
+    },
+    "toast": {
+      "created": "Período financeiro criado",
+      "created-detail": "“{name}” já aceita lançamentos.",
+      "updated": "Alterações salvas",
+      "updated-detail": "“{name}” foi atualizado.",
+      "removed": "Período financeiro removido",
+      "removed-detail": "“{name}” saiu da lista."
+    },
+    "sections": {
+      "identification": "Identificação",
+      "identification-help": "Como o período aparece nos lançamentos.",
+      "dates": "Datas",
+      "dates-help": "As datas não mudam depois de criado.",
+      "goals": "Metas",
+      "goals-help": "Valores previstos de receitas e despesas no período."
     }
   },
   "classification": {
@@ -336,7 +603,35 @@
       "description": "Descrição",
       "type": "Tipo",
       "budget": "Orçamento",
-      "type-placeholder": "Selecione um tipo"
+      "type-placeholder": "Selecione um tipo",
+      "create": "Criar classificação",
+      "active-label": "Ativa",
+      "active-hint": "Inativa, ela some das escolhas nos lançamentos novos, mas continua no histórico.",
+      "type-hint": "O tipo não muda depois de criada."
+    },
+    "list": {
+      "description": "Como as receitas e despesas são agrupadas nos relatórios e orçamentos.",
+      "empty-title": "Nenhuma classificação ainda",
+      "empty-description": "Crie classificações para agrupar suas receitas e despesas.",
+      "plural": "as classificações"
+    },
+    "remove": {
+      "title": "Remover a classificação “{name}”?",
+      "description": "Não dá para desfazer. Se ela já tem lançamentos, o servidor recusa a remoção; nesse caso, marque a classificação como inativa."
+    },
+    "toast": {
+      "created": "Classificação criada",
+      "created-detail": "“{name}” já aparece nos lançamentos.",
+      "updated": "Alterações salvas",
+      "updated-detail": "“{name}” foi atualizada.",
+      "removed": "Classificação removida",
+      "removed-detail": "“{name}” saiu da lista."
+    },
+    "sections": {
+      "identification": "Identificação",
+      "identification-help": "Como a classificação aparece nos lançamentos.",
+      "budget": "Orçamento",
+      "budget-help": "Limite opcional para o que for classificado aqui."
     }
   },
   "cost-center": {
@@ -356,12 +651,110 @@
       "expense-budget": "Orçamento despesas",
       "parent": "Subcentro de custo de",
       "parent-search-empty": "Nenhum centro de custo encontrado",
-      "parent-search-placeholder": "Digite o nome"
+      "parent-search-placeholder": "Digite o nome",
+      "create": "Criar centro de custo",
+      "active-label": "Ativo",
+      "active-hint": "Inativo, ele some das escolhas nos lançamentos novos, mas continua no histórico."
     },
     "table-columns": {
       "full-name": "Nome",
       "income-budget": "Orçamento receitas",
       "expense-budget": "Orçamento despesas"
+    },
+    "list": {
+      "description": "A hierarquia de áreas e projetos em que o dinheiro é gasto ou recebido.",
+      "empty-title": "Nenhum centro de custo ainda",
+      "empty-description": "Crie centros de custo para saber onde o dinheiro é gasto e recebido.",
+      "plural": "os centros de custo"
+    },
+    "remove": {
+      "title": "Remover o centro de custo “{name}”?",
+      "description": "Não dá para desfazer. Se ele já tem lançamentos ou subcentros, o servidor recusa a remoção; nesse caso, marque o centro de custo como inativo."
+    },
+    "toast": {
+      "created": "Centro de custo criado",
+      "created-detail": "“{name}” já aparece nos lançamentos.",
+      "updated": "Alterações salvas",
+      "updated-detail": "“{name}” foi atualizado.",
+      "removed": "Centro de custo removido",
+      "removed-detail": "“{name}” saiu da lista."
+    },
+    "sections": {
+      "identification": "Identificação",
+      "identification-help": "O nome e o lugar do centro de custo na hierarquia.",
+      "budget": "Orçamento",
+      "budget-help": "Limites opcionais de receitas e despesas."
+    }
+  },
+  "layout": {
+    "toggle-menu": "Alternar menu lateral",
+    "main-menu": "Seções",
+    "user-menu": "Menu do usuário",
+    "dark-theme": "Tema escuro",
+    "light-theme": "Tema claro",
+    "logout": "Sair",
+    "breadcrumb": "Trilha de navegação",
+    "coming-soon": "Em breve",
+    "loading": "Carregando...",
+    "menu": "Menu",
+    "menu-description": "Navegação entre as seções do webBudget",
+    "close-menu": "Fechar menu",
+    "theme": "Tema",
+    "theme-light": "Claro",
+    "theme-dark": "Escuro",
+    "theme-system": "Sistema"
+  },
+  "confirm": {
+    "title": "Confirmação"
+  },
+  "password-input": {
+    "show": "Mostrar senha",
+    "hide": "Ocultar senha"
+  },
+  "validation": {
+    "required": "Campo obrigatório",
+    "email": "Informe um email válido",
+    "password-mismatch": "A confirmação deve ser igual à senha",
+    "password-requirements": "A senha não atende aos requisitos",
+    "invalid": "Valor inválido",
+    "string-min": "Informe ao menos {minimum} caracteres",
+    "string-max": "Informe no máximo {maximum} caracteres",
+    "number-min": "O valor mínimo é {minimum}",
+    "number-max": "O valor máximo é {maximum}",
+    "end-before-start": "A data de fim não pode ser anterior à data de início",
+    "roles-required": "Escolha pelo menos uma área."
+  },
+  "crud": {
+    "required-hint": "Campos com * são obrigatórios.",
+    "unsaved": "Alterações não salvas",
+    "saving": "Salvando…",
+    "status": "Situação",
+    "save-changes": "Salvar alterações",
+    "actions": {
+      "edit": "Editar",
+      "remove": "Remover",
+      "more": "Mais ações"
+    },
+    "discard": {
+      "title": "Sair sem salvar?",
+      "description": "Os dados informados vão se perder.",
+      "description-named": "As alterações em “{name}” vão se perder.",
+      "stay": "Continuar editando",
+      "leave": "Sair sem salvar"
+    },
+    "list": {
+      "no-result": {
+        "title-query": "Nada encontrado para “{query}”",
+        "title-filter": "Nada encontrado neste filtro",
+        "hint": "Confira a grafia ou procure em outra situação.",
+        "clear": "Limpar busca",
+        "show-all": "Mostrar todos"
+      },
+      "error": {
+        "title": "Não foi possível carregar {plural}",
+        "description": "O servidor não respondeu. Confira sua conexão e tente de novo.",
+        "retry": "Tentar de novo"
+      }
     }
   }
 }
