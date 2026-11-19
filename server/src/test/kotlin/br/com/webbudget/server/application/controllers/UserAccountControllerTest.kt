@@ -66,6 +66,15 @@ class UserAccountControllerTest : BaseIntegrationTest() {
     }
 
     @Test
+    fun `should answer the e-mail code on forgot password with an invalid e-mail`() {
+
+        patch("forgot-password", """{"email": "not-an-email"}""")
+            .expectStatus().isEqualTo(422)
+            .expectBody()
+            .jsonPath("$.parameters.email").isEqualTo("email-address-is-invalid")
+    }
+
+    @Test
     fun `should recover the password with a valid token`() {
 
         authenticateAnonymously()
@@ -102,6 +111,23 @@ class UserAccountControllerTest : BaseIntegrationTest() {
 
         patch("recover-password", """{"token": "", "email": "", "password": ""}""")
             .expectStatus().isEqualTo(422)
+            .expectBody()
+            .jsonPath("$.error").isEqualTo("field-validation-failed")
+            .jsonPath("$.parameters.token").isEqualTo("is-null")
+            .jsonPath("$.parameters.email").isEqualTo("is-null-or-blank")
+            .jsonPath("$.parameters.password").isEqualTo("is-null-or-blank")
+    }
+
+    @Test
+    fun `should answer the e-mail code on recover password with an invalid e-mail`() {
+
+        patch(
+            "recover-password",
+            """{"token": "${UUID.randomUUID()}", "email": "not-an-email", "password": "n3w-s3cr3t"}"""
+        )
+            .expectStatus().isEqualTo(422)
+            .expectBody()
+            .jsonPath("$.parameters.email").isEqualTo("email-address-is-invalid")
     }
 
     @Test
@@ -134,6 +160,19 @@ class UserAccountControllerTest : BaseIntegrationTest() {
 
         patch("activate", """{"token": "", "email": ""}""")
             .expectStatus().isEqualTo(422)
+            .expectBody()
+            .jsonPath("$.error").isEqualTo("field-validation-failed")
+            .jsonPath("$.parameters.token").isEqualTo("is-null")
+            .jsonPath("$.parameters.email").isEqualTo("is-null-or-blank")
+    }
+
+    @Test
+    fun `should answer the e-mail code on activation with an invalid e-mail`() {
+
+        patch("activate", """{"token": "${UUID.randomUUID()}", "email": "not-an-email"}""")
+            .expectStatus().isEqualTo(422)
+            .expectBody()
+            .jsonPath("$.parameters.email").isEqualTo("email-address-is-invalid")
     }
 
     private fun patch(action: String, body: String) = restTestClient.patch()
