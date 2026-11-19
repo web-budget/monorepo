@@ -219,8 +219,7 @@
     "user": {
       "deleted": "Usuário excluído com sucesso",
       "created": "Usuário criado com sucesso",
-      "updated": "Usuário atualizado com sucesso",
-      "password-reset": "Senha redefinida com sucesso"
+      "updated": "Usuário atualizado com sucesso"
     },
     "forgot-password": {
       "requested": "Solicitação realizada, aguarde pelo email de recuperação"
@@ -285,15 +284,14 @@
     "menu": "Usuários",
     "own-account": "Sua conta",
     "search": {
-      "placeholder": "Nome ou email"
+      "placeholder": "Buscar por nome ou e-mail"
     },
     "table-columns": {
       "name": "Nome",
-      "email": "Email",
-      "roles": "Permissões"
+      "roles": "Áreas de acesso"
     },
     "role": {
-      "administration": "Administração",
+      "administration": "Configurações",
       "dashboards": "Dashboards",
       "financial": "Financeiro",
       "registration": "Cadastros"
@@ -306,37 +304,45 @@
       "new": "Novo usuário",
       "editing": "Editando usuário",
       "name": "Nome",
-      "email": "Email",
+      "email": "E-mail",
       "password": "Senha",
       "language": "Idioma",
-      "roles": "Permissões",
-      "send-activation-email": "Enviar email de ativação da conta",
-      "create": "Criar usuário"
+      "roles": "Áreas de acesso",
+      "send-activation-email": "Enviar e-mail de ativação",
+      "create": "Criar usuário",
+      "email-hint": "O e-mail não muda depois do cadastro.",
+      "active-heading": "Cadastro",
+      "active-label": "Ativo",
+      "active-hint": "Desligado, a pessoa não consegue entrar.",
+      "activation-heading": "Ativação da conta",
+      "activation-hint": "A pessoa ativa a conta pelo link enviado ao e-mail dela."
     },
     "confirm": {
-      "create-title": "Criar usuário",
-      "create": "Confirma a criação do usuário {name}?",
-      "update-title": "Salvar usuário",
-      "update": "Confirma as alterações do usuário {name}?",
-      "delete": "Confirma a exclusão do usuário {name}? Essa ação não pode ser desfeita."
+      "create-title": "Criar o usuário “{name}”?",
+      "create": "A conta é cadastrada com as áreas de acesso que você escolheu.",
+      "create-label": "Criar usuário",
+      "update-title": "Salvar as alterações de “{name}”?",
+      "update": "Os dados e as áreas de acesso novos valem já na próxima requisição da pessoa.",
+      "update-label": "Salvar alterações"
     },
     "password": {
       "action": "Redefinir senha",
-      "title": "Redefinir senha",
-      "description": "Informe a nova senha de {name}. As sessões abertas dele serão encerradas.",
+      "title": "Redefinir a senha de {name}?",
+      "description": "Defina a nova senha e passe para a pessoa por um canal seguro. As sessões abertas dela serão encerradas.",
       "password": "Nova senha",
       "confirmation": "Confirmação",
       "submit": "Redefinir senha"
     },
     "list": {
-      "description": "Quem tem acesso ao sistema e com quais permissões.",
+      "description": "Quem acessa o webBudget e quais áreas cada pessoa pode usar.",
       "empty-title": "Nenhum usuário ainda",
       "empty-description": "Cadastre as pessoas que vão usar o sistema.",
       "plural": "os usuários"
     },
     "remove": {
       "title": "Remover o usuário “{name}”?",
-      "description": "Não dá para desfazer. O acesso da pessoa ao sistema é encerrado."
+      "description": "Não dá para desfazer. A conta é apagada e o acesso da pessoa ao sistema é encerrado.",
+      "action": "Remover usuário"
     },
     "toast": {
       "created": "Usuário criado",
@@ -344,10 +350,30 @@
       "updated": "Alterações salvas",
       "updated-detail": "Os dados de “{name}” foram salvos.",
       "removed": "Usuário removido",
-      "removed-detail": "“{name}” saiu da lista."
+      "removed-detail": "“{name}” saiu da lista.",
+      "password-reset": "Senha redefinida",
+      "password-reset-detail": "A nova senha de “{name}” já vale."
     },
     "sections": {
-      "data": "Dados do usuário"
+      "data": "Dados",
+      "data-help": "Como a pessoa aparece no app.",
+      "access": "Acesso",
+      "access-help": "A senha inicial da conta. A pessoa pode trocá-la pelo “Esqueci a senha”.",
+      "roles": "Áreas de acesso",
+      "roles-help": "O que aparece no menu dessa pessoa."
+    },
+    "role-description": {
+      "dashboards": "Painéis do período, histórico e previsão.",
+      "financial": "Lançar receitas e despesas e fechar períodos.",
+      "registration": "Carteiras, cartões, classificações, centros de custo e períodos.",
+      "administration": "Usuários e o acesso de cada pessoa."
+    },
+    "you": "(você)",
+    "aside": {
+      "title": "Conta",
+      "status": "Situação",
+      "language": "Idioma",
+      "roles": "Áreas de acesso"
     }
   },
   "period-movement": {
@@ -695,7 +721,8 @@
     "string-max": "Informe no máximo {maximum} caracteres",
     "number-min": "O valor mínimo é {minimum}",
     "number-max": "O valor máximo é {maximum}",
-    "end-before-start": "A data de fim não pode ser anterior à data de início"
+    "end-before-start": "A data de fim não pode ser anterior à data de início",
+    "roles-required": "Escolha pelo menos uma área."
   },
   "crud": {
     "required-hint": "Campos com * são obrigatórios.",

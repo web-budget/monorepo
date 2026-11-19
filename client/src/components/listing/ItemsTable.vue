@@ -319,7 +319,11 @@ function changePageSize(value: unknown) {
           </div>
         </div>
         <dl v-if="secondaryColumns.length > 0" class="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-          <div v-for="column in secondaryColumns" :key="column.field" class="min-w-0">
+          <div
+            v-for="column in secondaryColumns"
+            :key="column.field"
+            :class="cn('min-w-0', column.wide && 'col-span-2')"
+          >
             <dt class="text-muted-foreground text-xs">{{ column.header }}</dt>
             <dd :class="cn(column.mono && 'font-mono tabular-nums')">
               <slot

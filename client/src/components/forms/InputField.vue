@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import {
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 
@@ -14,6 +21,7 @@ withDefaults(
     multiline?: boolean
     required?: boolean
     mono?: boolean
+    hint?: string
     class?: string
   }>(),
   {
@@ -24,6 +32,7 @@ withDefaults(
     multiline: false,
     required: false,
     mono: false,
+    hint: undefined,
     class: undefined,
   },
 )
@@ -61,6 +70,7 @@ withDefaults(
           @blur="handleBlur"
         />
       </FormControl>
+      <FormDescription v-if="hint">{{ hint }}</FormDescription>
       <FormMessage />
     </FormItem>
   </FormField>

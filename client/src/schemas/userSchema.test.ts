@@ -37,7 +37,7 @@ describe('user schemas', () => {
     ['email', { email: '' }, 'Campo obrigatório'],
     ['email', { email: 'nope' }, 'Informe um email válido'],
     ['password', { password: 'short' }, 'Informe ao menos 8 caracteres'],
-    ['roles', { roles: [] }, 'Campo obrigatório'],
+    ['roles', { roles: [] }, 'Escolha pelo menos uma área.'],
   ])('rejects a new user with an invalid %s', (_field, override, message) => {
     const result = userCreateSchema.safeParse({ ...valid, ...override })
 
