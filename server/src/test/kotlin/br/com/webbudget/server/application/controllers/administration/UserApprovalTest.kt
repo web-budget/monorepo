@@ -3,6 +3,7 @@ package br.com.webbudget.server.application.controllers.administration
 import br.com.webbudget.server.BaseIntegrationTest
 import br.com.webbudget.server.domain.entities.administration.User
 import br.com.webbudget.server.domain.entities.administration.UserStatus
+import br.com.webbudget.server.domain.exceptions.DomainException
 import br.com.webbudget.server.domain.services.administration.UserService
 import br.com.webbudget.server.infrastructure.repository.administration.UserRepository
 import br.com.webbudget.server.jooq.administration.tables.references.USERS
@@ -27,13 +28,16 @@ class UserApprovalTest : BaseIntegrationTest() {
     private lateinit var userRepository: UserRepository
 
     @Test
-    fun `should approve a pending account and tell the owner`() {
+    fun `should approve a pending account with its roles and tell the owner`() {
 
         val user = createUser(EMAIL, UserStatus.PENDING)
 
-        patch(user, "approve").expectStatus().isOk
+        approve(user, """["REGISTRATION", "FINANCIAL"]""").expectStatus().isOk
 
-        assertThat(userRepository.findByEmail(EMAIL)!!.status).isEqualTo(UserStatus.APPROVED)
+        val approved = userRepository.findByEmail(EMAIL)!!
+
+        assertThat(approved.status).isEqualTo(UserStatus.APPROVED)
+        assertThat(approved.roleNames()).containsExactlyInAnyOrder("REGISTRATION", "FINANCIAL")
 
         val message = greenMail.receivedMessages.single()
 
@@ -42,19 +46,102 @@ class UserApprovalTest : BaseIntegrationTest() {
     }
 
     @Test
+    fun `should give the approved account its roles on the next login`() {
+
+        approve(createUser(EMAIL, UserStatus.PENDING), """["REGISTRATION", "FINANCIAL"]""").expectStatus().isOk
+
+        restTestClient.get()
+            .uri("/private/v1/auth/session")
+            .header("Cookie", login(EMAIL, PASSWORD))
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.status").isEqualTo("APPROVED")
+            .jsonPath("$.roles[0]").isEqualTo("FINANCIAL")
+            .jsonPath("$.roles[1]").isEqualTo("REGISTRATION")
+    }
+
+    @Test
+    fun `should replace the roles an account already had when approving it`() {
+
+        val user = createUser(EMAIL, UserStatus.PENDING, "FINANCIAL", "DASHBOARDS")
+
+        approve(user, """["REGISTRATION", "REGISTRATION"]""").expectStatus().isOk
+
+        assertThat(userRepository.findByEmail(EMAIL)!!.roleNames()).containsExactly("REGISTRATION")
+    }
+
+    @Test
+    fun `should refuse to approve without roles and leave the account pending`() {
+
+        val user = createUser(EMAIL, UserStatus.PENDING)
+
+        listOf(null, "{}", """{"roles": null}""", """{"roles": []}""").forEach { body ->
+            approveWithBody(user, body)
+                .expectStatus().isBadRequest
+                .expectBody()
+                .jsonPath("$.error").isEqualTo("field-validation-failed")
+                .jsonPath("$.parameters.roles").isEqualTo("is-empty")
+        }
+
+        assertNothingChanged()
+    }
+
+    @Test
+    fun `should refuse to approve with an unknown role and leave the account untouched`() {
+
+        val user = createUser(EMAIL, UserStatus.PENDING, "DASHBOARDS")
+
+        listOf("""["FINANCIAL", "NOT_A_ROLE"]""", """[null]""").forEach { roles ->
+            approve(user, roles)
+                .expectStatus().isBadRequest
+                .expectBody()
+                .jsonPath("$.error").isEqualTo("field-validation-failed")
+                .jsonPath("$.parameters.roles").isEqualTo("unknown-role")
+        }
+
+        assertNothingChanged("DASHBOARDS")
+    }
+
+    @Test
+    fun `should leave the account exactly as it was when a step of the approval fails`() {
+
+        createUser(EMAIL, UserStatus.PENDING, "DASHBOARDS")
+
+        val stale = userOf(EMAIL)
+
+        dsl.update(USERS).set(USERS.VERSION, USERS.VERSION.plus(1)).where(USERS.EMAIL.eq(EMAIL)).execute()
+
+        assertThatThrownBy { userService.approve(stale, listOf("FINANCIAL")) }
+            .isInstanceOf(DomainException::class.java)
+            .extracting { (it as DomainException).error }
+            .isEqualTo("concurrent-update")
+
+        assertNothingChanged("DASHBOARDS")
+    }
+
+    @Test
+    fun `should not let the administrator approve the own account`() {
+
+        signInAsSecondAdministrator()
+
+        approve(userOf(ADMINISTRATOR_EMAIL), """["FINANCIAL"]""").expectSelfActionRefused()
+    }
+
+    @Test
     fun `should refuse to approve an account that is not pending`() {
 
         val approved = createUser(EMAIL, UserStatus.APPROVED)
         val blocked = createUser(OTHER_EMAIL, UserStatus.BLOCKED)
 
-        patch(approved, "approve")
+        approve(approved)
             .expectStatus().isEqualTo(409)
             .expectBody()
             .jsonPath("$.error").isEqualTo("invalid-user-status-transition")
             .jsonPath("$.parameters.status").isEqualTo("APPROVED")
             .jsonPath("$.parameters.expected").isEqualTo("PENDING")
 
-        patch(blocked, "approve").expectStatus().isEqualTo(409)
+        approve(blocked).expectStatus().isEqualTo(409)
 
         assertThat(greenMail.receivedMessages).isEmpty()
     }
@@ -135,7 +222,7 @@ class UserApprovalTest : BaseIntegrationTest() {
 
         authenticateWithRoles("FINANCIAL")
 
-        patch(user, "approve").expectStatus().isForbidden
+        approve(user).expectStatus().isForbidden
         patch(user, "block").expectStatus().isForbidden
         patch(user, "unblock").expectStatus().isForbidden
     }
@@ -279,6 +366,28 @@ class UserApprovalTest : BaseIntegrationTest() {
     private fun patch(user: User, action: String): ResponseSpec = restTestClient.patch()
         .uri("$ENDPOINT_URL/${user.externalId}/$action")
         .exchange()
+
+    private fun approve(user: User, roles: String = """["FINANCIAL"]"""): ResponseSpec =
+        approveWithBody(user, """{"roles": $roles}""")
+
+    private fun approveWithBody(user: User, body: String?): ResponseSpec {
+
+        val request = restTestClient.patch().uri("$ENDPOINT_URL/${user.externalId}/approve")
+
+        return when (body) {
+            null -> request.exchange()
+            else -> request.contentType(MediaType.APPLICATION_JSON).body(body).exchange()
+        }
+    }
+
+    private fun assertNothingChanged(vararg roles: String) {
+
+        val user = userOf(EMAIL)
+
+        assertThat(user.status).isEqualTo(UserStatus.PENDING)
+        assertThat(user.roleNames()).containsExactlyInAnyOrder(*roles)
+        assertThat(greenMail.receivedMessages).isEmpty()
+    }
 
     private fun update(user: User, active: Boolean, roles: String, name: String = "Test user"): ResponseSpec =
         restTestClient.put()

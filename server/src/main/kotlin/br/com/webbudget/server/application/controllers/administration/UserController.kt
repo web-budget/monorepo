@@ -2,11 +2,15 @@ package br.com.webbudget.server.application.controllers.administration
 
 import br.com.webbudget.server.application.mappers.administration.UserMapper
 import br.com.webbudget.server.application.payloads.administration.PasswordChangeForm
+import br.com.webbudget.server.application.payloads.ErrorCodes.IS_EMPTY
+import br.com.webbudget.server.application.payloads.administration.UserApproveForm
 import br.com.webbudget.server.application.payloads.administration.UserCreateForm
 import br.com.webbudget.server.application.payloads.administration.UserFilter
 import br.com.webbudget.server.application.payloads.administration.UserUpdateForm
 import br.com.webbudget.server.application.payloads.administration.UserView
 import br.com.webbudget.server.domain.entities.administration.Role
+import br.com.webbudget.server.domain.exceptions.DomainException
+import br.com.webbudget.server.domain.exceptions.ErrorCodes.FIELD_VALIDATION_FAILED
 import br.com.webbudget.server.domain.exceptions.ResourceNotFoundException
 import br.com.webbudget.server.domain.services.administration.UserService
 import br.com.webbudget.server.infrastructure.config.security.RequiresRole
@@ -87,12 +91,25 @@ class UserController(
     }
 
     @PatchMapping("/{id}/approve")
-    fun approve(@PathVariable id: UUID): ResponseEntity<Void> {
+    fun approve(
+        @PathVariable id: UUID,
+        @RequestBody(required = false) form: UserApproveForm?
+    ): ResponseEntity<Void> {
 
         val user = userRepository.findByExternalId(id)
             ?: throw ResourceNotFoundException()
 
-        userService.approve(user)
+        val roles = form?.roles.orEmpty().map { it.orEmpty() }
+
+        if (roles.isEmpty()) {
+            throw DomainException(
+                "At least one role is required to approve an account",
+                FIELD_VALIDATION_FAILED,
+                mapOf("roles" to IS_EMPTY)
+            )
+        }
+
+        userService.approve(user, roles)
 
         return ResponseEntity.ok().build()
     }
