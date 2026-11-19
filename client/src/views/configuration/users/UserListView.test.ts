@@ -130,6 +130,22 @@ describe('UserListView', () => {
     })
   })
 
+  it('sorts by name in both directions, with the name and e-mail cell, and goes back to the newest first', async () => {
+    const { wrapper } = await render()
+
+    await buttonWithText(wrapper, 'Nome').trigger('click')
+    await flushPromises()
+    expect(lastListingCall()).toEqual(expect.objectContaining({ sort: 'name,asc' }))
+
+    await buttonWithText(wrapper, 'Nome').trigger('click')
+    await flushPromises()
+    expect(lastListingCall()).toEqual(expect.objectContaining({ sort: 'name,desc' }))
+
+    await buttonWithText(wrapper, 'Nome').trigger('click')
+    await flushPromises()
+    expect(lastListingCall()).toEqual(expect.objectContaining({ sort: 'createdOn,desc' }))
+  })
+
   it('opens the forms to create and to edit a user', async () => {
     const { wrapper, router } = await render()
 
