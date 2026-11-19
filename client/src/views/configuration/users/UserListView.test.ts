@@ -1,9 +1,19 @@
 import { flushPromises } from '@vue/test-utils'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'vue-sonner'
 import { usersApi } from '@/api/users'
 import { useConfirmDialog } from '@/composables/useConfirmDialog'
-import { buttonWithText, mountView, pageOf, problem, settle } from '@/test/crud'
+import {
+  buttonWithText,
+  chooseRowAction,
+  listingCalls,
+  mountView,
+  problem,
+  serveListing,
+  settle,
+  stateOf,
+  useCompactViewport,
+} from '@/test/crud'
 import type { UserView } from '@/types'
 import UserListView from '@/views/configuration/users/UserListView.vue'
 
@@ -21,7 +31,7 @@ const users: UserView[] = [
   {
     id: 'u-1',
     active: true,
-    name: 'Admin',
+    name: 'Admin Silva',
     email: 'admin@example.com',
     defaultLanguage: 'PT_BR',
     authorities: ['ADMINISTRATION', 'REGISTRATION'],
@@ -36,19 +46,32 @@ const users: UserView[] = [
   },
 ]
 
-const session = { name: 'Admin', email: 'admin@example.com', status: 'APPROVED', roles: [] }
+const session = { name: 'Admin Silva', email: 'admin@example.com', status: 'APPROVED', roles: [] }
 
 async function render(content = users) {
-  vi.mocked(usersApi.findAll).mockResolvedValue(pageOf(content))
+  serveListing(vi.mocked(usersApi.findAll), content)
   return mountView(UserListView, 'users', {}, { auth: { session } })
 }
 
-function rowOf(wrapper: Awaited<ReturnType<typeof render>>['wrapper'], name: string) {
+type Wrapper = Awaited<ReturnType<typeof render>>['wrapper']
+
+function rowOf(wrapper: Wrapper, name: string) {
   const row = wrapper.findAll('tbody tr').find((candidate) => candidate.text().includes(name))
   if (!row) {
     throw new Error(`no row for ${name}`)
   }
   return row
+}
+
+function lastListingCall() {
+  const calls = listingCalls(vi.mocked(usersApi.findAll))
+  return calls[calls.length - 1]
+}
+
+function menuItem(label: string) {
+  return [...document.body.querySelectorAll<HTMLElement>('[role="menuitem"]')].find(
+    (candidate) => candidate.textContent?.trim() === label,
+  )!
 }
 
 describe('UserListView', () => {
@@ -57,74 +80,125 @@ describe('UserListView', () => {
     document.body.replaceChildren()
   })
 
-  it('lists users of every status on mount, with the roles and the status of each one', async () => {
+  it('lists users of every status on mount, with avatar, e-mail, areas and status', async () => {
     const { wrapper } = await render()
 
-    expect(usersApi.findAll).toHaveBeenCalledWith({
+    expect(listingCalls(vi.mocked(usersApi.findAll))[0]).toEqual({
       filter: '',
       status: 'ALL',
       page: 0,
       size: 15,
-      sort: 'createdOn,asc',
+      sort: 'createdOn,desc',
     })
-    expect(rowOf(wrapper, 'Bruno').text()).toContain('bruno@example.com')
-    expect(rowOf(wrapper, 'Bruno').text()).toContain('Financeiro')
-    expect(rowOf(wrapper, 'Bruno').text()).toContain('Inativo')
-    expect(rowOf(wrapper, 'Admin').text()).toContain('Administração, Cadastros')
-    expect(rowOf(wrapper, 'Admin').text()).toContain('Ativo')
+    const bruno = rowOf(wrapper, 'Bruno')
+    expect(bruno.text()).toContain('BR')
+    expect(bruno.text()).toContain('bruno@example.com')
+    expect(bruno.text()).toContain('Financeiro')
+    expect(bruno.text()).toContain('Inativo')
+    const admin = rowOf(wrapper, 'Admin Silva')
+    expect(admin.text()).toContain('AS')
+    expect(admin.findAll('td')[1]!.text()).toBe('CadastrosConfigurações')
+    expect(admin.text()).toContain('Ativo')
   })
 
-  it('searches by the typed text and by status, and goes back to every status when cleared', async () => {
+  it('counts the users of each status on the tabs, starting on all of them', async () => {
+    const { wrapper } = await render()
+
+    expect(buttonWithText(wrapper, 'Todos').attributes('aria-pressed')).toBe('true')
+    expect(buttonWithText(wrapper, 'Ativos').text()).toBe('Ativos 4')
+    expect(buttonWithText(wrapper, 'Inativos').text()).toBe('Inativos 1')
+    expect(buttonWithText(wrapper, 'Todos').text()).toBe('Todos 5')
+  })
+
+  it('searches by the typed text and by status, and clears the text without touching the status', async () => {
     const { wrapper } = await render()
 
     await wrapper.find('input').setValue('bru')
     await wrapper.find('input').trigger('keydown', { key: 'Enter' })
     await flushPromises()
-    expect(usersApi.findAll).toHaveBeenLastCalledWith(expect.objectContaining({ filter: 'bru' }))
+    expect(lastListingCall()).toMatchObject({ filter: 'bru' })
 
     await buttonWithText(wrapper, 'Ativos').trigger('click')
     await flushPromises()
-    expect(usersApi.findAll).toHaveBeenLastCalledWith(expect.objectContaining({ status: 'ACTIVE' }))
+    expect(lastListingCall()).toMatchObject({ status: 'ACTIVE' })
 
     await wrapper.find('button[aria-label="Limpar filtro"]').trigger('click')
     await flushPromises()
-    expect(usersApi.findAll).toHaveBeenLastCalledWith(
-      expect.objectContaining({ filter: '', status: 'ALL' }),
-    )
+    expect(lastListingCall()).toMatchObject({
+      filter: '',
+      status: 'ACTIVE',
+    })
+  })
+
+  it('sorts by name in both directions, with the name and e-mail cell, and goes back to the newest first', async () => {
+    const { wrapper } = await render()
+
+    await buttonWithText(wrapper, 'Nome').trigger('click')
+    await flushPromises()
+    expect(lastListingCall()).toEqual(expect.objectContaining({ sort: 'name,asc' }))
+
+    await buttonWithText(wrapper, 'Nome').trigger('click')
+    await flushPromises()
+    expect(lastListingCall()).toEqual(expect.objectContaining({ sort: 'name,desc' }))
+
+    await buttonWithText(wrapper, 'Nome').trigger('click')
+    await flushPromises()
+    expect(lastListingCall()).toEqual(expect.objectContaining({ sort: 'createdOn,desc' }))
   })
 
   it('opens the forms to create and to edit a user', async () => {
     const { wrapper, router } = await render()
 
-    await buttonWithText(wrapper, 'Novo').trigger('click')
+    await buttonWithText(wrapper, 'Novo usuário').trigger('click')
     await flushPromises()
     expect(router.currentRoute.value.name).toBe('users.create')
 
-    await rowOf(wrapper, 'Bruno').find('button[aria-label="Editar"]').trigger('click')
-    await flushPromises()
+    await chooseRowAction(wrapper, 1, 'Editar')
     expect(router.currentRoute.value.name).toBe('users.update')
     expect(router.currentRoute.value.params.id).toBe('u-2')
   })
 
-  it('offers no action on the account of whoever is logged in', async () => {
-    const { wrapper } = await render()
+  describe('the account of whoever is logged in', () => {
+    it('is marked as yours and offers no action in the menu', async () => {
+      const { wrapper } = await render()
+      const own = rowOf(wrapper, 'Admin Silva')
 
-    const own = rowOf(wrapper, 'Admin')
+      expect(own.text()).toContain('(você)')
+      expect(rowOf(wrapper, 'Bruno').text()).not.toContain('(você)')
 
-    expect(own.text()).toContain('Sua conta')
-    expect(own.findAll('button[aria-label]')).toHaveLength(0)
-    expect(rowOf(wrapper, 'Bruno').findAll('button[aria-label]')).toHaveLength(3)
+      await own.find('button[aria-label="Mais ações"]').trigger('keydown', { key: 'Enter' })
+      await flushPromises()
+
+      expect(document.body.textContent).toContain('Sua conta')
+      for (const label of ['Editar', 'Redefinir senha', 'Remover']) {
+        expect(menuItem(label).getAttribute('data-disabled')).not.toBeNull()
+      }
+    })
+
+    it('offers the actions on the accounts of other people', async () => {
+      const { wrapper } = await render()
+
+      await rowOf(wrapper, 'Bruno')
+        .find('button[aria-label="Mais ações"]')
+        .trigger('keydown', { key: 'Enter' })
+      await flushPromises()
+
+      expect(document.body.textContent).toContain('Bruno')
+      for (const label of ['Editar', 'Redefinir senha', 'Remover']) {
+        expect(menuItem(label).getAttribute('data-disabled')).toBeNull()
+      }
+    })
   })
 
   it('deletes a user only after confirming, naming the user in the question', async () => {
     const { wrapper } = await render()
     vi.mocked(usersApi.remove).mockResolvedValue(undefined)
 
-    await rowOf(wrapper, 'Bruno').find('button[aria-label="Deletar"]').trigger('click')
     const dialog = useConfirmDialog()
+    await chooseRowAction(wrapper, 1, 'Remover')
 
     expect(dialog.state.open).toBe(true)
-    expect(dialog.state.options.description).toContain('Bruno')
+    expect(dialog.state.options.title).toBe('Remover o usuário “Bruno”?')
     expect(usersApi.remove).not.toHaveBeenCalled()
 
     dialog.accept()
@@ -132,8 +206,8 @@ describe('UserListView', () => {
 
     expect(usersApi.remove).toHaveBeenCalledWith('u-2')
     expect(wrapper.findAll('tbody tr')).toHaveLength(1)
-    expect(toast.success).toHaveBeenCalledWith('Registro excluído', {
-      description: 'Usuário excluído com sucesso',
+    expect(toast.success).toHaveBeenCalledWith('Usuário removido', {
+      description: '“Bruno” saiu da lista.',
       duration: 4000,
     })
   })
@@ -141,7 +215,7 @@ describe('UserListView', () => {
   it('keeps the user when the deletion is not confirmed', async () => {
     const { wrapper } = await render()
 
-    await rowOf(wrapper, 'Bruno').find('button[aria-label="Deletar"]').trigger('click')
+    await chooseRowAction(wrapper, 1, 'Remover')
     useConfirmDialog().cancel()
     await flushPromises()
 
@@ -149,14 +223,105 @@ describe('UserListView', () => {
     expect(wrapper.findAll('tbody tr')).toHaveLength(2)
   })
 
-  it('shows the server error when the listing fails', async () => {
+  it('shows the server error when the listing fails, with a way to try again', async () => {
     vi.mocked(usersApi.findAll).mockRejectedValue(problem(500))
 
     const { wrapper } = await mountView(UserListView, 'users')
 
-    expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
-      'Tente novamente mais tarde',
-    )
+    expect(stateOf(wrapper)).toBe('error')
+    expect(wrapper.find('[data-state="error"]').text()).toContain('Tente novamente mais tarde')
+
+    serveListing(vi.mocked(usersApi.findAll), users)
+    await buttonWithText(wrapper, 'Tentar de novo').trigger('click')
+    await flushPromises()
+
+    expect(stateOf(wrapper)).toBeUndefined()
+    expect(wrapper.findAll('tbody tr')).toHaveLength(2)
+  })
+
+  it('invites to the first user when there is none, and offers to clear a search without result', async () => {
+    serveListing(vi.mocked(usersApi.findAll), [], 0, { ACTIVE: 0, INACTIVE: 0, ALL: 0 })
+    const { wrapper, router } = await mountView(UserListView, 'users')
+
+    expect(stateOf(wrapper)).toBe('empty')
+    await wrapper.find('[data-state="empty"] button').trigger('click')
+    await flushPromises()
+    expect(router.currentRoute.value.name).toBe('users.create')
+
+    serveListing(vi.mocked(usersApi.findAll), [], 0)
+    await wrapper.find('input').setValue('zzz')
+    await wrapper.find('input').trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+
+    expect(stateOf(wrapper)).toBe('no-result')
+    await buttonWithText(wrapper, 'Limpar busca').trigger('click')
+    await flushPromises()
+    expect(lastListingCall()).toMatchObject({ filter: '' })
+  })
+
+  describe('on a phone', () => {
+    beforeEach(() => useCompactViewport(true))
+    afterEach(() => useCompactViewport(false))
+
+    function sheetButton(label: string) {
+      return [...document.body.querySelectorAll<HTMLButtonElement>('[role="dialog"] button')].find(
+        (candidate) => candidate.textContent?.trim() === label,
+      )!
+    }
+
+    async function openSheet(wrapper: Wrapper, name: string) {
+      const card = wrapper
+        .findAll('[data-slot="items-cards"] > div')
+        .find((candidate) => candidate.text().includes(name))!
+      await card.find('button[aria-label="Mais ações"]').trigger('click')
+      await settle()
+    }
+
+    it('opens the actions of a user in a sheet naming the person', async () => {
+      const { wrapper, router } = await render()
+
+      await openSheet(wrapper, 'Bruno')
+
+      expect(document.body.querySelector('[role="dialog"]')?.textContent).toContain(
+        'bruno@example.com',
+      )
+      sheetButton('Editar').click()
+      await settle()
+
+      expect(router.currentRoute.value.params.id).toBe('u-2')
+      expect(document.body.querySelector('[role="dialog"]')).toBeNull()
+    })
+
+    it('opens the password dialog and the removal from the sheet', async () => {
+      const { wrapper } = await render()
+
+      await openSheet(wrapper, 'Bruno')
+      sheetButton('Redefinir senha').click()
+      await settle()
+      expect(document.body.textContent).toContain('Redefinir a senha de Bruno?')
+
+      document.body
+        .querySelector('[role="dialog"]')!
+        .dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+      await settle()
+      await openSheet(wrapper, 'Bruno')
+      sheetButton('Remover').click()
+      await settle()
+
+      expect(useConfirmDialog().state.options.title).toBe('Remover o usuário “Bruno”?')
+      useConfirmDialog().cancel()
+    })
+
+    it('disables the actions of the own account in the sheet', async () => {
+      const { wrapper } = await render()
+
+      await openSheet(wrapper, 'Admin Silva')
+
+      expect(document.body.querySelector('[role="dialog"]')?.textContent).toContain('Sua conta')
+      for (const label of ['Editar', 'Redefinir senha', 'Remover']) {
+        expect(sheetButton(label).disabled).toBe(true)
+      }
+    })
   })
 
   describe('resetting a password', () => {
@@ -177,7 +342,7 @@ describe('UserListView', () => {
 
     async function open() {
       const { wrapper } = await render()
-      await rowOf(wrapper, 'Bruno').find('button[aria-label="Redefinir senha"]').trigger('click')
+      await chooseRowAction(wrapper, 1, 'Redefinir senha')
       await settle()
       return wrapper
     }
@@ -186,10 +351,10 @@ describe('UserListView', () => {
       const { wrapper } = await render()
       expect(document.body.querySelector('form')).toBeNull()
 
-      await rowOf(wrapper, 'Bruno').find('button[aria-label="Redefinir senha"]').trigger('click')
+      await chooseRowAction(wrapper, 1, 'Redefinir senha')
       await settle()
 
-      expect(document.body.textContent).toContain('Informe a nova senha de Bruno')
+      expect(document.body.textContent).toContain('Redefinir a senha de Bruno?')
     })
 
     it('sets a temporary password and closes the dialog', async () => {
@@ -204,8 +369,8 @@ describe('UserListView', () => {
         temporary: true,
         password: 'new-secret-1',
       })
-      expect(toast.success).toHaveBeenCalledWith('Registro atualizado', {
-        description: 'Senha redefinida com sucesso',
+      expect(toast.success).toHaveBeenCalledWith('Senha redefinida', {
+        description: 'A nova senha de “Bruno” já vale.',
         duration: 4000,
       })
       expect(document.body.querySelector('form')).toBeNull()
@@ -262,7 +427,7 @@ describe('UserListView', () => {
       await settle()
       expect(document.body.querySelector('form')).toBeNull()
 
-      await rowOf(wrapper, 'Bruno').find('button[aria-label="Redefinir senha"]').trigger('click')
+      await chooseRowAction(wrapper, 1, 'Redefinir senha')
       await settle()
 
       expect(field('password').value).toBe('')

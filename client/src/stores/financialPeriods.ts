@@ -6,11 +6,7 @@ import type { FinancialPeriodStatusFilter } from '@/types'
 
 export const useFinancialPeriodsStore = defineStore('financialPeriods', () => {
   const resource = useCrudResource(financialPeriodsApi, () =>
-    createPageRequest<FinancialPeriodStatusFilter>({
-      status: 'OPEN',
-      direction: 'desc',
-      sortField: 'startingAt',
-    }),
+    createPageRequest<FinancialPeriodStatusFilter>({ status: 'OPEN' }),
   )
 
   return {
@@ -19,6 +15,7 @@ export const useFinancialPeriodsStore = defineStore('financialPeriods', () => {
     pageResponse: resource.pageResponse,
     loading: resource.loading,
     findAll: resource.findAll,
+    count: resource.count,
     findOne: resource.findOne,
     create: resource.create,
     update: resource.update,

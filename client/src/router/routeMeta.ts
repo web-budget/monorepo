@@ -6,5 +6,6 @@ declare module 'vue-router' {
     public?: boolean
     breadcrumb?: string
     role?: Role
+    narrow?: boolean
   }
 }

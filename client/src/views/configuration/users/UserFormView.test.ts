@@ -42,9 +42,8 @@ function checkboxes(wrapper: Wrapper) {
   return wrapper.findAll('button[role="checkbox"]')
 }
 
-function activationBox(wrapper: Wrapper) {
-  const boxes = checkboxes(wrapper)
-  return boxes[boxes.length - 1]!
+function activationSwitch(wrapper: Wrapper) {
+  return wrapper.find('button[role="switch"]')
 }
 
 async function render(props: Record<string, unknown> = {}) {
@@ -77,12 +76,13 @@ describe('UserFormView', () => {
 
       expect(rolesApi.findAll).toHaveBeenCalledOnce()
       expect(wrapper.text()).toContain('Novo usuário')
-      expect(wrapper.text()).toContain('Administração')
+      expect(wrapper.text()).toContain('Configurações')
       expect(wrapper.text()).toContain('Cadastros')
       expect(field(wrapper, 'password').exists()).toBe(true)
       expect(wrapper.text()).toContain('Português (Brasil)')
-      expect(checkboxes(wrapper)).toHaveLength(4)
-      expect(activationBox(wrapper).attributes('aria-checked')).toBe('true')
+      expect(checkboxes(wrapper)).toHaveLength(3)
+      expect(wrapper.text()).toContain('Lançar receitas e despesas e fechar períodos.')
+      expect(activationSwitch(wrapper).attributes('aria-checked')).toBe('true')
       expect(wrapper.find('label[for]').exists()).toBe(true)
       expect(usersApi.findById).not.toHaveBeenCalled()
     })
@@ -93,12 +93,13 @@ describe('UserFormView', () => {
       await submit(wrapper)
 
       expect(wrapper.text()).toContain('Campo obrigatório')
+      expect(wrapper.text()).toContain('Escolha pelo menos uma área.')
       expect(useConfirmDialog().state.open).toBe(false)
       expect(usersApi.create).not.toHaveBeenCalled()
     })
 
     it('creates the user only after confirming, asking for the activation e-mail', async () => {
-      vi.mocked(usersApi.create).mockResolvedValue(undefined)
+      vi.mocked(usersApi.create).mockResolvedValue('u-9')
       const { wrapper } = await render()
       await fillNewUser(wrapper)
 
@@ -106,7 +107,8 @@ describe('UserFormView', () => {
       const dialog = useConfirmDialog()
 
       expect(dialog.state.open).toBe(true)
-      expect(dialog.state.options.description).toContain('Ana')
+      expect(dialog.state.options.title).toBe('Criar o usuário “Ana”?')
+      expect(dialog.state.options.confirmLabel).toBe('Criar usuário')
       expect(usersApi.create).not.toHaveBeenCalled()
 
       dialog.accept()
@@ -120,21 +122,21 @@ describe('UserFormView', () => {
         roles: ['REGISTRATION'],
         sendActivationEmail: true,
       })
-      expect(toast.success).toHaveBeenCalledWith('Registro criado', {
-        description: 'Usuário criado com sucesso',
+      expect(toast.success).toHaveBeenCalledWith('Usuário criado', {
+        description: '“Ana” foi cadastrado.',
         duration: 4000,
       })
       expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('')
     })
 
     it('sends the chosen language, roles and activation preference', async () => {
-      vi.mocked(usersApi.create).mockResolvedValue(undefined)
+      vi.mocked(usersApi.create).mockResolvedValue('u-9')
       const { wrapper } = await render()
       await fillNewUser(wrapper)
       await roleBox(wrapper, 'FINANCIAL').trigger('click')
       await roleBox(wrapper, 'REGISTRATION').trigger('click')
       wrapper.getComponent(Select).vm.$emit('update:modelValue', 'EN_US')
-      await activationBox(wrapper).trigger('click')
+      await activationSwitch(wrapper).trigger('click')
       await settle()
 
       await submit(wrapper)
@@ -193,7 +195,7 @@ describe('UserFormView', () => {
     it('goes back to the listing', async () => {
       const { wrapper, router } = await render()
 
-      await buttonWithText(wrapper, 'Voltar').trigger('click')
+      await buttonWithText(wrapper, 'Cancelar').trigger('click')
       await settle()
 
       expect(router.currentRoute.value.name).toBe('users')
@@ -207,7 +209,7 @@ describe('UserFormView', () => {
       const { wrapper } = await render({ id: 'u-2' })
 
       expect(usersApi.findById).toHaveBeenCalledWith('u-2')
-      expect(wrapper.text()).toContain('Editando usuário')
+      expect(wrapper.find('h1').text()).toBe('Bruno')
       expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('Bruno')
       expect((field(wrapper, 'email').element as HTMLInputElement).value).toBe('bruno@example.com')
       expect(field(wrapper, 'email').attributes('disabled')).toBeDefined()
@@ -216,7 +218,7 @@ describe('UserFormView', () => {
       expect(wrapper.text()).toContain('Inglês (Estados Unidos)')
       expect(roleBox(wrapper, 'FINANCIAL').attributes('aria-checked')).toBe('true')
       expect(roleBox(wrapper, 'REGISTRATION').attributes('aria-checked')).toBe('false')
-      expect(buttonWithText(wrapper, 'Inativo').attributes('aria-pressed')).toBe('true')
+      expect(wrapper.find('button[role="switch"]').attributes('aria-checked')).toBe('false')
     })
 
     it('saves the new roles and status only after confirming, without e-mail nor password', async () => {
@@ -225,10 +227,10 @@ describe('UserFormView', () => {
       const { wrapper } = await render({ id: 'u-2' })
 
       await roleBox(wrapper, 'REGISTRATION').trigger('click')
-      await buttonWithText(wrapper, 'Ativo').trigger('click')
+      await wrapper.find('button[role="switch"]').trigger('click')
       await submit(wrapper)
 
-      expect(useConfirmDialog().state.options.description).toContain('Bruno')
+      expect(useConfirmDialog().state.options.title).toBe('Salvar as alterações de “Bruno”?')
       expect(usersApi.update).not.toHaveBeenCalled()
 
       useConfirmDialog().accept()
@@ -240,8 +242,8 @@ describe('UserFormView', () => {
         defaultLanguage: 'EN_US',
         roles: ['FINANCIAL', 'REGISTRATION'],
       })
-      expect(toast.success).toHaveBeenCalledWith('Registro atualizado', {
-        description: 'Usuário atualizado com sucesso',
+      expect(toast.success).toHaveBeenCalledWith('Alterações salvas', {
+        description: 'Os dados de “Bruno” foram salvos.',
         duration: 4000,
       })
     })
@@ -265,7 +267,7 @@ describe('UserFormView', () => {
       await roleBox(wrapper, 'FINANCIAL').trigger('click')
       await submit(wrapper)
 
-      expect(wrapper.text()).toContain('Campo obrigatório')
+      expect(wrapper.text()).toContain('Escolha pelo menos uma área.')
       expect(usersApi.update).not.toHaveBeenCalled()
     })
 
@@ -291,6 +293,92 @@ describe('UserFormView', () => {
       expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
         'Revise os dados e tente novamente',
       )
+    })
+
+    describe('the side column with the account', () => {
+      const session = { name: 'Ana', email: 'ana@example.com', status: 'APPROVED', roles: [] }
+
+      async function renderExisting(initialState: Record<string, unknown> = {}) {
+        vi.mocked(usersApi.findById).mockResolvedValue(existing)
+        vi.mocked(rolesApi.findAll).mockResolvedValue(['ADMINISTRATION', 'FINANCIAL'])
+        return mountView(UserFormView, 'users', { id: 'u-2' }, initialState)
+      }
+
+      it('shows the e-mail under the name, the status, the language and the areas of the account', async () => {
+        const { wrapper } = await renderExisting()
+
+        expect(wrapper.find('[data-slot="page-description"]').text()).toBe('bruno@example.com')
+        expect(wrapper.find('dl').text()).toContain('Inativo')
+        expect(wrapper.find('dl').text()).toContain('Inglês (Estados Unidos)')
+        expect(wrapper.find('dl').text()).toContain('Financeiro')
+      })
+
+      it('resets the password of the user being edited', async () => {
+        vi.mocked(usersApi.updatePassword).mockResolvedValue(undefined)
+        const { wrapper } = await renderExisting({ auth: { session } })
+
+        await buttonWithText(wrapper, 'Redefinir senha').trigger('click')
+        await settle()
+
+        expect(document.body.textContent).toContain('Redefinir a senha de Bruno?')
+
+        document.body
+          .querySelector('[role="dialog"]')!
+          .dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+        await settle()
+        expect(document.body.querySelector('[role="dialog"]')).toBeNull()
+      })
+
+      it('removes the user after confirming and goes back to the listing, without asking to discard', async () => {
+        vi.mocked(usersApi.remove).mockResolvedValue(undefined)
+        const { wrapper, router } = await renderExisting({ auth: { session } })
+        await field(wrapper, 'name').setValue('Bruno Souza')
+        const dialog = useConfirmDialog()
+
+        await buttonWithText(wrapper, 'Remover usuário').trigger('click')
+        await settle()
+        expect(dialog.state.options.title).toBe('Remover o usuário “Bruno”?')
+        dialog.accept()
+        await settle()
+
+        expect(usersApi.remove).toHaveBeenCalledWith('u-2')
+        expect(toast.success).toHaveBeenCalledWith('Usuário removido', {
+          description: '“Bruno” saiu da lista.',
+          duration: 4000,
+        })
+        expect(dialog.state.options.title).toBe('Remover o usuário “Bruno”?')
+        expect(router.currentRoute.value.name).toBe('users')
+      })
+
+      it('keeps the user when the removal is not confirmed or the server refuses it', async () => {
+        const { wrapper, router } = await renderExisting({ auth: { session } })
+
+        await buttonWithText(wrapper, 'Remover usuário').trigger('click')
+        await settle()
+        useConfirmDialog().cancel()
+        await settle()
+        expect(usersApi.remove).not.toHaveBeenCalled()
+
+        vi.mocked(usersApi.remove).mockRejectedValue(problem(500))
+        await buttonWithText(wrapper, 'Remover usuário').trigger('click')
+        await settle()
+        useConfirmDialog().accept()
+        await settle()
+
+        expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
+          'Tente novamente mais tarde',
+        )
+        expect(router.currentRoute.value.name).not.toBe('users')
+      })
+
+      it('offers no action on the account of whoever is logged in', async () => {
+        const { wrapper } = await renderExisting({
+          auth: { session: { ...session, email: 'bruno@example.com' } },
+        })
+
+        expect(buttonWithText(wrapper, 'Redefinir senha').attributes('disabled')).toBeDefined()
+        expect(buttonWithText(wrapper, 'Remover usuário').attributes('disabled')).toBeDefined()
+      })
     })
   })
 })

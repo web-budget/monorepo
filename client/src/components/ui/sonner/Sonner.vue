@@ -26,16 +26,16 @@ const props = defineProps<ToasterProps>()
     v-bind="props"
   >
     <template #success-icon>
-      <CircleCheckIcon class="size-4" />
+      <CircleCheckIcon class="text-income size-4" />
     </template>
     <template #info-icon>
       <InfoIcon class="size-4" />
     </template>
     <template #warning-icon>
-      <TriangleAlertIcon class="size-4" />
+      <TriangleAlertIcon class="text-highlight-foreground size-4" />
     </template>
     <template #error-icon>
-      <OctagonXIcon class="size-4" />
+      <OctagonXIcon class="text-destructive size-4" />
     </template>
     <template #loading-icon>
       <div>

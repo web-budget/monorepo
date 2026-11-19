@@ -39,13 +39,16 @@ describe('CardDetailView', () => {
     document.body.replaceChildren()
   })
 
-  it('shows the card with its wallet', async () => {
+  it('shows a debit card with its wallet', async () => {
     const { wrapper } = await render()
 
     expect(cardsApi.findById).toHaveBeenCalledWith('k-1')
-    expect(wrapper.text()).toContain('Detalhando cartão')
+    expect(wrapper.find('h1').text()).toBe('Daily')
     expect(wrapper.text()).toContain('Ativo')
-    expect(wrapper.text()).toContain('Daily')
+    expect(wrapper.findAll('h2').map((title) => title.text())).toEqual([
+      'Identificação',
+      'Carteira',
+    ])
     expect(wrapper.text()).toContain('Débito')
     expect(wrapper.text()).toContain('Main')
     expect(wrapper.text()).toContain('4321')
@@ -60,59 +63,71 @@ describe('CardDetailView', () => {
       invoicePaymentDay: 10,
     })
 
+    expect(wrapper.findAll('h2').map((title) => title.text())).toEqual(['Identificação', 'Fatura'])
     expect(wrapper.text()).toContain('Crédito')
     expect(wrapper.text()).toContain('10')
-    expect(wrapper.text()).toContain('---')
   })
 
-  it('goes to the listing and to the edit form', async () => {
+  it('goes to the edit form', async () => {
     const { wrapper, router } = await render()
 
     await buttonWithText(wrapper, 'Editar').trigger('click')
     await flushPromises()
-    expect(router.currentRoute.value.name).toBe('cards.update')
 
-    await buttonWithText(wrapper, 'Voltar').trigger('click')
-    await flushPromises()
-    expect(router.currentRoute.value.name).toBe('cards')
+    expect(router.currentRoute.value.name).toBe('cards.update')
   })
 
-  it('deletes after confirmation and goes to the listing', async () => {
+  it('asks first, naming the card, then removes it and goes to the listing', async () => {
     const { wrapper, router } = await render()
     vi.mocked(cardsApi.remove).mockResolvedValue(undefined)
+    const dialog = useConfirmDialog()
 
-    await buttonWithText(wrapper, 'Excluir').trigger('click')
-    useConfirmDialog().accept()
+    await buttonWithText(wrapper, 'Remover').trigger('click')
+    expect(dialog.state.options.title).toBe('Remover o cartão “Daily”?')
+    dialog.accept()
     await flushPromises()
 
     expect(cardsApi.remove).toHaveBeenCalledWith('k-1')
-    expect(toast.success).toHaveBeenCalledWith('Registro excluído', {
-      description: 'Cartão excluído com sucesso',
+    expect(toast.success).toHaveBeenCalledWith('Cartão removido', {
+      description: '“Daily” saiu da lista.',
       duration: 4000,
     })
     expect(router.currentRoute.value.name).toBe('cards')
   })
 
-  it('shows the server error when the deletion fails', async () => {
+  it('does nothing when the removal is not confirmed', async () => {
+    const { wrapper, router } = await render()
+
+    await buttonWithText(wrapper, 'Remover').trigger('click')
+    useConfirmDialog().cancel()
+    await flushPromises()
+
+    expect(cardsApi.remove).not.toHaveBeenCalled()
+    expect(router.currentRoute.value.name).not.toBe('cards')
+  })
+
+  it('shows the server error when the removal fails', async () => {
     const { wrapper } = await render()
     vi.mocked(cardsApi.remove).mockRejectedValue(
       problem(400, { error: 'data-integrity-violation' }),
     )
 
-    await buttonWithText(wrapper, 'Excluir').trigger('click')
+    await buttonWithText(wrapper, 'Remover').trigger('click')
     useConfirmDialog().accept()
     await flushPromises()
 
     expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
       'vinculado a outros registros',
     )
+    expect(toast.success).not.toHaveBeenCalled()
   })
 
   it('shows the server error when the card cannot be loaded', async () => {
     vi.mocked(cardsApi.findById).mockRejectedValue(problem(404))
 
-    const { wrapper } = await mountView(CardDetailView, 'cards', { id: 'x' })
+    const { wrapper } = await mountView(CardDetailView, 'cards', { id: 'k-9' })
 
+    expect(wrapper.find('h1').text()).toBe('Detalhando cartão')
     expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
       'O recurso solicitado não existe',
     )

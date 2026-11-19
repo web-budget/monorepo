@@ -25,6 +25,17 @@ describe('useNotification', () => {
     })
   })
 
+  it('fills the placeholders of the title and the detail with the given parameters', () => {
+    useNotification().showSuccess('wallet.toast.created', 'wallet.toast.created-detail', true, {
+      name: 'Main',
+    })
+
+    expect(toast.success).toHaveBeenCalledWith('Carteira criada', {
+      description: '“Main” já aparece nos lançamentos.',
+      duration: 4000,
+    })
+  })
+
   it('shows a title alone when there is no detail', () => {
     useNotification().showInfo('notification.success')
 

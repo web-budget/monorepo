@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeLayout from '@/components/layout/HomeLayout.vue'
 import { configurationRoutes } from '@/router/configurationRoutes'
+import { dashboardsRoutes } from '@/router/dashboardsRoutes'
 import { financialRoutes } from '@/router/financialRoutes'
 import { authGuard } from '@/router/guard'
 import { publicRoutes } from '@/router/publicRoutes'
@@ -21,6 +22,7 @@ const router = createRouter({
       ],
     },
     ...publicRoutes,
+    ...dashboardsRoutes,
     ...registrationRoutes,
     ...financialRoutes,
     ...configurationRoutes,

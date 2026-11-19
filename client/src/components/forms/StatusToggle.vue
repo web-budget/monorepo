@@ -1,30 +1,24 @@
 <script setup lang="ts">
 import { useField } from 'vee-validate'
-import { Button } from '@/components/ui/button'
+import { Label } from '@/components/ui/label'
+import { Switch } from '@/components/ui/switch'
+import { cn } from '@/lib/utils'
 
-const props = defineProps<{ name: string }>()
-
-const stateOptions = [
-  { label: 'status.active', value: true },
-  { label: 'status.inactive', value: false },
-]
+const props = withDefaults(
+  defineProps<{ name: string; label?: string; hint?: string; heading?: string; class?: string }>(),
+  { label: undefined, hint: undefined, heading: undefined, class: undefined },
+)
 
 const { value } = useField<boolean>(() => props.name)
 </script>
 
 <template>
-  <div class="inline-flex rounded-md border" role="group">
-    <Button
-      v-for="option in stateOptions"
-      :key="option.label"
-      type="button"
-      size="sm"
-      class="rounded-none first:rounded-l-md last:rounded-r-md"
-      :variant="value === option.value ? 'default' : 'ghost'"
-      :aria-pressed="value === option.value"
-      @click="value = option.value"
-    >
-      {{ $t(option.label) }}
-    </Button>
+  <div :class="cn('grid content-start gap-2 md:col-span-2', props.class)">
+    <span class="text-sm leading-none font-medium">{{ heading ?? $t('crud.status') }}</span>
+    <Label class="flex h-9 items-center gap-2.5 font-normal">
+      <Switch :model-value="value" @update:model-value="value = $event" />
+      {{ label ?? $t('status.active') }}
+    </Label>
+    <span v-if="hint" class="text-muted-foreground text-xs">{{ hint }}</span>
   </div>
 </template>

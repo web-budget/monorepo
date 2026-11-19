@@ -1,4 +1,5 @@
 import { reactive, readonly } from 'vue'
+import i18n from '@/locales'
 
 export interface ConfirmOptions {
   title?: string
@@ -38,10 +39,34 @@ export function useConfirmDialog() {
     return confirm({ destructive: true })
   }
 
+  function confirmRemoval(entity: string, name: string): Promise<boolean> {
+    const { t } = i18n.global
+    return confirm({
+      destructive: true,
+      title: t(`${entity}.remove.title`, { name }),
+      description: t(`${entity}.remove.description`, { name }),
+      confirmLabel: t('crud.actions.remove'),
+    })
+  }
+
+  function confirmDiscard(name: string): Promise<boolean> {
+    const { t } = i18n.global
+    return confirm({
+      title: t('crud.discard.title'),
+      description: name
+        ? t('crud.discard.description-named', { name })
+        : t('crud.discard.description'),
+      confirmLabel: t('crud.discard.leave'),
+      cancelLabel: t('crud.discard.stay'),
+    })
+  }
+
   return {
     state: readonly(state),
     confirm,
     confirmDelete,
+    confirmRemoval,
+    confirmDiscard,
     accept: () => settle(true),
     cancel: () => settle(false),
   }

@@ -6,15 +6,16 @@ import { useServerErrors } from '@/composables/useServerErrors'
 
 interface CrudDetailOptions {
   routeName: string
-  deletedNotice: string
+  entity: string
   id: () => string
+  name: () => string | undefined
   findOne: (id: string) => Promise<unknown>
   remove: (id: string) => Promise<void>
 }
 
 export function useCrudDetail(options: CrudDetailOptions) {
   const router = useRouter()
-  const { confirmDelete } = useConfirmDialog()
+  const { confirmRemoval } = useConfirmDialog()
   const { showSuccess } = useNotification()
   const { messages, run } = useServerErrors()
 
@@ -27,11 +28,19 @@ export function useCrudDetail(options: CrudDetailOptions) {
   }
 
   async function remove() {
-    if (!(await confirmDelete())) {
+    const name = options.name() ?? ''
+    if (!(await confirmRemoval(options.entity, name))) {
       return
     }
     if (await run(() => options.remove(options.id()))) {
-      showSuccess('notification.record-deleted', options.deletedNotice)
+      showSuccess(
+        `${options.entity}.toast.removed`,
+        `${options.entity}.toast.removed-detail`,
+        true,
+        {
+          name,
+        },
+      )
       await changeToList()
     }
   }

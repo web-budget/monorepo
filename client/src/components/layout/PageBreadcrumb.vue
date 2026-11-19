@@ -23,14 +23,21 @@ const crumbs = computed(() => {
     return [{ label, path: record.path }]
   })
 })
+
+function hiddenOnMobile(index: number, offset = 2) {
+  return index < crumbs.value.length - offset
+}
 </script>
 
 <template>
   <Breadcrumb v-if="crumbs.length > 0" :aria-label="$t('layout.breadcrumb')" class="mb-4">
     <BreadcrumbList>
       <template v-for="(crumb, index) in crumbs" :key="crumb.label">
-        <BreadcrumbSeparator v-if="index > 0" />
-        <BreadcrumbItem>
+        <BreadcrumbSeparator
+          v-if="index > 0"
+          :class="{ 'max-md:hidden': hiddenOnMobile(index, 1) }"
+        />
+        <BreadcrumbItem :class="{ 'max-md:hidden': hiddenOnMobile(index) }">
           <BreadcrumbPage v-if="index === crumbs.length - 1">{{ $t(crumb.label) }}</BreadcrumbPage>
           <BreadcrumbLink v-else as-child>
             <RouterLink :to="crumb.path">{{ $t(crumb.label) }}</RouterLink>

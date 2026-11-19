@@ -31,14 +31,14 @@ describe('useCostCentersStore', () => {
     vi.clearAllMocks()
   })
 
-  it('lists cost centers sorted by full name', async () => {
+  it('lists cost centers newest first', async () => {
     vi.mocked(costCentersApi.findAll).mockResolvedValue(page)
     const store = useCostCentersStore()
 
     await store.findAll()
 
     expect(costCentersApi.findAll).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'ACTIVE', sort: 'fullName,asc' }),
+      expect.objectContaining({ status: 'ACTIVE', sort: 'createdOn,desc' }),
     )
     expect(store.pageResponse.content).toEqual([row])
   })
@@ -56,7 +56,7 @@ describe('useCostCentersStore', () => {
   it('keeps the cost center being viewed and edited', async () => {
     vi.mocked(costCentersApi.findById).mockResolvedValue(view)
     vi.mocked(costCentersApi.update).mockResolvedValue({ ...view, active: false })
-    vi.mocked(costCentersApi.create).mockResolvedValue()
+    vi.mocked(costCentersApi.create).mockResolvedValue('new-id')
     vi.mocked(costCentersApi.remove).mockResolvedValue()
     const store = useCostCentersStore()
 
@@ -81,6 +81,6 @@ describe('useCostCentersStore', () => {
 
     expect(store.pageResponse.content).toEqual([])
     expect(store.costCenters).toEqual([])
-    expect(store.pageRequest.sortField).toBe('fullName')
+    expect(store.pageRequest.sortField).toBe('createdOn')
   })
 })

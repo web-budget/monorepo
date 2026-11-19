@@ -21,6 +21,10 @@ export interface PageResponse<T> {
 
 export const DEFAULT_PAGE_SIZE = 15
 
+export const DEFAULT_SORT_FIELD = 'createdOn'
+
+export const DEFAULT_SORT_DIRECTION: SortDirection = 'desc'
+
 export function createPageRequest<S extends string = 'ACTIVE'>(
   overrides: Partial<PageRequest<S>> = {},
 ): PageRequest<S> {
@@ -29,8 +33,8 @@ export function createPageRequest<S extends string = 'ACTIVE'>(
     status: 'ACTIVE' as S,
     current: 0,
     size: DEFAULT_PAGE_SIZE,
-    direction: 'asc',
-    sortField: 'createdOn',
+    direction: DEFAULT_SORT_DIRECTION,
+    sortField: DEFAULT_SORT_FIELD,
     ...overrides,
   }
 }

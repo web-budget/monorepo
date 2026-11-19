@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils'
 import { beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 import { h } from 'vue'
 import { toast } from 'vue-sonner'
+import { authApi } from '@/api/auth'
 import { ApiError } from '@/api/client'
 import { installZodErrorMap } from '@/schemas/zodErrorMap'
 import { useAuthStore } from '@/stores/auth'
@@ -9,6 +10,10 @@ import { createTestPlugins } from '@/test/mounting'
 import { settle } from '@/test/settle'
 import type { SessionResponse } from '@/types'
 import LoginView from '@/views/auth/LoginView.vue'
+
+vi.mock('@/api/auth', () => ({
+  authApi: { fetchConfig: vi.fn<() => Promise<unknown>>() },
+}))
 
 vi.mock('vue-sonner', () => ({
   toast: {
@@ -34,8 +39,12 @@ async function render(
     restored?: boolean
     reason?: string
     ending?: boolean
+    googleAuthEnabled?: boolean
   } = {},
 ) {
+  vi.mocked(authApi.fetchConfig).mockResolvedValue({
+    googleAuthEnabled: options.googleAuthEnabled ?? false,
+  })
   const { router, plugins } = createTestPlugins({
     initialState: {
       auth: {
@@ -94,10 +103,23 @@ describe('LoginView', () => {
   it('renders the credentials form and the recovery link', async () => {
     const { wrapper } = await render()
 
-    expect(wrapper.text()).toContain('Faça login para continuar')
+    expect(wrapper.find('h1').text()).toBe('Entrar')
     expect(wrapper.find('input[type="email"]').exists()).toBe(true)
     expect(wrapper.find('input[autocomplete="current-password"]').exists()).toBe(true)
-    expect(wrapper.find('a[href="/auth/forgot-password"]').text()).toBe('Esqueceu a senha?')
+    expect(wrapper.find('a[href="/auth/forgot-password"]').text()).toBe('Esqueci a senha')
+    expect(wrapper.find('[data-slot="login-failure"]').exists()).toBe(false)
+  })
+
+  it('offers the Google login only when the server turns it on', async () => {
+    const withoutGoogle = await render()
+    const withGoogle = await render({ googleAuthEnabled: true })
+
+    expect(
+      withoutGoogle.wrapper.find('a[href="/private/oauth2/authorization/google"]').exists(),
+    ).toBe(false)
+    expect(withGoogle.wrapper.find('a[href="/private/oauth2/authorization/google"]').text()).toBe(
+      'Entrar com Google',
+    )
   })
 
   it('validates the fields before logging in', async () => {
@@ -144,26 +166,49 @@ describe('LoginView', () => {
     expect(router.currentRoute.value.name).toBe('home')
   })
 
-  it('tells the user when the credentials are wrong', async () => {
+  it('tells the user when the credentials are wrong, in an alert and not a toast', async () => {
     const { wrapper, router, auth } = await render()
     vi.mocked(auth.login).mockRejectedValue(new ApiError(null, 401))
 
     await submit(wrapper, 'ana@example.com', 'wrong')
 
-    expect(toast.error).toHaveBeenCalledWith('Falha ao realizar login', {
-      description: 'Verifique os dados informados e tente novamente',
-      duration: 4000,
-    })
+    const alert = wrapper.find('[data-slot="login-failure"]')
+    expect(alert.text()).toContain('E-mail ou senha incorretos')
+    expect(alert.text()).toContain('Confira os dados e tente de novo.')
+    expect(toast.error).not.toHaveBeenCalled()
     expect(router.currentRoute.value.path).toBe('/')
   })
 
-  it('also tells the user when the account is refused', async () => {
+  it('shows the same message when the account is refused', async () => {
     const { wrapper, auth } = await render()
     vi.mocked(auth.login).mockRejectedValue(new ApiError(null, 403))
 
     await submit(wrapper, 'ana@example.com', 'secret')
 
-    expect(toast.error).toHaveBeenCalledTimes(1)
+    expect(wrapper.find('[data-slot="login-failure"]').text()).toContain(
+      'E-mail ou senha incorretos',
+    )
+  })
+
+  it('tells the user when there were too many attempts', async () => {
+    const { wrapper, auth } = await render()
+    vi.mocked(auth.login).mockRejectedValue(new ApiError(null, 429))
+
+    await submit(wrapper, 'ana@example.com', 'secret')
+
+    const alert = wrapper.find('[data-slot="login-failure"]')
+    expect(alert.text()).toContain('Muitas tentativas seguidas')
+    expect(alert.text()).not.toContain('E-mail ou senha incorretos')
+  })
+
+  it('clears the alert when the next attempt works', async () => {
+    const { wrapper, auth } = await render()
+    vi.mocked(auth.login).mockRejectedValueOnce(new ApiError(null, 401))
+
+    await submit(wrapper, 'ana@example.com', 'wrong')
+    await submit(wrapper, 'ana@example.com', 'secret')
+
+    expect(wrapper.find('[data-slot="login-failure"]').exists()).toBe(false)
   })
 
   it('stays quiet about failures the API handler already reported', async () => {
@@ -173,6 +218,7 @@ describe('LoginView', () => {
     await submit(wrapper, 'ana@example.com', 'secret')
 
     expect(toast.error).not.toHaveBeenCalled()
+    expect(wrapper.find('[data-slot="login-failure"]').exists()).toBe(false)
     expect(router.currentRoute.value.path).toBe('/')
   })
 
@@ -183,6 +229,7 @@ describe('LoginView', () => {
     await submit(wrapper, 'ana@example.com', 'secret')
 
     expect(toast.error).not.toHaveBeenCalled()
+    expect(wrapper.find('[data-slot="login-failure"]').exists()).toBe(false)
   })
 
   it('skips the form when the session is still valid', async () => {
@@ -245,9 +292,22 @@ describe('LoginView', () => {
     expect(toast.warning).toHaveBeenCalledTimes(1)
   })
 
-  it('disables the button while the login runs', async () => {
+  it('disables the form and says so while the login runs', async () => {
+    const { wrapper, auth } = await render()
+    vi.mocked(auth.login).mockReturnValue(new Promise(() => undefined))
+
+    await submit(wrapper, 'ana@example.com', 'secret')
+
+    const button = wrapper.find('button[type="submit"]')
+    expect(button.attributes('disabled')).toBeDefined()
+    expect(button.text()).toBe('Entrando…')
+    expect(wrapper.find('fieldset').attributes('disabled')).toBeDefined()
+  })
+
+  it('does not say it is signing in while the session is only being restored', async () => {
     const { wrapper } = await render({ loading: true })
 
-    expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBeDefined()
+    expect(wrapper.find('button[type="submit"]').text()).toBe('Entrar')
+    expect(wrapper.find('button[type="submit"]').attributes('disabled')).toBeUndefined()
   })
 })

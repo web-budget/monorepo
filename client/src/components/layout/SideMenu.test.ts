@@ -55,6 +55,13 @@ describe('SideMenu', () => {
     expect(wrapper.findAll('[data-active="true"]')).toHaveLength(1)
   })
 
+  it('highlights the label of the current item with the marker', async () => {
+    const wrapper = await render('/registration/wallets')
+
+    expect(wrapper.find('a[href="/registration/wallets"] span').classes()).toContain('marker')
+    expect(wrapper.find('a[href="/registration/cards"] span').classes()).not.toContain('marker')
+  })
+
   it('renders an item without a destination as disabled', async () => {
     const wrapper = await render('/')
 

@@ -42,19 +42,26 @@ describe('ClassificationFormView', () => {
     document.body.replaceChildren()
   })
 
-  it('asks for the required fields', async () => {
+  it('shows the title and asks for the required fields', async () => {
     const { wrapper } = await mountView(ClassificationFormView, 'classifications')
 
-    expect(wrapper.text()).toContain('Nova classificação')
+    expect(wrapper.find('h1').text()).toBe('Nova classificação')
+    expect(buttonWithText(wrapper, 'Criar classificação')).toBeDefined()
+    expect(wrapper.findAll('h2').map((title) => title.text())).toEqual([
+      'Identificação',
+      'Orçamento',
+    ])
+
     await submit(wrapper)
 
     expect(wrapper.text()).toContain('Campo obrigatório')
     expect(classificationsApi.create).not.toHaveBeenCalled()
+    expect(document.activeElement).toBe(field(wrapper, 'name').element)
   })
 
-  it('creates a classification and clears the form', async () => {
-    vi.mocked(classificationsApi.create).mockResolvedValue(undefined)
-    const { wrapper } = await mountView(ClassificationFormView, 'classifications')
+  it('creates a classification and goes to its detail', async () => {
+    vi.mocked(classificationsApi.create).mockResolvedValue('c-9')
+    const { wrapper, router } = await mountView(ClassificationFormView, 'classifications')
 
     await field(wrapper, 'name').setValue('Salary')
     wrapper.getComponent(Select).vm.$emit('update:modelValue', 'INCOME')
@@ -67,15 +74,16 @@ describe('ClassificationFormView', () => {
       budget: 1500.5,
       description: null,
     })
-    expect(toast.success).toHaveBeenCalledWith('Registro criado', {
-      description: 'Classificação criada com sucesso',
+    expect(toast.success).toHaveBeenCalledWith('Classificação criada', {
+      description: '“Salary” já aparece nos lançamentos.',
       duration: 4000,
     })
-    expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('')
+    expect(router.currentRoute.value.name).toBe('classifications.detail')
+    expect(router.currentRoute.value.params.id).toBe('c-9')
   })
 
   it('sends no budget when the field is left empty', async () => {
-    vi.mocked(classificationsApi.create).mockResolvedValue(undefined)
+    vi.mocked(classificationsApi.create).mockResolvedValue('c-9')
     const { wrapper } = await mountView(ClassificationFormView, 'classifications')
 
     await field(wrapper, 'name').setValue('Salary')
@@ -87,7 +95,7 @@ describe('ClassificationFormView', () => {
     )
   })
 
-  it('shows the server error inside the form', async () => {
+  it('shows the server error on top and marks the field in conflict', async () => {
     vi.mocked(classificationsApi.create).mockRejectedValue(
       problem(409, { error: 'conflict', parameters: { 'classification.name': 'Salary' } }),
     )
@@ -100,6 +108,7 @@ describe('ClassificationFormView', () => {
     expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
       'Nome "Salary" já esta em uso',
     )
+    expect(field(wrapper, 'name').attributes('aria-invalid')).toBe('true')
     expect(toast.success).not.toHaveBeenCalled()
   })
 
@@ -108,19 +117,22 @@ describe('ClassificationFormView', () => {
 
     const { wrapper } = await mountView(ClassificationFormView, 'classifications', { id: 'c-1' })
 
-    expect(wrapper.text()).toContain('Editando classificação')
+    expect(wrapper.find('h1').text()).toBe('Editando classificação')
     expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('Salary')
     expect((field(wrapper, 'budget').element as HTMLInputElement).value).toBe('1500')
     expect(wrapper.find('button[role="combobox"]').attributes('disabled')).toBeDefined()
+    expect(wrapper.text()).toContain('O tipo não muda depois de criada.')
   })
 
-  it('saves the changes and the status', async () => {
+  it('saves the changes and the status, and goes to the detail', async () => {
     vi.mocked(classificationsApi.findById).mockResolvedValue(existing)
     vi.mocked(classificationsApi.update).mockResolvedValue(existing)
-    const { wrapper } = await mountView(ClassificationFormView, 'classifications', { id: 'c-1' })
+    const { wrapper, router } = await mountView(ClassificationFormView, 'classifications', {
+      id: 'c-1',
+    })
 
     await field(wrapper, 'name').setValue('Bonus')
-    await buttonWithText(wrapper, 'Inativo').trigger('click')
+    await wrapper.find('button[role="switch"]').trigger('click')
     await submit(wrapper)
 
     expect(classificationsApi.update).toHaveBeenCalledWith('c-1', {
@@ -129,10 +141,11 @@ describe('ClassificationFormView', () => {
       budget: 1500,
       description: 'Monthly',
     })
-    expect(toast.success).toHaveBeenCalledWith('Registro atualizado', {
-      description: 'Classificação atualizada com sucesso',
+    expect(toast.success).toHaveBeenCalledWith('Alterações salvas', {
+      description: '“Bonus” foi atualizada.',
       duration: 4000,
     })
+    expect(router.currentRoute.value.name).toBe('classifications.detail')
   })
 
   it('shows the server error when the update is rejected', async () => {
@@ -147,10 +160,10 @@ describe('ClassificationFormView', () => {
     )
   })
 
-  it('goes back to the listing', async () => {
+  it('goes back to the listing with Cancelar', async () => {
     const { wrapper, router } = await mountView(ClassificationFormView, 'classifications')
 
-    await buttonWithText(wrapper, 'Voltar').trigger('click')
+    await buttonWithText(wrapper, 'Cancelar').trigger('click')
     await settle()
 
     expect(router.currentRoute.value.name).toBe('classifications')

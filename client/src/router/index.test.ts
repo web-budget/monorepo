@@ -12,7 +12,14 @@ describe('router', () => {
     const names = router.getRoutes().map((record) => record.name)
 
     expect(names).toEqual(
-      expect.arrayContaining(['home', 'login', 'registration', 'financial', 'configuration']),
+      expect.arrayContaining([
+        'home',
+        'login',
+        'dashboards',
+        'registration',
+        'financial',
+        'configuration',
+      ]),
     )
   })
 
@@ -22,7 +29,7 @@ describe('router', () => {
       .map((record) => record.components?.default)
       .filter((component) => typeof component === 'function')
 
-    expect(loaders).toHaveLength(35)
+    expect(loaders).toHaveLength(36)
     for (const loader of loaders) {
       expect(await (loader as () => Promise<unknown>)()).toHaveProperty('default')
     }
@@ -61,6 +68,10 @@ describe('router', () => {
     expect(router.resolve('/registration').matched.map((record) => record.meta.breadcrumb)).toEqual(
       ['menu.registration', undefined],
     )
+    expect(router.resolve('/dashboards').matched[0]?.meta).toMatchObject({
+      breadcrumb: 'menu.dashboards',
+      role: 'DASHBOARDS',
+    })
     expect(router.resolve('/financial').matched[0]?.meta.breadcrumb).toBe('menu.financial')
     expect(router.resolve('/configuration').matched[0]?.meta.breadcrumb).toBe('menu.configuration')
   })
@@ -150,4 +161,23 @@ describe('role of each section', () => {
       )
     }
   })
+})
+
+describe('content width', () => {
+  it.each([
+    '/registration/wallets/create',
+    '/registration/wallets/abc/update',
+    '/registration/wallets/abc/detail',
+    '/configuration/users/create',
+    '/configuration/users/abc/update',
+  ])('limits %s to the narrow container', (path) => {
+    expect(router.resolve(path).meta.narrow).toBe(true)
+  })
+
+  it.each(['/registration/wallets', '/configuration/users', '/registration', '/'])(
+    'keeps %s as wide as the page',
+    (path) => {
+      expect(router.resolve(path).meta.narrow).toBeUndefined()
+    },
+  )
 })

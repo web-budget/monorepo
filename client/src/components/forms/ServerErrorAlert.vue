@@ -1,19 +1,23 @@
 <script setup lang="ts">
 import { CircleAlert } from 'lucide-vue-next'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { SERVER_ERROR_ALERT_ID } from '@/components/ui/form'
 
 defineProps<{ messages: string[] }>()
 </script>
 
 <template>
-  <div
+  <Alert
     v-if="messages.length > 0"
-    role="alert"
+    :id="SERVER_ERROR_ALERT_ID"
+    variant="destructive"
     data-slot="server-error"
-    class="border-destructive/50 text-destructive flex items-start gap-2 rounded-md border p-3 text-sm"
   >
-    <CircleAlert class="mt-0.5 size-4 shrink-0" />
-    <ul class="space-y-1">
-      <li v-for="message in messages" :key="message">{{ message }}</li>
-    </ul>
-  </div>
+    <CircleAlert />
+    <AlertDescription class="text-foreground">
+      <ul class="space-y-1">
+        <li v-for="message in messages" :key="message">{{ message }}</li>
+      </ul>
+    </AlertDescription>
+  </Alert>
 </template>

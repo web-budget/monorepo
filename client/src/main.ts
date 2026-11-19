@@ -9,6 +9,10 @@ import { installApiErrorHandler } from './plugins/apiErrorHandler'
 import { installZodErrorMap } from './schemas/zodErrorMap'
 import { useAppearanceStore } from './stores/appearance'
 
+import '@fontsource-variable/ibm-plex-sans'
+import '@fontsource/ibm-plex-mono/400.css'
+import '@fontsource/ibm-plex-mono/500.css'
+import '@fontsource/ibm-plex-mono/600.css'
 import '@/assets/theme.css'
 import 'vue-sonner/style.css'
 

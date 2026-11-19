@@ -36,30 +36,42 @@ async function submit(wrapper: Wrapper) {
   await settle()
 }
 
+async function fillCreation(wrapper: Wrapper, name = 'January') {
+  await field(wrapper, 'name').setValue(name)
+  await field(wrapper, 'startingAt').setValue('2026-01-01')
+  await field(wrapper, 'endingAt').setValue('2026-01-31')
+}
+
 describe('FinancialPeriodFormView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     document.body.replaceChildren()
   })
 
-  it('asks for the required fields', async () => {
+  it('shows the title, the sections and no status toggle, and asks for the required fields', async () => {
     const { wrapper } = await mountView(FinancialPeriodFormView, 'financial-periods')
 
-    expect(wrapper.text()).toContain('Novo período financeiro')
-    expect(wrapper.find('[aria-pressed]').exists()).toBe(false)
+    expect(wrapper.find('h1').text()).toBe('Novo período financeiro')
+    expect(wrapper.findAll('h2').map((title) => title.text())).toEqual([
+      'Identificação',
+      'Datas',
+      'Metas',
+    ])
+    expect(wrapper.find('button[role="switch"]').exists()).toBe(false)
+    expect(buttonWithText(wrapper, 'Criar período financeiro')).toBeDefined()
+
     await submit(wrapper)
 
     expect(wrapper.text()).toContain('Campo obrigatório')
     expect(financialPeriodsApi.create).not.toHaveBeenCalled()
+    expect(document.activeElement).toBe(field(wrapper, 'name').element)
   })
 
-  it('creates a period with its dates and goals and clears the form', async () => {
-    vi.mocked(financialPeriodsApi.create).mockResolvedValue(undefined)
-    const { wrapper } = await mountView(FinancialPeriodFormView, 'financial-periods')
+  it('creates a period with its dates and goals and goes to its detail', async () => {
+    vi.mocked(financialPeriodsApi.create).mockResolvedValue('p-9')
+    const { wrapper, router } = await mountView(FinancialPeriodFormView, 'financial-periods')
 
-    await field(wrapper, 'name').setValue('January')
-    await field(wrapper, 'startingAt').setValue('2026-01-01')
-    await field(wrapper, 'endingAt').setValue('2026-01-31')
+    await fillCreation(wrapper)
     await field(wrapper, 'revenuesGoal').setValue('5000')
     await submit(wrapper)
 
@@ -70,15 +82,16 @@ describe('FinancialPeriodFormView', () => {
       revenuesGoal: 5000,
       expensesGoal: null,
     })
-    expect(toast.success).toHaveBeenCalledWith('Registro criado', {
-      description: 'Período financeiro criado com sucesso',
+    expect(toast.success).toHaveBeenCalledWith('Período financeiro criado', {
+      description: '“January” já aceita lançamentos.',
       duration: 4000,
     })
-    expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('')
+    expect(router.currentRoute.value.name).toBe('financial-periods.detail')
+    expect(router.currentRoute.value.params.id).toBe('p-9')
   })
 
   it('accepts a one day period', async () => {
-    vi.mocked(financialPeriodsApi.create).mockResolvedValue(undefined)
+    vi.mocked(financialPeriodsApi.create).mockResolvedValue('p-9')
     const { wrapper } = await mountView(FinancialPeriodFormView, 'financial-periods')
 
     await field(wrapper, 'name').setValue('Holiday')
@@ -107,9 +120,7 @@ describe('FinancialPeriodFormView', () => {
     )
     const { wrapper } = await mountView(FinancialPeriodFormView, 'financial-periods')
 
-    await field(wrapper, 'name').setValue('January')
-    await field(wrapper, 'startingAt').setValue('2026-01-01')
-    await field(wrapper, 'endingAt').setValue('2026-01-31')
+    await fillCreation(wrapper)
     await submit(wrapper)
 
     expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
@@ -125,18 +136,19 @@ describe('FinancialPeriodFormView', () => {
       id: 'p-1',
     })
 
-    expect(wrapper.text()).toContain('Editando período financeiro')
+    expect(wrapper.find('h1').text()).toBe('Editando período financeiro')
     expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('January')
     expect((field(wrapper, 'startingAt').element as HTMLInputElement).value).toBe('2026-01-01')
     expect(field(wrapper, 'startingAt').attributes('disabled')).toBeDefined()
     expect(field(wrapper, 'endingAt').attributes('disabled')).toBeDefined()
     expect((field(wrapper, 'revenuesGoal').element as HTMLInputElement).value).toBe('5000')
+    expect(wrapper.text()).toContain('As datas não mudam depois de criado.')
   })
 
-  it('saves the new name and goals only', async () => {
+  it('saves the new name and goals only, and goes to the detail', async () => {
     vi.mocked(financialPeriodsApi.findById).mockResolvedValue(existing)
     vi.mocked(financialPeriodsApi.update).mockResolvedValue(existing)
-    const { wrapper } = await mountView(FinancialPeriodFormView, 'financial-periods', {
+    const { wrapper, router } = await mountView(FinancialPeriodFormView, 'financial-periods', {
       id: 'p-1',
     })
 
@@ -149,10 +161,11 @@ describe('FinancialPeriodFormView', () => {
       revenuesGoal: 5000,
       expensesGoal: 3000,
     })
-    expect(toast.success).toHaveBeenCalledWith('Registro atualizado', {
-      description: 'Período financeiro atualizado com sucesso',
+    expect(toast.success).toHaveBeenCalledWith('Alterações salvas', {
+      description: '“Jan 2026” foi atualizado.',
       duration: 4000,
     })
+    expect(router.currentRoute.value.name).toBe('financial-periods.detail')
   })
 
   it('shows the server error when the period is not open', async () => {
@@ -171,10 +184,10 @@ describe('FinancialPeriodFormView', () => {
     )
   })
 
-  it('goes back to the listing', async () => {
+  it('goes back to the listing with Cancelar', async () => {
     const { wrapper, router } = await mountView(FinancialPeriodFormView, 'financial-periods')
 
-    await buttonWithText(wrapper, 'Voltar').trigger('click')
+    await buttonWithText(wrapper, 'Cancelar').trigger('click')
     await settle()
 
     expect(router.currentRoute.value.name).toBe('financial-periods')

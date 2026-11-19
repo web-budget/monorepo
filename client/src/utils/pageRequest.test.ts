@@ -13,7 +13,7 @@ describe('createPageRequest', () => {
       status: 'ACTIVE',
       current: 0,
       size: DEFAULT_PAGE_SIZE,
-      direction: 'asc',
+      direction: 'desc',
       sortField: 'createdOn',
     })
   })

@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { X } from 'lucide-vue-next'
-import { ref } from 'vue'
-import { Button } from '@/components/ui/button'
+import { useDebounceFn } from '@vueuse/core'
+import { Search, X } from 'lucide-vue-next'
+import { ref, watch } from 'vue'
+import { MASCULINE_STATUS_OPTIONS, type StatusOption } from '@/components/listing/statusOptions'
 import { Input } from '@/components/ui/input'
 
-interface StatusOption {
-  label: string
-  value: string
-}
+const SEARCH_DELAY = 300
 
 const props = withDefaults(
   defineProps<{
@@ -15,16 +13,12 @@ const props = withDefaults(
     status: string
     placeholder?: string
     statusOptions?: StatusOption[]
-    statusInitialValue?: string
+    counts?: Record<string, number | null | undefined>
   }>(),
   {
     placeholder: '',
-    statusOptions: () => [
-      { label: 'search-control.all', value: 'ALL' },
-      { label: 'search-control.inactive', value: 'INACTIVE' },
-      { label: 'search-control.active', value: 'ACTIVE' },
-    ],
-    statusInitialValue: 'ACTIVE',
+    statusOptions: () => MASCULINE_STATUS_OPTIONS,
+    counts: () => ({}),
   },
 )
 
@@ -33,78 +27,88 @@ const emit = defineEmits<{
   'update:filter': [filter: string]
   onFilterChange: []
   onFilterReset: []
-  onNew: []
 }>()
 
-const statusValue = ref(props.status)
 const filterValue = ref(props.filter)
 
-function selectStatus(status: string) {
-  statusValue.value = status
-  fireFilterChange()
-}
+watch(
+  () => props.filter,
+  (filter) => {
+    filterValue.value = filter
+  },
+)
+
+const fireFilterChange = useDebounceFn(() => emit('onFilterChange'), SEARCH_DELAY)
 
 function updateFilter(value: string | number) {
   filterValue.value = String(value)
   emit('update:filter', filterValue.value)
+  void fireFilterChange()
 }
 
-function fireFilterChange() {
-  emit('update:status', statusValue.value)
+function searchNow() {
+  emit('onFilterChange')
+}
+
+function selectStatus(status: string) {
+  emit('update:status', status)
   emit('onFilterChange')
 }
 
 function resetFilter() {
-  statusValue.value = props.statusInitialValue
   filterValue.value = ''
-  emit('update:status', statusValue.value)
-  emit('update:filter', filterValue.value)
+  emit('update:filter', '')
   emit('onFilterReset')
 }
 </script>
 
 <template>
-  <div class="flex w-full flex-col gap-4 md:flex-row md:items-center">
-    <div class="inline-flex rounded-md border" role="group">
-      <Button
-        v-for="option in props.statusOptions"
-        :key="option.value"
-        type="button"
-        size="sm"
-        class="rounded-none first:rounded-l-md last:rounded-r-md"
-        :variant="statusValue === option.value ? 'default' : 'ghost'"
-        :aria-pressed="statusValue === option.value"
-        @click="selectStatus(option.value)"
-      >
-        {{ $t(option.label) }}
-      </Button>
-    </div>
-    <div class="flex flex-1 gap-2">
+  <div class="flex flex-wrap items-center justify-between gap-2">
+    <div class="relative w-full md:w-80">
+      <Search
+        class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-3.5 -translate-y-1/2"
+      />
       <Input
+        type="search"
+        class="px-9 [&::-webkit-search-cancel-button]:hidden"
         :model-value="filterValue"
         :placeholder="props.placeholder"
+        :aria-label="$t('search-control.actions.search')"
         @update:model-value="updateFilter"
-        @keydown.enter.prevent="fireFilterChange()"
+        @keydown.enter.prevent="searchNow()"
       />
-      <Button
+      <button
+        v-if="filterValue"
         type="button"
-        variant="destructive"
-        size="icon"
+        class="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded-sm p-1"
         :aria-label="$t('search-control.actions.clear')"
         @click="resetFilter()"
       >
-        <X />
-      </Button>
+        <X class="size-4" />
+      </button>
     </div>
-    <Button type="button" class="md:w-32" @click="fireFilterChange()">
-      {{ $t('search-control.actions.search') }}
-    </Button>
-    <Button
-      type="button"
-      class="bg-emerald-600 text-white hover:bg-emerald-700 md:w-32"
-      @click="emit('onNew')"
+    <div
+      class="bg-muted inline-flex h-9 items-center gap-0.5 rounded-md p-1 max-md:w-full"
+      role="group"
+      :aria-label="$t('search-control.status')"
     >
-      {{ $t('search-control.actions.new') }}
-    </Button>
+      <button
+        v-for="option in props.statusOptions"
+        :key="option.value"
+        type="button"
+        :aria-pressed="props.status === option.value"
+        class="text-muted-foreground aria-pressed:bg-card aria-pressed:text-foreground aria-pressed:shadow-xs inline-flex h-7 items-center justify-center gap-1.5 rounded-sm px-3 text-sm font-medium transition-colors max-md:flex-1"
+        @click="selectStatus(option.value)"
+      >
+        {{ $t(option.label) }}
+        <span
+          v-if="props.counts[option.value] != null"
+          class="font-mono text-xs tabular-nums"
+          data-slot="status-count"
+        >
+          {{ props.counts[option.value] }}
+        </span>
+      </button>
+    </div>
   </div>
 </template>

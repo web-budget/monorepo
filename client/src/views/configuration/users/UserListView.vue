@@ -1,16 +1,21 @@
 <script setup lang="ts">
-import { KeyRound } from 'lucide-vue-next'
+import { Plus, Users } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import PageContainer from '@/components/common/PageContainer.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
 import ServerErrorAlert from '@/components/forms/ServerErrorAlert.vue'
-import ActionButtons from '@/components/listing/ActionButtons.vue'
 import ItemsTable from '@/components/listing/ItemsTable.vue'
+import ListState from '@/components/listing/ListState.vue'
 import SearchControls from '@/components/listing/SearchControls.vue'
+import { MASCULINE_STATUS_OPTIONS } from '@/components/listing/statusOptions'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Card, CardContent } from '@/components/ui/card'
 import ResetPasswordDialog from '@/components/users/ResetPasswordDialog.vue'
-import { useConfirmDialog } from '@/composables/useConfirmDialog'
+import { sortRoles } from '@/components/users/roles'
+import UserAvatar from '@/components/users/UserAvatar.vue'
+import UserRowActions from '@/components/users/UserRowActions.vue'
 import { useCrudList } from '@/composables/useCrudList'
 import { useAuthStore } from '@/stores/auth'
 import { useUsersAdminStore } from '@/stores/usersAdmin'
@@ -21,33 +26,40 @@ const { t } = useI18n()
 const auth = useAuthStore()
 const store = useUsersAdminStore()
 const { pageRequest, pageResponse, loading } = storeToRefs(store)
-const { confirm } = useConfirmDialog()
 
 const passwordTarget = ref<UserView | null>(null)
 
-const { messages, reload, onPageChange, onTableSorted, changeToAdd, changeToUpdate, remove } =
-  useCrudList({
-    routeName: 'users',
-    deletedNotice: 'notification.user.deleted',
-    pageRequest,
-    findAll: store.findAll,
-    remove: store.remove,
-    confirmRemove: (id) =>
-      confirm({
-        destructive: true,
-        description: t('users.confirm.delete', { name: nameOf(id) }),
-      }),
-  })
+const {
+  messages,
+  loadMessages,
+  listState,
+  busy,
+  counts,
+  search,
+  clearSearch,
+  reload,
+  onPageChange,
+  onTableSorted,
+  changeToAdd,
+  changeToUpdate,
+  remove,
+} = useCrudList({
+  routeName: 'users',
+  entity: 'users',
+  initialStatus: 'ALL',
+  statuses: MASCULINE_STATUS_OPTIONS.map((option) => option.value),
+  pageRequest,
+  pageResponse,
+  loading,
+  findAll: store.findAll,
+  count: store.count,
+  remove: store.remove,
+})
 
 const columns = computed(() => [
   { field: 'name', header: t('users.table-columns.name'), sortable: true },
-  { field: 'email', header: t('users.table-columns.email'), sortable: true },
-  { field: 'authorities', header: t('users.table-columns.roles') },
+  { field: 'authorities', header: t('users.table-columns.roles'), wide: true },
 ])
-
-function nameOf(id: string): string {
-  return pageResponse.value.content.find((user) => user.id === id)?.name as string
-}
 
 function isOwnAccount(user: UserView): boolean {
   return user.email === auth.session?.email
@@ -55,49 +67,76 @@ function isOwnAccount(user: UserView): boolean {
 </script>
 
 <template>
-  <Card>
-    <CardContent class="space-y-6">
+  <PageContainer class="mt-4 grid gap-5">
+    <PageHeader :title="$t('users.title')" :description="$t('users.list.description')">
+      <template #actions>
+        <Button type="button" @click="changeToAdd()"><Plus />{{ $t('users.form.new') }}</Button>
+      </template>
+    </PageHeader>
+    <div class="grid gap-3">
       <SearchControls
         v-model:status="pageRequest.status"
         v-model:filter="pageRequest.filterText"
-        status-initial-value="ALL"
         :placeholder="$t('users.search.placeholder')"
-        @on-new="changeToAdd()"
-        @on-filter-change="reload()"
-        @on-filter-reset="reload()"
+        :counts="counts"
+        @on-filter-change="search()"
+        @on-filter-reset="search()"
       />
       <ServerErrorAlert :messages="messages" />
+      <ListState
+        v-if="listState !== 'table'"
+        :kind="listState"
+        entity="users"
+        :icon="Users"
+        :query="pageRequest.filterText"
+        :message="loadMessages[0]"
+        @create="changeToAdd()"
+        @clear="clearSearch()"
+        @retry="reload()"
+      />
       <ItemsTable
+        v-else
         :data="pageResponse.content"
         :total-elements="pageResponse.totalElements"
         :columns="columns"
-        :loading="loading"
+        :loading="busy"
         :current-page="pageRequest.current"
         :page-size="pageRequest.size"
         @page-changed="onPageChange"
         @table-sorted="onTableSorted"
       >
+        <template #cell-name="{ item }">
+          <span class="flex items-center gap-3">
+            <UserAvatar :name="item.name" />
+            <span class="grid min-w-0">
+              <span class="font-medium">
+                {{ item.name }}
+                <span v-if="isOwnAccount(item)" class="text-muted-foreground text-xs font-normal">
+                  {{ $t('users.you') }}
+                </span>
+              </span>
+              <span class="text-muted-foreground text-xs font-normal">{{ item.email }}</span>
+            </span>
+          </span>
+        </template>
         <template #cell-authorities="{ item }">
-          {{ item.authorities.map((role) => $t(`users.role.${role.toLowerCase()}`)).join(', ') }}
+          <span class="flex flex-wrap gap-1">
+            <Badge v-for="role in sortRoles(item.authorities)" :key="role" variant="outline">
+              {{ $t(`users.role.${role.toLowerCase()}`) }}
+            </Badge>
+          </span>
         </template>
         <template #actions="{ item }">
-          <span v-if="isOwnAccount(item)" class="text-muted-foreground text-sm">
-            {{ $t('users.own-account') }}
-          </span>
-          <div v-else class="flex items-center gap-2">
-            <Button
-              size="icon"
-              variant="secondary"
-              :aria-label="$t('users.password.action')"
-              @click.stop="passwordTarget = item"
-            >
-              <KeyRound />
-            </Button>
-            <ActionButtons @on-edit="changeToUpdate(item.id)" @on-delete="remove(item.id)" />
-          </div>
+          <UserRowActions
+            :user="item"
+            :own="isOwnAccount(item)"
+            @edit="changeToUpdate(item.id)"
+            @reset-password="passwordTarget = item"
+            @remove="remove(item)"
+          />
         </template>
       </ItemsTable>
       <ResetPasswordDialog :user="passwordTarget" @close="passwordTarget = null" />
-    </CardContent>
-  </Card>
+    </div>
+  </PageContainer>
 </template>

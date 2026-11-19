@@ -43,7 +43,9 @@ const onSubmit = form.handleSubmit(async (values) => {
     store.updatePassword(user.id, { temporary: true, password: values.password }),
   )
   if (updated) {
-    showSuccess('notification.record-updated', 'notification.user.password-reset')
+    showSuccess('users.toast.password-reset', 'users.toast.password-reset-detail', true, {
+      name: user.name,
+    })
     emit('close')
   }
 })
@@ -54,9 +56,9 @@ const onSubmit = form.handleSubmit(async (values) => {
     <DialogContent>
       <form class="flex flex-col gap-4" novalidate @submit.prevent="onSubmit">
         <DialogHeader>
-          <DialogTitle>{{ $t('users.password.title') }}</DialogTitle>
+          <DialogTitle>{{ $t('users.password.title', { name: user?.name }) }}</DialogTitle>
           <DialogDescription>
-            {{ $t('users.password.description', { name: user?.name }) }}
+            {{ $t('users.password.description') }}
           </DialogDescription>
         </DialogHeader>
         <ServerErrorAlert :messages="messages" />

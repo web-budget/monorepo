@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import SearchControls from '@/components/listing/SearchControls.vue'
 import i18n from '@/locales'
 
@@ -11,7 +11,9 @@ function render(props: Record<string, unknown> = {}) {
 }
 
 function buttonWithText(wrapper: ReturnType<typeof render>, text: string) {
-  const button = wrapper.findAll('button').find((candidate) => candidate.text() === text)
+  const button = wrapper
+    .findAll('button')
+    .find((candidate) => candidate.text().replace(/\s+\d+$/, '') === text)
   if (!button) {
     throw new Error(`no button "${text}"`)
   }
@@ -19,6 +21,24 @@ function buttonWithText(wrapper: ReturnType<typeof render>, text: string) {
 }
 
 describe('SearchControls', () => {
+  beforeEach(() => {
+    vi.useFakeTimers()
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
+  })
+
+  it('lists the most used status first and ends with all', () => {
+    const wrapper = render()
+
+    expect(wrapper.findAll('[aria-pressed]').map((button) => button.text())).toEqual([
+      'Ativos',
+      'Inativos',
+      'Todos',
+    ])
+  })
+
   it('marks the current status as pressed', () => {
     const wrapper = render({ status: 'INACTIVE' })
 
@@ -35,58 +55,76 @@ describe('SearchControls', () => {
     expect(wrapper.emitted('onFilterChange')).toHaveLength(1)
   })
 
-  it('emits update:filter while typing', async () => {
+  it('shows the count of each status that has one', () => {
+    const wrapper = render({ counts: { ACTIVE: 4, INACTIVE: 0, ALL: null } })
+
+    expect(wrapper.findAll('[data-slot="status-count"]').map((count) => count.text())).toEqual([
+      '4',
+      '0',
+    ])
+  })
+
+  it('emits update:filter right away and the change only after the user stops typing', async () => {
     const wrapper = render({ placeholder: 'Buscar por nome' })
 
     await wrapper.find('input').setValue('abc')
 
     expect(wrapper.emitted('update:filter')).toEqual([['abc']])
     expect(wrapper.find('input').attributes('placeholder')).toBe('Buscar por nome')
+    expect(wrapper.emitted('onFilterChange')).toBeUndefined()
+
+    vi.advanceTimersByTime(299)
+    expect(wrapper.emitted('onFilterChange')).toBeUndefined()
+
+    vi.advanceTimersByTime(1)
+    expect(wrapper.emitted('onFilterChange')).toHaveLength(1)
   })
 
-  it('fires a filter change on Enter', async () => {
+  it('searches once for a burst of keystrokes', async () => {
+    const wrapper = render()
+
+    await wrapper.find('input').setValue('a')
+    await wrapper.find('input').setValue('ab')
+    vi.advanceTimersByTime(300)
+
+    expect(wrapper.emitted('onFilterChange')).toHaveLength(1)
+  })
+
+  it('searches immediately on Enter', async () => {
     const wrapper = render()
 
     await wrapper.find('input').trigger('keydown', { key: 'Enter' })
 
-    expect(wrapper.emitted('update:status')).toEqual([['ACTIVE']])
     expect(wrapper.emitted('onFilterChange')).toHaveLength(1)
+    expect(wrapper.emitted('update:status')).toBeUndefined()
   })
 
-  it('fires a filter change on the search button', async () => {
+  it('follows the filter the parent sets', async () => {
+    const wrapper = render({ filter: 'abc' })
+
+    await wrapper.setProps({ filter: 'xyz' })
+
+    expect((wrapper.find('input').element as HTMLInputElement).value).toBe('xyz')
+  })
+
+  it('offers to clear the text only while there is text', async () => {
     const wrapper = render()
+    expect(wrapper.find('button[aria-label="Limpar filtro"]').exists()).toBe(false)
 
-    await buttonWithText(wrapper, 'Buscar').trigger('click')
+    await wrapper.find('input').setValue('abc')
 
-    expect(wrapper.emitted('onFilterChange')).toHaveLength(1)
+    expect(wrapper.find('button[aria-label="Limpar filtro"]').exists()).toBe(true)
   })
 
-  it('resets the status and the filter to their initial values', async () => {
-    const wrapper = render({ status: 'ALL', filter: 'abc', statusInitialValue: 'INACTIVE' })
+  it('clears the text without touching the status', async () => {
+    const wrapper = render({ status: 'ALL', filter: 'abc' })
 
     await wrapper.find('button[aria-label="Limpar filtro"]').trigger('click')
 
-    expect(wrapper.emitted('update:status')).toEqual([['INACTIVE']])
     expect(wrapper.emitted('update:filter')).toEqual([['']])
+    expect(wrapper.emitted('update:status')).toBeUndefined()
     expect(wrapper.emitted('onFilterReset')).toHaveLength(1)
     expect((wrapper.find('input').element as HTMLInputElement).value).toBe('')
-    expect(buttonWithText(wrapper, 'Inativos').attributes('aria-pressed')).toBe('true')
-  })
-
-  it('resets to the active status by default', async () => {
-    const wrapper = render({ status: 'ALL' })
-
-    await wrapper.find('button[aria-label="Limpar filtro"]').trigger('click')
-
-    expect(wrapper.emitted('update:status')).toEqual([['ACTIVE']])
-  })
-
-  it('emits onNew', async () => {
-    const wrapper = render()
-
-    await buttonWithText(wrapper, 'Novo').trigger('click')
-
-    expect(wrapper.emitted('onNew')).toHaveLength(1)
   })
 
   it('renders custom status options', () => {
