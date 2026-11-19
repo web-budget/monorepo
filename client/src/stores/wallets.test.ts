@@ -33,7 +33,7 @@ describe('useWalletsStore', () => {
       status: 'ACTIVE',
       page: 0,
       size: 15,
-      sort: 'createdOn,asc',
+      sort: 'createdOn,desc',
     })
     expect(store.pageResponse.content).toEqual([row])
     expect(store.pageResponse.totalElements).toBe(1)
@@ -68,7 +68,7 @@ describe('useWalletsStore', () => {
   })
 
   it('creates a wallet', async () => {
-    vi.mocked(walletsApi.create).mockResolvedValue()
+    vi.mocked(walletsApi.create).mockResolvedValue('new-id')
     const store = useWalletsStore()
 
     await store.create({ name: 'New', type: 'BANK_ACCOUNT' })

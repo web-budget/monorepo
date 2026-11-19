@@ -23,13 +23,13 @@ describe('useCardsStore', () => {
     await store.findAll()
 
     expect(cardsApi.findAll).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'ACTIVE', sort: 'createdOn,asc' }),
+      expect.objectContaining({ status: 'ACTIVE', sort: 'createdOn,desc' }),
     )
     expect(store.pageResponse.content).toEqual([row])
   })
 
   it('creates, loads, edits and removes a card', async () => {
-    vi.mocked(cardsApi.create).mockResolvedValue()
+    vi.mocked(cardsApi.create).mockResolvedValue('new-id')
     vi.mocked(cardsApi.findById).mockResolvedValue(view)
     vi.mocked(cardsApi.update).mockResolvedValue({ ...view, flag: 'Master' })
     vi.mocked(cardsApi.remove).mockResolvedValue()

@@ -1,4 +1,5 @@
 import axios, { isAxiosError, isCancel } from 'axios'
+import { recordServerActivity } from '@/api/serverActivity'
 import type { ProblemDetail } from '@/types'
 
 export class ApiError extends Error {
@@ -38,12 +39,54 @@ export function toApiError(error: unknown): unknown {
   return new ApiError(asProblemDetail(response.data), response.status, error)
 }
 
+const CSRF_COOKIE_NAME = 'XSRF-TOKEN'
+const SAFE_METHODS = new Set(['get', 'head', 'options', 'trace'])
+
 export const apiClient = axios.create({
   baseURL: '/private/v1',
   timeout: 20000,
+  xsrfCookieName: CSRF_COOKIE_NAME,
+  xsrfHeaderName: 'X-XSRF-TOKEN',
+})
+
+function hasCsrfCookie(): boolean {
+  return document.cookie.split('; ').some((cookie) => cookie.startsWith(`${CSRF_COOKIE_NAME}=`))
+}
+
+let csrfProbe: Promise<unknown> | null = null
+
+function fetchCsrfCookie(): Promise<unknown> {
+  csrfProbe ??= apiClient
+    .get('/auth/session', { silent: true })
+    .catch(() => undefined)
+    .finally(() => {
+      csrfProbe = null
+    })
+  return csrfProbe
+}
+
+apiClient.interceptors.request.use(async (config) => {
+  if (!SAFE_METHODS.has((config.method ?? 'get').toLowerCase()) && !hasCsrfCookie()) {
+    await fetchCsrfCookie()
+  }
+  return config
 })
 
 apiClient.interceptors.response.use(
-  (response) => response,
-  (error: unknown) => Promise.reject(toApiError(error)),
+  (response) => {
+    recordServerActivity()
+    return response
+  },
+  (error: unknown) => {
+    if (isAxiosError(error) && error.response) {
+      recordServerActivity()
+    }
+    return Promise.reject(toApiError(error))
+  },
 )
+
+declare module 'axios' {
+  interface AxiosRequestConfig {
+    silent?: boolean
+  }
+}

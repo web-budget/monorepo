@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest'
 import { ApiError } from '@/api/client'
 import { createPageRequest } from '@/utils/pageRequest'
+import { isHandled } from '@/utils/handledErrors'
 import { useCrudResource, type CrudApi } from './useCrudResource'
 
 interface Row {
@@ -24,7 +25,7 @@ function setup() {
     update: vi.fn<CrudApi<Row, View, object, object>['update']>(),
     remove: vi.fn<CrudApi<Row, View, object, object>['remove']>(),
   }
-  const resource = useCrudResource(api, () => createPageRequest({ sortField: 'name' }))
+  const resource = useCrudResource(api, () => createPageRequest<string>({ sortField: 'name' }))
   return { api, resource }
 }
 
@@ -58,7 +59,7 @@ describe('useCrudResource', () => {
       status: 'ACTIVE',
       page: 3,
       size: 15,
-      sort: 'name,asc',
+      sort: 'name,desc',
     })
     expect(resource.pageResponse.value).toEqual({
       content: [rowA, rowB],
@@ -116,14 +117,47 @@ describe('useCrudResource', () => {
     expect(resource.current.value).toEqual(viewA)
   })
 
-  it('creates through the API without touching the state', async () => {
+  it('creates through the API, returns the new id and does not touch the state', async () => {
     const { api, resource } = setup()
-    api.create.mockResolvedValue()
+    api.create.mockResolvedValue('new-id')
 
-    await resource.create({ name: 'New' })
+    await expect(resource.create({ name: 'New' })).resolves.toBe('new-id')
 
     expect(api.create).toHaveBeenCalledWith({ name: 'New' })
     expect(resource.current.value).toBeNull()
+  })
+
+  it('counts the records of a status without touching the page, the filter or the loading flag', async () => {
+    const { api, resource } = setup()
+    resource.pageRequest.value.filterText = 'abc'
+    resource.pageRequest.value.current = 3
+    api.findAll.mockResolvedValue({
+      content: [],
+      page: { size: 1, number: 0, totalElements: 7, totalPages: 7 },
+    })
+
+    await expect(resource.count('INACTIVE')).resolves.toBe(7)
+
+    expect(api.findAll).toHaveBeenCalledWith({
+      filter: '',
+      status: 'INACTIVE',
+      page: 0,
+      size: 1,
+      sort: 'name,desc',
+    })
+    expect(resource.pageRequest.value.filterText).toBe('abc')
+    expect(resource.pageRequest.value.current).toBe(3)
+    expect(resource.loading.value).toBe(false)
+  })
+
+  it('gives no count, and no toast, when counting fails', async () => {
+    const { api, resource } = setup()
+    const failure = new ApiError(null, 500)
+    api.findAll.mockRejectedValue(failure)
+
+    await expect(resource.count('ALL')).resolves.toBeNull()
+
+    expect(isHandled(failure)).toBe(true)
   })
 
   it('updates the current record only after the server answers', async () => {
@@ -193,7 +227,7 @@ describe('useCrudResource', () => {
 
     resource.reset()
 
-    expect(resource.pageRequest.value).toEqual(createPageRequest({ sortField: 'name' }))
+    expect(resource.pageRequest.value).toEqual(createPageRequest<string>({ sortField: 'name' }))
     expect(resource.pageResponse.value.content).toEqual([])
     expect(resource.current.value).toBeNull()
   })
