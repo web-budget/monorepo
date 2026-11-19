@@ -59,7 +59,7 @@ describe('useCrudResource', () => {
       status: 'ACTIVE',
       page: 3,
       size: 15,
-      sort: 'name,asc',
+      sort: 'name,desc',
     })
     expect(resource.pageResponse.value).toEqual({
       content: [rowA, rowB],
@@ -143,7 +143,7 @@ describe('useCrudResource', () => {
       status: 'INACTIVE',
       page: 0,
       size: 1,
-      sort: 'name,asc',
+      sort: 'name,desc',
     })
     expect(resource.pageRequest.value.filterText).toBe('abc')
     expect(resource.pageRequest.value.current).toBe(3)

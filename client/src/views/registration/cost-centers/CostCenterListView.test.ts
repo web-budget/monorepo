@@ -67,11 +67,11 @@ describe('CostCenterListView', () => {
     ])
   })
 
-  it('loads the active cost centers sorted by full name and lists them with the budgets aligned to the right', async () => {
+  it('loads the active cost centers, newest first, and lists them with the budgets aligned to the right', async () => {
     const { wrapper } = await render()
 
     expect(costCentersApi.findAll).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'ACTIVE', sort: 'fullName,asc' }),
+      expect.objectContaining({ status: 'ACTIVE', sort: 'createdOn,desc' }),
     )
     const rows = wrapper.findAll('tbody tr')
     expect(rows).toHaveLength(2)

@@ -35,7 +35,7 @@ describe('useUsersAdminStore', () => {
       status: 'ALL',
       page: 0,
       size: 15,
-      sort: 'createdOn,asc',
+      sort: 'createdOn,desc',
     })
     expect(store.pageResponse.content).toEqual([user])
   })

@@ -79,7 +79,7 @@ describe('FinancialPeriodListView', () => {
     const { wrapper } = await render()
 
     expect(financialPeriodsApi.findAll).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'OPEN', sort: 'startingAt,desc' }),
+      expect.objectContaining({ status: 'OPEN', sort: 'createdOn,desc' }),
     )
     expect(wrapper.findAll('th').map((header) => header.text())).toEqual([
       'Nome',

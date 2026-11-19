@@ -88,7 +88,7 @@ describe('UserListView', () => {
       status: 'ALL',
       page: 0,
       size: 15,
-      sort: 'createdOn,asc',
+      sort: 'createdOn,desc',
     })
     const bruno = rowOf(wrapper, 'Bruno')
     expect(bruno.text()).toContain('BR')

@@ -164,7 +164,7 @@ describe('ItemsTable', () => {
     expect(wrapper.emitted('tableSorted')).toEqual([
       [{ sortField: 'name', sortOrder: 'asc' }],
       [{ sortField: 'name', sortOrder: 'desc' }],
-      [{ sortField: 'createdOn', sortOrder: 'asc' }],
+      [{ sortField: 'createdOn', sortOrder: 'desc' }],
     ])
   })
 

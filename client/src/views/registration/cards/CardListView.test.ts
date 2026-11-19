@@ -57,7 +57,7 @@ describe('CardListView', () => {
     const { wrapper } = await render()
 
     expect(cardsApi.findAll).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'ACTIVE', sort: 'createdOn,asc' }),
+      expect.objectContaining({ status: 'ACTIVE', sort: 'createdOn,desc' }),
     )
     const rows = wrapper.findAll('tbody tr')
     expect(rows).toHaveLength(2)

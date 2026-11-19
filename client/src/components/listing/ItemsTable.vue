@@ -14,7 +14,6 @@ import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 import StatusBadge from '@/components/listing/StatusBadge.vue'
 import {
-  DEFAULT_SORT_FIELD,
   MINIMUM_PAGE_SIZE,
   PAGE_SIZE_OPTIONS,
   type ItemsTableColumn,
@@ -52,6 +51,7 @@ import {
   TableRow,
 } from '@/components/ui/table'
 import { cn } from '@/lib/utils'
+import { DEFAULT_SORT_DIRECTION, DEFAULT_SORT_FIELD } from '@/utils/pageRequest'
 
 const props = withDefaults(
   defineProps<{
@@ -161,7 +161,7 @@ function toggleSort(field: string) {
   }
   emit('tableSorted', {
     sortField: sortField.value ?? DEFAULT_SORT_FIELD,
-    sortOrder: sortDirection.value ?? 'asc',
+    sortOrder: sortDirection.value ?? DEFAULT_SORT_DIRECTION,
   })
 }
 

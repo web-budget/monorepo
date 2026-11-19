@@ -33,7 +33,7 @@ describe('useFinancialPeriodsStore', () => {
       status: 'OPEN',
       page: 0,
       size: 15,
-      sort: 'startingAt,desc',
+      sort: 'createdOn,desc',
     })
     expect(store.pageResponse.content).toEqual([row])
   })
