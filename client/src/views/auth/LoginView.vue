@@ -1,55 +1,43 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { ApiError } from '@/api/client'
-import CredentialsStep, { type CredentialsFailure } from '@/components/auth/CredentialsStep.vue'
+import { onMounted } from 'vue'
+import { useRoute } from 'vue-router'
+import CredentialsStep from '@/components/auth/CredentialsStep.vue'
+import GoogleLinkStep from '@/components/auth/GoogleLinkStep.vue'
+import RegisterStep from '@/components/auth/RegisterStep.vue'
+import TotpEnrollStep from '@/components/auth/TotpEnrollStep.vue'
+import TotpVerifyStep from '@/components/auth/TotpVerifyStep.vue'
 import { useAuthConfig } from '@/composables/useAuthConfig'
+import { useLoginFlow } from '@/composables/useLoginFlow'
 import { useNotification } from '@/composables/useNotification'
-import type { LoginFormValues } from '@/schemas/loginSchema'
 import { useAuthStore } from '@/stores/auth'
-import { describeApiError } from '@/utils/apiErrorNotice'
+import type { SessionResponse } from '@/types'
 import { queryValue } from '@/utils/queryValue'
-import { safeRedirect } from '@/utils/safeRedirect'
 
 const route = useRoute()
-const router = useRouter()
 const auth = useAuthStore()
 const { googleAuthEnabled } = useAuthConfig()
 const { showWarn } = useNotification()
+const {
+  step,
+  submitting,
+  credentialsFailure,
+  registerRateLimited,
+  totpFailure,
+  enrollment,
+  linkMode,
+  linkRateLimited,
+  finish,
+  submitCredentials,
+  showRegister,
+  showCredentials,
+  submitRegistration,
+  submitTotp,
+  submitEnrollment,
+  submitLinkPassword,
+  submitLinkCode,
+} = useLoginFlow()
 
 const SESSION_END_REASONS = ['inactivity', 'expired']
-const TOO_MANY_REQUESTS = 429
-
-const failure = ref<CredentialsFailure | null>(null)
-const signingIn = ref(false)
-
-async function goAfterLogin() {
-  await router.push(safeRedirect(route.query.redirect) ?? { name: 'home' })
-}
-
-function failureOf(error: unknown): CredentialsFailure | null {
-  if (!(error instanceof ApiError)) {
-    return null
-  }
-  if (error.status === TOO_MANY_REQUESTS) {
-    return 'rate-limit'
-  }
-  return describeApiError(error) === null ? 'credentials' : null
-}
-
-async function submit(values: LoginFormValues) {
-  failure.value = null
-  signingIn.value = true
-  try {
-    await auth.login(values)
-  } catch (error) {
-    failure.value = failureOf(error)
-    return
-  } finally {
-    signingIn.value = false
-  }
-  await goAfterLogin()
-}
 
 function notifySessionEnded() {
   const reason = queryValue(route.query.reason)
@@ -64,16 +52,50 @@ onMounted(async () => {
     return
   }
   if (auth.isAuthenticated || (await auth.restoreSession())) {
-    await goAfterLogin()
+    await finish(auth.session as SessionResponse)
   }
 })
 </script>
 
 <template>
+  <RegisterStep
+    v-if="step === 'register'"
+    :loading="submitting"
+    :rate-limited="registerRateLimited"
+    @submit="submitRegistration"
+    @back="showCredentials"
+  />
+  <TotpEnrollStep
+    v-else-if="step === 'enroll' && enrollment"
+    :enrollment="enrollment"
+    :loading="submitting"
+    :failure="totpFailure"
+    @submit="submitEnrollment"
+    @cancel="showCredentials"
+  />
+  <TotpVerifyStep
+    v-else-if="step === 'totp'"
+    :loading="submitting"
+    :failure="totpFailure"
+    @submit="submitTotp"
+    @cancel="showCredentials"
+  />
+  <GoogleLinkStep
+    v-else-if="step === 'link'"
+    :mode="linkMode"
+    :loading="submitting"
+    :rate-limited="linkRateLimited"
+    @submit-password="submitLinkPassword"
+    @submit-code="submitLinkCode"
+    @cancel="showCredentials"
+  />
   <CredentialsStep
-    :loading="signingIn"
-    :failure="failure"
+    v-else
+    :loading="submitting"
+    :failure="credentialsFailure"
     :google-enabled="googleAuthEnabled"
-    @submit="submit"
+    registration-enabled
+    @submit="submitCredentials"
+    @register="showRegister"
   />
 </template>

@@ -10,7 +10,7 @@ import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/comp
 import { Input } from '@/components/ui/input'
 import { loginFormSchema, type LoginFormValues } from '@/schemas/loginSchema'
 
-export type CredentialsFailure = 'credentials' | 'rate-limit'
+export type CredentialsFailure = 'credentials' | 'rate-limit' | 'oauth-failed' | 'email-in-use'
 
 withDefaults(
   defineProps<{

@@ -11,9 +11,24 @@ import type {
 
 const PATH = '/administration/users'
 
+const USER_STATUSES = ['PENDING', 'APPROVED', 'BLOCKED']
+
+function toUserQuery(query: PageQuery) {
+  if (query.status !== undefined && USER_STATUSES.includes(query.status)) {
+    return { ...query, status: 'ALL', userStatus: query.status }
+  }
+  return query
+}
+
+function patch(id: string, action: string): Promise<void> {
+  return apiClient.patch(`${PATH}/${id}/${action}`).then(() => undefined)
+}
+
 export const usersApi = {
   findAll(query: PageQuery): Promise<PagedResponse<UserView>> {
-    return apiClient.get<PagedResponse<UserView>>(PATH, { params: query }).then((r) => r.data)
+    return apiClient
+      .get<PagedResponse<UserView>>(PATH, { params: toUserQuery(query) })
+      .then((r) => r.data)
   },
 
   findById(id: string): Promise<UserView> {
@@ -30,6 +45,22 @@ export const usersApi = {
 
   updatePassword(id: string, form: UserPasswordForm): Promise<void> {
     return apiClient.patch(`${PATH}/${id}/update-password`, form).then(() => undefined)
+  },
+
+  approve(id: string): Promise<void> {
+    return patch(id, 'approve')
+  },
+
+  block(id: string): Promise<void> {
+    return patch(id, 'block')
+  },
+
+  unblock(id: string): Promise<void> {
+    return patch(id, 'unblock')
+  },
+
+  resetTotp(id: string): Promise<void> {
+    return patch(id, 'totp-reset')
   },
 
   remove(id: string): Promise<void> {

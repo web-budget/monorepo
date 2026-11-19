@@ -4,7 +4,7 @@ import { authApi } from '@/api/auth'
 import { ApiError } from '@/api/client'
 import router from '@/router'
 import { resetUserStores } from '@/stores/resetUserStores'
-import type { SessionResponse } from '@/types'
+import type { LoginOutcome, SessionResponse } from '@/types'
 import { useAuthStore } from './auth'
 
 vi.mock('@/api/auth')
@@ -26,7 +26,7 @@ const session: SessionResponse = {
 const credentials = { email: session.email, password: 'secret' }
 
 async function authenticatedStore() {
-  vi.mocked(authApi.login).mockResolvedValue(session)
+  vi.mocked(authApi.login).mockResolvedValue({ kind: 'authenticated', session })
   const store = useAuthStore()
   await store.login(credentials)
   vi.clearAllMocks()
@@ -53,10 +53,10 @@ describe('useAuthStore', () => {
   })
 
   it('login() keeps the session the server answers with', async () => {
-    vi.mocked(authApi.login).mockResolvedValue(session)
+    vi.mocked(authApi.login).mockResolvedValue({ kind: 'authenticated', session })
     const store = useAuthStore()
 
-    await expect(store.login(credentials)).resolves.toEqual(session)
+    await expect(store.login(credentials)).resolves.toEqual({ kind: 'authenticated', session })
 
     expect(authApi.login).toHaveBeenCalledWith(credentials)
     expect(store.session).toEqual(session)
@@ -64,7 +64,7 @@ describe('useAuthStore', () => {
   })
 
   it('login() clears the user stores before it keeps the new session', async () => {
-    vi.mocked(authApi.login).mockResolvedValue(session)
+    vi.mocked(authApi.login).mockResolvedValue({ kind: 'authenticated', session })
     const store = useAuthStore()
     vi.mocked(resetUserStores).mockImplementation(() => expect(store.session).toBeNull())
 
@@ -74,14 +74,14 @@ describe('useAuthStore', () => {
   })
 
   it('login() reports loading while the request is in flight', async () => {
-    let resolve!: (value: SessionResponse) => void
+    let resolve!: (value: LoginOutcome) => void
     vi.mocked(authApi.login).mockReturnValue(new Promise((done) => (resolve = done)))
     const store = useAuthStore()
 
     const logging = store.login(credentials)
     expect(store.loading).toBe(true)
 
-    resolve(session)
+    resolve({ kind: 'authenticated', session })
     await logging
     expect(store.loading).toBe(false)
   })
@@ -102,7 +102,7 @@ describe('useAuthStore', () => {
     expect(store.hasRole('REGISTRATION')).toBe(false)
 
     await authenticatedStore()
-    vi.mocked(authApi.login).mockResolvedValue(session)
+    vi.mocked(authApi.login).mockResolvedValue({ kind: 'authenticated', session })
     await store.login(credentials)
 
     expect(store.hasRole('REGISTRATION')).toBe(true)
@@ -229,5 +229,116 @@ describe('useAuthStore', () => {
 
     expect(router.replace).toHaveBeenCalledTimes(1)
     expect(authApi.logout).toHaveBeenCalledTimes(1)
+  })
+
+  it('login() keeps no session while the server still asks for the TOTP', async () => {
+    vi.mocked(authApi.login).mockResolvedValue({ kind: 'needs_totp' })
+    const store = useAuthStore()
+
+    await expect(store.login(credentials)).resolves.toEqual({ kind: 'needs_totp' })
+
+    expect(store.session).toBeNull()
+    expect(resetUserStores).not.toHaveBeenCalled()
+  })
+
+  it('isApproved is true only for an approved session', () => {
+    const store = useAuthStore()
+    expect(store.isApproved).toBe(false)
+
+    store.session = { ...session, status: 'PENDING' }
+    expect(store.isApproved).toBe(false)
+
+    store.session = session
+    expect(store.isApproved).toBe(true)
+  })
+
+  it('linkGoogle() opens the session once the link is done', async () => {
+    vi.mocked(authApi.linkGoogle).mockResolvedValue({ kind: 'authenticated', session })
+    const store = useAuthStore()
+
+    await expect(store.linkGoogle({ linkToken: 't', password: 'p' })).resolves.toEqual({
+      kind: 'authenticated',
+      session,
+    })
+
+    expect(store.session).toEqual(session)
+    expect(store.loading).toBe(false)
+  })
+
+  it('linkGoogle() keeps no session while it asks for the TOTP, and when it fails', async () => {
+    const store = useAuthStore()
+    vi.mocked(authApi.linkGoogle).mockResolvedValueOnce({ kind: 'needs_totp' })
+    await store.linkGoogle({ linkToken: 't', password: 'p' })
+    expect(store.session).toBeNull()
+
+    vi.mocked(authApi.linkGoogle).mockRejectedValueOnce(new ApiError(null, 401))
+    await expect(store.linkGoogle({ linkToken: 't', password: 'p' })).rejects.toBeInstanceOf(
+      ApiError,
+    )
+    expect(store.session).toBeNull()
+    expect(store.loading).toBe(false)
+  })
+
+  it('register() remembers the e-mail for the approval screen until the session changes', async () => {
+    vi.mocked(authApi.register).mockResolvedValue()
+    const store = useAuthStore()
+    const request = { name: 'Ana', email: 'ana@example.com', password: 'Caderno1' }
+
+    await store.register(request)
+
+    expect(authApi.register).toHaveBeenCalledWith(request)
+    expect(store.registeredEmail).toBe('ana@example.com')
+    expect(store.isAuthenticated).toBe(false)
+
+    store.clearSession()
+    expect(store.registeredEmail).toBeNull()
+  })
+
+  it('register() remembers nothing when the server refuses', async () => {
+    vi.mocked(authApi.register).mockRejectedValue(new ApiError(null, 429))
+    const store = useAuthStore()
+
+    await expect(
+      store.register({ name: 'Ana', email: 'ana@example.com', password: 'Caderno1' }),
+    ).rejects.toBeInstanceOf(ApiError)
+
+    expect(store.registeredEmail).toBeNull()
+  })
+
+  it('enrollTotp() hands the QR code over without opening a session', async () => {
+    const enrollment = { secretKey: 'ABCD', qrCodeDataUri: 'data:image/png;base64,AAA' }
+    vi.mocked(authApi.enrollTotp).mockResolvedValue(enrollment)
+    const store = useAuthStore()
+
+    await expect(store.enrollTotp(credentials)).resolves.toEqual(enrollment)
+
+    expect(store.session).toBeNull()
+  })
+
+  it('verifyTotp() opens the session and forgets the registration', async () => {
+    vi.mocked(authApi.verifyTotp).mockResolvedValue(session)
+    const store = useAuthStore()
+    store.registeredEmail = 'old@example.com'
+
+    await expect(store.verifyTotp({ ...credentials, code: '123456' })).resolves.toEqual(session)
+
+    expect(store.session).toEqual(session)
+    expect(store.registeredEmail).toBeNull()
+    expect(resetUserStores).toHaveBeenCalledOnce()
+    expect(store.loading).toBe(false)
+  })
+
+  it('verifyTotp() rethrows a wrong code and stays without a session', async () => {
+    vi.mocked(authApi.verifyTotp).mockRejectedValue(
+      new ApiError({ error: 'invalid_totp_code' }, 401),
+    )
+    const store = useAuthStore()
+
+    await expect(store.verifyTotp({ ...credentials, code: '000000' })).rejects.toBeInstanceOf(
+      ApiError,
+    )
+
+    expect(store.session).toBeNull()
+    expect(store.loading).toBe(false)
   })
 })

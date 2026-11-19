@@ -4,11 +4,13 @@ import { rolesApi } from '@/api/roles'
 import { usersApi } from '@/api/users'
 import { useCrudResource } from '@/composables/useCrudResource'
 import { createPageRequest } from '@/utils/pageRequest'
-import type { StatusFilter, UserPasswordForm } from '@/types'
+import type { UserPasswordForm, UserStatusFilter, UserView } from '@/types'
+
+export const INITIAL_USER_STATUS: UserStatusFilter = 'APPROVED'
 
 export const useUsersAdminStore = defineStore('usersAdmin', () => {
   const resource = useCrudResource(usersApi, () =>
-    createPageRequest<StatusFilter>({ status: 'ALL' }),
+    createPageRequest<UserStatusFilter>({ status: INITIAL_USER_STATUS }),
   )
   const roles = ref<string[]>([])
 
@@ -20,6 +22,30 @@ export const useUsersAdminStore = defineStore('usersAdmin', () => {
 
   function updatePassword(id: string, form: UserPasswordForm): Promise<void> {
     return resource.track(() => usersApi.updatePassword(id, form))
+  }
+
+  function approve(user: UserView, grantedRoles: string[]): Promise<void> {
+    return resource.track(async () => {
+      await usersApi.update(user.id, {
+        active: user.active,
+        name: user.name,
+        defaultLanguage: user.defaultLanguage,
+        roles: grantedRoles,
+      })
+      await usersApi.approve(user.id)
+    })
+  }
+
+  function block(id: string): Promise<void> {
+    return resource.track(() => usersApi.block(id))
+  }
+
+  function unblock(id: string): Promise<void> {
+    return resource.track(() => usersApi.unblock(id))
+  }
+
+  function resetTotp(id: string): Promise<void> {
+    return resource.track(() => usersApi.resetTotp(id))
   }
 
   function reset() {
@@ -40,6 +66,10 @@ export const useUsersAdminStore = defineStore('usersAdmin', () => {
     create: resource.create,
     update: resource.update,
     updatePassword,
+    approve,
+    block,
+    unblock,
+    resetTotp,
     remove: resource.remove,
     reset,
   }

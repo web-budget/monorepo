@@ -28,6 +28,12 @@ function createRouterAt() {
     routes: [
       { path: '/private', component: { render: () => h('div') } },
       {
+        path: '/pending-approval',
+        name: 'pending-approval',
+        meta: { public: true },
+        component: { render: () => h('div') },
+      },
+      {
         path: '/error/forbidden',
         name: '403',
         meta: { public: true },
@@ -116,19 +122,40 @@ describe('installApiErrorHandler', () => {
     expect(toast.warning).not.toHaveBeenCalled()
   })
 
-  it('still shows a toast for any other rate limit', async () => {
-    const client = createClient(
-      { status: 429, data: { error: 'too_many_totp_attempts' } },
-      createRouterAt(),
-    )
+  it.each(['too_many_registration_attempts', 'too_many_totp_attempts'])(
+    'leaves the %s rate limit to its own step',
+    async (error) => {
+      const client = createClient({ status: 429, data: { error } }, createRouterAt())
 
-    await expect(client.post('/auth/totp')).rejects.toMatchObject({ status: 429 })
+      await expect(client.post('/auth/x')).rejects.toMatchObject({ status: 429 })
+
+      await flushToasts()
+      expect(toast.error).not.toHaveBeenCalled()
+    },
+  )
+
+  it('shows a toast for a rate limit that comes without an error code', async () => {
+    const client = createClient({ status: 429 }, createRouterAt())
+
+    await expect(client.post('/auth/x')).rejects.toMatchObject({ status: 429 })
 
     await flushToasts()
     expect(toast.error).toHaveBeenCalledTimes(1)
   })
 
-  it.each(['invalid-credentials', 'account-disabled'])(
+  it('still shows a toast for a rate limit no step owns', async () => {
+    const client = createClient(
+      { status: 429, data: { error: 'something_else' } },
+      createRouterAt(),
+    )
+
+    await expect(client.post('/auth/x')).rejects.toMatchObject({ status: 429 })
+
+    await flushToasts()
+    expect(toast.error).toHaveBeenCalledTimes(1)
+  })
+
+  it.each(['invalid-credentials', 'account-disabled', 'invalid_totp_code'])(
     'leaves a login rejected with %s to the login screen',
     async (error) => {
       const router = createRouterAt()
@@ -155,15 +182,26 @@ describe('installApiErrorHandler', () => {
     expect(toast.error).not.toHaveBeenCalled()
   })
 
-  it('leaves a pending approval to its own screen', async () => {
+  it('sends a pending account to the approval screen', async () => {
     const router = createRouterAt()
     await router.push('/private')
     const client = createClient({ status: 403, data: { error: 'pending_approval' } }, router)
 
     await expect(client.get('/x')).rejects.toMatchObject({ status: 403 })
 
-    expect(router.currentRoute.value.fullPath).toBe('/private')
+    expect(router.currentRoute.value.name).toBe('pending-approval')
     expect(toast.error).not.toHaveBeenCalled()
+  })
+
+  it('does not navigate again when the approval screen is already open', async () => {
+    const router = createRouterAt()
+    await router.push('/pending-approval')
+    const client = createClient({ status: 403, data: { error: 'pending_approval' } }, router)
+    const push = vi.spyOn(router, 'push')
+
+    await expect(client.get('/x')).rejects.toMatchObject({ status: 403 })
+
+    expect(push).not.toHaveBeenCalled()
   })
 
   it('tells the user when the server rejects the CSRF token', async () => {

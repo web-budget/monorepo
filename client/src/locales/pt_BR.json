@@ -28,7 +28,8 @@
       },
       "user": {
         "email": "Email \"{value}\" já esta em uso"
-      }
+      },
+      "invalid-user-status-transition": "A conta mudou de status enquanto a tela estava aberta. Atualize a lista."
     },
     "unprocessable-entity": {
       "title": "Falha na requisição",
@@ -45,7 +46,8 @@
       "invalid-invoice-payment-day": "{payment-day} não é um dia do mês válido, use algo entre 1 e 30",
       "financial-period-not-open": "O período financeiro não esta aberto e não pode receber modificações",
       "accounted-period-movement": "O movimento pertence a um período contabilizado e não pode ser alterado",
-      "invalid-token": "Token inválido ou expirado"
+      "invalid-token": "Token inválido ou expirado",
+      "self-action-not-allowed": "Esta ação não vale para a sua própria conta"
     },
     "not-found": {
       "detail": "Não encontrado",
@@ -76,6 +78,109 @@
   "auth-step": {
     "back-to-login": "Voltar para o login"
   },
+  "register": {
+    "title": "Criar conta",
+    "description": "Um administrador aprova a conta antes do primeiro acesso.",
+    "form": {
+      "name": "Nome",
+      "email": "E-mail",
+      "password": "Senha",
+      "submit": "Criar conta",
+      "submitting": "Criando…"
+    },
+    "rate-limit": {
+      "title": "Muitos cadastros seguidos",
+      "description": "Por segurança, espere alguns minutos antes de criar outra conta."
+    },
+    "back": {
+      "prompt": "Já tem conta?",
+      "action": "Entrar"
+    }
+  },
+  "pending-approval": {
+    "title": "Conta aguardando aprovação",
+    "description": "Recebemos o cadastro de {email}. Assim que um administrador aprovar a conta, é só entrar com o e-mail e a senha.",
+    "description-anonymous": "Assim que um administrador aprovar a conta, é só entrar com o e-mail e a senha.",
+    "activation": {
+      "title": "Confirme o e-mail",
+      "description": "Enviamos um link de ativação para o e-mail do cadastro. A conta só entra na fila de aprovação depois de ativada."
+    },
+    "waiting": {
+      "title": "Demorando?",
+      "description": "Fale com quem administra o webBudget na sua casa ou empresa."
+    }
+  },
+  "enroll": {
+    "title": "Proteja sua conta",
+    "description": "O login pede um código do app autenticador, como Google Authenticator, Microsoft Authenticator ou 1Password.",
+    "scan": "Escaneie o QR code com o app.",
+    "qr-alt": "QR code para cadastrar o autenticador",
+    "manual": "Não consegue escanear? Digite a chave:",
+    "copy": "Copiar chave",
+    "key-copied": "Chave copiada",
+    "enter-code": "Digite o código de 6 dígitos que aparece no app.",
+    "submit": "Ativar e entrar",
+    "submitting": "Ativando…"
+  },
+  "totp": {
+    "title": "Código de verificação",
+    "description": "Digite o código de 6 dígitos do seu app autenticador.",
+    "code-label": "Dígito do código",
+    "invalid-code": "Código inválido. Confira se o relógio do celular está certo e tente de novo.",
+    "trust": {
+      "label": "Confiar neste dispositivo",
+      "hint": "O código não é pedido de novo neste navegador. Você pode revogar em Dispositivos confiáveis."
+    },
+    "submit": "Entrar",
+    "submitting": "Verificando…",
+    "use-another-account": "Usar outra conta",
+    "rate-limit": {
+      "title": "Muitas tentativas seguidas",
+      "description": "Por segurança, espere alguns minutos antes de tentar de novo."
+    }
+  },
+  "google-link": {
+    "title": "Vincular sua conta Google",
+    "description": "Já existe uma conta com o e-mail do seu Google. Informe a senha dela para vincular. Depois, dá para entrar das duas formas.",
+    "totp-description": "Digite o código de 6 dígitos do seu app autenticador para concluir o vínculo.",
+    "password": "Senha da conta",
+    "submit": "Vincular e entrar",
+    "submitting": "Vinculando…",
+    "cancel": "Cancelar",
+    "rate-limit": {
+      "title": "Muitas tentativas seguidas",
+      "description": "Por segurança, espere alguns minutos antes de tentar de novo."
+    },
+    "expired": {
+      "title": "O vínculo não foi concluído",
+      "description": "A senha ou o código não conferem, ou o pedido expirou. Por segurança, entre com o Google de novo para recomeçar."
+    }
+  },
+  "devices": {
+    "title": "Dispositivos confiáveis",
+    "description": "Nestes dispositivos o login não pede o código do autenticador.",
+    "description-with-devices": "Nestes dispositivos o login não pede o código do autenticador. Revogue os que você não reconhece.",
+    "dates": "Último uso em {lastUsed} · confiado em {created}",
+    "close": "Fechar",
+    "empty": {
+      "title": "Nenhum dispositivo confiável",
+      "description": "Marque “Confiar neste dispositivo” ao informar o código do autenticador no login."
+    },
+    "revoke": {
+      "action": "Revogar",
+      "title": "Revogar “{label}”?",
+      "description": "Se for o dispositivo que você está usando, o código do autenticador vai ser pedido de novo no próximo login."
+    },
+    "revoke-all": {
+      "action": "Revogar todos",
+      "title": "Revogar todos os dispositivos?",
+      "description": "O código do autenticador vai ser pedido de novo no próximo login, em qualquer dispositivo, inclusive neste."
+    },
+    "toast": {
+      "revoked": "Dispositivo revogado",
+      "revoked-all": "Dispositivos revogados"
+    }
+  },
   "password-rules": {
     "min-length": "Pelo menos {minimum} caracteres",
     "uppercase": "Uma letra maiúscula",
@@ -99,6 +204,14 @@
       "rate-limit": {
         "title": "Muitas tentativas seguidas",
         "description": "Por segurança, espere alguns minutos antes de tentar de novo."
+      },
+      "oauth-failed": {
+        "title": "Não foi possível entrar com o Google",
+        "description": "Tente de novo ou entre com o e-mail e a senha."
+      },
+      "email-in-use": {
+        "title": "Este e-mail já tem uma conta",
+        "description": "Entre com o e-mail e a senha da conta."
       }
     },
     "form": {
@@ -288,7 +401,57 @@
     },
     "table-columns": {
       "name": "Nome",
-      "roles": "Áreas de acesso"
+      "roles": "Áreas de acesso",
+      "status": "Status",
+      "totp": "TOTP"
+    },
+    "status": {
+      "approved": "Aprovado",
+      "pending": "Pendente",
+      "blocked": "Bloqueado"
+    },
+    "status-tabs": {
+      "approved": "Aprovados",
+      "pending": "Pendentes",
+      "blocked": "Bloqueados"
+    },
+    "totp": {
+      "enabled": "Ativo",
+      "disabled": "Não configurado"
+    },
+    "roles-none": "Nenhuma ainda",
+    "no-pending": {
+      "title": "Nenhuma conta aguardando aprovação",
+      "description": "Quando alguém se cadastrar pelo login, a conta aparece aqui para você aprovar."
+    },
+    "pending-notice": {
+      "title": "Nenhuma conta aguardando aprovação | 1 conta aguardando aprovação | {count} contas aguardando aprovação",
+      "description": "Elas se cadastraram pelo login e só entram depois de aprovadas.",
+      "action": "Ver pendentes"
+    },
+    "approve": {
+      "shortcut": "Aprovar",
+      "title": "Aprovar a conta de {name}?",
+      "description": "A pessoa passa a entrar com {email}. Escolha as áreas que ela pode usar.",
+      "action": "Aprovar"
+    },
+    "block": {
+      "menu": "Bloquear",
+      "title": "Bloquear {name}?",
+      "description": "A sessão da pessoa termina agora e ela não consegue entrar até ser desbloqueada. Os dados dela continuam no app.",
+      "action": "Bloquear"
+    },
+    "unblock": {
+      "menu": "Desbloquear",
+      "title": "Desbloquear {name}?",
+      "description": "A pessoa volta a entrar com as mesmas áreas de acesso de antes do bloqueio.",
+      "action": "Desbloquear"
+    },
+    "totp-reset": {
+      "menu": "Resetar TOTP",
+      "title": "Resetar o TOTP de {name}?",
+      "description": "O autenticador atual para de valer e os dispositivos confiáveis da pessoa são esquecidos. No próximo login, ela cadastra o app autenticador de novo.",
+      "action": "Resetar TOTP"
     },
     "role": {
       "administration": "Configurações",
@@ -352,7 +515,15 @@
       "removed": "Usuário removido",
       "removed-detail": "“{name}” saiu da lista.",
       "password-reset": "Senha redefinida",
-      "password-reset-detail": "A nova senha de “{name}” já vale."
+      "password-reset-detail": "A nova senha de “{name}” já vale.",
+      "approved": "Conta aprovada",
+      "approved-detail": "{name} já pode entrar.",
+      "blocked": "Conta bloqueada",
+      "blocked-detail": "{name} não consegue mais entrar.",
+      "unblocked": "Conta desbloqueada",
+      "unblocked-detail": "{name} volta a entrar.",
+      "totp-reset": "TOTP resetado",
+      "totp-reset-detail": "{name} cadastra o autenticador de novo no próximo login."
     },
     "sections": {
       "data": "Dados",
@@ -372,6 +543,8 @@
     "aside": {
       "title": "Conta",
       "status": "Situação",
+      "approval": "Status",
+      "totp": "TOTP",
       "language": "Idioma",
       "roles": "Áreas de acesso"
     }
@@ -693,6 +866,7 @@
     "dark-theme": "Tema escuro",
     "light-theme": "Tema claro",
     "logout": "Sair",
+    "trusted-devices": "Dispositivos confiáveis",
     "breadcrumb": "Trilha de navegação",
     "coming-soon": "Em breve",
     "loading": "Carregando...",
@@ -716,6 +890,7 @@
     "email": "Informe um email válido",
     "password-mismatch": "A confirmação deve ser igual à senha",
     "password-requirements": "A senha não atende aos requisitos",
+    "password-too-long": "A senha pode ter no máximo 72 bytes",
     "invalid": "Valor inválido",
     "string-min": "Informe ao menos {minimum} caracteres",
     "string-max": "Informe no máximo {maximum} caracteres",

@@ -26,6 +26,8 @@ const existing: UserView = {
   email: 'bruno@example.com',
   defaultLanguage: 'EN_US',
   authorities: ['FINANCIAL'],
+  status: 'APPROVED',
+  totpEnabled: false,
 }
 
 type Wrapper = Awaited<ReturnType<typeof mountView>>['wrapper']
@@ -378,6 +380,117 @@ describe('UserFormView', () => {
 
         expect(buttonWithText(wrapper, 'Redefinir senha').attributes('disabled')).toBeDefined()
         expect(buttonWithText(wrapper, 'Remover usuário').attributes('disabled')).toBeDefined()
+      })
+
+      it('shows the approval status and the TOTP of the account', async () => {
+        const { wrapper } = await renderExisting()
+
+        expect(wrapper.find('dl').text()).toContain('Aprovado')
+        expect(wrapper.find('dl').text()).toContain('Não configurado')
+      })
+
+      it('blocks the account after confirming, and shows the new status', async () => {
+        vi.mocked(usersApi.findById)
+          .mockResolvedValueOnce({ ...existing, totpEnabled: true })
+          .mockResolvedValue({ ...existing, totpEnabled: true, status: 'BLOCKED' })
+        vi.mocked(usersApi.block).mockResolvedValue()
+        vi.mocked(rolesApi.findAll).mockResolvedValue(['FINANCIAL'])
+        const { wrapper } = await mountView(
+          UserFormView,
+          'users',
+          { id: 'u-2' },
+          { auth: { session } },
+        )
+
+        await buttonWithText(wrapper, 'Bloquear').trigger('click')
+        useConfirmDialog().accept()
+        await settle()
+
+        expect(usersApi.block).toHaveBeenCalledWith('u-2')
+        expect(wrapper.find('dl').text()).toContain('Bloqueado')
+        expect(buttonWithText(wrapper, 'Desbloquear')).toBeDefined()
+      })
+
+      it('unblocks the account and resets its TOTP', async () => {
+        vi.mocked(usersApi.findById).mockResolvedValue({
+          ...existing,
+          totpEnabled: true,
+          status: 'BLOCKED',
+        })
+        vi.mocked(usersApi.unblock).mockResolvedValue()
+        vi.mocked(usersApi.resetTotp).mockResolvedValue()
+        vi.mocked(rolesApi.findAll).mockResolvedValue(['FINANCIAL'])
+        const { wrapper } = await mountView(
+          UserFormView,
+          'users',
+          { id: 'u-2' },
+          { auth: { session } },
+        )
+
+        await buttonWithText(wrapper, 'Desbloquear').trigger('click')
+        useConfirmDialog().accept()
+        await settle()
+        await buttonWithText(wrapper, 'Resetar TOTP').trigger('click')
+        useConfirmDialog().accept()
+        await settle()
+
+        expect(usersApi.unblock).toHaveBeenCalledWith('u-2')
+        expect(usersApi.resetTotp).toHaveBeenCalledWith('u-2')
+      })
+
+      it('approves a pending account choosing the areas', async () => {
+        vi.mocked(usersApi.findById).mockResolvedValue({ ...existing, status: 'PENDING' })
+        vi.mocked(usersApi.update).mockResolvedValue(existing)
+        vi.mocked(usersApi.approve).mockResolvedValue()
+        vi.mocked(rolesApi.findAll).mockResolvedValue(['FINANCIAL', 'REGISTRATION'])
+        const { wrapper } = await mountView(
+          UserFormView,
+          'users',
+          { id: 'u-2' },
+          { auth: { session } },
+        )
+
+        await buttonWithText(wrapper, 'Aprovar').trigger('click')
+        await settle()
+        const approve = [
+          ...document.body.querySelectorAll<HTMLButtonElement>('[role="dialog"] button'),
+        ].find((button) => button.textContent?.trim() === 'Aprovar')!
+        approve.click()
+        await settle()
+
+        expect(usersApi.approve).toHaveBeenCalledWith('u-2')
+      })
+
+      it('closes the approval dialog without approving', async () => {
+        vi.mocked(usersApi.findById).mockResolvedValue({ ...existing, status: 'PENDING' })
+        vi.mocked(rolesApi.findAll).mockResolvedValue(['FINANCIAL'])
+        const { wrapper } = await mountView(
+          UserFormView,
+          'users',
+          { id: 'u-2' },
+          { auth: { session } },
+        )
+
+        await buttonWithText(wrapper, 'Aprovar').trigger('click')
+        await settle()
+        const cancel = [
+          ...document.body.querySelectorAll<HTMLButtonElement>('[role="dialog"] button'),
+        ].find((button) => button.textContent?.trim() === 'Cancelar')!
+        cancel.click()
+        await settle()
+
+        expect(usersApi.approve).not.toHaveBeenCalled()
+        expect(document.body.textContent).not.toContain('Aprovar a conta de Bruno?')
+      })
+
+      it('keeps the account actions of a pending or own account out of the way', async () => {
+        const { wrapper } = await renderExisting({
+          auth: { session: { ...session, email: 'bruno@example.com' } },
+        })
+
+        expect(wrapper.text()).not.toContain('Aprovar')
+        expect(wrapper.text()).not.toContain('Resetar TOTP')
+        expect(buttonWithText(wrapper, 'Bloquear').attributes('disabled')).toBeDefined()
       })
     })
   })

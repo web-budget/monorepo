@@ -2,6 +2,7 @@ import { flushPromises } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { h } from 'vue'
 import TopBar from '@/components/layout/TopBar.vue'
+import { useTrustedDevicesDialog } from '@/composables/useTrustedDevicesDialog'
 import { useAppearanceStore } from '@/stores/appearance'
 import { useAuthStore } from '@/stores/auth'
 import { createTestPlugins, mountInSidebar } from '@/test/mounting'
@@ -178,11 +179,15 @@ describe('TopBar', () => {
     expect(document.body.querySelector('[role="menu"]')).not.toBeNull()
   })
 
-  it('does not offer the trusted devices until #31', async () => {
+  it('opens the trusted devices from the user menu', async () => {
     const { wrapper } = await render()
     await openUserMenu(wrapper)
 
-    expect(document.body.textContent).not.toContain('Dispositivos confiáveis')
+    menuItem('[role="menuitem"]', 'Dispositivos confiáveis').click()
+    await flushPromises()
+
+    expect(useTrustedDevicesDialog().open.value).toBe(true)
+    useTrustedDevicesDialog().close()
   })
 
   it('logs out from the user menu', async () => {

@@ -18,3 +18,9 @@ export function passwordRequirementStatus(password: string): PasswordRequirement
 export function meetsPasswordRequirements(password: string): boolean {
   return Object.values(passwordRequirementStatus(password)).every(Boolean)
 }
+
+export const PASSWORD_MAX_BYTES = 72
+
+export function fitsPasswordBytes(password: string): boolean {
+  return new TextEncoder().encode(password).length <= PASSWORD_MAX_BYTES
+}

@@ -15,6 +15,9 @@ export const authGuard: NavigationGuard = async (to) => {
   if (!auth.isAuthenticated && !(await auth.restoreSession())) {
     return { name: 'login', query: { redirect: to.fullPath } }
   }
+  if (!auth.isApproved) {
+    return { name: 'pending-approval' }
+  }
   const missingRole = to.matched
     .map(requiredRole)
     .some((role) => role !== undefined && !auth.hasRole(role))

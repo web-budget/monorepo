@@ -34,9 +34,55 @@ export type Role = 'ADMINISTRATION' | 'DASHBOARDS' | 'FINANCIAL' | 'REGISTRATION
 
 export type UserStatus = 'PENDING' | 'APPROVED' | 'BLOCKED'
 
+export type UserStatusFilter = UserStatus | 'ALL'
+
 export interface LoginRequest {
   email: string
   password: string
+  totpCode?: string
+  trustDevice?: boolean
+}
+
+export type LoginOutcome =
+  | { kind: 'authenticated'; session: SessionResponse }
+  | { kind: 'needs_enrollment' }
+  | { kind: 'needs_totp' }
+
+export interface RegisterRequest {
+  name: string
+  email: string
+  password: string
+  defaultLanguage?: Language
+}
+
+export interface TotpEnrollRequest {
+  email: string
+  password: string
+}
+
+export interface TotpEnrollResponse {
+  secretKey: string
+  qrCodeDataUri: string
+}
+
+export interface TotpVerifyRequest {
+  email: string
+  password: string
+  code: string
+}
+
+export interface GoogleLinkRequest {
+  linkToken: string
+  password: string
+  totpCode?: string
+}
+
+export interface TrustedDeviceView {
+  id: string
+  label: string
+  createdOn: string
+  lastUsedOn: string
+  expiresOn: string
 }
 
 export interface AuthConfigResponse {
@@ -279,4 +325,6 @@ export interface UserView {
   email: string
   defaultLanguage: Language
   authorities: string[]
+  status: UserStatus
+  totpEnabled: boolean
 }
