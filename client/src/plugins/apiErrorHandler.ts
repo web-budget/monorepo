@@ -7,9 +7,13 @@ import { useAuthStore } from '@/stores/auth'
 import { describeApiError } from '@/utils/apiErrorNotice'
 import { isHandled } from '@/utils/handledErrors'
 
-const LOGIN_REJECTIONS = new Set(['invalid-credentials', 'account-disabled'])
+const LOGIN_REJECTIONS = new Set(['invalid-credentials', 'account-disabled', 'invalid_totp_code'])
 
-const LOGIN_RATE_LIMIT = 'too_many_login_attempts'
+const FORM_RATE_LIMITS = new Set([
+  'too_many_login_attempts',
+  'too_many_registration_attempts',
+  'too_many_totp_attempts',
+])
 
 function isSilent(error: ApiError): boolean {
   return (error.cause as AxiosError | undefined)?.config?.silent === true
@@ -36,7 +40,13 @@ async function handleApiError(error: ApiError, router: Router) {
     await handleUnauthenticated(error, router)
     return
   }
-  if (error.status === 429 && error.error === LOGIN_RATE_LIMIT) {
+  if (error.status === 429 && FORM_RATE_LIMITS.has(error.error ?? '')) {
+    return
+  }
+  if (error.status === 403 && error.error === 'pending_approval') {
+    if (router.currentRoute.value.name !== 'pending-approval') {
+      await router.push({ name: 'pending-approval' })
+    }
     return
   }
   if (error.status === 403 && error.error === 'forbidden') {

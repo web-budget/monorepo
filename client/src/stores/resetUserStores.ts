@@ -3,6 +3,7 @@ import { useCardsStore } from '@/stores/cards'
 import { useClassificationsStore } from '@/stores/classifications'
 import { useCostCentersStore } from '@/stores/costCenters'
 import { useFinancialPeriodsStore } from '@/stores/financialPeriods'
+import { useTrustedDevicesStore } from '@/stores/trustedDevices'
 import { useUsersAdminStore } from '@/stores/usersAdmin'
 import { useWalletsStore } from '@/stores/wallets'
 
@@ -14,4 +15,5 @@ export function resetUserStores() {
   useClassificationsStore().reset()
   useFinancialPeriodsStore().reset()
   useUsersAdminStore().reset()
+  useTrustedDevicesStore().reset()
 }

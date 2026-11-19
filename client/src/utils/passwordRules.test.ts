@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest'
-import { meetsPasswordRequirements, passwordRequirementStatus } from '@/utils/passwordRules'
+import {
+  fitsPasswordBytes,
+  meetsPasswordRequirements,
+  passwordRequirementStatus,
+} from '@/utils/passwordRules'
 
 describe('passwordRules', () => {
   it('reports each requirement on its own', () => {
@@ -27,5 +31,14 @@ describe('passwordRules', () => {
     expect(meetsPasswordRequirements('caderno12')).toBe(false)
     expect(meetsPasswordRequirements('Caderno')).toBe(false)
     expect(meetsPasswordRequirements('Cad1')).toBe(false)
+  })
+})
+
+describe('fitsPasswordBytes', () => {
+  it('counts bytes, not characters', () => {
+    expect(fitsPasswordBytes('a'.repeat(72))).toBe(true)
+    expect(fitsPasswordBytes('a'.repeat(73))).toBe(false)
+    expect(fitsPasswordBytes('ç'.repeat(36))).toBe(true)
+    expect(fitsPasswordBytes('ç'.repeat(37))).toBe(false)
   })
 })

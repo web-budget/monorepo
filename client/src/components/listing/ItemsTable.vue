@@ -64,6 +64,7 @@ const props = withDefaults(
     loading?: boolean
     detailRoute?: string
     linkField?: string
+    markedRow?: (item: T) => boolean
   }>(),
   {
     columns: () => [],
@@ -73,6 +74,7 @@ const props = withDefaults(
     loading: false,
     detailRoute: undefined,
     linkField: undefined,
+    markedRow: undefined,
   },
 )
 
@@ -114,6 +116,10 @@ const statusColumn = computed<ItemsTableColumn>(() => ({
   header: t('crud.status'),
   sortable: true,
 }))
+
+function isMarked(item: T): boolean {
+  return props.markedRow?.(item) === true
+}
 
 function cellValue(item: T, field: string): unknown {
   return (item as Record<string, unknown>)[field]
@@ -226,6 +232,7 @@ function changePageSize(value: unknown) {
               v-for="(item, index) in props.data"
               :key="item.id"
               class="cursor-pointer"
+              :data-state="isMarked(item) ? 'selected' : undefined"
               @click="emit('rowSelected', { data: item, index })"
             >
               <TableCell
@@ -284,7 +291,12 @@ function changePageSize(value: unknown) {
         v-for="(item, index) in props.data"
         v-else
         :key="item.id"
-        class="cursor-pointer gap-3 p-4"
+        :class="
+          cn(
+            'cursor-pointer gap-3 p-4',
+            isMarked(item) && 'shadow-[inset_3px_0_0_var(--highlight)]',
+          )
+        "
         @click="emit('rowSelected', { data: item, index })"
       >
         <div class="flex items-start justify-between gap-2">

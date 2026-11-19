@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ChevronDown, LogOut } from 'lucide-vue-next'
+import { ChevronDown, LogOut, MonitorSmartphone } from 'lucide-vue-next'
 import ThemeSwitch from '@/components/layout/ThemeSwitch.vue'
 import UserAvatar from '@/components/layout/UserAvatar.vue'
 import { Button } from '@/components/ui/button'
@@ -11,9 +11,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useTrustedDevicesDialog } from '@/composables/useTrustedDevicesDialog'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
+const trustedDevicesDialog = useTrustedDevicesDialog()
 </script>
 
 <template>
@@ -41,6 +43,10 @@ const auth = useAuthStore()
         <ThemeSwitch in-menu />
       </div>
       <DropdownMenuSeparator />
+      <DropdownMenuItem @select="trustedDevicesDialog.show()">
+        <MonitorSmartphone />
+        {{ $t('layout.trusted-devices') }}
+      </DropdownMenuItem>
       <DropdownMenuItem @select="auth.logout()">
         <LogOut />
         {{ $t('layout.logout') }}

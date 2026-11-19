@@ -1,6 +1,7 @@
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'vue-sonner'
+import { rolesApi } from '@/api/roles'
 import { usersApi } from '@/api/users'
 import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import {
@@ -18,6 +19,7 @@ import type { UserView } from '@/types'
 import UserListView from '@/views/configuration/users/UserListView.vue'
 
 vi.mock('@/api/users')
+vi.mock('@/api/roles')
 vi.mock('vue-sonner', () => ({
   toast: {
     success: vi.fn<() => void>(),
@@ -35,6 +37,8 @@ const users: UserView[] = [
     email: 'admin@example.com',
     defaultLanguage: 'PT_BR',
     authorities: ['ADMINISTRATION', 'REGISTRATION'],
+    status: 'APPROVED',
+    totpEnabled: true,
   },
   {
     id: 'u-2',
@@ -43,13 +47,17 @@ const users: UserView[] = [
     email: 'bruno@example.com',
     defaultLanguage: 'EN_US',
     authorities: ['FINANCIAL'],
+    status: 'PENDING',
+    totpEnabled: false,
   },
 ]
+
+const USER_COUNTS = { APPROVED: 1, PENDING: 1, BLOCKED: 0, ALL: 2 }
 
 const session = { name: 'Admin Silva', email: 'admin@example.com', status: 'APPROVED', roles: [] }
 
 async function render(content = users) {
-  serveListing(vi.mocked(usersApi.findAll), content)
+  serveListing(vi.mocked(usersApi.findAll), content, content.length, USER_COUNTS)
   return mountView(UserListView, 'users', {}, { auth: { session } })
 }
 
@@ -74,18 +82,30 @@ function menuItem(label: string) {
   )!
 }
 
+function approveDialogButton(label: string) {
+  return [...document.body.querySelectorAll<HTMLButtonElement>('[role="dialog"] button')].find(
+    (candidate) => candidate.textContent?.trim() === label,
+  )!
+}
+
 describe('UserListView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(rolesApi.findAll).mockResolvedValue([
+      'ADMINISTRATION',
+      'DASHBOARDS',
+      'FINANCIAL',
+      'REGISTRATION',
+    ])
     document.body.replaceChildren()
   })
 
-  it('lists users of every status on mount, with avatar, e-mail, areas and status', async () => {
+  it('lists the approved users on mount, with avatar, e-mail, areas and status', async () => {
     const { wrapper } = await render()
 
     expect(listingCalls(vi.mocked(usersApi.findAll))[0]).toEqual({
       filter: '',
-      status: 'ALL',
+      status: 'APPROVED',
       page: 0,
       size: 15,
       sort: 'createdOn,desc',
@@ -94,20 +114,23 @@ describe('UserListView', () => {
     expect(bruno.text()).toContain('BR')
     expect(bruno.text()).toContain('bruno@example.com')
     expect(bruno.text()).toContain('Financeiro')
-    expect(bruno.text()).toContain('Inativo')
+    expect(bruno.text()).toContain('Pendente')
     const admin = rowOf(wrapper, 'Admin Silva')
     expect(admin.text()).toContain('AS')
     expect(admin.findAll('td')[1]!.text()).toBe('CadastrosConfigurações')
-    expect(admin.text()).toContain('Ativo')
+    expect(admin.text()).toContain('Aprovado')
+    expect(admin.findAll('td')[3]!.text()).toBe('Ativo')
+    expect(bruno.findAll('td')[3]!.text()).toBe('—')
   })
 
-  it('counts the users of each status on the tabs, starting on all of them', async () => {
+  it('counts the users of each status on the tabs, starting on the approved ones', async () => {
     const { wrapper } = await render()
 
-    expect(buttonWithText(wrapper, 'Todos').attributes('aria-pressed')).toBe('true')
-    expect(buttonWithText(wrapper, 'Ativos').text()).toBe('Ativos 4')
-    expect(buttonWithText(wrapper, 'Inativos').text()).toBe('Inativos 1')
-    expect(buttonWithText(wrapper, 'Todos').text()).toBe('Todos 5')
+    expect(buttonWithText(wrapper, 'Aprovados').attributes('aria-pressed')).toBe('true')
+    expect(buttonWithText(wrapper, 'Aprovados').text()).toBe('Aprovados 1')
+    expect(buttonWithText(wrapper, 'Pendentes').text()).toBe('Pendentes 1')
+    expect(buttonWithText(wrapper, 'Bloqueados').text()).toBe('Bloqueados 0')
+    expect(buttonWithText(wrapper, 'Todos').text()).toBe('Todos 2')
   })
 
   it('searches by the typed text and by status, and clears the text without touching the status', async () => {
@@ -118,15 +141,15 @@ describe('UserListView', () => {
     await flushPromises()
     expect(lastListingCall()).toMatchObject({ filter: 'bru' })
 
-    await buttonWithText(wrapper, 'Ativos').trigger('click')
+    await buttonWithText(wrapper, 'Pendentes').trigger('click')
     await flushPromises()
-    expect(lastListingCall()).toMatchObject({ status: 'ACTIVE' })
+    expect(lastListingCall()).toMatchObject({ status: 'PENDING' })
 
     await wrapper.find('button[aria-label="Limpar filtro"]').trigger('click')
     await flushPromises()
     expect(lastListingCall()).toMatchObject({
       filter: '',
-      status: 'ACTIVE',
+      status: 'PENDING',
     })
   })
 
@@ -240,7 +263,12 @@ describe('UserListView', () => {
   })
 
   it('invites to the first user when there is none, and offers to clear a search without result', async () => {
-    serveListing(vi.mocked(usersApi.findAll), [], 0, { ACTIVE: 0, INACTIVE: 0, ALL: 0 })
+    serveListing(vi.mocked(usersApi.findAll), [], 0, {
+      APPROVED: 0,
+      PENDING: 0,
+      BLOCKED: 0,
+      ALL: 0,
+    })
     const { wrapper, router } = await mountView(UserListView, 'users')
 
     expect(stateOf(wrapper)).toBe('empty')
@@ -257,6 +285,252 @@ describe('UserListView', () => {
     await buttonWithText(wrapper, 'Limpar busca').trigger('click')
     await flushPromises()
     expect(lastListingCall()).toMatchObject({ filter: '' })
+  })
+
+  describe('the approval of new accounts', () => {
+    it('marks the pending accounts with the highlighter, and nobody else', async () => {
+      const { wrapper } = await render()
+
+      expect(rowOf(wrapper, 'Bruno').attributes('data-state')).toBe('selected')
+      expect(rowOf(wrapper, 'Admin Silva').attributes('data-state')).toBeUndefined()
+    })
+
+    it('warns about the accounts waiting for approval and jumps to them', async () => {
+      const { wrapper } = await render()
+
+      const notice = wrapper.find('[data-slot="pending-notice"]')
+      expect(notice.text()).toContain('1 conta aguardando aprovação')
+
+      await buttonWithText(wrapper, 'Ver pendentes').trigger('click')
+      await flushPromises()
+
+      expect(lastListingCall()).toMatchObject({ status: 'PENDING' })
+      expect(wrapper.find('[data-slot="pending-notice"]').exists()).toBe(false)
+    })
+
+    it('says how many accounts wait when there are several', async () => {
+      serveListing(vi.mocked(usersApi.findAll), users, 2, { ...USER_COUNTS, PENDING: 3 })
+      const { wrapper } = await mountView(UserListView, 'users', {}, { auth: { session } })
+
+      expect(wrapper.find('[data-slot="pending-notice"]').text()).toContain(
+        '3 contas aguardando aprovação',
+      )
+    })
+
+    it('does not warn when nobody is waiting', async () => {
+      serveListing(vi.mocked(usersApi.findAll), users, 2, { ...USER_COUNTS, PENDING: 0 })
+      const { wrapper } = await mountView(UserListView, 'users', {}, { auth: { session } })
+
+      expect(wrapper.find('[data-slot="pending-notice"]').exists()).toBe(false)
+    })
+
+    it('approves a pending account choosing the areas, and reloads the list', async () => {
+      const { wrapper } = await render()
+      vi.mocked(usersApi.update).mockResolvedValue(users[1]!)
+      vi.mocked(usersApi.approve).mockResolvedValue()
+
+      await rowOf(wrapper, 'Bruno').find('[data-slot="approve-shortcut"]').trigger('click')
+      await settle()
+      expect(document.body.textContent).toContain('Aprovar a conta de Bruno?')
+
+      ;(document.body.querySelector('#roles-DASHBOARDS') as HTMLElement).click()
+      await settle()
+      approveDialogButton('Aprovar').click()
+      await settle()
+
+      expect(usersApi.update).toHaveBeenCalledWith('u-2', {
+        active: false,
+        name: 'Bruno',
+        defaultLanguage: 'EN_US',
+        roles: ['FINANCIAL', 'DASHBOARDS'],
+      })
+      expect(usersApi.approve).toHaveBeenCalledWith('u-2')
+      expect(toast.success).toHaveBeenCalledWith('Conta aprovada', {
+        description: 'Bruno já pode entrar.',
+        duration: 4000,
+      })
+      expect(document.body.textContent).not.toContain('Aprovar a conta de Bruno?')
+    })
+
+    it('closes the approval dialog with Escape', async () => {
+      const { wrapper } = await render()
+
+      await chooseRowAction(wrapper, 1, 'Aprovar')
+      await settle()
+      document.body
+        .querySelector('[role="dialog"]')!
+        .dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+      await settle()
+
+      expect(document.body.textContent).not.toContain('Aprovar a conta de Bruno?')
+    })
+
+    it('keeps working when the roles to grant cannot be loaded', async () => {
+      vi.mocked(rolesApi.findAll).mockRejectedValue(problem(500))
+
+      const { wrapper } = await render()
+
+      expect(wrapper.findAll('tbody tr')).toHaveLength(2)
+    })
+
+    it('does not approve without an area to grant', async () => {
+      const { wrapper } = await render()
+
+      await rowOf(wrapper, 'Bruno').find('[data-slot="approve-shortcut"]').trigger('click')
+      await settle()
+      ;(document.body.querySelector('#roles-FINANCIAL') as HTMLElement).click()
+      await settle()
+      approveDialogButton('Aprovar').click()
+      await settle()
+
+      expect(document.body.textContent).toContain('Escolha pelo menos uma área.')
+      expect(usersApi.approve).not.toHaveBeenCalled()
+    })
+
+    it('closes the approval dialog without approving', async () => {
+      const { wrapper } = await render()
+
+      await chooseRowAction(wrapper, 1, 'Aprovar')
+      await settle()
+      approveDialogButton('Cancelar').click()
+      await settle()
+
+      expect(document.body.textContent).not.toContain('Aprovar a conta de Bruno?')
+      expect(usersApi.approve).not.toHaveBeenCalled()
+    })
+
+    it('tells the user when the account changed status meanwhile', async () => {
+      const { wrapper } = await render()
+      vi.mocked(usersApi.update).mockResolvedValue(users[1]!)
+      vi.mocked(usersApi.approve).mockRejectedValue(
+        problem(409, { error: 'invalid-user-status-transition' }),
+      )
+
+      await chooseRowAction(wrapper, 1, 'Aprovar')
+      await settle()
+      approveDialogButton('Aprovar').click()
+      await settle()
+
+      expect(wrapper.text()).toContain('A conta mudou de status enquanto a tela estava aberta')
+    })
+  })
+
+  describe('blocking, unblocking and resetting the TOTP', () => {
+    const approved: UserView = { ...users[1]!, status: 'APPROVED', totpEnabled: true }
+    const blocked: UserView = { ...users[1]!, status: 'BLOCKED', totpEnabled: false }
+
+    it.each([
+      ['approved with TOTP', approved, ['Bloquear', 'Resetar TOTP'], ['Aprovar', 'Desbloquear']],
+      ['blocked', blocked, ['Desbloquear'], ['Aprovar', 'Bloquear', 'Resetar TOTP']],
+      ['pending', users[1]!, ['Aprovar'], ['Bloquear', 'Desbloquear', 'Resetar TOTP']],
+    ])('offers the right actions to an account that is %s', async (_, user, present, absent) => {
+      const { wrapper } = await render([user])
+
+      await wrapper.find('button[aria-label="Mais ações"]').trigger('keydown', { key: 'Enter' })
+      await flushPromises()
+
+      const labels = [...document.body.querySelectorAll('[role="menuitem"]')].map((item) =>
+        item.textContent?.trim(),
+      )
+      expect(labels).toEqual(expect.arrayContaining(present))
+      for (const label of absent) {
+        expect(labels).not.toContain(label)
+      }
+    })
+
+    it('blocks an account only after confirming, and reloads the list', async () => {
+      const { wrapper } = await render([approved])
+      vi.mocked(usersApi.block).mockResolvedValue()
+      const dialog = useConfirmDialog()
+
+      await chooseRowAction(wrapper, 0, 'Bloquear')
+
+      expect(dialog.state.options.title).toBe('Bloquear Bruno?')
+      expect(usersApi.block).not.toHaveBeenCalled()
+      dialog.accept()
+      await settle()
+
+      expect(usersApi.block).toHaveBeenCalledWith('u-2')
+      expect(toast.success).toHaveBeenCalledWith('Conta bloqueada', {
+        description: 'Bruno não consegue mais entrar.',
+        duration: 4000,
+      })
+    })
+
+    it('unblocks an account only after confirming', async () => {
+      const { wrapper } = await render([blocked])
+      vi.mocked(usersApi.unblock).mockResolvedValue()
+      const dialog = useConfirmDialog()
+
+      await chooseRowAction(wrapper, 0, 'Desbloquear')
+      expect(dialog.state.options.title).toBe('Desbloquear Bruno?')
+      dialog.accept()
+      await settle()
+
+      expect(usersApi.unblock).toHaveBeenCalledWith('u-2')
+      expect(toast.success).toHaveBeenCalledWith('Conta desbloqueada', {
+        description: 'Bruno volta a entrar.',
+        duration: 4000,
+      })
+    })
+
+    it('resets the TOTP only after confirming', async () => {
+      const { wrapper } = await render([approved])
+      vi.mocked(usersApi.resetTotp).mockResolvedValue()
+      const dialog = useConfirmDialog()
+
+      await chooseRowAction(wrapper, 0, 'Resetar TOTP')
+      expect(dialog.state.options.title).toBe('Resetar o TOTP de Bruno?')
+      dialog.accept()
+      await settle()
+
+      expect(usersApi.resetTotp).toHaveBeenCalledWith('u-2')
+      expect(toast.success).toHaveBeenCalledWith('TOTP resetado', {
+        description: 'Bruno cadastra o autenticador de novo no próximo login.',
+        duration: 4000,
+      })
+    })
+
+    it.each(['Bloquear', 'Desbloquear', 'Resetar TOTP'])(
+      'does nothing when %s is not confirmed',
+      async (label) => {
+        const user = label === 'Desbloquear' ? blocked : approved
+        const { wrapper } = await render([user])
+
+        await chooseRowAction(wrapper, 0, label)
+        useConfirmDialog().cancel()
+        await settle()
+
+        expect(usersApi.block).not.toHaveBeenCalled()
+        expect(usersApi.unblock).not.toHaveBeenCalled()
+        expect(usersApi.resetTotp).not.toHaveBeenCalled()
+      },
+    )
+
+    it('shows the server error above the table when the action fails', async () => {
+      const { wrapper } = await render([approved])
+      vi.mocked(usersApi.block).mockRejectedValue(
+        problem(409, { error: 'invalid-user-status-transition' }),
+      )
+
+      await chooseRowAction(wrapper, 0, 'Bloquear')
+      useConfirmDialog().accept()
+      await settle()
+
+      expect(wrapper.text()).toContain('A conta mudou de status enquanto a tela estava aberta')
+      expect(toast.success).not.toHaveBeenCalled()
+    })
+
+    it('keeps the own account out of reach of the new actions', async () => {
+      const { wrapper } = await render([{ ...users[0]!, totpEnabled: true }])
+
+      await wrapper.find('button[aria-label="Mais ações"]').trigger('keydown', { key: 'Enter' })
+      await flushPromises()
+
+      for (const label of ['Bloquear', 'Resetar TOTP']) {
+        expect(menuItem(label).getAttribute('data-disabled')).not.toBeNull()
+      }
+    })
   })
 
   describe('on a phone', () => {
@@ -310,6 +584,37 @@ describe('UserListView', () => {
 
       expect(useConfirmDialog().state.options.title).toBe('Remover o usuário “Bruno”?')
       useConfirmDialog().cancel()
+    })
+
+    it.each([
+      ['approve', 'Aprovar', 'Aprovar a conta de Bruno?', 'PENDING', false],
+      ['block', 'Bloquear', 'Bloquear Bruno?', 'APPROVED', false],
+      ['unblock', 'Desbloquear', 'Desbloquear Bruno?', 'BLOCKED', false],
+      ['reset the TOTP of', 'Resetar TOTP', 'Resetar o TOTP de Bruno?', 'APPROVED', true],
+    ] as const)(
+      'lets the user %s an account from the sheet',
+      async (_, label, title, status, totp) => {
+        const { wrapper } = await render([{ ...users[1]!, status, totpEnabled: totp }])
+
+        await openSheet(wrapper, 'Bruno')
+        sheetButton(label).click()
+        await settle()
+
+        const asked =
+          label === 'Aprovar' ? document.body.textContent : useConfirmDialog().state.options.title
+        expect(asked).toContain(title)
+        useConfirmDialog().cancel()
+      },
+    )
+
+    it('hides the actions that do not fit the status in the sheet', async () => {
+      const { wrapper } = await render([{ ...users[1]!, status: 'PENDING', totpEnabled: false }])
+
+      await openSheet(wrapper, 'Bruno')
+
+      for (const label of ['Bloquear', 'Desbloquear', 'Resetar TOTP']) {
+        expect(sheetButton(label)).toBeUndefined()
+      }
     })
 
     it('disables the actions of the own account in the sheet', async () => {

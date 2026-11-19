@@ -64,8 +64,11 @@ async function render(
     ],
   })
   const auth = useAuthStore()
-  vi.mocked(auth.login).mockResolvedValue(session)
-  vi.mocked(auth.restoreSession).mockResolvedValue(options.restored ?? false)
+  vi.mocked(auth.login).mockResolvedValue({ kind: 'authenticated', session })
+  vi.mocked(auth.restoreSession).mockImplementation(() => {
+    auth.session = options.restored ? session : null
+    return Promise.resolve(options.restored ?? false)
+  })
   const query = new URLSearchParams()
   if (options.redirect) {
     query.set('redirect', options.redirect)

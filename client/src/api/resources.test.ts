@@ -49,15 +49,77 @@ function lastRequest() {
 }
 
 describe('authApi', () => {
-  it('logs in with a JSON body and returns the session', async () => {
+  it('logs in with a JSON body and reads a 200 as a session', async () => {
     await expect(authApi.login({ email: 'a@b.c', password: 'secret' })).resolves.toEqual({
-      served: true,
+      kind: 'authenticated',
+      session: { served: true },
     })
     expect(lastRequest()).toMatchObject({
       method: 'post',
       url: '/auth/login',
       data: { email: 'a@b.c', password: 'secret' },
     })
+  })
+
+  it.each([
+    ['needs_enrollment', { kind: 'needs_enrollment' }],
+    ['needs_totp', { kind: 'needs_totp' }],
+  ])('reads a 202 %s as a pending step', async (status, outcome) => {
+    apiClient.defaults.adapter = (config) =>
+      Promise.resolve({
+        data: { status },
+        status: 202,
+        statusText: 'Accepted',
+        headers: {},
+        config,
+      })
+
+    await expect(authApi.login({ email: 'a@b.c', password: 'secret' })).resolves.toEqual(outcome)
+    await expect(authApi.linkGoogle({ linkToken: 't', password: 'secret' })).resolves.toEqual(
+      outcome,
+    )
+  })
+
+  it('links a Google account', async () => {
+    await expect(
+      authApi.linkGoogle({ linkToken: 't', password: 'secret', totpCode: '123456' }),
+    ).resolves.toEqual({ kind: 'authenticated', session: { served: true } })
+    expect(lastRequest()).toMatchObject({
+      method: 'post',
+      url: '/auth/google/link',
+      data: { linkToken: 't', password: 'secret', totpCode: '123456' },
+    })
+  })
+
+  it('registers an account', async () => {
+    const request = { name: 'Ana', email: 'a@b.c', password: 'Secret123' }
+
+    await expect(authApi.register(request)).resolves.toBeUndefined()
+    expect(lastRequest()).toMatchObject({ method: 'post', url: '/auth/register', data: request })
+  })
+
+  it('enrolls and verifies the TOTP', async () => {
+    await expect(authApi.enrollTotp({ email: 'a@b.c', password: 'p' })).resolves.toEqual({
+      served: true,
+    })
+    expect(lastRequest()).toMatchObject({ method: 'post', url: '/auth/totp/enroll' })
+    await expect(
+      authApi.verifyTotp({ email: 'a@b.c', password: 'p', code: '123456' }),
+    ).resolves.toEqual({ served: true })
+    expect(lastRequest()).toMatchObject({
+      method: 'post',
+      url: '/auth/totp/verify',
+      data: { email: 'a@b.c', password: 'p', code: '123456' },
+    })
+  })
+
+  it('lists and revokes the trusted devices', async () => {
+    await expect(authApi.findTrustedDevices()).resolves.toEqual({ served: true })
+    expect(lastRequest()).toMatchObject({ method: 'get', url: '/auth/trusted-devices' })
+    await expect(authApi.revokeTrustedDevice('d-1')).resolves.toBeUndefined()
+    expect(lastRequest()).toMatchObject({ method: 'delete', url: '/auth/trusted-devices/d-1' })
+    await expect(authApi.revokeAllTrustedDevices()).resolves.toBeUndefined()
+    expect(lastRequest()).toMatchObject({ method: 'delete', url: '/auth/trusted-devices' })
   })
 
   it('fetches the current session', async () => {

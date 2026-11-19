@@ -49,6 +49,13 @@ function conflictField(parameter: string): string {
 }
 
 function conflict(error: ApiError): ApiErrorNotice {
+  if (error.error === 'invalid-user-status-transition') {
+    return {
+      severity: 'warn',
+      title: { key: 'error.conflict.title' },
+      details: [{ key: 'error.conflict.invalid-user-status-transition' }],
+    }
+  }
   const details = Object.entries(error.parameters ?? {})
     .map(([parameter, value]) => ({
       key: `error.conflict.${parameter}`,

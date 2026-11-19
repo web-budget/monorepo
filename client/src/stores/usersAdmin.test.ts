@@ -15,6 +15,8 @@ const user: UserView = {
   email: 'ana@example.com',
   defaultLanguage: 'PT_BR',
   authorities: ['REGISTRATION'],
+  status: 'APPROVED',
+  totpEnabled: false,
 }
 const page = { content: [user], page: { size: 15, number: 0, totalElements: 1, totalPages: 1 } }
 
@@ -24,7 +26,7 @@ describe('useUsersAdminStore', () => {
     vi.clearAllMocks()
   })
 
-  it('lists users of every status by default, so a user pending activation shows up', async () => {
+  it('lists the approved users by default', async () => {
     vi.mocked(usersApi.findAll).mockResolvedValue(page)
     const store = useUsersAdminStore()
 
@@ -32,7 +34,7 @@ describe('useUsersAdminStore', () => {
 
     expect(usersApi.findAll).toHaveBeenCalledWith({
       filter: '',
-      status: 'ALL',
+      status: 'APPROVED',
       page: 0,
       size: 15,
       sort: 'createdOn,desc',
@@ -125,9 +127,56 @@ describe('useUsersAdminStore', () => {
     store.reset()
 
     expect(store.pageRequest.filterText).toBe('')
-    expect(store.pageRequest.status).toBe('ALL')
+    expect(store.pageRequest.status).toBe('APPROVED')
     expect(store.pageResponse.content).toEqual([])
     expect(store.roles).toEqual([])
     expect(store.user).toBeNull()
+  })
+
+  it('approves a user by granting the roles first, so a failed grant leaves the account pending', async () => {
+    vi.mocked(usersApi.update).mockResolvedValue(user)
+    vi.mocked(usersApi.approve).mockResolvedValue()
+    const store = useUsersAdminStore()
+    const order: string[] = []
+    vi.mocked(usersApi.update).mockImplementation(() => {
+      order.push('update')
+      return Promise.resolve(user)
+    })
+    vi.mocked(usersApi.approve).mockImplementation(() => {
+      order.push('approve')
+      return Promise.resolve()
+    })
+
+    await store.approve({ ...user, status: 'PENDING' }, ['FINANCIAL'])
+
+    expect(usersApi.update).toHaveBeenCalledWith('u-1', {
+      active: false,
+      name: 'Ana',
+      defaultLanguage: 'PT_BR',
+      roles: ['FINANCIAL'],
+    })
+    expect(order).toEqual(['update', 'approve'])
+  })
+
+  it('does not approve a user when the roles could not be granted', async () => {
+    vi.mocked(usersApi.update).mockRejectedValue(new Error('boom'))
+    const store = useUsersAdminStore()
+
+    await expect(store.approve(user, ['FINANCIAL'])).rejects.toThrow('boom')
+
+    expect(usersApi.approve).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ['block', 'block'],
+    ['unblock', 'unblock'],
+    ['resetTotp', 'resetTotp'],
+  ] as const)('%s() asks the server to change the account', async (action, apiAction) => {
+    vi.mocked(usersApi[apiAction]).mockResolvedValue()
+    const store = useUsersAdminStore()
+
+    await store[action]('u-1')
+
+    expect(usersApi[apiAction]).toHaveBeenCalledWith('u-1')
   })
 })
