@@ -81,7 +81,7 @@ describe('WalletListView', () => {
       status: 'ACTIVE',
       page: 0,
       size: 15,
-      sort: 'createdOn,asc',
+      sort: 'createdOn,desc',
     })
     const rows = wrapper.findAll('tbody tr')
     expect(rows).toHaveLength(2)
@@ -160,6 +160,22 @@ describe('WalletListView', () => {
     await flushPromises()
 
     expect(listing().slice(-1)[0]![0]).toEqual(expect.objectContaining({ sort: 'name,desc' }))
+  })
+
+  it('sorts by name in both directions and goes back to the newest first', async () => {
+    const { wrapper } = await render()
+
+    await buttonWithText(wrapper, 'Nome').trigger('click')
+    await flushPromises()
+    expect(listing().slice(-1)[0]![0]).toEqual(expect.objectContaining({ sort: 'name,asc' }))
+
+    await buttonWithText(wrapper, 'Nome').trigger('click')
+    await flushPromises()
+    expect(listing().slice(-1)[0]![0]).toEqual(expect.objectContaining({ sort: 'name,desc' }))
+
+    await buttonWithText(wrapper, 'Nome').trigger('click')
+    await flushPromises()
+    expect(listing().slice(-1)[0]![0]).toEqual(expect.objectContaining({ sort: 'createdOn,desc' }))
   })
 
   it('goes to another page and changes the page size', async () => {

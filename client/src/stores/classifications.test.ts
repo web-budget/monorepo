@@ -29,7 +29,7 @@ describe('useClassificationsStore', () => {
     await store.findAll()
 
     expect(classificationsApi.findAll).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'ACTIVE', sort: 'createdOn,asc' }),
+      expect.objectContaining({ status: 'ACTIVE', sort: 'createdOn,desc' }),
     )
     expect(store.pageResponse.content).toEqual([row])
   })

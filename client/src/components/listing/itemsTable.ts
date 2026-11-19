@@ -31,5 +31,3 @@ export interface ItemsTableRowEvent<T extends ItemsTableItem = ItemsTableItem> {
 export const MINIMUM_PAGE_SIZE = 15
 
 export const PAGE_SIZE_OPTIONS = [MINIMUM_PAGE_SIZE, 30, 60]
-
-export const DEFAULT_SORT_FIELD = 'createdOn'
