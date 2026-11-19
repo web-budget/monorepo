@@ -23,6 +23,14 @@ object ErrorCodes {
     const val INVALID_PARENT_COST_CENTER = "invalid-parent-cost-center"
 
     const val PENDING_APPROVAL = "pending_approval"
+    const val TOO_MANY_LOGIN_ATTEMPTS = "too_many_login_attempts"
+    const val TOO_MANY_REGISTRATION_ATTEMPTS = "too_many_registration_attempts"
+    const val INVALID_TOTP_CODE = "invalid_totp_code"
+    const val TOTP_ALREADY_ENABLED = "totp_already_enabled"
+    const val TOO_MANY_TOTP_ATTEMPTS = "too_many_totp_attempts"
+    const val INVALID_GOOGLE_LINK_TOKEN = "invalid_google_link_token"
+    const val SELF_ACTION_NOT_ALLOWED = "self-action-not-allowed"
+    const val INVALID_USER_STATUS_TRANSITION = "invalid-user-status-transition"
 
     const val ACCOUNTED_PERIOD_MOVEMENT = "accounted-period-movement"
     const val RECURRING_MOVEMENT_NOT_ACTIVE = "recurring-movement.errors.invalid-state"

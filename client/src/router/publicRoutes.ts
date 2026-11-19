@@ -15,6 +15,18 @@ export const publicRoutes: RouteRecordRaw[] = [
     ],
   },
   {
+    path: '/pending-approval',
+    component: AuthLayout,
+    meta: { public: true },
+    children: [
+      {
+        path: '',
+        name: 'pending-approval',
+        component: () => import('@/views/auth/PendingApprovalView.vue'),
+      },
+    ],
+  },
+  {
     path: '/auth',
     component: AuthLayout,
     meta: { public: true },

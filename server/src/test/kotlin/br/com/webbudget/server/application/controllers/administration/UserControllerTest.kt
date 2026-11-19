@@ -204,7 +204,9 @@ class UserControllerTest : BaseIntegrationTest() {
                   "email": "user@webbudget.com.br",
                   "active": true,
                   "defaultLanguage": "PT_BR",
-                  "authorities": ["DASHBOARDS"]
+                  "authorities": ["DASHBOARDS"],
+                  "status": "APPROVED",
+                  "totpEnabled": false
                 }
                 """.trimIndent(),
                 JsonCompareMode.STRICT

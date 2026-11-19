@@ -79,3 +79,7 @@ export const userPasswordSchema = z
   })
 
 export const userPasswordFormSchema = toTypedSchema(userPasswordSchema)
+
+export const approveSchema = z.object({ roles: baseSchema.shape.roles })
+
+export const approveFormSchema = toTypedSchema(approveSchema)

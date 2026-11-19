@@ -139,6 +139,7 @@ export function useCrudList<S extends string>(options: CrudListOptions<S>) {
     listState,
     busy,
     counts,
+    loadCounts,
     reload,
     search,
     clearSearch,

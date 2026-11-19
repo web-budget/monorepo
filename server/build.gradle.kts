@@ -52,6 +52,8 @@ repositories {
 val kotlinLoggingJvmVersion = "8.0.4"
 val postgresDriverVersion = "42.7.14"
 val greenMailVersion = "2.1.14"
+val totpVersion = "1.7.1"
+val zxingVersion = "3.5.4"
 
 dependencies {
     // spring stuff
@@ -59,6 +61,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-jooq")
     implementation("org.springframework.boot:spring-boot-starter-liquibase")
     implementation("org.springframework.boot:spring-boot-starter-mail")
+    implementation("org.springframework.boot:spring-boot-starter-oauth2-client")
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-thymeleaf")
     implementation("org.springframework.boot:spring-boot-starter-validation")
@@ -68,6 +71,11 @@ dependencies {
     annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
     implementation("org.springframework.data:spring-data-commons")
+
+    // totp
+    implementation("dev.samstevens.totp:totp:$totpVersion")
+    implementation("com.google.zxing:core:$zxingVersion")
+    implementation("com.google.zxing:javase:$zxingVersion")
 
     // logging
     implementation("io.github.oshai:kotlin-logging-jvm:$kotlinLoggingJvmVersion")
@@ -140,7 +148,7 @@ kover {
                 bound {
                     coverageUnits = BRANCH
                     aggregationForGroup = COVERED_PERCENTAGE
-                    minValue = 90
+                    minValue = 91
                 }
             }
         }

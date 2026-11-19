@@ -87,7 +87,7 @@ describe('session end and the user stores', () => {
     auth.session = session
     await auth.expireSession('expired')
     loadPreviousUserData()
-    vi.mocked(authApi.login).mockResolvedValue(session)
+    vi.mocked(authApi.login).mockResolvedValue({ kind: 'authenticated', session })
 
     await auth.login({ email: session.email, password: 'secret' })
 

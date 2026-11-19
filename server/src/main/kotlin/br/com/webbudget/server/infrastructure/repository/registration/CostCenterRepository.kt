@@ -74,7 +74,7 @@ class CostCenterRepository(
 
         val content = dsl.selectFrom(costCenters)
             .where(condition)
-            .orderBy(pageable.toOrderBy(sortable, costCenters.ID.asc()))
+            .orderBy(pageable.toOrderBy(sortable, costCenters.CREATED_ON, costCenters.ID))
             .limit(pageable.pageSize)
             .offset(pageable.offset)
             .fetch { record -> record.toCostCenter() }

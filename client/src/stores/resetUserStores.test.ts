@@ -5,11 +5,13 @@ import { useCardsStore } from './cards'
 import { useClassificationsStore } from './classifications'
 import { useCostCentersStore } from './costCenters'
 import { useFinancialPeriodsStore } from './financialPeriods'
+import { useTrustedDevicesStore } from './trustedDevices'
 import { useUsersAdminStore } from './usersAdmin'
 import { resetUserStores } from './resetUserStores'
 import { useWalletsStore } from './wallets'
 
 vi.mock('@/api/accounts')
+vi.mock('@/api/auth')
 vi.mock('@/api/cards')
 vi.mock('@/api/classifications')
 vi.mock('@/api/costCenters')
@@ -32,6 +34,7 @@ describe('resetUserStores', () => {
       useClassificationsStore(),
       useFinancialPeriodsStore(),
       useUsersAdminStore(),
+      useTrustedDevicesStore(),
     ]
     const resets = stores.map((store) => vi.spyOn(store, 'reset'))
 

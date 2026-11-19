@@ -58,15 +58,15 @@ class WalletControllerTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `should list the wallets in insertion order when no sort is requested`() {
+    fun `should list the wallets from the newest to the oldest when no sort is requested`() {
 
         restTestClient.get()
             .uri(ENDPOINT_URL)
             .exchange()
             .expectStatus().isOk
             .expectBody()
-            .jsonPath("$.content[0].name").isEqualTo("Personal")
-            .jsonPath("$.content[3].name").isEqualTo("Old wallet")
+            .jsonPath("$.content[0].name").isEqualTo("Old wallet")
+            .jsonPath("$.content[3].name").isEqualTo("Personal")
     }
 
     @Test

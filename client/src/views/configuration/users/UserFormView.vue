@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { KeyRound, Trash2 } from 'lucide-vue-next'
+import { Check, KeyRound, Lock, LockOpen, ShieldOff, Trash2 } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { useForm } from 'vee-validate'
 import { computed, onMounted, ref } from 'vue'
@@ -15,12 +15,15 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import ApproveUserDialog from '@/components/users/ApproveUserDialog.vue'
 import ResetPasswordDialog from '@/components/users/ResetPasswordDialog.vue'
 import RoleSelectField from '@/components/users/RoleSelectField.vue'
 import { sortRoles } from '@/components/users/roles'
+import UserStatusBadge from '@/components/users/UserStatusBadge.vue'
 import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import { useCrudForm } from '@/composables/useCrudForm'
 import { useNotification } from '@/composables/useNotification'
+import { useUserActions } from '@/composables/useUserActions'
 import {
   LANGUAGES,
   toUserCreateForm,
@@ -99,6 +102,15 @@ async function removeUser(target: UserView) {
   }
 }
 
+const {
+  messages: actionMessages,
+  approveTarget,
+  approve,
+  block,
+  unblock,
+  resetTotp,
+} = useUserActions(() => store.findOne(props.id as string).then(() => undefined))
+
 onMounted(() => run(store.findRoles))
 </script>
 
@@ -109,7 +121,7 @@ onMounted(() => run(store.findRoles))
     :loading="loadingRecord"
     :submitting="submitting"
     :dirty="dirty"
-    :messages="messages"
+    :messages="[...messages, ...actionMessages]"
     :fields="fields"
     :submit-label="updating ? $t('crud.save-changes') : $t('users.form.create')"
     @submit="onSubmit"
@@ -183,6 +195,12 @@ onMounted(() => run(store.findRoles))
           <dl class="grid grid-cols-[auto_1fr] items-baseline gap-x-3 gap-y-2 text-sm">
             <dt class="text-muted-foreground">{{ $t('users.aside.status') }}</dt>
             <dd class="text-right"><StatusBadge :active="loadedUser.active" /></dd>
+            <dt class="text-muted-foreground">{{ $t('users.aside.approval') }}</dt>
+            <dd class="text-right"><UserStatusBadge :status="loadedUser.status" /></dd>
+            <dt class="text-muted-foreground">{{ $t('users.aside.totp') }}</dt>
+            <dd class="text-right">
+              {{ $t(loadedUser.totpEnabled ? 'users.totp.enabled' : 'users.totp.disabled') }}
+            </dd>
             <dt class="text-muted-foreground">{{ $t('users.aside.language') }}</dt>
             <dd class="text-right">
               {{
@@ -203,6 +221,15 @@ onMounted(() => run(store.findRoles))
         </div>
         <div class="grid gap-1 p-2">
           <Button
+            v-if="loadedUser.status === 'PENDING'"
+            type="button"
+            variant="ghost"
+            class="justify-start"
+            @click="approveTarget = loadedUser"
+          >
+            <Check />{{ $t('users.approve.shortcut') }}
+          </Button>
+          <Button
             type="button"
             variant="ghost"
             class="justify-start"
@@ -210,6 +237,36 @@ onMounted(() => run(store.findRoles))
             @click="passwordTarget = loadedUser"
           >
             <KeyRound />{{ $t('users.password.action') }}
+          </Button>
+          <Button
+            v-if="loadedUser.totpEnabled"
+            type="button"
+            variant="ghost"
+            class="justify-start"
+            :disabled="ownAccount"
+            @click="resetTotp(loadedUser)"
+          >
+            <ShieldOff />{{ $t('users.totp-reset.menu') }}
+          </Button>
+          <Button
+            v-if="loadedUser.status === 'APPROVED'"
+            type="button"
+            variant="ghost"
+            class="justify-start"
+            :disabled="ownAccount"
+            @click="block(loadedUser)"
+          >
+            <Lock />{{ $t('users.block.menu') }}
+          </Button>
+          <Button
+            v-if="loadedUser.status === 'BLOCKED'"
+            type="button"
+            variant="ghost"
+            class="justify-start"
+            :disabled="ownAccount"
+            @click="unblock(loadedUser)"
+          >
+            <LockOpen />{{ $t('users.unblock.menu') }}
           </Button>
           <Button
             type="button"
@@ -225,4 +282,11 @@ onMounted(() => run(store.findRoles))
     </template>
   </FormCard>
   <ResetPasswordDialog :user="passwordTarget" @close="passwordTarget = null" />
+  <ApproveUserDialog
+    :user="approveTarget"
+    :roles="roles"
+    :loading="store.loading"
+    @close="approveTarget = null"
+    @approve="approve"
+  />
 </template>

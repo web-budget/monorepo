@@ -131,7 +131,7 @@ class FinancialPeriodRepository(
 
         val content = dsl.selectFrom(financialPeriods)
             .where(filter)
-            .orderBy(pageable.toOrderBy(sortable, financialPeriods.ID.asc()))
+            .orderBy(pageable.toOrderBy(sortable, financialPeriods.CREATED_ON, financialPeriods.ID))
             .limit(pageable.pageSize)
             .offset(pageable.offset)
             .fetch { record -> record.toFinancialPeriod() }

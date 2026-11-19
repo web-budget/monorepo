@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { LogOut, X } from 'lucide-vue-next'
+import { LogOut, MonitorSmartphone, X } from 'lucide-vue-next'
 import { computed } from 'vue'
 import BrandMark from '@/components/brand/BrandMark.vue'
 import BrandWordmark from '@/components/brand/BrandWordmark.vue'
@@ -9,12 +9,20 @@ import UserAvatar from '@/components/layout/UserAvatar.vue'
 import { sections } from '@/components/layout/sections'
 import { Button } from '@/components/ui/button'
 import { SidebarContent, SidebarFooter, SidebarHeader, useSidebar } from '@/components/ui/sidebar'
+import { useTrustedDevicesDialog } from '@/composables/useTrustedDevicesDialog'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
 const { setOpenMobile } = useSidebar()
 
+const trustedDevicesDialog = useTrustedDevicesDialog()
+
 const visibleSections = computed(() => sections.filter(({ role }) => auth.hasRole(role)))
+
+function openTrustedDevices() {
+  setOpenMobile(false)
+  trustedDevicesDialog.show()
+}
 </script>
 
 <template>
@@ -54,6 +62,16 @@ const visibleSections = computed(() => sections.filter(({ role }) => auth.hasRol
         <LogOut />
       </Button>
     </div>
-    <ThemeSwitch icon-only />
+    <div class="flex items-center gap-2">
+      <ThemeSwitch icon-only class="flex-1" />
+      <Button
+        variant="outline"
+        size="icon"
+        :aria-label="$t('layout.trusted-devices')"
+        @click="openTrustedDevices"
+      >
+        <MonitorSmartphone />
+      </Button>
+    </div>
   </SidebarFooter>
 </template>

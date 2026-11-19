@@ -1,8 +1,11 @@
 package br.com.webbudget.server.infrastructure.config
 
 import br.com.webbudget.server.domain.entities.administration.Role
+import br.com.webbudget.server.infrastructure.config.security.GoogleLoginFailureHandler
+import br.com.webbudget.server.infrastructure.config.security.GoogleLoginSuccessHandler
 import br.com.webbudget.server.infrastructure.config.security.ProblemDetailAccessDeniedHandler
 import br.com.webbudget.server.infrastructure.config.security.ProblemDetailAuthenticationEntryPoint
+import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
@@ -13,6 +16,7 @@ import org.springframework.security.core.annotation.AnnotationTemplateExpression
 import org.springframework.security.core.userdetails.UserDetailsService
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository
 import org.springframework.security.provisioning.InMemoryUserDetailsManager
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository
@@ -30,7 +34,10 @@ class SecurityConfiguration {
         http: HttpSecurity,
         securityContextRepository: SecurityContextRepository,
         authenticationEntryPoint: ProblemDetailAuthenticationEntryPoint,
-        accessDeniedHandler: ProblemDetailAccessDeniedHandler
+        accessDeniedHandler: ProblemDetailAccessDeniedHandler,
+        clientRegistrationProvider: ObjectProvider<ClientRegistrationRepository>,
+        googleLoginSuccessHandler: GoogleLoginSuccessHandler,
+        googleLoginFailureHandler: GoogleLoginFailureHandler
     ): SecurityFilterChain {
 
         val csrfTokenRepository = CookieCsrfTokenRepository.withHttpOnlyFalse()
@@ -47,6 +54,13 @@ class SecurityConfiguration {
                 authorize("/actuator/info/**", permitAll)
                 authorize("/private/v1/accounts/**", permitAll)
                 authorize("/private/v1/auth/login", permitAll)
+                authorize("/private/v1/auth/register", permitAll)
+                authorize("/private/v1/auth/totp/enroll", permitAll)
+                authorize("/private/v1/auth/totp/verify", permitAll)
+                authorize("/private/v1/auth/config", permitAll)
+                authorize("/private/v1/auth/google/link", permitAll)
+                authorize("/private/oauth2/**", permitAll)
+                authorize("/private/login/oauth2/**", permitAll)
                 authorize("/private/v1/administration/**", hasRole(Role.ADMINISTRATION))
                 authorize("/private/v1/registration/**", hasRole(Role.REGISTRATION))
                 authorize("/private/v1/financial/**", hasRole(Role.FINANCIAL))
@@ -56,6 +70,15 @@ class SecurityConfiguration {
             exceptionHandling {
                 this.authenticationEntryPoint = authenticationEntryPoint
                 this.accessDeniedHandler = accessDeniedHandler
+            }
+            clientRegistrationProvider.ifAvailable?.let { registrations ->
+                oauth2Login {
+                    clientRegistrationRepository = registrations
+                    authorizationEndpoint { baseUri = "/private/oauth2/authorization" }
+                    redirectionEndpoint { baseUri = "/private/login/oauth2/code/*" }
+                    authenticationSuccessHandler = googleLoginSuccessHandler
+                    authenticationFailureHandler = googleLoginFailureHandler
+                }
             }
         }
         return http.build()

@@ -1,5 +1,6 @@
 import { beforeAll, describe, expect, it } from 'vitest'
 import {
+  approveFormSchema,
   toUserCreateForm,
   toUserFormValues,
   toUserUpdateForm,
@@ -72,6 +73,8 @@ describe('user payloads', () => {
     email: 'ana@example.com',
     defaultLanguage: 'EN_US',
     authorities: ['ADMINISTRATION', 'FINANCIAL'],
+    status: 'APPROVED',
+    totpEnabled: false,
   }
 
   it('builds the creation payload, asking for the activation e-mail', () => {
@@ -102,5 +105,12 @@ describe('user payloads', () => {
       defaultLanguage: 'EN_US',
       roles: ['ADMINISTRATION', 'FINANCIAL'],
     })
+  })
+})
+
+describe('approveFormSchema', () => {
+  it('requires at least one role to grant', async () => {
+    expect((await approveFormSchema.parse({ roles: [] })).errors).toHaveLength(1)
+    expect((await approveFormSchema.parse({ roles: ['FINANCIAL'] })).errors).toEqual([])
   })
 })

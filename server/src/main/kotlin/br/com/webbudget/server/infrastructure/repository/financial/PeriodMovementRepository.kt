@@ -66,7 +66,7 @@ class PeriodMovementRepository(
 
         val content = selectJoined()
             .where(condition)
-            .orderBy(pageable.toOrderBy(sortable, movements.ID.asc()))
+            .orderBy(pageable.toOrderBy(sortable, movements.CREATED_ON, movements.ID))
             .limit(pageable.pageSize)
             .offset(pageable.offset)
             .fetch()

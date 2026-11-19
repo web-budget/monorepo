@@ -56,7 +56,7 @@ class WalletRepository(
 
         val content = dsl.selectFrom(wallets)
             .where(condition)
-            .orderBy(pageable.toOrderBy(sortable, wallets.ID.asc()))
+            .orderBy(pageable.toOrderBy(sortable, wallets.CREATED_ON, wallets.ID))
             .limit(pageable.pageSize)
             .offset(pageable.offset)
             .fetch { record -> record.toWallet() }

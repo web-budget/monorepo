@@ -91,6 +91,30 @@ describe('authGuard', () => {
     },
   )
 
+  it.each(['PENDING', 'BLOCKED'] as const)(
+    'sends an account that is %s to the approval screen, whatever it asks for',
+    async (status) => {
+      auth.session = { ...sessionWith(['REGISTRATION']), status }
+
+      expect(await runGuard('/registration')).toEqual({ name: 'pending-approval' })
+      expect(await runGuard('/')).toEqual({ name: 'pending-approval' })
+    },
+  )
+
+  it('sends a restored pending account to the approval screen', async () => {
+    vi.mocked(auth.restoreSession).mockImplementation(() => {
+      auth.session = { ...sessionWith([]), status: 'PENDING' }
+      return Promise.resolve(true)
+    })
+
+    expect(await runGuard('/')).toEqual({ name: 'pending-approval' })
+  })
+
+  it('lets the approval screen itself open without a session', async () => {
+    expect(await runGuard('/pending-approval')).toBe(true)
+    expect(auth.restoreSession).not.toHaveBeenCalled()
+  })
+
   it('checks the role of a session it had to restore', async () => {
     vi.mocked(auth.restoreSession).mockImplementation(() => {
       auth.session = sessionWith(['FINANCIAL'])

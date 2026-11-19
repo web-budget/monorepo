@@ -6,6 +6,7 @@ import br.com.webbudget.server.application.payloads.ErrorCodes.IS_NULL
 import br.com.webbudget.server.application.payloads.ErrorCodes.IS_NULL_OR_BLANK
 import br.com.webbudget.server.application.payloads.StatusFilter
 import br.com.webbudget.server.domain.entities.administration.Language
+import br.com.webbudget.server.domain.entities.administration.UserStatus
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
@@ -50,10 +51,13 @@ data class UserView(
     val name: String,
     val email: String,
     val defaultLanguage: Language,
-    val authorities: List<String>
+    val authorities: List<String>,
+    val status: UserStatus,
+    val totpEnabled: Boolean
 )
 
 data class UserFilter(
     val filter: String?,
-    val status: StatusFilter?
+    val status: StatusFilter?,
+    val userStatus: UserStatus?
 )

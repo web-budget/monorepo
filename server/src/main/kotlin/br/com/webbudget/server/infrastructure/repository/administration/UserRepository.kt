@@ -1,10 +1,15 @@
 package br.com.webbudget.server.infrastructure.repository.administration
 
+import br.com.webbudget.server.domain.entities.administration.AuthProvider
+import br.com.webbudget.server.domain.entities.administration.Role
 import br.com.webbudget.server.domain.entities.administration.User
+import br.com.webbudget.server.domain.entities.administration.UserStatus
 import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.administration.tables.Users
+import br.com.webbudget.server.jooq.administration.tables.references.GRANTS
+import br.com.webbudget.server.jooq.administration.tables.references.ROLES
 import br.com.webbudget.server.jooq.administration.tables.references.USERS
 import org.jooq.Condition
 import org.jooq.DSLContext
@@ -33,12 +38,39 @@ class UserRepository(
 
     fun findByEmail(email: String): User? = findOne { users -> users.EMAIL.eq(email) }
 
-    fun findAll(filter: String?, active: Boolean?, pageable: Pageable): PagedModel<User> {
+    fun findByEmailIgnoreCase(email: String): User? =
+        findOne { users -> DSL.lower(users.EMAIL).eq(email.lowercase()) }
+
+    fun findByGoogleSub(googleSub: String): User? = findOne { users -> users.GOOGLE_SUB.eq(googleSub) }
+
+    fun findApprovedAdministrators(): List<User> {
+
+        val users = USERS.`as`("users")
+        val grants = GRANTS.`as`("grants")
+        val roles = ROLES.`as`("roles")
+
+        val administratorGrants = DSL.selectOne()
+            .from(grants)
+            .join(roles).on(roles.ID.eq(grants.ID_ROLE))
+            .where(grants.ID_USER.eq(users.ID))
+            .and(roles.NAME.eq(Role.ADMINISTRATION))
+
+        return dsl.selectFrom(users)
+            .where(users.STATUS.eq(UserStatus.APPROVED.name))
+            .and(users.ACTIVE.isTrue)
+            .and(DSL.exists(administratorGrants))
+            .orderBy(users.ID.asc())
+            .fetch()
+            .map { record -> record.toUser() }
+    }
+
+    fun findAll(filter: String?, active: Boolean?, status: UserStatus?, pageable: Pageable): PagedModel<User> {
 
         val users = USERS.`as`("users")
 
         val condition = listOfNotNull(
             active?.let { users.ACTIVE.eq(it) },
+            status?.let { users.STATUS.eq(it.name) },
             filter?.let { text -> likeIgnoreCase(users.NAME, text).or(likeIgnoreCase(users.EMAIL, text)) }
         ).fold(DSL.noCondition()) { accumulated, current -> accumulated.and(current) }
 
@@ -51,7 +83,7 @@ class UserRepository(
 
         val records = dsl.selectFrom(users)
             .where(condition)
-            .orderBy(pageable.toOrderBy(sortable, users.ID.asc()))
+            .orderBy(pageable.toOrderBy(sortable, users.CREATED_ON, users.ID))
             .limit(pageable.pageSize)
             .offset(pageable.offset)
             .fetch()
@@ -76,10 +108,32 @@ class UserRepository(
             .set(USERS.DEFAULT_LANGUAGE, user.defaultLanguage.name)
             .set(USERS.STATUS, user.status.name)
             .set(USERS.AUTH_PROVIDER, user.authProvider.name)
+            .set(USERS.GOOGLE_SUB, user.googleSub)
             .returning()
             .fetchSingle()
 
         user.restore(record.id, record.externalId, record.version, record.createdOn, record.lastUpdate)
+        user.credentialsVersion = record.credentialsVersion!!
+        return user
+    }
+
+    fun linkGoogleAccount(user: User, googleSub: String): User {
+        val record = dsl.update(USERS)
+            .set(USERS.GOOGLE_SUB, googleSub)
+            .set(USERS.AUTH_PROVIDER, AuthProvider.GOOGLE.name)
+            .setNull(USERS.PASSWORD)
+            .set(USERS.CREDENTIALS_VERSION, USERS.CREDENTIALS_VERSION.plus(1))
+            .set(USERS.VERSION, USERS.VERSION.plus(1))
+            .set(USERS.LAST_UPDATE, LocalDateTime.now())
+            .where(USERS.ID.eq(user.id))
+            .and(USERS.VERSION.eq(user.version))
+            .returning()
+            .fetchOne() ?: throw concurrentUpdate()
+
+        user.restore(record.id, record.externalId, record.version, record.createdOn, record.lastUpdate)
+        user.password = null
+        user.googleSub = googleSub
+        user.authProvider = AuthProvider.GOOGLE
         user.credentialsVersion = record.credentialsVersion!!
         return user
     }
@@ -116,6 +170,50 @@ class UserRepository(
         user.password = record.password!!
         user.credentialsVersion = record.credentialsVersion!!
         return user
+    }
+
+    fun updateStatus(user: User, expected: UserStatus, target: UserStatus, revokeSessions: Boolean = false): User {
+        val record = dsl.update(USERS)
+            .set(USERS.STATUS, target.name)
+            .set(USERS.CREDENTIALS_VERSION, USERS.CREDENTIALS_VERSION.plus(if (revokeSessions) 1 else 0))
+            .set(USERS.VERSION, USERS.VERSION.plus(1))
+            .set(USERS.LAST_UPDATE, LocalDateTime.now())
+            .where(USERS.ID.eq(user.id))
+            .and(USERS.VERSION.eq(user.version))
+            .and(USERS.STATUS.eq(expected.name))
+            .returning()
+            .fetchOne() ?: throw concurrentUpdate()
+
+        user.restore(record.id, record.externalId, record.version, record.createdOn, record.lastUpdate)
+        user.status = target
+        user.credentialsVersion = record.credentialsVersion!!
+        return user
+    }
+
+    fun findTotpSecret(userId: Long): String? = dsl.select(USERS.TOTP_SECRET)
+        .from(USERS)
+        .where(USERS.ID.eq(userId))
+        .fetchOne(USERS.TOTP_SECRET)
+
+    fun updateTotpSecret(userId: Long, secret: String): Boolean = dsl.update(USERS)
+        .set(USERS.TOTP_SECRET, secret)
+        .where(USERS.ID.eq(userId))
+        .and(USERS.TOTP_ENABLED.isFalse)
+        .execute() == 1
+
+    fun enableTotp(userId: Long, secret: String): Boolean = dsl.update(USERS)
+        .set(USERS.TOTP_ENABLED, true)
+        .where(USERS.ID.eq(userId))
+        .and(USERS.TOTP_ENABLED.isFalse)
+        .and(USERS.TOTP_SECRET.eq(secret))
+        .execute() == 1
+
+    fun resetTotp(userId: Long) {
+        dsl.update(USERS)
+            .setNull(USERS.TOTP_SECRET)
+            .set(USERS.TOTP_ENABLED, false)
+            .where(USERS.ID.eq(userId))
+            .execute()
     }
 
     fun delete(user: User) {

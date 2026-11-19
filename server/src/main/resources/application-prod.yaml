@@ -1,2 +1,5 @@
 server:
   forward-headers-strategy: native
+  tomcat:
+    remoteip:
+      remote-ip-header: ${REMOTE_IP_HEADER:X-Real-IP}

@@ -62,7 +62,7 @@ class CardRepository(
 
         val content = dsl.selectFrom(cards)
             .where(condition)
-            .orderBy(pageable.toOrderBy(sortable, cards.ID.asc()))
+            .orderBy(pageable.toOrderBy(sortable, cards.CREATED_ON, cards.ID))
             .limit(pageable.pageSize)
             .offset(pageable.offset)
             .fetch { record -> record.toCard() }

@@ -3,9 +3,7 @@ package br.com.webbudget.server.application.controllers
 import br.com.webbudget.server.BaseIntegrationTest
 import br.com.webbudget.server.domain.entities.administration.User
 import br.com.webbudget.server.domain.services.administration.RecoverPasswordService
-import br.com.webbudget.server.domain.security.CurrentUser
 import br.com.webbudget.server.domain.security.CurrentUserProvider
-import br.com.webbudget.server.infrastructure.config.security.SessionPrincipalRefresher
 import br.com.webbudget.server.domain.exceptions.UnauthenticatedException
 import br.com.webbudget.server.infrastructure.repository.administration.PasswordRecoverAttemptRepository
 import br.com.webbudget.server.jooq.administration.tables.references.USERS
@@ -15,8 +13,6 @@ import org.jooq.DSLContext
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
-import org.springframework.mock.web.MockHttpServletRequest
-import org.springframework.mock.web.MockHttpServletResponse
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.test.web.servlet.client.RestTestClient.ResponseSpec
 
@@ -27,9 +23,6 @@ class SessionRevocationTest : BaseIntegrationTest() {
 
     @Autowired
     private lateinit var currentUserProvider: CurrentUserProvider
-
-    @Autowired
-    private lateinit var sessionPrincipalRefresher: SessionPrincipalRefresher
 
     @Autowired
     private lateinit var recoverPasswordService: RecoverPasswordService
@@ -150,20 +143,17 @@ class SessionRevocationTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `should keep the session that changed its own password and end the others`() {
+    fun `should not let the administrator reset the password of the own account`() {
 
         val user = createLoginUser(EMAIL, TEST_PASSWORD, "ADMINISTRATION")
-        val changingCookie = login(EMAIL, TEST_PASSWORD)
-        val otherCookie = login(EMAIL, TEST_PASSWORD)
+        val cookie = login(EMAIL, TEST_PASSWORD)
 
-        changePassword(user, "brand-new-password", changingCookie).expectStatus().isOk
-
-        getRoles(changingCookie).expectStatus().isOk
-
-        getRoles(otherCookie)
-            .expectStatus().isUnauthorized
+        changePassword(user, "brand-new-password", cookie)
+            .expectStatus().isBadRequest
             .expectBody()
-            .jsonPath("$.error").isEqualTo("session-revoked")
+            .jsonPath("$.error").isEqualTo("self-action-not-allowed")
+
+        getRoles(cookie).expectStatus().isOk
     }
 
     @Test
@@ -235,18 +225,6 @@ class SessionRevocationTest : BaseIntegrationTest() {
 
         assertThatThrownBy { currentUserProvider.getCurrentUser() }
             .isInstanceOf(UnauthenticatedException::class.java)
-    }
-
-    @Test
-    fun `should not refresh a session that does not belong to the refreshed user`() {
-
-        SecurityContextHolder.clearContext()
-
-        val user = createLoginUser(EMAIL, TEST_PASSWORD, "ADMINISTRATION")
-
-        sessionPrincipalRefresher.refresh(CurrentUser.from(user), MockHttpServletRequest(), MockHttpServletResponse())
-
-        assertThat(SecurityContextHolder.getContext().authentication).isNull()
     }
 
     private fun getRoles(cookie: String): ResponseSpec = restTestClient.get()

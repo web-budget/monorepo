@@ -106,6 +106,21 @@ describe('describeApiError', () => {
     })
   })
 
+  it('explains a user whose status changed meanwhile, whatever the parameters say', () => {
+    const notice = describeApiError(
+      apiError(409, {
+        error: 'invalid-user-status-transition',
+        parameters: { status: 'BLOCKED', expected: 'APPROVED' },
+      }),
+    )
+
+    expect(notice).toEqual({
+      severity: 'warn',
+      title: { key: 'error.conflict.title' },
+      details: [{ key: 'error.conflict.invalid-user-status-transition' }],
+    })
+  })
+
   it('drops conflicting fields that have no message', () => {
     const notice = describeApiError(
       apiError(409, { parameters: { 'wallet.name': 'Main', 'wallet.color': 'blue' } }),

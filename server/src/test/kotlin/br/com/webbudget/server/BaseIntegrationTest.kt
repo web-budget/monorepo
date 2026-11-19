@@ -50,9 +50,13 @@ abstract class BaseIntegrationTest {
     private val createdUserEmails = mutableListOf<String>()
 
     @BeforeEach
-    fun authenticateAsEveryRole() {
-        authenticateAs(User.ADMIN_USERNAME, ADMIN_PASSWORD)
+    fun setUpAuthentication() {
+        loginBeforeEach()
         greenMail.purgeEmailFromAllMailboxes()
+    }
+
+    protected open fun loginBeforeEach() {
+        authenticateAs(User.ADMIN_USERNAME, ADMIN_PASSWORD)
     }
 
     @AfterEach
@@ -104,7 +108,7 @@ abstract class BaseIntegrationTest {
         return accountRepository.findByEmail(email)!!
     }
 
-    protected fun login(email: String, password: String): String {
+    protected fun login(email: String, password: String, totpCode: String? = null): String {
 
         val csrfToken = fetchCsrfToken()
 
@@ -113,7 +117,7 @@ abstract class BaseIntegrationTest {
                 .header("Content-Type", "application/json")
                 .header("Cookie", "$CSRF_COOKIE=$csrfToken")
                 .header(CSRF_HEADER, csrfToken)
-                .POST(HttpRequest.BodyPublishers.ofString("""{"email": "$email", "password": "$password"}"""))
+                .POST(HttpRequest.BodyPublishers.ofString(loginBody(email, password, totpCode)))
                 .build(),
             HttpResponse.BodyHandlers.ofString()
         )
@@ -125,6 +129,10 @@ abstract class BaseIntegrationTest {
 
         return "$SESSION_COOKIE=$sessionId; $CSRF_COOKIE=${cookieValue(response, CSRF_COOKIE) ?: csrfToken}"
     }
+
+    private fun loginBody(email: String, password: String, totpCode: String?): String =
+        totpCode?.let { """{"email": "$email", "password": "$password", "totpCode": "$it"}""" }
+            ?: """{"email": "$email", "password": "$password"}"""
 
     private fun fetchCsrfToken(): String {
 

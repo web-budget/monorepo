@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <changeSet id="17-1000-1" author="${claude}">
+        <sql>
+            ALTER TABLE administration.users ALTER COLUMN email TYPE varchar(254);
+        </sql>
+        <rollback>
+            <sql>
+                ALTER TABLE administration.users ALTER COLUMN email TYPE varchar(150);
+            </sql>
+        </rollback>
+    </changeSet>
+
+</databaseChangeLog>

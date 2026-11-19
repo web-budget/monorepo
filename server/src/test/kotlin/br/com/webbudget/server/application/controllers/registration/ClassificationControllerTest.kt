@@ -47,7 +47,7 @@ class ClassificationControllerTest : BaseIntegrationTest() {
             .expectStatus().isOk
             .expectBody()
             .jsonPath("$.content.length()").isEqualTo(1)
-            .jsonPath("$.content[0].name").isEqualTo("Manutencao")
+            .jsonPath("$.content[0].name").isEqualTo("Conta de Luz")
             .jsonPath("$.page.number").isEqualTo(1)
             .jsonPath("$.page.totalElements").isEqualTo(4)
             .jsonPath("$.page.totalPages").isEqualTo(2)
