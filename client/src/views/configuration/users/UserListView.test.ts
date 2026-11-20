@@ -56,9 +56,9 @@ const USER_COUNTS = { APPROVED: 1, PENDING: 1, BLOCKED: 0, ALL: 2 }
 
 const session = { name: 'Admin Silva', email: 'admin@example.com', status: 'APPROVED', roles: [] }
 
-async function render(content = users) {
+async function render(content = users, location?: string) {
   serveListing(vi.mocked(usersApi.findAll), content, content.length, USER_COUNTS)
-  return mountView(UserListView, 'users', {}, { auth: { session } })
+  return mountView(UserListView, 'users', {}, { auth: { session } }, location)
 }
 
 type Wrapper = Awaited<ReturnType<typeof render>>['wrapper']
@@ -131,6 +131,87 @@ describe('UserListView', () => {
     expect(buttonWithText(wrapper, 'Pendentes').text()).toBe('Pendentes 1')
     expect(buttonWithText(wrapper, 'Bloqueados').text()).toBe('Bloqueados 0')
     expect(buttonWithText(wrapper, 'Todos').text()).toBe('Todos 2')
+  })
+
+  describe('the status tab in the URL', () => {
+    it.each([
+      ['PENDING', 'Pendentes'],
+      ['APPROVED', 'Aprovados'],
+      ['BLOCKED', 'Bloqueados'],
+      ['ALL', 'Todos'],
+    ])('opens the tab of ?status=%s', async (status, tab) => {
+      const { wrapper } = await render(users, `/users?status=${status}`)
+
+      expect(buttonWithText(wrapper, tab).attributes('aria-pressed')).toBe('true')
+      expect(listingCalls(vi.mocked(usersApi.findAll))[0]!.status).toBe(status)
+    })
+
+    it('opens the approved tab when the status is unknown', async () => {
+      const { wrapper } = await render(users, '/users?status=NOPE')
+
+      expect(buttonWithText(wrapper, 'Aprovados').attributes('aria-pressed')).toBe('true')
+      expect(listingCalls(vi.mocked(usersApi.findAll))[0]!.status).toBe('APPROVED')
+    })
+
+    it('opens the approved tab without the parameter and leaves the URL alone', async () => {
+      const { wrapper, router } = await render()
+
+      expect(buttonWithText(wrapper, 'Aprovados').attributes('aria-pressed')).toBe('true')
+      expect(router.currentRoute.value.query).toEqual({})
+    })
+
+    it('follows the tab in the URL, replacing the entry instead of piling up history', async () => {
+      const { wrapper, router } = await render()
+      const replace = vi.spyOn(router, 'replace')
+      const push = vi.spyOn(router, 'push')
+
+      await buttonWithText(wrapper, 'Bloqueados').trigger('click')
+      await settle()
+      expect(router.currentRoute.value.query.status).toBe('BLOCKED')
+
+      await buttonWithText(wrapper, 'Todos').trigger('click')
+      await settle()
+      expect(router.currentRoute.value.query.status).toBe('ALL')
+      expect(replace).toHaveBeenCalledTimes(2)
+      expect(push).not.toHaveBeenCalled()
+    })
+
+    it('keeps the other parameters of the URL when the tab changes', async () => {
+      const { wrapper, router } = await render(users, '/users?from=email')
+
+      await buttonWithText(wrapper, 'Pendentes').trigger('click')
+      await settle()
+
+      expect(router.currentRoute.value.query).toEqual({ from: 'email', status: 'PENDING' })
+    })
+
+    it('follows the URL when it changes while the list is open', async () => {
+      const { wrapper, router } = await render()
+
+      await router.push('/users?status=PENDING')
+      await settle()
+
+      expect(buttonWithText(wrapper, 'Pendentes').attributes('aria-pressed')).toBe('true')
+      expect(lastListingCall()!.status).toBe('PENDING')
+    })
+
+    it('ignores an unknown status that arrives while the list is open', async () => {
+      const { wrapper, router } = await render()
+
+      await router.push('/users?status=NOPE')
+      await settle()
+
+      expect(buttonWithText(wrapper, 'Aprovados').attributes('aria-pressed')).toBe('true')
+    })
+
+    it('puts the pending tab in the URL from the pending notice', async () => {
+      const { wrapper, router } = await render()
+
+      await buttonWithText(wrapper, 'Ver pendentes').trigger('click')
+      await settle()
+
+      expect(router.currentRoute.value.query.status).toBe('PENDING')
+    })
   })
 
   it('searches by the typed text and by status, and clears the text without touching the status', async () => {
