@@ -5,6 +5,7 @@ import { computed } from 'vue'
 import FormCard from '@/components/forms/FormCard.vue'
 import FormSection from '@/components/forms/FormSection.vue'
 import InputField from '@/components/forms/InputField.vue'
+import MoneyField from '@/components/forms/MoneyField.vue'
 import SearchSelectField from '@/components/forms/SearchSelectField.vue'
 import StatusSection from '@/components/forms/StatusSection.vue'
 import { useCrudForm } from '@/composables/useCrudForm'
@@ -57,7 +58,7 @@ const parentOptions = computed(() =>
     :dirty="dirty"
     :messages="messages"
     :fields="fields"
-    :submit-label="updating ? $t('crud.save-changes') : $t('cost-center.form.create')"
+    :submit-label="updating ? $t('form.save') : $t('form.create')"
     @submit="onSubmit"
     @back="changeToList"
   >
@@ -91,18 +92,8 @@ const parentOptions = computed(() =>
       :title="$t('cost-center.sections.budget')"
       :description="$t('cost-center.sections.budget-help')"
     >
-      <InputField
-        name="incomeBudget"
-        type="number"
-        :label="$t('cost-center.form.income-budget')"
-        mono
-      />
-      <InputField
-        name="expenseBudget"
-        type="number"
-        :label="$t('cost-center.form.expense-budget')"
-        mono
-      />
+      <MoneyField name="incomeBudget" :label="$t('cost-center.form.income-budget')" />
+      <MoneyField name="expenseBudget" :label="$t('cost-center.form.expense-budget')" />
     </FormSection>
   </FormCard>
 </template>

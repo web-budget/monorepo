@@ -4,6 +4,7 @@ import { computed } from 'vue'
 import FormCard from '@/components/forms/FormCard.vue'
 import FormSection from '@/components/forms/FormSection.vue'
 import InputField from '@/components/forms/InputField.vue'
+import MoneyField from '@/components/forms/MoneyField.vue'
 import { useCrudForm } from '@/composables/useCrudForm'
 import {
   financialPeriodFormSchema,
@@ -43,7 +44,7 @@ const updating = computed(() => props.id !== undefined)
     :dirty="dirty"
     :messages="messages"
     :fields="fields"
-    :submit-label="updating ? $t('crud.save-changes') : $t('financial-period.form.create')"
+    :submit-label="updating ? $t('form.save') : $t('form.create')"
     @submit="onSubmit"
     @back="changeToList"
   >
@@ -83,18 +84,8 @@ const updating = computed(() => props.id !== undefined)
       :title="$t('financial-period.sections.goals')"
       :description="$t('financial-period.sections.goals-help')"
     >
-      <InputField
-        name="revenuesGoal"
-        type="number"
-        :label="$t('financial-period.form.revenues-goal')"
-        mono
-      />
-      <InputField
-        name="expensesGoal"
-        type="number"
-        :label="$t('financial-period.form.expenses-goal')"
-        mono
-      />
+      <MoneyField name="revenuesGoal" :label="$t('financial-period.form.revenues-goal')" />
+      <MoneyField name="expensesGoal" :label="$t('financial-period.form.expenses-goal')" />
     </FormSection>
   </FormCard>
 </template>

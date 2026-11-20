@@ -10,6 +10,6 @@ describe('AuthAside', () => {
     expect(wrapper.text()).toContain('webBudget')
     expect(wrapper.find('h2').text()).toBe('Suas contas, passadas a limpo.')
     expect(wrapper.findAll('li')).toHaveLength(3)
-    expect(wrapper.text()).toContain(`v${__APP_VERSION__}`)
+    expect(wrapper.text()).toContain('webBudget dev')
   })
 })

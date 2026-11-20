@@ -1,0 +1,44 @@
+name: Release
+
+on:
+  release:
+    types: [ published ]
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Version to inject into the client build (same as the release tag, e.g. v4.0.0-alpha1)"
+        required: true
+        type: string
+
+jobs:
+  build-client:
+    name: Build client
+    runs-on: ubuntu-26.04
+    env:
+      VITE_APP_VERSION: ${{ github.event.release.tag_name || inputs.version }}
+    defaults:
+      run:
+        working-directory: client
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: pnpm/action-setup@v6
+        with:
+          package_json_file: client/package.json
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          cache: "pnpm"
+          cache-dependency-path: client/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm build
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: client-${{ env.VITE_APP_VERSION }}
+          path: client/dist

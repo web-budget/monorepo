@@ -124,7 +124,7 @@ onMounted(() => run(store.findRoles))
     :dirty="dirty"
     :messages="[...messages, ...actionMessages]"
     :fields="fields"
-    :submit-label="updating ? $t('crud.save-changes') : $t('users.form.create')"
+    :submit-label="updating ? $t('form.save') : $t('form.create')"
     @submit="onSubmit"
     @back="changeToList"
   >
