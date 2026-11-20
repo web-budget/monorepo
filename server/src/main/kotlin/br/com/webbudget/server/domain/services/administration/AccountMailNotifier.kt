@@ -58,6 +58,20 @@ class AccountMailNotifier(
         )
     }
 
+    fun notifyAccountBlocked(user: User) {
+        publish(user, "account-blocked", mapOf("userName" to user.name))
+    }
+
+    fun notifyAccountUnblocked(user: User) {
+        publish(user, "account-unblocked", mapOf("userName" to user.name, "loginUrl" to mailLinkBuilder.build("/login")))
+    }
+
+    private fun publish(user: User, templateName: String, variables: Map<String, Any?>) {
+        applicationEventPublisher.publishEvent(
+            MailMessageRequested(MailMessage(listOf(user.email), templateName, user.defaultLanguage.locale, variables))
+        )
+    }
+
     private fun publish(template: MailTemplate) {
         applicationEventPublisher.publishEvent(MailRequested(template))
     }
