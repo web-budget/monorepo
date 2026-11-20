@@ -25,9 +25,6 @@ spring:
       mail.smtp.starttls.enable: true
       mail.debug: false
 
-  thymeleaf:
-    prefix: classpath:/mail-templates/
-
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
     database-change-log-table: database_changelog

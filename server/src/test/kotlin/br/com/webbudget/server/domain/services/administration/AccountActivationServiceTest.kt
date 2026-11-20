@@ -30,8 +30,8 @@ class AccountActivationServiceTest : BaseIntegrationTest() {
 
     @ParameterizedTest
     @CsvSource(
-        "other-user@webbudget.com.br, User account activation, Welcome to webBudget!",
-        "user@webbudget.com.br, Ativar conta de usuário, Bem vindo ao webBudget!"
+        "other-user@webbudget.com.br, Activate your webBudget account, Activate your account",
+        "user@webbudget.com.br, Ative sua conta no webBudget, Ative sua conta"
     )
     fun `should send the activation e-mail in the language of the user`(
         userEmail: String,

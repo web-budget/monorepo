@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::content}, ~{::footer})}">
+<body>
+<div th:fragment="content">
+    <th:block th:if="${selfRegistered}">
+        <table th:replace="~{parts :: badge('pending', #{account-activation.self-registration.badge})}"></table>
+        <h1 th:replace="~{parts :: title(#{account-activation.self-registration.title})}"></h1>
+        <p th:replace="~{parts :: paragraph(#{account-activation.self-registration.lead(${userName})})}"></p>
+        <p th:replace="~{parts :: closingParagraph(#{account-activation.self-registration.approval})}"></p>
+        <table th:replace="~{parts :: button(#{account-activation.self-registration.cta}, ${activationUrl})}"></table>
+        <p th:replace="~{parts :: note(#{account-activation.validity(${validityDays})})}"></p>
+    </th:block>
+    <th:block th:unless="${selfRegistered}">
+        <table th:replace="~{parts :: badge('pending', #{account-activation.administrator-created.badge})}"></table>
+        <h1 th:replace="~{parts :: title(#{account-activation.administrator-created.title})}"></h1>
+        <p th:replace="~{parts :: paragraph(#{account-activation.administrator-created.lead(${userName})})}"></p>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; margin: 4px 0 8px 0; border-top: 1px solid #d1dad5;">
+            <tr th:replace="~{parts :: ledgerRow(#{account-activation.administrator-created.email}, ${userEmail}, true)}"></tr>
+            <tr th:replace="~{parts :: ledgerRow(#{account-activation.administrator-created.password}, #{account-activation.administrator-created.password-value}, false)}"></tr>
+        </table>
+        <table th:replace="~{parts :: button(#{account-activation.administrator-created.cta}, ${activationUrl})}"></table>
+        <p th:replace="~{parts :: note(#{account-activation.validity(${validityDays})})}"></p>
+    </th:block>
+    <th:block th:replace="~{parts :: fallback(${activationUrl})}"></th:block>
+</div>
+<p th:fragment="footer" th:text="${selfRegistered} ? #{account-activation.self-registration.footer} : #{account-activation.administrator-created.footer}" style="margin: 0;">Você recebe este e-mail porque alguém se cadastrou no webBudget com este endereço.</p>
+</body>
+</html>

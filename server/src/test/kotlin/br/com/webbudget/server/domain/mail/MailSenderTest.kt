@@ -4,8 +4,6 @@ import br.com.webbudget.server.BaseIntegrationTest
 import br.com.webbudget.server.domain.entities.administration.Language
 import br.com.webbudget.server.domain.entities.administration.Language.EN_US
 import br.com.webbudget.server.domain.entities.administration.Language.PT_BR
-import br.com.webbudget.server.domain.entities.administration.User
-import br.com.webbudget.server.domain.services.MailSenderService
 import br.com.webbudget.server.infrastructure.config.MailTemplateConfiguration
 import br.com.webbudget.server.utilities.contents
 import org.assertj.core.api.Assertions.assertThat
@@ -29,9 +27,6 @@ class MailSenderTest : BaseIntegrationTest() {
 
     @Autowired
     private lateinit var javaMailSender: JavaMailSender
-
-    @Autowired
-    private lateinit var mailSenderService: MailSenderService
 
     @Autowired
     private lateinit var applicationEventPublisher: ApplicationEventPublisher
@@ -151,23 +146,5 @@ class MailSenderTest : BaseIntegrationTest() {
 
         assertThat(message.subject).isEqualTo("Olá, Maria Bcc: alguem@example.com")
         assertThat(message.getHeader("Bcc")).isNull()
-    }
-
-    @Test
-    fun `should keep sending the other e-mails through the old path`() {
-
-        val user = User(name = "Maria Souza", email = "maria@webbudget.com.br", password = "x", defaultLanguage = PT_BR)
-
-        val activation = AccountActivationEmail(user).apply {
-            addVariable("activateAccountUrl", "https://webbudget.example.com/auth/account-activation?token=abc")
-            addVariable("validUntil", "25/11/2026 14:32")
-        }
-
-        mailSenderService.sendEmail(activation)
-
-        val message = greenMail.receivedMessages.single()
-
-        assertThat(message.subject).isEqualTo("Ativar conta de usuário")
-        assertThat(message.contents().html).contains("https://webbudget.example.com/auth/account-activation?token=abc")
     }
 }

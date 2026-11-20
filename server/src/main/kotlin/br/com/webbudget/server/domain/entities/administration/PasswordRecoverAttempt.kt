@@ -8,10 +8,10 @@ class PasswordRecoverAttempt(
     var token: UUID,
     val user: User,
     var used: Boolean = false,
-    var validity: LocalDateTime = LocalDateTime.now().plusHours(VALIDITY_TIME_LIMIT_HOURS)
+    var validity: LocalDateTime = LocalDateTime.now().plusHours(VALIDITY_HOURS)
 ) : PersistentEntity() {
 
     companion object {
-        private const val VALIDITY_TIME_LIMIT_HOURS = 3L
+        const val VALIDITY_HOURS = 3L
     }
 }

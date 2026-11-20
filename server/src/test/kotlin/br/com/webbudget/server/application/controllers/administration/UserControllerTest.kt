@@ -70,7 +70,7 @@ class UserControllerTest : BaseIntegrationTest() {
             .expectStatus().isCreated
 
         assertThat(greenMail.receivedMessages).hasSize(1)
-        assertThat(greenMail.receivedMessages.first().subject).isEqualTo("Ativar conta de usuário")
+        assertThat(greenMail.receivedMessages.first().subject).isEqualTo("Ative sua conta no webBudget")
     }
 
     @Test
