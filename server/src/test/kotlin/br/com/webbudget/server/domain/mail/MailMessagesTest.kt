@@ -23,7 +23,7 @@ class MailMessagesTest {
     @Test
     fun `should ask each e-mail for a subject, a preheader and a footer in every language`() {
 
-        val templates = listOf("account-approved", "account-blocked", "account-unblocked")
+        val templates = listOf("account-approved", "account-blocked", "account-unblocked", "password-changed", "totp-reset", "google-linked")
 
         listOf("messages.properties", "messages_en_US.properties").map { load(it) }.forEach { messages ->
             templates.forEach { template ->

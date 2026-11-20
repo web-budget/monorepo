@@ -29,6 +29,7 @@ class UserService(
     private val roleRepository: RoleRepository,
     private val selfActionGuard: SelfActionGuard,
     private val accountMailNotifier: AccountMailNotifier,
+    private val securityNoticeNotifier: SecurityNoticeNotifier,
     private val accountActivationService: AccountActivationService,
     private val passwordRecoverAttemptRepository: PasswordRecoverAttemptRepository,
     private val accountActivationAttemptRepository: AccountActivationAttemptRepository,
@@ -95,7 +96,9 @@ class UserService(
 
         selfActionGuard.assertNotSelf(user)
 
-        return updatePassword(user, password)
+        return updatePassword(user, password).also {
+            securityNoticeNotifier.notifyPasswordChanged(user, PasswordChangedBy.ADMINISTRATOR)
+        }
     }
 
     @Transactional
@@ -152,6 +155,8 @@ class UserService(
 
         trustedDeviceRepository.deleteByUserId(userId)
         userRepository.resetTotp(userId)
+
+        securityNoticeNotifier.notifyTotpReset(user)
     }
 
     @Transactional
