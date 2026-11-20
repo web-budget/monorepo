@@ -1,4 +1,4 @@
-import { toTypedSchema } from '@vee-validate/zod'
+import { toTypedSchema } from '@/schemas/typedSchema'
 import { z } from 'zod'
 import { optionalNumberSchema } from '@/schemas/fields'
 import type {
@@ -18,7 +18,7 @@ export const financialPeriodSchema = z
   .superRefine((values, context) => {
     if (values.endingAt !== '' && values.endingAt < values.startingAt) {
       context.addIssue({
-        code: z.ZodIssueCode.custom,
+        code: 'custom',
         path: ['endingAt'],
         params: { i18n: 'end-before-start' },
       })

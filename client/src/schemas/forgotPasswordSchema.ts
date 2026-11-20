@@ -1,4 +1,4 @@
-import { toTypedSchema } from '@vee-validate/zod'
+import { toTypedSchema } from '@/schemas/typedSchema'
 import { z } from 'zod'
 
 export const forgotPasswordSchema = z.object({
