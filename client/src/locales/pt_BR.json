@@ -475,9 +475,8 @@
       "send-activation-email": "Enviar e-mail de ativação",
       "create": "Criar usuário",
       "email-hint": "O e-mail não muda depois do cadastro.",
-      "active-heading": "Cadastro",
-      "active-label": "Ativo",
-      "active-hint": "Desligado, a pessoa não consegue entrar.",
+      "active-label": "Cadastro ativo",
+      "active-hint": "Inativar para impedir o login",
       "activation-heading": "Ativação da conta",
       "activation-hint": "A pessoa ativa a conta pelo link enviado ao e-mail dela."
     },
@@ -591,7 +590,7 @@
       "type-placeholder": "Selecione um tipo",
       "create": "Criar carteira",
       "active-label": "Ativa",
-      "active-hint": "Inativa, ela some das escolhas nos lançamentos novos, mas continua no histórico.",
+      "active-hint": "Inativar para remover das listagens",
       "type-hint": "O tipo não muda depois de criada.",
       "balance": "Saldo atual"
     },
@@ -657,7 +656,7 @@
       "wallet-search-placeholder": "Digite o nome",
       "create": "Criar cartão",
       "active-label": "Ativo",
-      "active-hint": "Inativo, ele some das escolhas nos lançamentos novos, mas continua no histórico.",
+      "active-hint": "Inativar para remover das listagens",
       "type-hint": "O tipo não muda depois de criado."
     },
     "list": {
@@ -780,7 +779,7 @@
       "type-placeholder": "Selecione um tipo",
       "create": "Criar classificação",
       "active-label": "Ativa",
-      "active-hint": "Inativa, ela some das escolhas nos lançamentos novos, mas continua no histórico.",
+      "active-hint": "Inativar para remover das listagens",
       "type-hint": "O tipo não muda depois de criada."
     },
     "list": {
@@ -828,7 +827,7 @@
       "parent-search-placeholder": "Digite o nome",
       "create": "Criar centro de custo",
       "active-label": "Ativo",
-      "active-hint": "Inativo, ele some das escolhas nos lançamentos novos, mas continua no histórico."
+      "active-hint": "Inativar para remover das listagens"
     },
     "table-columns": {
       "full-name": "Nome",

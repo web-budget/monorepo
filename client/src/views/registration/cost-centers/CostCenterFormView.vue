@@ -6,7 +6,7 @@ import FormCard from '@/components/forms/FormCard.vue'
 import FormSection from '@/components/forms/FormSection.vue'
 import InputField from '@/components/forms/InputField.vue'
 import SearchSelectField from '@/components/forms/SearchSelectField.vue'
-import StatusToggle from '@/components/forms/StatusToggle.vue'
+import StatusSection from '@/components/forms/StatusSection.vue'
 import { useCrudForm } from '@/composables/useCrudForm'
 import {
   costCenterFormDefaults,
@@ -61,6 +61,12 @@ const parentOptions = computed(() =>
     @submit="onSubmit"
     @back="changeToList"
   >
+    <StatusSection
+      v-if="updating"
+      name="active"
+      :label="$t('cost-center.form.active-label')"
+      :hint="$t('cost-center.form.active-hint')"
+    />
     <FormSection
       :title="$t('cost-center.sections.identification')"
       :description="$t('cost-center.sections.identification-help')"
@@ -73,12 +79,6 @@ const parentOptions = computed(() =>
         :placeholder="$t('cost-center.form.parent-search-placeholder')"
         :empty-message="$t('cost-center.form.parent-search-empty')"
         @search="(text) => run(() => store.findByName(text))"
-      />
-      <StatusToggle
-        v-if="updating"
-        name="active"
-        :label="$t('cost-center.form.active-label')"
-        :hint="$t('cost-center.form.active-hint')"
       />
       <InputField
         name="description"

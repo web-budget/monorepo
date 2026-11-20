@@ -323,6 +323,29 @@ describe('WalletFormView', () => {
       expect(wrapper.find('fieldset').attributes('disabled')).toBeUndefined()
     })
 
+    it('puts the status block first on edit, with its help and the switch', async () => {
+      vi.mocked(walletsApi.findById).mockResolvedValue(existing)
+
+      const { wrapper } = await mountView(WalletFormView, 'wallets', { id: 'w-1' })
+
+      const sections = wrapper.findAll('form section')
+      expect(sections.length).toBeGreaterThan(1)
+      expect(sections[0]?.find('h2').text()).toBe('Situação')
+      expect(sections[0]?.text()).toContain('Inativar para remover das listagens')
+      expect(sections[0]?.text()).toContain('Ativa')
+      expect(sections[0]?.find('button[role="switch"]').attributes('aria-checked')).toBe('true')
+      expect(wrapper.findAll('button[role="switch"]')).toHaveLength(1)
+    })
+
+    it('has no status block on create: a new record is always active', async () => {
+      const { wrapper } = await mountView(WalletFormView, 'wallets')
+
+      expect(wrapper.findAll('form section h2').map((title) => title.text())).not.toContain(
+        'Situação',
+      )
+      expect(wrapper.text()).not.toContain('Inativar para')
+    })
+
     it('loads the wallet into the form with the type locked and the name as the subtitle', async () => {
       vi.mocked(walletsApi.findById).mockResolvedValue(existing)
 
