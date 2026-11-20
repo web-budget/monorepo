@@ -289,6 +289,7 @@
   },
   "form": {
     "save": "Salvar",
+    "create": "Criar",
     "cancel": "Cancelar",
     "edit": "Editar",
     "delete": "Excluir",
@@ -344,6 +345,7 @@
     }
   },
   "search-control": {
+    "field": "Campo de busca",
     "actions": {
       "new": "Novo",
       "search": "Buscar",
@@ -473,7 +475,6 @@
       "language": "Idioma",
       "roles": "Áreas de acesso",
       "send-activation-email": "Enviar e-mail de ativação",
-      "create": "Criar usuário",
       "email-hint": "O e-mail não muda depois do cadastro.",
       "active-heading": "Cadastro",
       "active-label": "Ativo",
@@ -484,10 +485,10 @@
     "confirm": {
       "create-title": "Criar o usuário “{name}”?",
       "create": "A conta é cadastrada com as áreas de acesso que você escolheu.",
-      "create-label": "Criar usuário",
+      "create-label": "Criar",
       "update-title": "Salvar as alterações de “{name}”?",
       "update": "Os dados e as áreas de acesso novos valem já na próxima requisição da pessoa.",
-      "update-label": "Salvar alterações"
+      "update-label": "Salvar"
     },
     "password": {
       "action": "Redefinir senha",
@@ -505,7 +506,7 @@
     },
     "remove": {
       "title": "Remover o usuário “{name}”?",
-      "description": "Não dá para desfazer. A conta é apagada e o acesso da pessoa ao sistema é encerrado.",
+      "description": "Não dá para desfazer. O acesso da pessoa é encerrado.",
       "action": "Remover usuário"
     },
     "toast": {
@@ -589,7 +590,6 @@
       "agency": "Agência",
       "number": "Número da conta",
       "type-placeholder": "Selecione um tipo",
-      "create": "Criar carteira",
       "active-label": "Ativa",
       "active-hint": "Inativa, ela some das escolhas nos lançamentos novos, mas continua no histórico.",
       "type-hint": "O tipo não muda depois de criada.",
@@ -608,7 +608,7 @@
     },
     "remove": {
       "title": "Remover a carteira “{name}”?",
-      "description": "Não dá para desfazer. Se ela já tem lançamentos, o servidor recusa a remoção; nesse caso, marque a carteira como inativa."
+      "description": "Não dá para desfazer."
     },
     "toast": {
       "created": "Carteira criada",
@@ -655,7 +655,6 @@
       "type-placeholder": "Selecione um tipo",
       "wallet-search-empty": "Nenhuma carteira encontrada",
       "wallet-search-placeholder": "Digite o nome",
-      "create": "Criar cartão",
       "active-label": "Ativo",
       "active-hint": "Inativo, ele some das escolhas nos lançamentos novos, mas continua no histórico.",
       "type-hint": "O tipo não muda depois de criado."
@@ -668,7 +667,7 @@
     },
     "remove": {
       "title": "Remover o cartão “{name}”?",
-      "description": "Não dá para desfazer. Se ele já tem lançamentos, o servidor recusa a remoção; nesse caso, marque o cartão como inativo."
+      "description": "Não dá para desfazer."
     },
     "toast": {
       "created": "Cartão criado",
@@ -718,8 +717,7 @@
       "starting-at": "Início",
       "ending-at": "Fim",
       "expenses-goal": "Meta de despesas",
-      "revenues-goal": "Meta de receitas",
-      "create": "Criar período financeiro"
+      "revenues-goal": "Meta de receitas"
     },
     "errors": {
       "overlapping-dates": "Data de início e fim estão sobrepondo com outro período financeiro existente",
@@ -734,7 +732,7 @@
     },
     "remove": {
       "title": "Remover o período financeiro “{name}”?",
-      "description": "Não dá para desfazer. Se ele já tem lançamentos ou foi contabilizado, o servidor recusa a remoção."
+      "description": "Não dá para desfazer."
     },
     "toast": {
       "created": "Período financeiro criado",
@@ -778,7 +776,6 @@
       "type": "Tipo",
       "budget": "Orçamento",
       "type-placeholder": "Selecione um tipo",
-      "create": "Criar classificação",
       "active-label": "Ativa",
       "active-hint": "Inativa, ela some das escolhas nos lançamentos novos, mas continua no histórico.",
       "type-hint": "O tipo não muda depois de criada."
@@ -791,7 +788,7 @@
     },
     "remove": {
       "title": "Remover a classificação “{name}”?",
-      "description": "Não dá para desfazer. Se ela já tem lançamentos, o servidor recusa a remoção; nesse caso, marque a classificação como inativa."
+      "description": "Não dá para desfazer."
     },
     "toast": {
       "created": "Classificação criada",
@@ -826,7 +823,6 @@
       "parent": "Subcentro de custo de",
       "parent-search-empty": "Nenhum centro de custo encontrado",
       "parent-search-placeholder": "Digite o nome",
-      "create": "Criar centro de custo",
       "active-label": "Ativo",
       "active-hint": "Inativo, ele some das escolhas nos lançamentos novos, mas continua no histórico."
     },
@@ -843,7 +839,7 @@
     },
     "remove": {
       "title": "Remover o centro de custo “{name}”?",
-      "description": "Não dá para desfazer. Se ele já tem lançamentos ou subcentros, o servidor recusa a remoção; nesse caso, marque o centro de custo como inativo."
+      "description": "Não dá para desfazer."
     },
     "toast": {
       "created": "Centro de custo criado",
@@ -905,7 +901,6 @@
     "unsaved": "Alterações não salvas",
     "saving": "Salvando…",
     "status": "Situação",
-    "save-changes": "Salvar alterações",
     "actions": {
       "edit": "Editar",
       "remove": "Remover",

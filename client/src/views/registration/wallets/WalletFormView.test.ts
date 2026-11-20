@@ -60,7 +60,7 @@ describe('WalletFormView', () => {
       expect(wrapper.text()).toContain('Campos com * são obrigatórios.')
       expect(wrapper.find('button[role="switch"]').exists()).toBe(false)
       expect(wrapper.find('label[for]').text()).toContain('Nome*')
-      expect(buttonWithText(wrapper, 'Criar carteira')).toBeDefined()
+      expect(buttonWithText(wrapper, 'Criar')).toBeDefined()
       expect(walletsApi.findById).not.toHaveBeenCalled()
     })
 
@@ -337,7 +337,7 @@ describe('WalletFormView', () => {
       expect(wrapper.find('button[role="combobox"]').attributes('disabled')).toBeDefined()
       expect(wrapper.find('button[role="switch"]').attributes('aria-checked')).toBe('true')
       expect(wrapper.text()).toContain('O tipo não muda depois de criada.')
-      expect(buttonWithText(wrapper, 'Salvar alterações')).toBeDefined()
+      expect(buttonWithText(wrapper, 'Salvar')).toBeDefined()
     })
 
     it('does not count the loaded values as changes', async () => {

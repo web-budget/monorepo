@@ -21,6 +21,23 @@ O `spring-boot-docker-compose` é uma dependência `developmentOnly` ligada ao `
 
 O `application.yaml` lê a porta de `APPLICATION_PORT` (padrão `8085`) e o banco de `DATABASE_URL` (padrão `localhost:5433/webbudget`, sem o prefixo `jdbc:postgresql://`, que o próprio arquivo acrescenta), `DATABASE_USER` e `DATABASE_PASSWORD` (padrão `sa_webbudget`). O Actuator expõe só `health` e `info`, em modo `read_only`.
 
+**Profiles.** Além do `application.yaml` (que vale para todos), há um arquivo por profile:
+
+| Profile | Arquivo | O que muda |
+|---|---|---|
+| `dev` | `src/main/resources/application-dev.yaml` | Log `debug` para `br.com.webbudget` e `web-budget.security.totp.required: false` (o login não pede TOTP). |
+| `prod` | `src/main/resources/application-prod.yaml` | `server.forward-headers-strategy: native` e `server.tomcat.remoteip.remote-ip-header` (`REMOTE_IP_HEADER`, padrão `X-Real-IP`), para o Tomcat enxergar o https e o IP real atrás do proxy. O TOTP continua obrigatório (`TOTP_REQUIRED`, padrão `true`). |
+| `test` | `src/test/resources/application-test.yaml` | Limites de tentativa em 1000, `totp.required: false` e log `debug`. Só os testes ativam. |
+
+O `bootRun` ativa o `dev` por padrão (`SPRING_PROFILES_ACTIVE`, definido na tarefa `bootRun` do `build.gradle.kts` só quando a variável não existe no ambiente), e o `test` e o `build` não são afetados. Para subir com outro profile, defina a variável ou passe o argumento, que vence a variável:
+
+```bash
+SPRING_PROFILES_ACTIVE=prod ./gradlew bootRun                    # profile prod, com o TOTP obrigatório
+./gradlew bootRun --args='--spring.profiles.active=prod'         # o mesmo, pelo argumento
+```
+
+Fora do `dev` o padrão é `TOTP_REQUIRED=true`. Não existe profile `railway` (o investlog tem um porque roda na Railway): o webBudget ainda não tem ambiente de deploy, e o profile entra com ele.
+
 O Kover pendura o `koverVerify` no `check`, então o `build` já falha quando a cobertura fica abaixo de um piso. O CI roda `./gradlew koverXmlReport koverVerify` no job `test-server`; antes de abrir um PR que mexe no `server/`, rode o mesmo comando localmente.
 
 **Nunca use a porta 8085 para verificar algo**: ela é do servidor de desenvolvimento do usuário (regra do `CLAUDE.md` da raiz). Suba uma instância descartável em outra porta com `./gradlew bootRun --args='--server.port=18085'`. Ao terminar, mate a JVM da aplicação pelo PID (parar a tarefa do Gradle deixa o processo escutando na porta) e, se os contêineres `webbudget-postgres` e `webbudget-maildev` não estavam rodando antes, derrube-os com `docker compose down`. Contêineres que já estavam de pé são do usuário e continuam de pé.
@@ -184,7 +201,7 @@ Há dois caminhos de entrada, e os dois terminam no `UserService.createAccount`:
 
 ### TOTP e dispositivos confiáveis
 
-O segundo fator vem do investlog (app autenticador, SHA-1, 6 dígitos, 30 s, janela de ±1 passo; issuer `webBudget`) e fica atrás de `web-budget.security.totp.required` (`TOTP_REQUIRED`, padrão `true`; o perfil de teste usa `false`). Com `false` o login ignora o TOTP e nenhum endpoint muda.
+O segundo fator vem do investlog (app autenticador, SHA-1, 6 dígitos, 30 s, janela de ±1 passo; issuer `webBudget`) e fica atrás de `web-budget.security.totp.required` (`TOTP_REQUIRED`, padrão `true`; os profiles `dev` e `test` usam `false`). Com `false` o login ignora o TOTP e nenhum endpoint muda.
 
 - **Login em etapas, sem sessão até o fim.** `POST /auth/login` confere a senha (limitadores e conta desativada como sempre) e só então olha o segundo fator, na ordem: TOTP desligado no sistema → sessão; usuário sem TOTP → `202` `{"status": "needs_enrollment"}`; cookie de dispositivo confiável válido do próprio usuário → sessão; sem `totpCode` → `202` `{"status": "needs_totp"}`; código errado → `401` `invalid_totp_code`; código certo → sessão (e, com `trustDevice: true`, o cookie do dispositivo). `LoginResult` (`Authenticated`, `EnrollmentRequired`, `TotpRequired`) é o que o `AuthService.login` devolve, e o `establishSession` continua o único que emite sessão.
 - **Cadastro do TOTP.** `POST /auth/totp/enroll` (`email` e `password`) confere a senha, grava um segredo novo (`users.totp_secret`, com `totp_enabled = false`) e responde `secretKey` e `qrCodeDataUri` (PNG em data URI). Chamar de novo troca o segredo ainda não confirmado. `POST /auth/totp/verify` (`email`, `password` e `code`) confirma o primeiro código, marca `totp_enabled = true` e **já abre a sessão** (`SessionView`). Os dois respondem `409` `totp_already_enabled` quando o TOTP já está ligado e valem mesmo com `required = false`. Como os dois são públicos (a sessão ainda não existe), a identificação é por e-mail e senha, e o CSRF continua valendo.
