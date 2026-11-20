@@ -15,6 +15,13 @@ const items: MenuGroup[] = [
     ],
   },
   { label: 'menu.financial', items: [{ label: 'period-closing.menu' }] },
+  {
+    label: 'menu.dashboards',
+    items: [
+      { label: 'dashboards.overview', to: '/dashboards', exact: true },
+      { label: 'dashboards.current-month', to: '/dashboards/mes-atual' },
+    ],
+  },
 ]
 
 async function render(path: string) {
@@ -31,7 +38,7 @@ describe('SideMenu', () => {
     const wrapper = await render('/')
 
     const labels = wrapper.findAll('[data-slot="sidebar-group-label"]').map((label) => label.text())
-    expect(labels).toEqual(['Cadastros', 'Financeiro'])
+    expect(labels).toEqual(['Cadastros', 'Financeiro', 'Dashboards'])
   })
 
   it('renders an item with a destination as a link', async () => {
@@ -69,6 +76,18 @@ describe('SideMenu', () => {
     expect(disabled.map((button) => button.text())).toEqual(['Usuários', 'Encerramento do período'])
     expect(disabled[0]!.attributes('title')).toBe('Em breve')
     expect(wrapper.findAll('[data-active="true"]')).toHaveLength(0)
+  })
+
+  it('marks an exact item only on its own path, not on the paths below it', async () => {
+    const overview = await render('/dashboards')
+    const below = await render('/dashboards/mes-atual')
+
+    expect(overview.findAll('[data-active="true"]').map((button) => button.text())).toEqual([
+      'Visão geral',
+    ])
+    expect(below.findAll('[data-active="true"]').map((button) => button.text())).toEqual([
+      'Mês atual',
+    ])
   })
 
   it('hides an item that is not visible', async () => {

@@ -11,13 +11,11 @@ import {
 } from '@/components/ui/sidebar'
 import { APP_VERSION_LABEL } from '@/utils/appVersion'
 
-const props = defineProps<{ enableSideMenu: boolean }>()
-
 const { isMobile } = useSidebar()
 </script>
 
 <template>
-  <Sidebar v-if="props.enableSideMenu || isMobile" collapsible="icon">
+  <Sidebar collapsible="icon">
     <MobileMenu v-if="isMobile" />
     <template v-else>
       <SidebarHeader

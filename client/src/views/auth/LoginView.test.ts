@@ -54,7 +54,7 @@ async function render(
       },
     },
     routes: [
-      { path: '/home', name: 'home', component: { render: () => h('div') } },
+      { path: '/start', name: 'start', component: { render: () => h('div') } },
       { path: '/private-page', component: { render: () => h('div') } },
       {
         path: '/auth/forgot-password',
@@ -150,7 +150,7 @@ describe('LoginView', () => {
     await submit(wrapper, 'ana@example.com', 'secret')
 
     expect(auth.login).toHaveBeenCalledWith({ email: 'ana@example.com', password: 'secret' })
-    expect(router.currentRoute.value.name).toBe('home')
+    expect(router.currentRoute.value.name).toBe('start')
   })
 
   it('goes back to the page that asked for the login', async () => {
@@ -166,7 +166,7 @@ describe('LoginView', () => {
 
     await submit(wrapper, 'ana@example.com', 'secret')
 
-    expect(router.currentRoute.value.name).toBe('home')
+    expect(router.currentRoute.value.name).toBe('start')
   })
 
   it('tells the user when the credentials are wrong, in an alert and not a toast', async () => {
@@ -239,14 +239,14 @@ describe('LoginView', () => {
     const { router, auth } = await render({ authenticated: true })
 
     expect(auth.restoreSession).not.toHaveBeenCalled()
-    expect(router.currentRoute.value.name).toBe('home')
+    expect(router.currentRoute.value.name).toBe('start')
   })
 
   it('skips the form when the session can be restored', async () => {
     const { router, auth } = await render({ restored: true })
 
     expect(auth.restoreSession).toHaveBeenCalled()
-    expect(router.currentRoute.value.name).toBe('home')
+    expect(router.currentRoute.value.name).toBe('start')
   })
 
   it('shows the form when there is no session to restore', async () => {

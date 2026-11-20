@@ -60,10 +60,40 @@ describe('authGuard', () => {
     })
   })
 
-  it('lets a user without any area role reach the home page', async () => {
+  it.each([
+    [['DASHBOARDS'], '/dashboards'],
+    [['FINANCIAL', 'REGISTRATION'], '/financial'],
+    [['REGISTRATION', 'ADMINISTRATION'], '/registration'],
+    [['ADMINISTRATION'], '/configuration'],
+  ] as [Role[], string][])(
+    'sends the root to the first section the roles %j give access to',
+    async (roles, expected) => {
+      auth.session = sessionWith(roles)
+
+      expect(await runGuard('/')).toBe(expected)
+    },
+  )
+
+  it('sends a user without any area role from the root to the forbidden page', async () => {
     auth.session = sessionWith([])
 
-    expect(await runGuard('/')).toBe(true)
+    expect(await runGuard('/')).toEqual({ name: '403' })
+  })
+
+  it('restores the session before choosing the section of the root', async () => {
+    vi.mocked(auth.restoreSession).mockImplementation(() => {
+      auth.session = sessionWith(['REGISTRATION'])
+      return Promise.resolve(true)
+    })
+
+    expect(await runGuard('/')).toBe('/registration')
+    expect(auth.restoreSession).toHaveBeenCalledTimes(1)
+  })
+
+  it('sends a visitor without a session from the root to the login, keeping the root as the redirect', async () => {
+    vi.mocked(auth.restoreSession).mockResolvedValue(false)
+
+    expect(await runGuard('/')).toEqual({ name: 'login', query: { redirect: '/' } })
   })
 
   it.each([

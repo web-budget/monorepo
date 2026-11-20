@@ -12,7 +12,7 @@ describe('error views', () => {
     ['ServerErrorView', ServerErrorView, '500', 'Falha no servidor', 'Tente novamente mais tarde'],
   ])('%s shows its code, its explanation and a way home', (_name, view, code, detail, hint) => {
     const { plugins } = createTestPlugins({
-      routes: [{ path: '/home', name: 'home', component: { render: () => null } }],
+      routes: [{ path: '/start', name: 'start', component: { render: () => null } }],
     })
     const wrapper = mount(view, { global: { plugins } })
 

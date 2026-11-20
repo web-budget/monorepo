@@ -17,7 +17,7 @@ const session = {
   roles: allRoles,
 }
 
-async function render(options: { path?: string; withSideMenu?: boolean; roles?: Role[] } = {}) {
+async function render(options: { path?: string; roles?: Role[] } = {}) {
   const { router, plugins } = createTestPlugins({
     initialState: { auth: { session } },
     routes: [
@@ -29,7 +29,7 @@ async function render(options: { path?: string; withSideMenu?: boolean; roles?: 
   vi.mocked(useAuthStore().hasRole).mockImplementation((role) => roles.includes(role))
   await router.push(options.path ?? '/')
   await router.isReady()
-  const wrapper = mountInSidebar(TopBar, { withSideMenu: options.withSideMenu ?? true }, plugins)
+  const wrapper = mountInSidebar(TopBar, {}, plugins)
   return { wrapper, router }
 }
 
@@ -114,26 +114,16 @@ describe('TopBar', () => {
     expect(wrapper.find('header a[href="/"]').text()).toBe('webBudget')
   })
 
-  it('hides the brand on desktop when the side menu already shows it', async () => {
-    const withMenu = await render()
-    const withoutMenu = await render({ withSideMenu: false })
+  it('shows the brand only on the phone bar, because the side menu has it on desktop', async () => {
+    const { wrapper } = await render()
 
-    expect(withMenu.wrapper.find('header a[href="/"]').classes()).toContain('md:hidden')
-    expect(withoutMenu.wrapper.find('header a[href="/"]').classes()).not.toContain('md:hidden')
+    expect(wrapper.find('header a[href="/"]').classes()).toContain('md:hidden')
   })
 
-  it('keeps the side menu toggle on desktop when there is a side menu', async () => {
+  it('keeps the side menu toggle on every width', async () => {
     const { wrapper } = await render()
 
     expect(wrapper.find('button[aria-label="Alternar menu lateral"]').classes()).not.toContain(
-      'md:hidden',
-    )
-  })
-
-  it('keeps the toggle on the phone bar only when there is no side menu', async () => {
-    const { wrapper } = await render({ withSideMenu: false })
-
-    expect(wrapper.find('button[aria-label="Alternar menu lateral"]').classes()).toContain(
       'md:hidden',
     )
   })
