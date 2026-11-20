@@ -7,6 +7,7 @@ import br.com.webbudget.server.domain.exceptions.DomainException
 import br.com.webbudget.server.domain.services.administration.UserService
 import br.com.webbudget.server.infrastructure.repository.administration.UserRepository
 import br.com.webbudget.server.jooq.administration.tables.references.USERS
+import br.com.webbudget.server.utilities.contents
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.jooq.DSLContext
@@ -41,8 +42,9 @@ class UserApprovalTest : BaseIntegrationTest() {
 
         val message = greenMail.receivedMessages.single()
 
-        assertThat(message.subject).isEqualTo("Sua conta foi aprovada")
+        assertThat(message.subject).isEqualTo("Sua conta no webBudget foi aprovada")
         assertThat(message.allRecipients.map { it.toString() }).containsExactly(EMAIL)
+        assertThat(message.contents().plainText).contains("Áreas liberadas: Financeiro, Cadastros")
     }
 
     @Test
@@ -194,6 +196,60 @@ class UserApprovalTest : BaseIntegrationTest() {
             .expectStatus().isOk
     }
 
+
+    @Test
+    fun `should tell the owner, in the language of the account, that it was blocked and then unblocked`() {
+
+        createUser(EMAIL, UserStatus.APPROVED, "FINANCIAL")
+        dsl.update(USERS).set(USERS.DEFAULT_LANGUAGE, "EN_US").where(USERS.EMAIL.eq(EMAIL)).execute()
+
+        patch(userOf(EMAIL), "block").expectStatus().isOk
+
+        val blockedMessage = greenMail.receivedMessages.single()
+
+        assertThat(blockedMessage.subject).isEqualTo("Your webBudget account was blocked")
+        assertThat(blockedMessage.allRecipients.map { it.toString() }).containsExactly(EMAIL)
+        assertThat(blockedMessage.contents().html).contains("<html lang=\"en-US\"", "Account blocked")
+        assertThat(blockedMessage.contents().plainText).contains("Your open sessions were ended")
+
+        greenMail.purgeEmailFromAllMailboxes()
+
+        patch(userOf(EMAIL), "unblock").expectStatus().isOk
+
+        val unblockedMessage = greenMail.receivedMessages.single()
+
+        assertThat(unblockedMessage.subject).isEqualTo("Your webBudget account was unblocked")
+        assertThat(unblockedMessage.contents().plainText).contains("Sign in to webBudget: http://localhost:8086/login")
+    }
+
+    @Test
+    fun `should tell the owner in Portuguese by default that it was blocked and unblocked`() {
+
+        val user = createUser(EMAIL, UserStatus.APPROVED)
+
+        patch(user, "block").expectStatus().isOk
+        patch(userOf(EMAIL), "unblock").expectStatus().isOk
+
+        assertThat(greenMail.receivedMessages.map { it.subject })
+            .containsExactlyInAnyOrder("Sua conta no webBudget foi bloqueada", "Sua conta no webBudget foi desbloqueada")
+    }
+
+    @Test
+    fun `should send nothing when the block or the unblock is refused`() {
+
+        val pending = createUser(EMAIL, UserStatus.PENDING)
+        val approved = createUser(OTHER_EMAIL, UserStatus.APPROVED)
+
+        patch(pending, "block").expectStatus().isEqualTo(409)
+        patch(pending, "unblock").expectStatus().isEqualTo(409)
+        patch(approved, "unblock").expectStatus().isEqualTo(409)
+
+        signInAsSecondAdministrator()
+
+        patch(userOf(ADMINISTRATOR_EMAIL), "block").expectSelfActionRefused()
+
+        assertThat(greenMail.receivedMessages).isEmpty()
+    }
     @Test
     fun `should refuse to unblock an account that is not blocked`() {
 

@@ -51,6 +51,15 @@ describe('authGuard', () => {
     expect(auth.restoreSession).toHaveBeenCalledTimes(1)
   })
 
+  it('keeps the query of the user list in the redirect of a user with no session', async () => {
+    vi.mocked(auth.restoreSession).mockResolvedValue(false)
+
+    expect(await runGuard('/configuration/users?status=PENDING')).toEqual({
+      name: 'login',
+      query: { redirect: '/configuration/users?status=PENDING' },
+    })
+  })
+
   it('sends a user with no session to the login with the requested path', async () => {
     vi.mocked(auth.restoreSession).mockResolvedValue(false)
 

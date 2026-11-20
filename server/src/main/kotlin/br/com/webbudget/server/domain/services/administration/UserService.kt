@@ -29,6 +29,7 @@ class UserService(
     private val roleRepository: RoleRepository,
     private val selfActionGuard: SelfActionGuard,
     private val accountMailNotifier: AccountMailNotifier,
+    private val securityNoticeNotifier: SecurityNoticeNotifier,
     private val accountActivationService: AccountActivationService,
     private val passwordRecoverAttemptRepository: PasswordRecoverAttemptRepository,
     private val accountActivationAttemptRepository: AccountActivationAttemptRepository,
@@ -95,7 +96,9 @@ class UserService(
 
         selfActionGuard.assertNotSelf(user)
 
-        return updatePassword(user, password)
+        return updatePassword(user, password).also {
+            securityNoticeNotifier.notifyPasswordChanged(user, PasswordChangedBy.ADMINISTRATOR)
+        }
     }
 
     @Transactional
@@ -112,7 +115,7 @@ class UserService(
 
         val approved = userRepository.updateStatus(user, UserStatus.PENDING, UserStatus.APPROVED)
 
-        accountMailNotifier.notifyAccountApproved(approved)
+        accountMailNotifier.notifyAccountApproved(approved, roles.map { it.name })
 
         return approved
     }
@@ -124,7 +127,11 @@ class UserService(
 
         requireStatus(user, UserStatus.APPROVED)
 
-        return userRepository.updateStatus(user, UserStatus.APPROVED, UserStatus.BLOCKED, revokeSessions = true)
+        val blocked = userRepository.updateStatus(user, UserStatus.APPROVED, UserStatus.BLOCKED, revokeSessions = true)
+
+        accountMailNotifier.notifyAccountBlocked(blocked)
+
+        return blocked
     }
 
     @Transactional
@@ -132,7 +139,11 @@ class UserService(
 
         requireStatus(user, UserStatus.BLOCKED)
 
-        return userRepository.updateStatus(user, UserStatus.BLOCKED, UserStatus.APPROVED)
+        val unblocked = userRepository.updateStatus(user, UserStatus.BLOCKED, UserStatus.APPROVED)
+
+        accountMailNotifier.notifyAccountUnblocked(unblocked)
+
+        return unblocked
     }
 
     @Transactional
@@ -144,6 +155,8 @@ class UserService(
 
         trustedDeviceRepository.deleteByUserId(userId)
         userRepository.resetTotp(userId)
+
+        securityNoticeNotifier.notifyTotpReset(user)
     }
 
     @Transactional

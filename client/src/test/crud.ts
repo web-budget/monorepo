@@ -38,6 +38,7 @@ export async function mountView(
   routeName: string,
   props: Record<string, unknown> = {},
   initialState: Record<string, unknown> = {},
+  location?: string,
 ) {
   installZodErrorMap()
   const { router, plugins } = createTestPlugins({
@@ -45,6 +46,9 @@ export async function mountView(
     stubActions: false,
     initialState,
   })
+  if (location) {
+    await router.push(location)
+  }
   const wrapper = mount(view, { props, attachTo: document.body, global: { plugins } })
   await flushPromises()
   return { wrapper, router }

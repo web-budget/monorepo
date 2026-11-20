@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::content}, ~{::footer})}">
+<body>
+<div th:fragment="content">
+    <table th:replace="~{parts :: badge('pending', #{user-pending-approval.badge})}"></table>
+    <h1 th:replace="~{parts :: title(#{user-pending-approval.title})}"></h1>
+    <p th:replace="~{parts :: paragraph(#{user-pending-approval.lead(${recipientName})})}"></p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; margin: 4px 0 8px 0; border-top: 1px solid #d1dad5;">
+        <tr th:replace="~{parts :: ledgerRow(#{user-pending-approval.name}, ${userName}, false)}"></tr>
+        <tr th:replace="~{parts :: ledgerRow(#{user-pending-approval.email}, ${userEmail}, true)}"></tr>
+        <tr th:replace="~{parts :: ledgerRow(#{user-pending-approval.sign-up-method}, ${signUpMethod}, false)}"></tr>
+        <tr th:replace="~{parts :: ledgerRow(#{user-pending-approval.created-at}, ${createdAt}, true)}"></tr>
+    </table>
+    <table th:replace="~{parts :: button(#{user-pending-approval.cta}, ${reviewUrl})}"></table>
+    <p th:replace="~{parts :: note(#{user-pending-approval.hint})}"></p>
+    <th:block th:replace="~{parts :: fallback(${reviewUrl})}"></th:block>
+</div>
+<p th:fragment="footer" th:text="#{user-pending-approval.footer}" style="margin: 0;">Você recebe este e-mail porque é administrador do webBudget.</p>
+</body>
+</html>

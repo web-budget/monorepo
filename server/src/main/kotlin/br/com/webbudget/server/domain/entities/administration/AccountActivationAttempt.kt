@@ -8,10 +8,10 @@ class AccountActivationAttempt(
     var token: UUID,
     val user: User,
     var activatedOn: LocalDateTime? = null,
-    var validity: LocalDateTime = LocalDateTime.now().plusDays(VALIDITY_TIME_LIMIT_DAYS)
+    var validity: LocalDateTime = LocalDateTime.now().plusDays(VALIDITY_DAYS)
 ) : PersistentEntity() {
 
     companion object {
-        private const val VALIDITY_TIME_LIMIT_DAYS = 5L
+        const val VALIDITY_DAYS = 5L
     }
 }

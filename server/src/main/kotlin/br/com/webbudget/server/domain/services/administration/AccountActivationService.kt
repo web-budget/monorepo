@@ -4,17 +4,12 @@ import br.com.webbudget.server.domain.entities.administration.AccountActivationA
 import br.com.webbudget.server.domain.entities.administration.UserStatus
 import br.com.webbudget.server.domain.exceptions.DomainException
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.INVALID_TOKEN
-import br.com.webbudget.server.domain.mail.AccountActivationEmail
-import br.com.webbudget.server.domain.mail.MailRequested
 import br.com.webbudget.server.infrastructure.repository.administration.AccountActivationAttemptRepository
 import br.com.webbudget.server.infrastructure.repository.administration.UserRepository
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
@@ -22,11 +17,8 @@ private val logger = KotlinLogging.logger {}
 @Service
 @Transactional(readOnly = true)
 class AccountActivationService(
-    @param:Value($$"${web-budget.frontend-url}")
-    private val frontendUrl: String,
     private val userRepository: UserRepository,
     private val accountMailNotifier: AccountMailNotifier,
-    private val applicationEventPublisher: ApplicationEventPublisher,
     private val accountActivationAttemptRepository: AccountActivationAttemptRepository
 ) {
 
@@ -42,15 +34,7 @@ class AccountActivationService(
 
         val activationAttempt = accountActivationAttemptRepository.insert(AccountActivationAttempt(UUID.randomUUID(), user))
 
-        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
-        val activationUrl = "$frontendUrl/auth/account-activation" +
-                "?token=${activationAttempt.token}&email=${user.email}"
-
-        val mailMessage = AccountActivationEmail(user)
-        mailMessage.addVariable("activateAccountUrl", activationUrl)
-        mailMessage.addVariable("validUntil", activationAttempt.validity.format(formatter))
-
-        applicationEventPublisher.publishEvent(MailRequested(mailMessage))
+        accountMailNotifier.notifyAccountActivation(user, activationAttempt)
     }
 
     @Transactional

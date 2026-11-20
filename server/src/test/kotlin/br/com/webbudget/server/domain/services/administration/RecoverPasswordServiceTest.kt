@@ -32,8 +32,8 @@ class RecoverPasswordServiceTest : BaseIntegrationTest() {
 
     @ParameterizedTest
     @CsvSource(
-        "other-user@webbudget.com.br, Password recovery",
-        "user@webbudget.com.br, Recuperação de senha"
+        "other-user@webbudget.com.br, Reset your webBudget password",
+        "user@webbudget.com.br, Redefina sua senha do webBudget"
     )
     fun `should send the recovery e-mail in the language of the user`(userEmail: String, expectedSubject: String) {
 

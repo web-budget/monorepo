@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::content}, ~{::footer})}">
+<body>
+<div th:fragment="content">
+    <table th:replace="~{parts :: badge('approved', #{account-approved.badge})}"></table>
+    <h1 th:replace="~{parts :: title(#{account-approved.title})}"></h1>
+    <p th:replace="~{parts :: paragraph(#{account-approved.lead(${userName})})}"></p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; margin: 4px 0 8px 0; border-top: 1px solid #d1dad5;">
+        <tr th:replace="~{parts :: ledgerRow(#{account-approved.email}, ${userEmail}, true)}"></tr>
+        <tr th:replace="~{parts :: ledgerRow(#{account-approved.roles}, ${roles}, false)}"></tr>
+    </table>
+    <table th:replace="~{parts :: button(#{account-approved.cta}, ${loginUrl})}"></table>
+    <th:block th:replace="~{parts :: fallback(${loginUrl})}"></th:block>
+</div>
+<p th:fragment="footer" th:text="#{account-approved.footer}" style="margin: 0;">Você recebe este e-mail porque se cadastrou no webBudget.</p>
+</body>
+</html>

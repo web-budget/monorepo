@@ -10,6 +10,7 @@ import br.com.webbudget.server.infrastructure.config.security.RegistrationAttemp
 import br.com.webbudget.server.infrastructure.config.security.SecurityProperties
 import br.com.webbudget.server.infrastructure.repository.administration.AccountActivationAttemptRepository
 import br.com.webbudget.server.infrastructure.repository.administration.UserRepository
+import br.com.webbudget.server.utilities.contents
 import jakarta.mail.internet.MimeMessage
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
@@ -18,6 +19,8 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.web.servlet.client.RestTestClient.ResponseSpec
 import org.springframework.test.json.JsonCompareMode
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 class AccountRegistrationTest : BaseIntegrationTest() {
@@ -69,7 +72,7 @@ class AccountRegistrationTest : BaseIntegrationTest() {
 
         val message = greenMail.receivedMessages.single()
 
-        assertThat(message.subject).isEqualTo("Ativar conta de usuário")
+        assertThat(message.subject).isEqualTo("Confirme seu e-mail no webBudget")
         assertThat(message.allRecipients.map { it.toString() }).containsExactly("new-user@webbudget.com.br")
         assertThat(accountActivationAttemptRepository.findByUserEmail("new-user@webbudget.com.br")).hasSize(1)
     }
@@ -82,7 +85,7 @@ class AccountRegistrationTest : BaseIntegrationTest() {
         register("english@webbudget.com.br", language = "EN_US").expectStatus().isCreated
 
         assertThat(userRepository.findByEmail("english@webbudget.com.br")!!.defaultLanguage).isEqualTo(Language.EN_US)
-        assertThat(greenMail.receivedMessages.single().subject).isEqualTo("User account activation")
+        assertThat(greenMail.receivedMessages.single().subject).isEqualTo("Confirm your email for webBudget")
     }
 
     @Test
@@ -246,8 +249,14 @@ class AccountRegistrationTest : BaseIntegrationTest() {
         val notices = greenMail.receivedMessages
         assertThat(notices).hasSize(1)
         assertThat(notices.single().allRecipients.map { it.toString() }).containsExactly("admin@webbudget.com.br")
-        assertThat(notices.single().subject).isEqualTo("Novo usuário aguardando aprovação")
+        assertThat(notices.single().subject).isEqualTo("Cadastro aguardando aprovação: New User")
         assertThat(textOf(notices.single())).contains("journey@webbudget.com.br", "New User")
+
+        val signedUpAt = userRepository.findByEmail("journey@webbudget.com.br")!!.createdOn!!
+            .atZone(ZoneId.systemDefault()).withZoneSameInstant(ZoneId.of("America/Sao_Paulo"))
+            .format(DateTimeFormatter.ofPattern("dd/MM/yyyy 'às' HH:mm"))
+
+        assertThat(notices.single().contents().plainText).contains("Cadastro por: E-mail e senha", "Criada em: $signedUpAt")
 
         val pendingCookie = login("journey@webbudget.com.br", PASSWORD)
 
@@ -280,7 +289,7 @@ class AccountRegistrationTest : BaseIntegrationTest() {
             .exchange()
             .expectStatus().isOk
 
-        assertThat(greenMail.receivedMessages.single().subject).isEqualTo("Sua conta foi aprovada")
+        assertThat(greenMail.receivedMessages.single().subject).isEqualTo("Sua conta no webBudget foi aprovada")
 
         restTestClient.get()
             .uri("/private/v1/administration/roles")

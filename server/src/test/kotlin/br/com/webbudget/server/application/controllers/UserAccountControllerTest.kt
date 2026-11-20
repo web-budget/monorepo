@@ -40,7 +40,7 @@ class UserAccountControllerTest : BaseIntegrationTest() {
             .expectStatus().isAccepted
 
         assertThat(greenMail.receivedMessages).hasSize(1)
-        assertThat(greenMail.receivedMessages.first().subject).isEqualTo("Recuperação de senha")
+        assertThat(greenMail.receivedMessages.first().subject).isEqualTo("Redefina sua senha do webBudget")
         assertThat(passwordRecoverAttemptRepository.findByUserEmail("user@webbudget.com.br")).hasSize(1)
     }
 

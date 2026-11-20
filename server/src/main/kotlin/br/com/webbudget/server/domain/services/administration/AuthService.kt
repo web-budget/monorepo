@@ -46,6 +46,7 @@ class AuthService(
     private val currentUserProvider: CurrentUserProvider,
     private val securityContextRepository: SecurityContextRepository,
     private val userService: UserService,
+    private val securityNoticeNotifier: SecurityNoticeNotifier,
     private val googleLinkTokenStore: GoogleLinkTokenStore,
     private val googleAuthProperties: GoogleAuthProperties
 ) {
@@ -206,6 +207,8 @@ class AuthService(
         }
 
         val linked = userRepository.linkGoogleAccount(user, consumed.googleSub)
+
+        securityNoticeNotifier.notifyGoogleAccountLinked(linked)
 
         return GoogleLinkResult.Linked(establishSession(CurrentUser.from(linked), request, response))
     }
