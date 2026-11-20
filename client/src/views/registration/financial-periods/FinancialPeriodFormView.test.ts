@@ -58,7 +58,7 @@ describe('FinancialPeriodFormView', () => {
       'Metas',
     ])
     expect(wrapper.find('button[role="switch"]').exists()).toBe(false)
-    expect(buttonWithText(wrapper, 'Criar período financeiro')).toBeDefined()
+    expect(buttonWithText(wrapper, 'Criar')).toBeDefined()
 
     await submit(wrapper)
 
@@ -72,7 +72,7 @@ describe('FinancialPeriodFormView', () => {
     const { wrapper, router } = await mountView(FinancialPeriodFormView, 'financial-periods')
 
     await fillCreation(wrapper)
-    await field(wrapper, 'revenuesGoal').setValue('5000')
+    await field(wrapper, 'revenuesGoal').setValue('500000')
     await submit(wrapper)
 
     expect(financialPeriodsApi.create).toHaveBeenCalledWith({
@@ -141,7 +141,7 @@ describe('FinancialPeriodFormView', () => {
     expect((field(wrapper, 'startingAt').element as HTMLInputElement).value).toBe('2026-01-01')
     expect(field(wrapper, 'startingAt').attributes('disabled')).toBeDefined()
     expect(field(wrapper, 'endingAt').attributes('disabled')).toBeDefined()
-    expect((field(wrapper, 'revenuesGoal').element as HTMLInputElement).value).toBe('5000')
+    expect((field(wrapper, 'revenuesGoal').element as HTMLInputElement).value).toBe('R$ 5.000,00')
     expect(wrapper.text()).toContain('As datas não mudam depois de criado.')
   })
 
@@ -153,7 +153,7 @@ describe('FinancialPeriodFormView', () => {
     })
 
     await field(wrapper, 'name').setValue('Jan 2026')
-    await field(wrapper, 'expensesGoal').setValue('3000')
+    await field(wrapper, 'expensesGoal').setValue('300000')
     await submit(wrapper)
 
     expect(financialPeriodsApi.update).toHaveBeenCalledWith('p-1', {

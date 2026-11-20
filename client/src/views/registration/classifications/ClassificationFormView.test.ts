@@ -46,7 +46,7 @@ describe('ClassificationFormView', () => {
     const { wrapper } = await mountView(ClassificationFormView, 'classifications')
 
     expect(wrapper.find('h1').text()).toBe('Nova classificação')
-    expect(buttonWithText(wrapper, 'Criar classificação')).toBeDefined()
+    expect(buttonWithText(wrapper, 'Criar')).toBeDefined()
     expect(wrapper.findAll('h2').map((title) => title.text())).toEqual([
       'Identificação',
       'Orçamento',
@@ -65,7 +65,7 @@ describe('ClassificationFormView', () => {
 
     await field(wrapper, 'name').setValue('Salary')
     wrapper.getComponent(Select).vm.$emit('update:modelValue', 'INCOME')
-    await field(wrapper, 'budget').setValue('1500.5')
+    await field(wrapper, 'budget').setValue('150050')
     await submit(wrapper)
 
     expect(classificationsApi.create).toHaveBeenCalledWith({
@@ -142,7 +142,7 @@ describe('ClassificationFormView', () => {
 
     expect(wrapper.find('h1').text()).toBe('Editando classificação')
     expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('Salary')
-    expect((field(wrapper, 'budget').element as HTMLInputElement).value).toBe('1500')
+    expect((field(wrapper, 'budget').element as HTMLInputElement).value).toBe('R$ 1.500,00')
     expect(wrapper.find('button[role="combobox"]').attributes('disabled')).toBeDefined()
     expect(wrapper.text()).toContain('O tipo não muda depois de criada.')
   })

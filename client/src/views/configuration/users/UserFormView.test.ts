@@ -119,7 +119,7 @@ describe('UserFormView', () => {
 
       expect(dialog.state.open).toBe(true)
       expect(dialog.state.options.title).toBe('Criar o usuário “Ana”?')
-      expect(dialog.state.options.confirmLabel).toBe('Criar usuário')
+      expect(dialog.state.options.confirmLabel).toBe('Criar')
       expect(usersApi.create).not.toHaveBeenCalled()
 
       dialog.accept()

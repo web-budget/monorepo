@@ -2,8 +2,7 @@
 import { CalendarRange, ChartColumn, TrendingUp } from 'lucide-vue-next'
 import BrandMark from '@/components/brand/BrandMark.vue'
 import BrandWordmark from '@/components/brand/BrandWordmark.vue'
-
-const version = __APP_VERSION__
+import { APP_VERSION_LABEL } from '@/utils/appVersion'
 
 const features = [
   { icon: CalendarRange, label: 'auth-aside.features.periods' },
@@ -33,7 +32,7 @@ const features = [
         </li>
       </ul>
     </div>
-    <p class="text-muted-foreground font-mono text-[11px]">webBudget v{{ version }}</p>
+    <p class="text-muted-foreground font-mono text-[11px]">webBudget {{ APP_VERSION_LABEL }}</p>
   </aside>
 </template>
 

@@ -92,7 +92,7 @@ describe('CardFormView', () => {
     const { wrapper } = await mountView(CardFormView, 'cards')
 
     expect(wrapper.find('h1').text()).toBe('Novo cartão')
-    expect(buttonWithText(wrapper, 'Criar cartão')).toBeDefined()
+    expect(buttonWithText(wrapper, 'Criar')).toBeDefined()
     expect(wrapper.findAll('label').filter((label) => label.text().endsWith('*'))).toHaveLength(3)
 
     await submit(wrapper)
