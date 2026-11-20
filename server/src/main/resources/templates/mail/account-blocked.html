@@ -1,0 +1,12 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::content}, ~{::footer})}">
+<body>
+<div th:fragment="content">
+    <table th:replace="~{parts :: badge('blocked', #{account-blocked.badge})}"></table>
+    <h1 th:replace="~{parts :: title(#{account-blocked.title})}"></h1>
+    <p th:replace="~{parts :: paragraph(#{account-blocked.lead(${userName})})}"></p>
+    <p th:replace="~{parts :: paragraph(#{account-blocked.note})}"></p>
+</div>
+<p th:fragment="footer" th:text="#{account-blocked.footer}" style="margin: 0;">Você recebe este e-mail porque tem uma conta no webBudget.</p>
+</body>
+</html>
