@@ -45,12 +45,13 @@ describe('CostCenterDetailView', () => {
     document.body.replaceChildren()
   })
 
-  it('shows the cost center with its parent and budgets, the parent as the subtitle', async () => {
+  it('shows the cost center with its parent and budgets, with only the name and the status in the header', async () => {
     const { wrapper } = await render()
 
     expect(costCentersApi.findById).toHaveBeenCalledWith('cc-2')
     expect(wrapper.find('h1').text()).toBe('Kitchen')
-    expect(wrapper.find('[data-slot="page-description"]').text()).toBe('Home')
+    expect(wrapper.find('[data-slot="page-description"]').exists()).toBe(false)
+    expect(wrapper.text()).toContain('Home')
     expect(wrapper.text()).toContain('Ativo')
     expect(wrapper.findAll('h2').map((title) => title.text())).toEqual([
       'Identificação',
@@ -59,12 +60,6 @@ describe('CostCenterDetailView', () => {
     expect(wrapper.text()).toContain('100,00')
     expect(wrapper.text()).toContain('0,00')
     expect(wrapper.text()).toContain('---')
-  })
-
-  it('shows a top level cost center without a subtitle', async () => {
-    const { wrapper } = await render({ ...costCenter, parentCostCenter: null })
-
-    expect(wrapper.find('[data-slot="page-description"]').exists()).toBe(false)
   })
 
   it('goes to the edit form', async () => {
