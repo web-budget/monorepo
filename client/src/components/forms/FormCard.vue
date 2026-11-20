@@ -36,7 +36,7 @@ provide(
 </script>
 
 <template>
-  <PageContainer class="mt-4 grid gap-5">
+  <PageContainer>
     <PageHeader :title="title" :description="description ?? $t('crud.required-hint')">
       <template v-if="$slots.badge" #badge><slot name="badge" /></template>
     </PageHeader>

@@ -170,16 +170,12 @@ describe('content width', () => {
     '/registration/wallets/abc/detail',
     '/configuration/users/create',
     '/configuration/users/abc/update',
-  ])('limits %s to the narrow container', (path) => {
-    expect(router.resolve(path).meta.narrow).toBe(true)
+    '/registration/wallets',
+    '/dashboards',
+    '/',
+  ])('does not limit the width of %s', (path) => {
+    expect(Object.keys(router.resolve(path).meta)).not.toContain('narrow')
   })
-
-  it.each(['/registration/wallets', '/configuration/users', '/registration', '/'])(
-    'keeps %s as wide as the page',
-    (path) => {
-      expect(router.resolve(path).meta.narrow).toBeUndefined()
-    },
-  )
 })
 
 describe('start route', () => {

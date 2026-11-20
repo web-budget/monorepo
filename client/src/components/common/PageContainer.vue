@@ -1,5 +1,5 @@
 <template>
-  <div class="mx-auto w-full max-w-[960px]">
+  <div class="grid grid-cols-1 gap-5">
     <slot />
   </div>
 </template>

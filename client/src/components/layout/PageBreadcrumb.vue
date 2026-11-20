@@ -30,7 +30,7 @@ function hiddenOnMobile(index: number, offset = 2) {
 </script>
 
 <template>
-  <Breadcrumb v-if="crumbs.length > 0" :aria-label="$t('layout.breadcrumb')" class="mb-4">
+  <Breadcrumb v-if="crumbs.length > 0" :aria-label="$t('layout.breadcrumb')" class="mb-3">
     <BreadcrumbList>
       <template v-for="(crumb, index) in crumbs" :key="crumb.label">
         <BreadcrumbSeparator

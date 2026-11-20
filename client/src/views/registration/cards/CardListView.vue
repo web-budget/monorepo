@@ -57,7 +57,7 @@ const columns = computed(() => [
 </script>
 
 <template>
-  <PageContainer class="mt-4 grid gap-5">
+  <PageContainer>
     <PageHeader :title="$t('card.title')" :description="$t('card.list.description')">
       <template #actions>
         <Button type="button" @click="changeToAdd()"><Plus />{{ $t('card.form.new') }}</Button>
