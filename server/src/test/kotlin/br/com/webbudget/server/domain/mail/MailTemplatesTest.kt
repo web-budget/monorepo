@@ -99,6 +99,101 @@ class MailTemplatesTest {
         assertThat(plainText.lines().count { it == "https://webbudget.example.com/login" }).isEqualTo(1)
     }
 
+    private fun renderNotice(template: String, locale: String, variables: Map<String, Any>): String {
+
+        val context = Context(Locale.forLanguageTag(locale)).apply {
+            setVariable("subject", "Assunto do e-mail")
+            setVariable("preheader", "Texto de pré-cabeçalho")
+            setVariable("applicationUrl", "https://webbudget.example.com")
+            setVariable("userName", "Maria Souza")
+            setVariables(variables)
+        }
+
+        return engine.process(template, context)
+    }
+
+    private val passwordChangedVariables = mapOf(
+        "changedAt" to "20/11/2026 às 14:32",
+        "recoverUrl" to "https://webbudget.example.com/auth/forgot-password"
+    )
+
+    @Test
+    fun `should render the password changed notice for both origins in both languages`() {
+
+        val byRecovery = renderNotice("password-changed", "pt-BR", passwordChangedVariables + ("changedBy" to "RECOVERY"))
+
+        assertThat(byRecovery).contains("<html lang=\"pt-BR\"", "Segurança", "Sua senha foi alterada", "Olá, Maria Souza.")
+        assertThat(byRecovery).contains("Quando", "20/11/2026 às 14:32", "Como", "Pela recuperação de senha", "Foi você? Então está tudo certo.")
+        assertThat(byRecovery).contains("Não reconhece a alteração?", "Recuperar acesso", "href=\"https://webbudget.example.com/auth/forgot-password\"")
+        assertThat(byRecovery).contains("Você recebe este aviso sempre que algo muda na segurança da sua conta.")
+        assertCleanOutput(byRecovery)
+
+        val byAdministrator = renderNotice("password-changed", "pt-BR", passwordChangedVariables + ("changedBy" to "ADMINISTRATOR"))
+
+        assertThat(byAdministrator).contains("Por um administrador", "Foi um administrador que definiu a senha nova.")
+        assertThat(byAdministrator).doesNotContain("Pela recuperação de senha", "Foi você?")
+        assertCleanOutput(byAdministrator)
+
+        val english = renderNotice("password-changed", "en-US", passwordChangedVariables + ("changedBy" to "RECOVERY"))
+
+        assertThat(english).contains("<html lang=\"en-US\"", "Security", "Your password was changed", "Hi Maria Souza.")
+        assertThat(english).contains("Through password recovery", "Was it you? Then all is well.", "Recover access")
+        assertThat(english).contains("You get this notice whenever something changes in your account’s security.")
+        assertCleanOutput(english)
+
+        val englishByAdministrator = renderNotice("password-changed", "en-US", passwordChangedVariables + ("changedBy" to "ADMINISTRATOR"))
+
+        assertThat(englishByAdministrator).contains("By an administrator", "An administrator set the new password.")
+        assertCleanOutput(englishByAdministrator)
+    }
+
+    @Test
+    fun `should render the two-step verification reset notice in both languages`() {
+
+        val variables = mapOf("loginUrl" to "https://webbudget.example.com/login")
+
+        val portuguese = renderNotice("totp-reset", "pt-BR", variables)
+
+        assertThat(portuguese).contains("<html lang=\"pt-BR\"", "Verificação em duas etapas redefinida", "Olá, Maria Souza.")
+        assertThat(portuguese).contains("Os dispositivos confiáveis também foram esquecidos.", "QR code")
+        assertThat(portuguese).contains("Entrar no webBudget", "href=\"https://webbudget.example.com/login\"", "Não pediu isso?", "Avise um administrador.")
+        assertCleanOutput(portuguese)
+
+        val english = renderNotice("totp-reset", "en-US", variables)
+
+        assertThat(english).contains("<html lang=\"en-US\"", "Two-step verification reset", "Hi Maria Souza.", "Your trusted devices were forgotten too.")
+        assertThat(english).contains("Sign in to webBudget", "Didn’t ask for this?", "Tell an administrator.")
+        assertCleanOutput(english)
+    }
+
+    @Test
+    fun `should render the linked Google account notice in both languages`() {
+
+        val variables = mapOf("linkedAt" to "20/11/2026 às 14:32", "userEmail" to "maria.souza@example.com")
+
+        val portuguese = renderNotice("google-linked", "pt-BR", variables)
+
+        assertThat(portuguese).contains("<html lang=\"pt-BR\"", "Conta Google vinculada", "Olá, Maria Souza.")
+        assertThat(portuguese).contains("Quando", "20/11/2026 às 14:32", "Conta Google", "maria.souza@example.com", "Não reconhece?")
+        assertThat(portuguese).doesNotContain("Se o botão não funcionar", "Entrar no webBudget", "Recuperar acesso")
+        assertCleanOutput(portuguese)
+
+        val english = renderNotice("google-linked", "en-US", variables.plus("linkedAt" to "Nov 20, 2026, 2:32 PM"))
+
+        assertThat(english).contains("<html lang=\"en-US\"", "Google account linked", "Hi Maria Souza.")
+        assertThat(english).contains("When", "Nov 20, 2026, 2:32 PM", "Google account", "Don’t recognize this?", "Tell an administrator.")
+        assertThat(english).doesNotContain("If the button doesn’t work", "Sign in to webBudget", "Recover access")
+        assertCleanOutput(english)
+    }
+
+    @Test
+    fun `should escape the name of the owner in the notices`() {
+
+        val html = renderNotice("totp-reset", "pt-BR", mapOf("loginUrl" to "https://webbudget.example.com/login", "userName" to "<b>x</b>"))
+
+        assertThat(html).contains("&lt;b&gt;x&lt;/b&gt;").doesNotContain("<b>x</b>")
+    }
+
     private fun assertCleanOutput(html: String) {
         assertThat(html).doesNotContainPattern("\\sth:[a-z-]+=")
         assertThat(html).doesNotContain("#{", "??", "\${")

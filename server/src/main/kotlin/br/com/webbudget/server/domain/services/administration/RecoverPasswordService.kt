@@ -24,6 +24,7 @@ class RecoverPasswordService(
     @param:Value($$"${web-budget.frontend-url}")
     private val frontendUrl: String,
     private val userService: UserService,
+    private val securityNoticeNotifier: SecurityNoticeNotifier,
     private val userRepository: UserRepository,
     private val applicationEventPublisher: ApplicationEventPublisher,
     private val passwordRecoverAttemptRepository: PasswordRecoverAttemptRepository
@@ -64,6 +65,8 @@ class RecoverPasswordService(
         }
 
         userService.updatePassword(attempt.user, newPassword)
+
+        securityNoticeNotifier.notifyPasswordChanged(attempt.user, PasswordChangedBy.RECOVERY)
 
         attempt.used = true
         passwordRecoverAttemptRepository.update(attempt)

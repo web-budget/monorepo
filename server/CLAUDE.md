@@ -162,7 +162,7 @@ Os repositórios são classes `@Repository` com o `DSLContext` injetado, em `inf
 
 Os e-mails têm dois caminhos, e os dois convivem **até a #137**:
 
-- **O novo** (Caderno verde): `MailSender` (`domain/mail/`), que renderiza `templates/mail/<nome>.html` com o motor `mailTemplateEngine` e envia pelo SMTP de `spring.mail.*` (o Maildev do `compose.yaml` no `bootRun`, interface em `http://localhost:1080`). Hoje só a conta aprovada (`account-approved`) passa por ele.
+- **O novo** (Caderno verde): `MailSender` (`domain/mail/`), que renderiza `templates/mail/<nome>.html` com o motor `mailTemplateEngine` e envia pelo SMTP de `spring.mail.*` (o Maildev do `compose.yaml` no `bootRun`, interface em `http://localhost:1080`). Hoje passam por ele a conta aprovada (`account-approved`) e os avisos de segurança (veja [Avisos de segurança](#avisos-de-segurança)).
 - **O antigo**: `MailSenderService` + `MailTemplate` (uma classe por e-mail, em `domain/mail/`) + `src/main/resources/mail-templates/<nome>-<en_US|pt_BR>.html`, renderizados pelo `SpringTemplateEngine` do starter (`spring.thymeleaf.prefix`). Ativação, recuperação de senha e cadastro pendente seguem nele, e a #137 os migra e remove este caminho.
 
 **O `mailTemplateEngine` é um `TemplateEngine` puro, nunca um `SpringTemplateEngine`.** No Boot 4.1 o `SpringTemplateEngine` do starter é `@ConditionalOnMissingBean(ISpringTemplateEngine)`: um bean desse tipo o suprime, e o `MailSenderService` antigo passaria a usar o motor novo, que procura em `templates/mail/`. O motor (`MailTemplateConfiguration`, em `infrastructure/config/`) usa um `ClassLoaderTemplateResolver` (prefixo `templates/mail/`, sufixo `.html`, modo HTML, UTF-8) e um `SpringMessageResolver` ligado ao `mailMessageSource`, um `ResourceBundleMessageSource` só dos e-mails (basename `mail/messages`, UTF-8, `fallbackToSystemLocale = false`). Os dois beans são injetados com `@Qualifier("mailTemplateEngine")` e `@Qualifier("mailMessageSource")`.
@@ -172,7 +172,7 @@ Os e-mails têm dois caminhos, e os dois convivem **até a #137**:
 | Arquivo | O que tem |
 |---|---|
 | `layout.html` | `th:fragment="layout(content, footer)"`: `lang` do locale, `<title>` com o assunto, `color-scheme: light` (só o tema claro, sem media query de tema escuro), o pré-cabeçalho escondido (`aria-hidden="true"`), a marca "wB" desenhada em HTML (sem imagem), o cartão de 560px, o rodapé do e-mail e a linha comum "Enviado automaticamente pelo webBudget…" com o endereço do app, e a media query de celular (`max-width: 480px`). |
-| `parts.html` | Os fragmentos repetidos, todos com estilo inline: `badge(kind, label)` (`approved`, `pending`, `blocked`, `neutral`), `title`, `paragraph`, `ledgerRow(label, value, mono)` (a ficha de linhas pautadas), `button(label, href)`, `fallback(href)` (o link de reserva em mono) e `rule`. |
+| `parts.html` | Os fragmentos repetidos, todos com estilo inline: `badge(kind, label)` (`approved`, `pending`, `blocked`, `neutral`), `title`, `paragraph`, `ledgerRow(label, value, mono)` (a ficha de linhas pautadas), `button(label, href)`, `fallback(href)` (o link de reserva em mono), `rule` e `notice(lead, text)` (a frase com o começo em negrito dos avisos). |
 | `<nome>.html` | Um por e-mail, para os dois idiomas: define `content` e `footer` e chama o layout com `th:replace="~{layout :: layout(~{::content}, ~{::footer})}"`. |
 
 **Textos e idiomas.** Um template por e-mail, e os textos em `src/main/resources/mail/messages.properties` (pt-BR, o padrão, igual ao `messages_pt_BR.properties`) e `messages_en_US.properties`. As chaves são `<template>.subject`, `.preheader`, `.badge`, `.title`, `.lead`, `.cta`, `.footer` e as que forem próprias do e-mail; `layout.*` são as comuns e `role.<ROLE>` os nomes das áreas. O `Language` do usuário vira o `Locale` do contexto (`Language.locale`: `PT_BR` → `pt-BR`, `EN_US` → `en-US`). **Mensagens usam ’ (apóstrofo tipográfico), nunca o apóstrofo reto**, que o `MessageFormat` engole quando a mensagem leva argumentos; o `MailMessagesTest` confere isso e que os dois idiomas têm as mesmas chaves.
@@ -186,6 +186,16 @@ Os e-mails têm dois caminhos, e os dois convivem **até a #137**:
 - `MailDateFormatter.format(dateTime, language)` converte o `LocalDateTime` do server (fuso do servidor) para `web-budget.mail.time-zone` (`MAIL_TIME_ZONE`, padrão `America/Sao_Paulo`) e escreve `20/11/2026 às 14:32` (pt-BR) ou `Nov 20, 2026, 2:32 PM` (en-US).
 - `MailLinkBuilder.build(path, queryParameters)` monta o link do front com `UriComponentsBuilder` e **variáveis de template** (`queryParam(nome, "{nome}")` + `encode()` + `buildAndExpand`). Só assim o `+` do e-mail vira `%2B`: com o valor direto no `queryParam`, o `encode()` o deixa como está.
 - A validade dos links sai como duração no arquivo de mensagens ("vale por 5 dias"), não como "válido até" com data e hora sem fuso.
+
+**Avisos de segurança.** Três e-mails avisam o dono da conta de uma mudança de segurança. Os três usam o selo neutro "Segurança" e o rodapé "Você recebe este aviso sempre que algo muda na segurança da sua conta.", saem no idioma do usuário e são publicados pelo `SecurityNoticeNotifier` (`domain/services/administration/`) como `MailMessageRequested`, então só saem depois do commit, e uma operação que falha (token inválido, ação sobre a própria conta) não manda nada. A falha de envio nunca desfaz a operação, porque o `MailSender` não lança. O parâmetro `{0}` do texto de abertura de cada um é o `userName`.
+
+| E-mail | Quando sai | Variáveis |
+|---|---|---|
+| `password-changed` | `RecoverPasswordService.recover` (`changedBy` = `RECOVERY`, "Pela recuperação de senha" e "Foi você? Então está tudo certo.") e `UserService.resetPassword` (`ADMINISTRATOR`, "Por um administrador" e o texto manda entrar com a senha que o administrador definiu). O botão "Recuperar acesso" leva a `/auth/forgot-password`. O `UserService.updatePassword` não avisa: quem o chama é que decide. | `userName`, `changedAt`, `changedBy`, `recoverUrl` |
+| `totp-reset` | `UserService.resetTotp`: diz que os dispositivos confiáveis foram esquecidos e que o próximo acesso mostra o QR code. O botão "Entrar no webBudget" leva a `/login`. | `userName`, `loginUrl` |
+| `google-linked` | `AuthService.linkGoogleAccount`, depois de gravar o vínculo. Sem botão: a ficha traz "Quando" e "Conta Google" (o e-mail da conta). | `userName`, `linkedAt`, `userEmail` |
+
+`changedAt` e `linkedAt` já chegam formatados pelo `MailDateFormatter`, no fuso de `web-budget.mail.time-zone`. O texto de "Como" e o de "Foi você?" do `password-changed` vêm das chaves `password-changed.how.<changedBy>` e `password-changed.note.<changedBy>`. O fragmento `notice(lead, text)` de `parts.html` escreve a frase com o começo em negrito ("**Não reconhece a alteração?** Crie uma senha nova…").
 
 **Como acrescentar um e-mail:**
 
