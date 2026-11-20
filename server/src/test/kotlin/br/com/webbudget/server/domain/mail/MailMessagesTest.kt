@@ -25,6 +25,8 @@ class MailMessagesTest {
 
         val templates = listOf(
             "account-approved",
+            "account-blocked",
+            "account-unblocked",
             "account-activation.self-registration",
             "account-activation.administrator-created",
             "recover-password",

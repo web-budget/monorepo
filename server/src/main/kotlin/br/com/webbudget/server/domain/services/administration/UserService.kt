@@ -124,7 +124,11 @@ class UserService(
 
         requireStatus(user, UserStatus.APPROVED)
 
-        return userRepository.updateStatus(user, UserStatus.APPROVED, UserStatus.BLOCKED, revokeSessions = true)
+        val blocked = userRepository.updateStatus(user, UserStatus.APPROVED, UserStatus.BLOCKED, revokeSessions = true)
+
+        accountMailNotifier.notifyAccountBlocked(blocked)
+
+        return blocked
     }
 
     @Transactional
@@ -132,7 +136,11 @@ class UserService(
 
         requireStatus(user, UserStatus.BLOCKED)
 
-        return userRepository.updateStatus(user, UserStatus.BLOCKED, UserStatus.APPROVED)
+        val unblocked = userRepository.updateStatus(user, UserStatus.BLOCKED, UserStatus.APPROVED)
+
+        accountMailNotifier.notifyAccountUnblocked(unblocked)
+
+        return unblocked
     }
 
     @Transactional
