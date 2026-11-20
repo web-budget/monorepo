@@ -19,6 +19,8 @@ O client roda com Node 24 e com o pnpm fixado no `packageManager` de `client/pac
 
 Tudo o que fica no nível de cima, `.github/` e os arquivos da raiz (`README.md`, este `CLAUDE.md`, `.editorconfig`, `.gitattributes`, `.gitignore`), não tem `CLAUDE.md` próprio e conta como a camada **infra/docs** nas regras de PR abaixo.
 
+A versão do software é a do milestone e a do release, e o nome da tag do release acompanha o milestone (hoje `v4.0.0-alpha1`). O workflow `.github/workflows/release.yml` roda ao publicar um release e constrói o client com `VITE_APP_VERSION` igual ao nome da tag; o `workflow_dispatch` dele recebe a versão como input, para testar sem publicar um release. O client lê essa variável para mostrar a versão, então ela não é escrita à mão em lugar nenhum do código.
+
 **Tudo o que vem depois do marcador `<!-- rtk-instructions v2 -->` é gerado pelo `rtk init`; nunca edite à mão.** Ao reescrever as convenções acima dele, preserve o bloco byte a byte e confira antes do push:
 
 ```bash
