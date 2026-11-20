@@ -1,4 +1,4 @@
-import { toTypedSchema } from '@vee-validate/zod'
+import { toTypedSchema } from '@/schemas/typedSchema'
 import { z } from 'zod'
 import { blankToNull, optionalTextSchema } from '@/schemas/fields'
 import type { WalletCreateForm, WalletType, WalletUpdateForm, WalletView } from '@/types'

@@ -5,38 +5,33 @@ function translate(key: string, params: Record<string, unknown> = {}): string {
   return i18n.global.t(`validation.${key}`, params)
 }
 
-export const zodErrorMap: z.ZodErrorMap = (issue, context) => {
+// Returning undefined makes Zod fall back to its own default message.
+export const zodErrorMap: z.core.$ZodErrorMap = (issue) => {
   switch (issue.code) {
-    case z.ZodIssueCode.invalid_type:
-      return {
-        message: translate(issue.received === 'undefined' ? 'required' : 'invalid'),
+    case 'invalid_type':
+      return translate(issue.input === undefined ? 'required' : 'invalid')
+    case 'too_small':
+      if (issue.origin === 'string' || issue.origin === 'array') {
+        return translate(issue.minimum === 1 ? 'required' : 'string-min', {
+          minimum: issue.minimum,
+        })
       }
-    case z.ZodIssueCode.too_small:
-      if (issue.type === 'string' || issue.type === 'array') {
-        return {
-          message: translate(issue.minimum === 1 ? 'required' : 'string-min', {
-            minimum: issue.minimum,
-          }),
-        }
-      }
-      return { message: translate('number-min', { minimum: issue.minimum }) }
-    case z.ZodIssueCode.too_big:
-      return {
-        message: translate(issue.type === 'string' ? 'string-max' : 'number-max', {
-          maximum: issue.maximum,
-        }),
-      }
-    case z.ZodIssueCode.invalid_string:
-      return { message: translate(issue.validation === 'email' ? 'email' : 'invalid') }
-    case z.ZodIssueCode.custom: {
+      return translate('number-min', { minimum: issue.minimum })
+    case 'too_big':
+      return translate(issue.origin === 'string' ? 'string-max' : 'number-max', {
+        maximum: issue.maximum,
+      })
+    case 'invalid_format':
+      return translate(issue.format === 'email' ? 'email' : 'invalid')
+    case 'custom': {
       const key = issue.params?.i18n
-      return { message: typeof key === 'string' ? translate(key) : context.defaultError }
+      return typeof key === 'string' ? translate(key) : undefined
     }
     default:
-      return { message: context.defaultError }
+      return undefined
   }
 }
 
 export function installZodErrorMap() {
-  z.setErrorMap(zodErrorMap)
+  z.config({ customError: zodErrorMap })
 }

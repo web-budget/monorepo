@@ -2,7 +2,7 @@ import { beforeAll, describe, expect, it } from 'vitest'
 import { z } from 'zod'
 import { installZodErrorMap } from '@/schemas/zodErrorMap'
 
-function firstMessage(schema: z.ZodTypeAny, value: unknown): string | undefined {
+function firstMessage(schema: z.ZodType, value: unknown): string | undefined {
   const result = schema.safeParse(value)
   return result.success ? undefined : result.error.issues[0]?.message
 }
@@ -68,6 +68,6 @@ describe('zodErrorMap', () => {
   })
 
   it('keeps the default message for issues it does not know', () => {
-    expect(firstMessage(z.enum(['a']), 'b')).toContain("Invalid enum value. Expected 'a'")
+    expect(firstMessage(z.enum(['a']), 'b')).toContain('Invalid input: expected "a"')
   })
 })
