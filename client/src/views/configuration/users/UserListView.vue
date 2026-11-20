@@ -37,6 +37,7 @@ const passwordTarget = ref<UserView | null>(null)
 const {
   messages,
   loadMessages,
+  searchSummary,
   listState,
   busy,
   counts,
@@ -164,6 +165,7 @@ onMounted(() => store.findRoles().catch(() => undefined))
         v-else
         :data="pageResponse.content"
         :total-elements="pageResponse.totalElements"
+        :summary="searchSummary"
         :columns="columns"
         :loading="busy"
         :current-page="pageRequest.current"

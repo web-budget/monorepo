@@ -24,6 +24,7 @@ const { pageRequest, pageResponse, loading } = storeToRefs(store)
 const {
   messages,
   loadMessages,
+  searchSummary,
   listState,
   busy,
   counts,
@@ -99,6 +100,7 @@ const columns = computed(() => [
         v-else
         :data="pageResponse.content"
         :total-elements="pageResponse.totalElements"
+        :summary="searchSummary"
         :columns="columns"
         :loading="busy"
         :current-page="pageRequest.current"

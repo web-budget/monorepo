@@ -222,6 +222,29 @@ describe('ItemsTable', () => {
     expect(wrapper.text()).toContain('16–20 de 20')
   })
 
+  it('shows the summary it gets instead of the range, keeping the pagination', () => {
+    const wrapper = render({
+      totalElements: 100,
+      currentPage: 1,
+      summary: '100 carteiras encontradas para “abc”',
+    })
+
+    expect(wrapper.text()).toContain('100 carteiras encontradas para “abc”')
+    expect(wrapper.text()).not.toContain('16–30 de 100')
+    expect(wrapper.find('nav[aria-label="pagination"], [data-slot="pagination"]').exists()).toBe(
+      true,
+    )
+  })
+
+  it('gives the cells 48px of height and 16px at the sides, with 15px text, and the header 40px', () => {
+    const wrapper = render()
+
+    const cell = wrapper.find('td')
+    expect(cell.classes()).toEqual(expect.arrayContaining(['h-12', 'px-4', 'text-[15px]']))
+    const head = wrapper.find('th')
+    expect(head.classes()).toEqual(expect.arrayContaining(['h-10', 'px-4']))
+  })
+
   it('emits a zero-based page when a page number is clicked', async () => {
     const wrapper = render({ totalElements: 100 })
 

@@ -129,6 +129,38 @@ describe('WalletListView', () => {
     expect(listing().slice(-1)[0]![0]).toEqual(expect.objectContaining({ filter: 'Mai', page: 0 }))
   })
 
+  it('says how many wallets were found for the applied search, in plural and singular', async () => {
+    const { wrapper } = await render(wallets, 2)
+    expect(wrapper.text()).toContain('1–2 de 2')
+
+    await wrapper.find('input').setValue('Ma')
+    expect(wrapper.text()).toContain('1–2 de 2')
+
+    await wrapper.find('input').trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+    expect(wrapper.text()).toContain('2 carteiras encontradas para “Ma”')
+    expect(wrapper.text()).not.toContain('1–2 de 2')
+
+    serve([wallets[0]!], 1)
+    await wrapper.find('input').setValue('Main')
+    await wrapper.find('input').trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+    expect(wrapper.text()).toContain('1 carteira encontrada para “Main”')
+  })
+
+  it('goes back to the range when the search is cleared', async () => {
+    const { wrapper } = await render(wallets, 2)
+    await wrapper.find('input').setValue('Ma')
+    await wrapper.find('input').trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+
+    await wrapper.find('button[aria-label="Limpar filtro"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('1–2 de 2')
+    expect(wrapper.text()).not.toContain('encontradas')
+  })
+
   it('filters by status from the first page', async () => {
     const { wrapper } = await render()
 

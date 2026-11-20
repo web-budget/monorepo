@@ -30,6 +30,7 @@ const statusOptions = [
 const {
   messages,
   loadMessages,
+  searchSummary,
   listState,
   busy,
   counts,
@@ -101,6 +102,7 @@ const columns = computed(() => [
         v-else
         :data="pageResponse.content"
         :total-elements="pageResponse.totalElements"
+        :summary="searchSummary"
         :columns="columns"
         :show-status="false"
         :loading="busy"

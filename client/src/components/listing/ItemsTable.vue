@@ -65,6 +65,7 @@ const props = withDefaults(
     detailRoute?: string
     linkField?: string
     markedRow?: (item: T) => boolean
+    summary?: string
   }>(),
   {
     columns: () => [],
@@ -75,6 +76,7 @@ const props = withDefaults(
     detailRoute: undefined,
     linkField: undefined,
     markedRow: undefined,
+    summary: undefined,
   },
 )
 
@@ -354,6 +356,7 @@ function changePageSize(value: unknown) {
     <div class="text-muted-foreground flex flex-wrap items-center justify-between gap-2 text-xs">
       <span class="font-mono tabular-nums">
         {{
+          props.summary ??
           $t('items-table.footer.range', {
             first: firstRecord,
             last: lastRecord,
