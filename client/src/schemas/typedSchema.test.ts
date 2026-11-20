@@ -96,6 +96,19 @@ describe('toTypedSchema', () => {
     expect(typed.cast?.({ child: { b: 'z' } })).toEqual({ child: { a: 'x', b: 'z' } })
   })
 
+  it('ignores keys that would pollute the prototype when merging', () => {
+    const typed = toTypedSchema(
+      z.object({ name: z.string().min(3), active: z.boolean().default(true) }),
+    )
+    const values = JSON.parse('{"name":"a","__proto__":{"polluted":true},"constructor":{"x":1}}')
+
+    const result = typed.cast?.(values) as Record<string, unknown>
+
+    expect(result).toEqual({ name: 'a', active: true })
+    expect(({} as Record<string, unknown>).polluted).toBeUndefined()
+    expect(Object.keys(result)).not.toContain('constructor')
+  })
+
   it('returns the values untouched when there are no defaults to merge', () => {
     const typed = toTypedSchema(z.string().min(3))
 

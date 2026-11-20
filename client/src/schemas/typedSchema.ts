@@ -17,8 +17,11 @@ function isPlainObject(value: unknown): value is PlainObject {
   return value !== null && typeof value === 'object' && !Array.isArray(value)
 }
 
+const UNSAFE_KEYS = new Set(['__proto__', 'constructor', 'prototype'])
+
 function merge(target: PlainObject, source: PlainObject): PlainObject {
   for (const [key, value] of Object.entries(source)) {
+    if (UNSAFE_KEYS.has(key)) continue
     const current = target[key]
     target[key] =
       isPlainObject(value) && isPlainObject(current) ? merge(current, value) : (value as unknown)
