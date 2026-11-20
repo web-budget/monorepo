@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import SearchControls from '@/components/listing/SearchControls.vue'
 import i18n from '@/locales'
 
@@ -21,14 +21,6 @@ function buttonWithText(wrapper: ReturnType<typeof render>, text: string) {
 }
 
 describe('SearchControls', () => {
-  beforeEach(() => {
-    vi.useFakeTimers()
-  })
-
-  afterEach(() => {
-    vi.useRealTimers()
-  })
-
   it('lists the most used status first and ends with all', () => {
     const wrapper = render()
 
@@ -64,36 +56,30 @@ describe('SearchControls', () => {
     ])
   })
 
-  it('emits update:filter right away and the change only after the user stops typing', async () => {
+  it('emits update:filter while typing without searching', async () => {
     const wrapper = render({ placeholder: 'Buscar por nome' })
 
     await wrapper.find('input').setValue('abc')
+    await wrapper.find('input').setValue('abcd')
 
-    expect(wrapper.emitted('update:filter')).toEqual([['abc']])
+    expect(wrapper.emitted('update:filter')).toEqual([['abc'], ['abcd']])
     expect(wrapper.find('input').attributes('placeholder')).toBe('Buscar por nome')
     expect(wrapper.emitted('onFilterChange')).toBeUndefined()
-
-    vi.advanceTimersByTime(299)
-    expect(wrapper.emitted('onFilterChange')).toBeUndefined()
-
-    vi.advanceTimersByTime(1)
-    expect(wrapper.emitted('onFilterChange')).toHaveLength(1)
-  })
-
-  it('searches once for a burst of keystrokes', async () => {
-    const wrapper = render()
-
-    await wrapper.find('input').setValue('a')
-    await wrapper.find('input').setValue('ab')
-    vi.advanceTimersByTime(300)
-
-    expect(wrapper.emitted('onFilterChange')).toHaveLength(1)
   })
 
   it('searches immediately on Enter', async () => {
     const wrapper = render()
 
     await wrapper.find('input').trigger('keydown', { key: 'Enter' })
+
+    expect(wrapper.emitted('onFilterChange')).toHaveLength(1)
+    expect(wrapper.emitted('update:status')).toBeUndefined()
+  })
+
+  it('searches when the search button is clicked', async () => {
+    const wrapper = render()
+
+    await buttonWithText(wrapper, 'Buscar').trigger('click')
 
     expect(wrapper.emitted('onFilterChange')).toHaveLength(1)
     expect(wrapper.emitted('update:status')).toBeUndefined()

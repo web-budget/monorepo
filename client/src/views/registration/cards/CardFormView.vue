@@ -66,7 +66,7 @@ const invoiceEnabled = computed(() => typeChosen.value && usesInvoice(form.value
     :dirty="dirty"
     :messages="messages"
     :fields="fields"
-    :submit-label="updating ? $t('crud.save-changes') : $t('card.form.create')"
+    :submit-label="updating ? $t('form.save') : $t('form.create')"
     @submit="onSubmit"
     @back="changeToList"
   >

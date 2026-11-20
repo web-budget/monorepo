@@ -5,6 +5,7 @@ import { useI18n } from 'vue-i18n'
 import FormCard from '@/components/forms/FormCard.vue'
 import FormSection from '@/components/forms/FormSection.vue'
 import InputField from '@/components/forms/InputField.vue'
+import MoneyField from '@/components/forms/MoneyField.vue'
 import SelectField from '@/components/forms/SelectField.vue'
 import StatusToggle from '@/components/forms/StatusToggle.vue'
 import { useCrudForm } from '@/composables/useCrudForm'
@@ -55,7 +56,7 @@ const classificationTypes = computed(() => typeOptions('classification', CLASSIF
     :dirty="dirty"
     :messages="messages"
     :fields="fields"
-    :submit-label="updating ? $t('crud.save-changes') : $t('classification.form.create')"
+    :submit-label="updating ? $t('form.save') : $t('form.create')"
     @submit="onSubmit"
     @back="changeToList"
   >
@@ -93,7 +94,7 @@ const classificationTypes = computed(() => typeOptions('classification', CLASSIF
       :title="$t('classification.sections.budget')"
       :description="$t('classification.sections.budget-help')"
     >
-      <InputField name="budget" type="number" :label="$t('classification.form.budget')" mono />
+      <MoneyField name="budget" :label="$t('classification.form.budget')" />
     </FormSection>
   </FormCard>
 </template>
