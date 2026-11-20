@@ -8,6 +8,7 @@ import kotlinx.kover.gradle.plugin.dsl.CoverageUnit.INSTRUCTION
 import kotlinx.kover.gradle.plugin.dsl.CoverageUnit.LINE
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_4
+import org.springframework.boot.gradle.tasks.run.BootRun
 import org.jooq.codegen.gradle.CodegenPluginExtension
 import org.jooq.meta.jaxb.Jdbc
 import org.testcontainers.postgresql.PostgreSQLContainer
@@ -158,6 +159,10 @@ kover {
 tasks.withType<Test> {
     useJUnitPlatform()
     maxParallelForks = 4
+}
+
+tasks.named<BootRun>("bootRun") {
+    environment("SPRING_PROFILES_ACTIVE", System.getenv("SPRING_PROFILES_ACTIVE") ?: "dev")
 }
 
 jooq {
