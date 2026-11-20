@@ -9,9 +9,9 @@ import {
   SidebarHeader,
   useSidebar,
 } from '@/components/ui/sidebar'
+import { APP_VERSION_LABEL } from '@/utils/appVersion'
 
 const { isMobile } = useSidebar()
-const version = __APP_VERSION__
 </script>
 
 <template>
@@ -32,7 +32,7 @@ const version = __APP_VERSION__
       <SidebarFooter
         class="border-sidebar-border text-muted-foreground border-t px-4 py-3 font-mono text-[11px] group-data-[collapsible=icon]:hidden"
       >
-        webBudget v{{ version }}
+        webBudget {{ APP_VERSION_LABEL }}
       </SidebarFooter>
     </template>
   </Sidebar>

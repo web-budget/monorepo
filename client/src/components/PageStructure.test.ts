@@ -68,7 +68,7 @@ describe('PageStructure', () => {
     const sidebar = wrapper.find('[data-slot="sidebar"]')
     expect(sidebar.text()).toContain('side menu content')
     expect(sidebar.find('a[href="/"]').text()).toBe('webBudget')
-    expect(sidebar.find('[data-slot="sidebar-footer"]').text()).toMatch(/^webBudget v\S+$/)
+    expect(sidebar.find('[data-slot="sidebar-footer"]').text()).toBe('webBudget dev')
   })
 
   it('no longer has a page footer', async () => {

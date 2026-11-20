@@ -54,7 +54,7 @@ const walletTypes = computed(() => typeOptions('wallet', WALLET_TYPES, t))
     :dirty="dirty"
     :messages="messages"
     :fields="fields"
-    :submit-label="updating ? $t('crud.save-changes') : $t('wallet.form.create')"
+    :submit-label="updating ? $t('form.save') : $t('form.create')"
     @submit="onSubmit"
     @back="changeToList"
   >
