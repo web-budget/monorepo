@@ -1,4 +1,5 @@
 import { computed, onMounted, ref, type Ref } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import type { ListStateKind } from '@/components/listing/ListState.vue'
 import type {
@@ -35,6 +36,7 @@ interface CrudListOptions<S extends string> {
 
 export function useCrudList<S extends string>(options: CrudListOptions<S>) {
   const router = useRouter()
+  const { t } = useI18n()
   const { confirmRemoval } = useConfirmDialog()
   const { showSuccess } = useNotification()
   const actionErrors = useServerErrors()
@@ -45,6 +47,14 @@ export function useCrudList<S extends string>(options: CrudListOptions<S>) {
   const initializing = ref(true)
   const busy = computed(() => options.loading.value || initializing.value)
   const counts = ref<Partial<Record<S, number | null>>>({})
+  const searchedText = ref('')
+  const searchSummary = computed(() => {
+    if (searchedText.value === '') {
+      return undefined
+    }
+    const count = options.pageResponse.value.totalElements
+    return t(`${options.entity}.list.found`, { count, query: searchedText.value }, count)
+  })
 
   const listState = computed<ListStateKind | 'table'>(() => {
     if (loadFailed.value) {
@@ -64,6 +74,7 @@ export function useCrudList<S extends string>(options: CrudListOptions<S>) {
   })
 
   async function reload() {
+    searchedText.value = options.pageRequest.value.filterText
     loadFailed.value = !(await loadErrors.run(options.findAll))
     initializing.value = false
   }
@@ -139,6 +150,7 @@ export function useCrudList<S extends string>(options: CrudListOptions<S>) {
     listState,
     busy,
     counts,
+    searchSummary,
     loadCounts,
     reload,
     search,

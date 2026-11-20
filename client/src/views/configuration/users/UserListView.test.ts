@@ -683,7 +683,9 @@ describe('UserListView', () => {
     }
 
     async function submit() {
-      document.body.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }))
+      document.body
+        .querySelector('[role="dialog"] form')!
+        .dispatchEvent(new Event('submit', { cancelable: true }))
       await settle()
     }
 
@@ -696,7 +698,7 @@ describe('UserListView', () => {
 
     it('opens a dialog naming the user, closed until asked for', async () => {
       const { wrapper } = await render()
-      expect(document.body.querySelector('form')).toBeNull()
+      expect(document.body.querySelector('[role="dialog"] form')).toBeNull()
 
       await chooseRowAction(wrapper, 1, 'Redefinir senha')
       await settle()
@@ -720,7 +722,7 @@ describe('UserListView', () => {
         description: 'A nova senha de “Bruno” já vale.',
         duration: 4000,
       })
-      expect(document.body.querySelector('form')).toBeNull()
+      expect(document.body.querySelector('[role="dialog"] form')).toBeNull()
     })
 
     it('does not send a password that is too short or not confirmed', async () => {
@@ -757,7 +759,7 @@ describe('UserListView', () => {
         .dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
       await settle()
 
-      expect(document.body.querySelector('form')).toBeNull()
+      expect(document.body.querySelector('[role="dialog"] form')).toBeNull()
     })
 
     it('closes with the cancel button and forgets what was typed and any error', async () => {
@@ -772,7 +774,7 @@ describe('UserListView', () => {
       )!
       cancel.click()
       await settle()
-      expect(document.body.querySelector('form')).toBeNull()
+      expect(document.body.querySelector('[role="dialog"] form')).toBeNull()
 
       await chooseRowAction(wrapper, 1, 'Redefinir senha')
       await settle()

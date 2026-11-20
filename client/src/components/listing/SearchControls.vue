@@ -2,7 +2,6 @@
 import { Search, X } from 'lucide-vue-next'
 import { ref, watch } from 'vue'
 import { MASCULINE_STATUS_OPTIONS, type StatusOption } from '@/components/listing/statusOptions'
-import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
 const props = withDefaults(
@@ -58,12 +57,18 @@ function resetFilter() {
 </script>
 
 <template>
-  <div class="flex flex-wrap items-center justify-between gap-2">
-    <div class="flex w-full gap-2 md:w-auto">
-      <div class="relative min-w-0 flex-1 md:w-80 md:flex-none">
+  <div class="flex flex-wrap items-center justify-between gap-3">
+    <form
+      role="search"
+      class="flex w-full max-w-2xl min-w-0 flex-1 items-center"
+      @submit.prevent="searchNow()"
+    >
+      <div
+        class="border-input bg-card focus-within:border-ring focus-within:ring-ring/40 flex h-10 min-w-0 flex-1 items-center overflow-hidden rounded-md border transition-[border-color,box-shadow] duration-150 focus-within:ring-[3px]"
+      >
         <Input
           type="search"
-          class="pr-9 [&::-webkit-search-cancel-button]:hidden"
+          class="h-full flex-1 rounded-none border-0 bg-transparent text-[15px] focus-visible:ring-0 md:text-[15px] [&::-webkit-search-cancel-button]:hidden"
           :model-value="filterValue"
           :placeholder="props.placeholder"
           :aria-label="$t('search-control.field')"
@@ -73,17 +78,22 @@ function resetFilter() {
         <button
           v-if="filterValue"
           type="button"
-          class="text-muted-foreground hover:text-foreground absolute top-1/2 right-2 -translate-y-1/2 rounded-sm p-1"
+          class="text-muted-foreground hover:text-foreground mr-1 rounded-sm p-1"
           :aria-label="$t('search-control.actions.clear')"
           @click="resetFilter()"
         >
           <X class="size-4" />
         </button>
+        <button
+          type="submit"
+          class="border-input bg-muted text-muted-foreground hover:bg-accent hover:text-accent-foreground flex h-full items-center border-l px-3.5"
+          :aria-label="$t('search-control.actions.search')"
+          :title="$t('search-control.actions.search')"
+        >
+          <Search class="size-4" />
+        </button>
       </div>
-      <Button type="button" variant="outline" @click="searchNow()">
-        <Search />{{ $t('search-control.actions.search') }}
-      </Button>
-    </div>
+    </form>
     <div
       class="bg-muted inline-flex h-9 items-center gap-0.5 rounded-md p-1 max-md:w-full max-md:overflow-x-auto max-md:[scrollbar-width:none]"
       role="group"

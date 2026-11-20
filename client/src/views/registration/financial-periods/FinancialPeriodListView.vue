@@ -30,6 +30,7 @@ const statusOptions = [
 const {
   messages,
   loadMessages,
+  searchSummary,
   listState,
   busy,
   counts,
@@ -64,7 +65,7 @@ const columns = computed(() => [
 </script>
 
 <template>
-  <PageContainer>
+  <PageContainer class="gap-6">
     <PageHeader
       :title="$t('financial-period.title')"
       :description="$t('financial-period.list.description')"
@@ -101,6 +102,7 @@ const columns = computed(() => [
         v-else
         :data="pageResponse.content"
         :total-elements="pageResponse.totalElements"
+        :summary="searchSummary"
         :columns="columns"
         :show-status="false"
         :loading="busy"

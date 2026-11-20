@@ -53,6 +53,15 @@ describe('CardListView', () => {
     ])
   })
 
+  it('labels the status of a card in the masculine', async () => {
+    const { wrapper } = await render()
+
+    expect(wrapper.findAll('tbody [data-slot="badge"]').map((badge) => badge.text())).toEqual([
+      'Ativo',
+      'Ativo',
+    ])
+  })
+
   it('loads the active cards and lists them with the translated type', async () => {
     const { wrapper } = await render()
 
