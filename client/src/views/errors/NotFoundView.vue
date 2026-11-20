@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
     <template #error-description>{{ $t('error.not-found.description') }}</template>
     <template #action>
       <Button as-child>
-        <RouterLink :to="{ name: 'home' }">{{ $t('action-button.go-home') }}</RouterLink>
+        <RouterLink :to="{ name: 'start' }">{{ $t('action-button.go-home') }}</RouterLink>
       </Button>
     </template>
   </ErrorPage>

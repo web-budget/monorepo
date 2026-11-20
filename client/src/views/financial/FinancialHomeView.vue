@@ -1,14 +1,12 @@
 <script setup lang="ts">
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import ModuleHome from '@/components/layout/ModuleHome.vue'
+import { financialSection } from '@/components/layout/sections'
 </script>
 
 <template>
-  <Card>
-    <CardHeader>
-      <CardTitle>{{ $t('pages.quick-access') }}</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <p class="text-muted-foreground">{{ $t('menu.financial') }}</p>
-    </CardContent>
-  </Card>
+  <ModuleHome
+    :section="financialSection"
+    description="module-home.description.financial"
+    :counts="{}"
+  />
 </template>

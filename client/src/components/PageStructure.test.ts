@@ -77,14 +77,6 @@ describe('PageStructure', () => {
     expect(wrapper.find('footer').exists()).toBe(false)
   })
 
-  it('omits the sidebar when the side menu is disabled', async () => {
-    const wrapper = await render({ props: { enableSideMenu: false } })
-
-    expect(wrapper.find('[data-slot="sidebar"]').exists()).toBe(false)
-    expect(wrapper.text()).not.toContain('side menu content')
-    expect(wrapper.find('main').text()).toContain('root')
-  })
-
   it('collapses the sidebar from the top bar toggle and remembers it in the next page structure', async () => {
     const first = await render()
 
@@ -145,13 +137,6 @@ describe('PageStructure', () => {
       expect(groups).toEqual(['Dashboards', 'Financeiro', 'Cadastros', 'Configurações'])
       expect(sheet.querySelector('a[href="/registration/wallets"]')).not.toBeNull()
       expect(sheet.textContent).not.toContain('side menu content')
-    })
-
-    it('opens the sheet even on a page without a side menu', async () => {
-      const wrapper = await render({ props: { enableSideMenu: false } })
-      await openMenu(wrapper)
-
-      expect(document.body.querySelector('[data-mobile="true"]')).not.toBeNull()
     })
 
     it('lists only the sections the roles give access to', async () => {

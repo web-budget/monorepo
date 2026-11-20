@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { SidebarMenuButton, SidebarMenuItem, useSidebar } from '@/components/ui/sidebar'
 import type { MenuItemDefinition } from '@/components/layout/menu'
@@ -9,7 +8,9 @@ const props = defineProps<{ item: MenuItemDefinition }>()
 const route = useRoute()
 const { setOpenMobile } = useSidebar()
 
-const active = computed(() => props.item.to !== undefined && route.path.startsWith(props.item.to))
+function isActive(to: string): boolean {
+  return props.item.exact ? route.path === to : route.path.startsWith(to)
+}
 </script>
 
 <template>
@@ -17,12 +18,12 @@ const active = computed(() => props.item.to !== undefined && route.path.startsWi
     <SidebarMenuButton
       v-if="props.item.to"
       as-child
-      :is-active="active"
+      :is-active="isActive(props.item.to)"
       :tooltip="$t(props.item.label)"
     >
       <RouterLink :to="props.item.to" @click="setOpenMobile(false)">
         <component :is="props.item.icon" v-if="props.item.icon" />
-        <span :class="{ marker: active }">{{ $t(props.item.label) }}</span>
+        <span :class="{ marker: isActive(props.item.to) }">{{ $t(props.item.label) }}</span>
       </RouterLink>
     </SidebarMenuButton>
     <SidebarMenuButton

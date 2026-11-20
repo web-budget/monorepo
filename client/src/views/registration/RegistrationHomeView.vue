@@ -1,14 +1,32 @@
 <script setup lang="ts">
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import ModuleHome from '@/components/layout/ModuleHome.vue'
+import { registrationSection } from '@/components/layout/sections'
+import { useModuleCounts } from '@/composables/useModuleCounts'
+import { useCardsStore } from '@/stores/cards'
+import { useClassificationsStore } from '@/stores/classifications'
+import { useCostCentersStore } from '@/stores/costCenters'
+import { useFinancialPeriodsStore } from '@/stores/financialPeriods'
+import { useWalletsStore } from '@/stores/wallets'
+
+const wallets = useWalletsStore()
+const cards = useCardsStore()
+const classifications = useClassificationsStore()
+const costCenters = useCostCentersStore()
+const financialPeriods = useFinancialPeriodsStore()
+
+const { counts } = useModuleCounts({
+  '/registration/wallets': () => wallets.count('ALL'),
+  '/registration/cards': () => cards.count('ALL'),
+  '/registration/classifications': () => classifications.count('ALL'),
+  '/registration/cost-centers': () => costCenters.count('ALL'),
+  '/registration/financial-periods': () => financialPeriods.count('ALL'),
+})
 </script>
 
 <template>
-  <Card>
-    <CardHeader>
-      <CardTitle>{{ $t('pages.quick-access') }}</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <p class="text-muted-foreground">{{ $t('menu.registration') }}</p>
-    </CardContent>
-  </Card>
+  <ModuleHome
+    :section="registrationSection"
+    description="module-home.description.registration"
+    :counts="counts"
+  />
 </template>

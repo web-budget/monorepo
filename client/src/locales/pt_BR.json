@@ -275,11 +275,43 @@
     "registration": "Cadastros",
     "dashboards": "Dashboards"
   },
-  "pages": {
-    "quick-access": "Acesso rápido"
-  },
   "dashboards": {
-    "overview": "Visão geral"
+    "overview": "Visão geral",
+    "current-month": "Mês atual",
+    "previous-months": "Meses anteriores",
+    "by-wallet": "Por carteira",
+    "by-classification": "Por classificação",
+    "description": {
+      "overview": "Saldos, receitas e despesas do período.",
+      "current-month": "O movimento do mês em andamento.",
+      "previous-months": "Comparativo dos meses anteriores.",
+      "by-wallet": "Quanto entra e sai de cada carteira.",
+      "by-classification": "Para onde vai o dinheiro, por classificação."
+    },
+    "empty": {
+      "title": "Os dashboards chegam com o financeiro",
+      "description": "Os números e gráficos aparecem aqui quando o financeiro estiver pronto."
+    }
+  },
+  "module-home": {
+    "description": {
+      "financial": "Lançamentos, faturas e fechamento do período.",
+      "registration": "Escolha o que cadastrar ou consultar.",
+      "configuration": "Contas de usuários, áreas de acesso e integrações."
+    },
+    "items": {
+      "period-movement": "Receitas e despesas lançadas no período financeiro.",
+      "recurrent-movement": "Lançamentos que se repetem todo mês.",
+      "credit-card-invoice": "Faturas abertas e fechadas de cada cartão.",
+      "period-closing": "Encerra o período e contabiliza o saldo.",
+      "wallet": "Contas bancárias, investimentos e dinheiro em espécie.",
+      "card": "Cartões de crédito e débito ligados às carteiras.",
+      "classification": "Categorias de receita e despesa dos lançamentos.",
+      "cost-center": "Hierarquia para agrupar onde o dinheiro é gasto.",
+      "financial-period": "Intervalos de tempo com metas de receita e despesa.",
+      "users": "Contas, áreas de acesso e aprovações.",
+      "integrations": "Conexões com bancos e serviços externos."
+    }
   },
   "action-button": {
     "delete": "Deletar",

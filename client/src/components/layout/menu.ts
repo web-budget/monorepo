@@ -4,6 +4,7 @@ export interface MenuItemDefinition {
   label: string
   icon?: Component
   to?: string
+  exact?: boolean
   visible?: boolean
 }
 
