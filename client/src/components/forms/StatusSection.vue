@@ -13,7 +13,7 @@ const { value } = useField<boolean>(() => props.name)
     class="grid items-center gap-x-8 gap-y-2 border-b px-5 py-3.5 md:grid-cols-[220px_minmax(0,1fr)]"
   >
     <div class="grid gap-0.5">
-      <h2 class="text-sm leading-6 font-semibold">{{ $t('crud.status') }}</h2>
+      <h2 class="text-base leading-6 font-semibold">{{ $t('crud.status') }}</h2>
       <p class="text-muted-foreground text-xs">{{ hint }}</p>
     </div>
     <Label class="flex h-6 items-center gap-2.5 font-normal">
