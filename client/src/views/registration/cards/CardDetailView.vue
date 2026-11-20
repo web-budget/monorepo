@@ -25,7 +25,6 @@ const { messages, changeToUpdate, remove } = useCrudDetail({
 <template>
   <DetailCard
     :title="card?.name ?? $t('card.form.detailing')"
-    :description="card ? $t(typeKey('card', card.type)) : undefined"
     :active="card?.active"
     :messages="messages"
     @edit="changeToUpdate"

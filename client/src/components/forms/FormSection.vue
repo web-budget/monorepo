@@ -24,7 +24,7 @@ withDefaults(
     "
   >
     <div class="grid content-start gap-1">
-      <h2 class="text-sm font-semibold">{{ title }}</h2>
+      <h2 class="text-base font-semibold">{{ title }}</h2>
       <p v-if="description" class="text-muted-foreground text-xs">{{ description }}</p>
     </div>
     <div :class="cn('grid grid-cols-1 gap-4', columns)">

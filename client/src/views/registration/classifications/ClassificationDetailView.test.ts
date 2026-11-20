@@ -42,6 +42,7 @@ describe('ClassificationDetailView', () => {
 
     expect(classificationsApi.findById).toHaveBeenCalledWith('c-1')
     expect(wrapper.find('h1').text()).toBe('Salary')
+    expect(wrapper.find('[data-slot="page-description"]').exists()).toBe(false)
     expect(wrapper.text()).toContain('Ativo')
     expect(wrapper.findAll('h2').map((title) => title.text())).toEqual([
       'Identificação',

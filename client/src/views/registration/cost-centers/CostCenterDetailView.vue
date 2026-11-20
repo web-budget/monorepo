@@ -25,7 +25,6 @@ const { messages, changeToUpdate, remove } = useCrudDetail({
 <template>
   <DetailCard
     :title="costCenter?.name ?? $t('cost-center.form.detailing')"
-    :description="costCenter?.parentCostCenter?.fullName"
     :active="costCenter?.active"
     :messages="messages"
     @edit="changeToUpdate"
