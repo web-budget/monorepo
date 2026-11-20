@@ -6,6 +6,7 @@ import i18n from '@/locales'
 function render(props: Record<string, unknown> = {}) {
   return mount(SearchControls, {
     props: { filter: '', status: 'ACTIVE', ...props },
+    attachTo: document.body,
     global: { plugins: [i18n] },
   })
 }
@@ -79,7 +80,7 @@ describe('SearchControls', () => {
   it('searches when the search button is clicked', async () => {
     const wrapper = render()
 
-    await buttonWithText(wrapper, 'Buscar').trigger('click')
+    await wrapper.find('button[aria-label="Buscar"]').trigger('click')
 
     expect(wrapper.emitted('onFilterChange')).toHaveLength(1)
     expect(wrapper.emitted('update:status')).toBeUndefined()
@@ -111,6 +112,42 @@ describe('SearchControls', () => {
     expect(wrapper.emitted('update:status')).toBeUndefined()
     expect(wrapper.emitted('onFilterReset')).toHaveLength(1)
     expect((wrapper.find('input').element as HTMLInputElement).value).toBe('')
+  })
+
+  it('makes the field 40px tall and up to 672px wide, as one group with the search button', () => {
+    const wrapper = render()
+
+    const form = wrapper.find('form[role="search"]')
+    expect(form.classes()).toEqual(expect.arrayContaining(['w-full', 'max-w-2xl', 'flex-1']))
+    const group = form.find('div')
+    expect(group.classes()).toContain('h-10')
+    expect(wrapper.find('input').classes()).toContain('text-[15px]')
+  })
+
+  it('puts the magnifier at the end of the field as the only search button, and no text button', () => {
+    const wrapper = render({ filter: 'abc' })
+
+    const buttons = wrapper.find('form').findAll('button')
+    expect(buttons.map((button) => button.attributes('aria-label'))).toEqual([
+      'Limpar filtro',
+      'Buscar',
+    ])
+    const search = buttons[1]!
+    expect(search.attributes('type')).toBe('submit')
+    expect(search.text()).toBe('')
+    expect(search.find('svg').exists()).toBe(true)
+    expect(search.classes()).toEqual(expect.arrayContaining(['border-l', 'bg-muted']))
+    expect(wrapper.findAll('button').filter((button) => button.text() === 'Buscar')).toHaveLength(0)
+    const start = wrapper.find('input').element.compareDocumentPosition(search.element)
+    expect(start & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  })
+
+  it('searches once when the form is submitted', async () => {
+    const wrapper = render()
+
+    await wrapper.find('form').trigger('submit')
+
+    expect(wrapper.emitted('onFilterChange')).toHaveLength(1)
   })
 
   it('renders custom status options', () => {

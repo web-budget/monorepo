@@ -87,7 +87,7 @@ export function useLoginFlow() {
       await router.push({ name: 'pending-approval' })
       return
     }
-    await router.push(safeRedirect(route.query.redirect) ?? { name: 'home' })
+    await router.push(safeRedirect(route.query.redirect) ?? { name: 'start' })
   }
 
   async function run(action: () => Promise<void>) {

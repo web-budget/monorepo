@@ -1,4 +1,5 @@
 import type { NavigationGuard, RouteLocationMatched } from 'vue-router'
+import { sections } from '@/components/layout/sections'
 import { isPublicRoute } from '@/router/publicRoutes'
 import { useAuthStore } from '@/stores/auth'
 import type { Role } from '@/types'
@@ -17,6 +18,10 @@ export const authGuard: NavigationGuard = async (to) => {
   }
   if (!auth.isApproved) {
     return { name: 'pending-approval' }
+  }
+  if (to.name === 'start') {
+    const firstSection = sections.find(({ role }) => auth.hasRole(role))
+    return firstSection ? firstSection.path : { name: '403' }
   }
   const missingRole = to.matched
     .map(requiredRole)

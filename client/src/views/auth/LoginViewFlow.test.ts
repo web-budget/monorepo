@@ -30,7 +30,7 @@ async function render(query = '') {
   vi.mocked(authApi.fetchConfig).mockResolvedValue({ googleAuthEnabled: true })
   const { router, plugins } = createTestPlugins({
     routes: [
-      { path: '/home', name: 'home', component: { render: () => h('div') } },
+      { path: '/start', name: 'start', component: { render: () => h('div') } },
       { path: '/private-page', component: { render: () => h('div') } },
       {
         path: '/pending-approval',
@@ -105,7 +105,7 @@ describe('LoginView, the steps of the flow', () => {
         totpCode: '482015',
         trustDevice: false,
       })
-      expect(router.currentRoute.value.name).toBe('home')
+      expect(router.currentRoute.value.name).toBe('start')
     })
 
     it('trusts the device when the person ticks the box', async () => {
@@ -129,7 +129,7 @@ describe('LoginView, the steps of the flow', () => {
 
       expect(wrapper.text()).toContain('Código inválido')
       expect(titleOf(wrapper)).toBe('Código de verificação')
-      expect(router.currentRoute.value.name).not.toBe('home')
+      expect(router.currentRoute.value.name).not.toBe('start')
     })
 
     it('says the code is wrong when the server asks for it again', async () => {
@@ -219,7 +219,7 @@ describe('LoginView, the steps of the flow', () => {
         password: 'secret',
         code: '482015',
       })
-      expect(router.currentRoute.value.name).toBe('home')
+      expect(router.currentRoute.value.name).toBe('start')
     })
 
     it('says the code is wrong and keeps the QR code', async () => {
@@ -420,7 +420,7 @@ describe('LoginView, the steps of the flow', () => {
       await settle()
 
       expect(auth.linkGoogle).toHaveBeenCalledWith({ linkToken: 'abc', password: 'secret' })
-      expect(router.currentRoute.value.name).toBe('home')
+      expect(router.currentRoute.value.name).toBe('start')
     })
 
     it('asks for the TOTP and sends the password again with it', async () => {
@@ -438,7 +438,7 @@ describe('LoginView, the steps of the flow', () => {
         password: 'secret',
         totpCode: '482015',
       })
-      expect(router.currentRoute.value.name).toBe('home')
+      expect(router.currentRoute.value.name).toBe('start')
     })
 
     it.each([

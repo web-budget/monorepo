@@ -9,6 +9,7 @@ import FormSection from '@/components/forms/FormSection.vue'
 import InputField from '@/components/forms/InputField.vue'
 import PasswordInput from '@/components/forms/PasswordInput.vue'
 import SelectField from '@/components/forms/SelectField.vue'
+import StatusSection from '@/components/forms/StatusSection.vue'
 import StatusToggle from '@/components/forms/StatusToggle.vue'
 import StatusBadge from '@/components/listing/StatusBadge.vue'
 import { Badge } from '@/components/ui/badge'
@@ -131,6 +132,13 @@ onMounted(() => run(store.findRoles))
       <StatusBadge :active="loadedUser.active" />
     </template>
 
+    <StatusSection
+      v-if="updating"
+      name="active"
+      :label="$t('users.form.active-label')"
+      :hint="$t('users.form.active-hint')"
+    />
+
     <FormSection
       :title="$t('users.sections.data')"
       :description="updating ? undefined : $t('users.sections.data-help')"
@@ -145,14 +153,6 @@ onMounted(() => run(store.findRoles))
         :required="!updating"
       />
       <SelectField name="defaultLanguage" :label="$t('users.form.language')" :options="languages" />
-      <StatusToggle
-        v-if="updating"
-        name="active"
-        class="md:col-span-1"
-        :heading="$t('users.form.active-heading')"
-        :label="$t('users.form.active-label')"
-        :hint="$t('users.form.active-hint')"
-      />
     </FormSection>
 
     <FormSection

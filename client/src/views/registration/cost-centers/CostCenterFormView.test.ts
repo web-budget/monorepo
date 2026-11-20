@@ -153,6 +153,29 @@ describe('CostCenterFormView', () => {
     expect(toast.success).not.toHaveBeenCalled()
   })
 
+  it('puts the status block first on edit, with its help and the switch', async () => {
+    vi.mocked(costCentersApi.findById).mockResolvedValue(kitchen)
+
+    const { wrapper } = await mountView(CostCenterFormView, 'cost-centers', { id: 'cc-2' })
+
+    const sections = wrapper.findAll('form section')
+    expect(sections.length).toBeGreaterThan(1)
+    expect(sections[0]?.find('h2').text()).toBe('Situação')
+    expect(sections[0]?.text()).toContain('Inativar para remover das listagens')
+    expect(sections[0]?.text()).toContain('Ativo')
+    expect(sections[0]?.find('button[role="switch"]').attributes('aria-checked')).toBe('true')
+    expect(wrapper.findAll('button[role="switch"]')).toHaveLength(1)
+  })
+
+  it('has no status block on create: a new record is always active', async () => {
+    const { wrapper } = await mountView(CostCenterFormView, 'cost-centers')
+
+    expect(wrapper.findAll('form section h2').map((title) => title.text())).not.toContain(
+      'Situação',
+    )
+    expect(wrapper.text()).not.toContain('Inativar para')
+  })
+
   it('loads a cost center for editing with its parent shown by full name', async () => {
     vi.mocked(costCentersApi.findById).mockResolvedValue(kitchen)
 

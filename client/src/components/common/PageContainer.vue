@@ -1,5 +1,12 @@
+<script setup lang="ts">
+import type { HTMLAttributes } from 'vue'
+import { cn } from '@/lib/utils'
+
+const props = defineProps<{ class?: HTMLAttributes['class'] }>()
+</script>
+
 <template>
-  <div class="mx-auto w-full max-w-[960px]">
+  <div :class="cn('grid grid-cols-1 gap-5', props.class)">
     <slot />
   </div>
 </template>

@@ -24,14 +24,14 @@ export const configurationRoutes: RouteRecordRaw[] = [
           {
             path: 'create',
             name: 'users.create',
-            meta: { breadcrumb: 'users.form.new', narrow: true },
+            meta: { breadcrumb: 'users.form.new' },
             component: () => import('@/views/configuration/users/UserFormView.vue'),
           },
           {
             path: ':id/update',
             name: 'users.update',
             props: true,
-            meta: { breadcrumb: 'users.form.editing', narrow: true },
+            meta: { breadcrumb: 'users.form.editing' },
             component: () => import('@/views/configuration/users/UserFormView.vue'),
           },
         ],

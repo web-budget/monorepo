@@ -70,7 +70,7 @@ describe('WalletListView', () => {
 
     expect(wrapper.find('h1').text()).toBe('Carteiras')
     expect(wrapper.find('[data-slot="page-description"]').text()).toContain('Contas bancárias')
-    expect(wrapper.find('[data-slot="page-actions"]').text()).toBe('Nova carteira')
+    expect(wrapper.find('[data-slot="page-actions"]').text()).toBe('Criar')
   })
 
   it('loads the active wallets on mount and lists them', async () => {
@@ -92,6 +92,15 @@ describe('WalletListView', () => {
     expect(rows[1]!.text()).toContain('---')
     expect(rows[1]!.text()).not.toContain('Ignored')
     expect(rows[1]!.text()).toContain('Pessoal')
+  })
+
+  it('labels the status of a wallet in the feminine, as the tabs do', async () => {
+    const { wrapper } = await render()
+
+    expect(wrapper.findAll('tbody [data-slot="badge"]').map((badge) => badge.text())).toEqual([
+      'Ativa',
+      'Inativa',
+    ])
   })
 
   it('offers the statuses with the active ones first, each with its count', async () => {
@@ -127,6 +136,38 @@ describe('WalletListView', () => {
     await flushPromises()
 
     expect(listing().slice(-1)[0]![0]).toEqual(expect.objectContaining({ filter: 'Mai', page: 0 }))
+  })
+
+  it('says how many wallets were found for the applied search, in plural and singular', async () => {
+    const { wrapper } = await render(wallets, 2)
+    expect(wrapper.text()).toContain('1–2 de 2')
+
+    await wrapper.find('input').setValue('Ma')
+    expect(wrapper.text()).toContain('1–2 de 2')
+
+    await wrapper.find('input').trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+    expect(wrapper.text()).toContain('2 carteiras encontradas para “Ma”')
+    expect(wrapper.text()).not.toContain('1–2 de 2')
+
+    serve([wallets[0]!], 1)
+    await wrapper.find('input').setValue('Main')
+    await wrapper.find('input').trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+    expect(wrapper.text()).toContain('1 carteira encontrada para “Main”')
+  })
+
+  it('goes back to the range when the search is cleared', async () => {
+    const { wrapper } = await render(wallets, 2)
+    await wrapper.find('input').setValue('Ma')
+    await wrapper.find('input').trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+
+    await wrapper.find('button[aria-label="Limpar filtro"]').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('1–2 de 2')
+    expect(wrapper.text()).not.toContain('encontradas')
   })
 
   it('filters by status from the first page', async () => {
@@ -195,7 +236,7 @@ describe('WalletListView', () => {
   it('opens the form to create a wallet', async () => {
     const { wrapper, router } = await render()
 
-    await buttonWithText(wrapper, 'Nova carteira').trigger('click')
+    await buttonWithText(wrapper, 'Criar').trigger('click')
     await flushPromises()
 
     expect(router.currentRoute.value.name).toBe('wallets.create')

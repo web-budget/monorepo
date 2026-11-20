@@ -8,7 +8,7 @@ import FormSection from '@/components/forms/FormSection.vue'
 import InputField from '@/components/forms/InputField.vue'
 import SearchSelectField from '@/components/forms/SearchSelectField.vue'
 import SelectField from '@/components/forms/SelectField.vue'
-import StatusToggle from '@/components/forms/StatusToggle.vue'
+import StatusSection from '@/components/forms/StatusSection.vue'
 import { useCrudForm } from '@/composables/useCrudForm'
 import {
   CARD_TYPES,
@@ -70,6 +70,12 @@ const invoiceEnabled = computed(() => typeChosen.value && usesInvoice(form.value
     @submit="onSubmit"
     @back="changeToList"
   >
+    <StatusSection
+      v-if="updating"
+      name="active"
+      :label="$t('card.form.active-label')"
+      :hint="$t('card.form.active-hint')"
+    />
     <FormSection
       :title="$t('card.sections.identification')"
       :description="updating ? $t('card.form.type-hint') : $t('card.sections.identification-help')"
@@ -91,12 +97,6 @@ const invoiceEnabled = computed(() => typeChosen.value && usesInvoice(form.value
         required
       />
       <InputField name="flag" :label="$t('card.form.flag')" />
-      <StatusToggle
-        v-if="updating"
-        name="active"
-        :label="$t('card.form.active-label')"
-        :hint="$t('card.form.active-hint')"
-      />
     </FormSection>
     <FormSection
       v-if="walletEnabled"

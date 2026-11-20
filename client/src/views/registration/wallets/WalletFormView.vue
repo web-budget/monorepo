@@ -6,7 +6,7 @@ import FormCard from '@/components/forms/FormCard.vue'
 import FormSection from '@/components/forms/FormSection.vue'
 import InputField from '@/components/forms/InputField.vue'
 import SelectField from '@/components/forms/SelectField.vue'
-import StatusToggle from '@/components/forms/StatusToggle.vue'
+import StatusSection from '@/components/forms/StatusSection.vue'
 import { useCrudForm } from '@/composables/useCrudForm'
 import {
   hasBankData,
@@ -58,6 +58,12 @@ const walletTypes = computed(() => typeOptions('wallet', WALLET_TYPES, t))
     @submit="onSubmit"
     @back="changeToList"
   >
+    <StatusSection
+      v-if="updating"
+      name="active"
+      :label="$t('wallet.form.active-label')"
+      :hint="$t('wallet.form.active-hint')"
+    />
     <FormSection
       :title="$t('wallet.sections.identification')"
       :description="
@@ -72,12 +78,6 @@ const walletTypes = computed(() => typeOptions('wallet', WALLET_TYPES, t))
         :placeholder="$t('wallet.form.type-placeholder')"
         :disabled="updating"
         required
-      />
-      <StatusToggle
-        v-if="updating"
-        name="active"
-        :label="$t('wallet.form.active-label')"
-        :hint="$t('wallet.form.active-hint')"
       />
       <InputField
         name="description"

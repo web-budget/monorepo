@@ -24,6 +24,7 @@ const { pageRequest, pageResponse, loading } = storeToRefs(store)
 const {
   messages,
   loadMessages,
+  searchSummary,
   listState,
   busy,
   counts,
@@ -65,12 +66,10 @@ const columns = computed(() => [
 </script>
 
 <template>
-  <PageContainer class="mt-4 grid gap-5">
+  <PageContainer class="gap-6">
     <PageHeader :title="$t('cost-center.title')" :description="$t('cost-center.list.description')">
       <template #actions>
-        <Button type="button" @click="changeToAdd()">
-          <Plus />{{ $t('cost-center.form.new') }}
-        </Button>
+        <Button type="button" @click="changeToAdd()"> <Plus />{{ $t('form.create') }} </Button>
       </template>
     </PageHeader>
     <div class="grid gap-3">
@@ -99,6 +98,7 @@ const columns = computed(() => [
         v-else
         :data="pageResponse.content"
         :total-elements="pageResponse.totalElements"
+        :summary="searchSummary"
         :columns="columns"
         :loading="busy"
         :current-page="pageRequest.current"

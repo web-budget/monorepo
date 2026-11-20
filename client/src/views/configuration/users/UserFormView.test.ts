@@ -89,6 +89,15 @@ describe('UserFormView', () => {
       expect(usersApi.findById).not.toHaveBeenCalled()
     })
 
+    it('has no status block on create: a new account starts inactive until activated', async () => {
+      const { wrapper } = await render()
+
+      expect(wrapper.findAll('form section h2').map((title) => title.text())).not.toContain(
+        'Situação',
+      )
+      expect(wrapper.text()).not.toContain('Inativar para impedir o login')
+    })
+
     it('asks for the required fields, including at least one role', async () => {
       const { wrapper } = await render()
 
@@ -205,6 +214,20 @@ describe('UserFormView', () => {
   })
 
   describe('editing', () => {
+    it('puts the status block first, with the login help and the switch', async () => {
+      vi.mocked(usersApi.findById).mockResolvedValue(existing)
+
+      const { wrapper } = await render({ id: 'u-2' })
+
+      const sections = wrapper.findAll('form section')
+      expect(sections.length).toBeGreaterThan(1)
+      expect(sections[0]?.find('h2').text()).toBe('Situação')
+      expect(sections[0]?.text()).toContain('Inativar para impedir o login')
+      expect(sections[0]?.text()).toContain('Cadastro ativo')
+      expect(sections[0]?.find('button[role="switch"]').attributes('aria-checked')).toBe('false')
+      expect(wrapper.findAll('button[role="switch"]')).toHaveLength(1)
+    })
+
     it('loads the user with the e-mail locked and no password nor activation fields', async () => {
       vi.mocked(usersApi.findById).mockResolvedValue(existing)
 

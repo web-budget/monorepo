@@ -11,8 +11,6 @@ import { Separator } from '@/components/ui/separator'
 import { useSidebar } from '@/components/ui/sidebar'
 import { useAuthStore } from '@/stores/auth'
 
-const props = defineProps<{ withSideMenu: boolean }>()
-
 const route = useRoute()
 const auth = useAuthStore()
 const { toggleSidebar } = useSidebar()
@@ -31,21 +29,16 @@ const currentSection = computed(() =>
       <Button
         variant="ghost"
         size="icon"
-        :class="{ 'md:hidden': !props.withSideMenu }"
         :aria-label="$t('layout.toggle-menu')"
         @click="toggleSidebar"
       >
         <PanelLeft class="max-md:hidden" />
         <Menu class="md:hidden" />
       </Button>
-      <Separator v-if="props.withSideMenu" orientation="vertical" class="mx-2 h-5 max-md:hidden" />
+      <Separator orientation="vertical" class="mx-2 h-5 max-md:hidden" />
     </div>
 
-    <RouterLink
-      to="/"
-      class="flex items-center gap-2.5 text-base"
-      :class="{ 'md:hidden': props.withSideMenu }"
-    >
+    <RouterLink to="/" class="flex items-center gap-2.5 text-base md:hidden">
       <BrandMark :size="24" />
       <BrandWordmark class="max-md:hidden" />
     </RouterLink>

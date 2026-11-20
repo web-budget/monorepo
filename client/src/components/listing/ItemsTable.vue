@@ -65,6 +65,8 @@ const props = withDefaults(
     detailRoute?: string
     linkField?: string
     markedRow?: (item: T) => boolean
+    summary?: string
+    feminineStatus?: boolean
   }>(),
   {
     columns: () => [],
@@ -75,6 +77,8 @@ const props = withDefaults(
     detailRoute: undefined,
     linkField: undefined,
     markedRow: undefined,
+    summary: undefined,
+    feminineStatus: false,
   },
 )
 
@@ -264,7 +268,7 @@ function changePageSize(value: unknown) {
                 </slot>
               </TableCell>
               <TableCell v-if="props.showStatus">
-                <StatusBadge :active="item.active === true" />
+                <StatusBadge :active="item.active === true" :feminine="props.feminineStatus" />
               </TableCell>
               <TableCell v-if="hasActions" class="text-right" @click.stop>
                 <slot name="actions" :item="item" />
@@ -324,7 +328,12 @@ function changePageSize(value: unknown) {
                 {{ cellValue(item, linkedField) }}
               </slot>
             </span>
-            <StatusBadge v-if="props.showStatus" :active="item.active === true" class="w-fit" />
+            <StatusBadge
+              v-if="props.showStatus"
+              :active="item.active === true"
+              :feminine="props.feminineStatus"
+              class="w-fit"
+            />
           </div>
           <div v-if="hasActions" class="-mt-1 -mr-2" @click.stop>
             <slot name="actions" :item="item" />
@@ -354,6 +363,7 @@ function changePageSize(value: unknown) {
     <div class="text-muted-foreground flex flex-wrap items-center justify-between gap-2 text-xs">
       <span class="font-mono tabular-nums">
         {{
+          props.summary ??
           $t('items-table.footer.range', {
             first: firstRecord,
             last: lastRecord,

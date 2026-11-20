@@ -37,6 +37,7 @@ const passwordTarget = ref<UserView | null>(null)
 const {
   messages,
   loadMessages,
+  searchSummary,
   listState,
   busy,
   counts,
@@ -106,10 +107,10 @@ onMounted(() => store.findRoles().catch(() => undefined))
 </script>
 
 <template>
-  <PageContainer class="mt-4 grid grid-cols-1 gap-5">
+  <PageContainer class="gap-6">
     <PageHeader :title="$t('users.title')" :description="$t('users.list.description')">
       <template #actions>
-        <Button type="button" @click="changeToAdd()"><Plus />{{ $t('users.form.new') }}</Button>
+        <Button type="button" @click="changeToAdd()"><Plus />{{ $t('form.create') }}</Button>
       </template>
     </PageHeader>
     <div class="grid grid-cols-1 gap-3">
@@ -164,6 +165,7 @@ onMounted(() => store.findRoles().catch(() => undefined))
         v-else
         :data="pageResponse.content"
         :total-elements="pageResponse.totalElements"
+        :summary="searchSummary"
         :columns="columns"
         :loading="busy"
         :current-page="pageRequest.current"

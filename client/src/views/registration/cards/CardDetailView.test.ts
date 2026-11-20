@@ -44,6 +44,7 @@ describe('CardDetailView', () => {
 
     expect(cardsApi.findById).toHaveBeenCalledWith('k-1')
     expect(wrapper.find('h1').text()).toBe('Daily')
+    expect(wrapper.find('[data-slot="page-description"]').exists()).toBe(false)
     expect(wrapper.text()).toContain('Ativo')
     expect(wrapper.findAll('h2').map((title) => title.text())).toEqual([
       'Identificação',

@@ -58,7 +58,11 @@ async function copyKey() {
     />
     <ol class="grid gap-4">
       <li class="grid grid-cols-[auto_1fr] gap-3">
-        <span class="step-number" aria-hidden="true">1</span>
+        <span
+          class="bg-secondary inline-grid size-[22px] place-content-center rounded-md font-mono text-xs font-medium"
+          aria-hidden="true"
+          >1</span
+        >
         <div class="grid gap-3">
           <span>{{ $t('enroll.scan') }}</span>
           <div class="flex flex-wrap items-center gap-4">
@@ -84,7 +88,11 @@ async function copyKey() {
         </div>
       </li>
       <li class="grid grid-cols-[auto_1fr] gap-3">
-        <span class="step-number" aria-hidden="true">2</span>
+        <span
+          class="bg-secondary inline-grid size-[22px] place-content-center rounded-md font-mono text-xs font-medium"
+          aria-hidden="true"
+          >2</span
+        >
         <div class="grid gap-3">
           <span>{{ $t('enroll.enter-code') }}</span>
           <TotpCodeInput
@@ -114,17 +122,3 @@ async function copyKey() {
     </button>
   </form>
 </template>
-
-<style scoped>
-.step-number {
-  display: inline-grid;
-  place-content: center;
-  width: 22px;
-  height: 22px;
-  border-radius: 3px;
-  background: var(--secondary);
-  font-family: var(--font-mono);
-  font-size: 12px;
-  font-weight: 500;
-}
-</style>

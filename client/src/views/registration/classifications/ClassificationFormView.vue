@@ -7,7 +7,7 @@ import FormSection from '@/components/forms/FormSection.vue'
 import InputField from '@/components/forms/InputField.vue'
 import MoneyField from '@/components/forms/MoneyField.vue'
 import SelectField from '@/components/forms/SelectField.vue'
-import StatusToggle from '@/components/forms/StatusToggle.vue'
+import StatusSection from '@/components/forms/StatusSection.vue'
 import { useCrudForm } from '@/composables/useCrudForm'
 import {
   CLASSIFICATION_TYPES,
@@ -60,6 +60,12 @@ const classificationTypes = computed(() => typeOptions('classification', CLASSIF
     @submit="onSubmit"
     @back="changeToList"
   >
+    <StatusSection
+      v-if="updating"
+      name="active"
+      :label="$t('classification.form.active-label')"
+      :hint="$t('classification.form.active-hint')"
+    />
     <FormSection
       :title="$t('classification.sections.identification')"
       :description="
@@ -76,12 +82,6 @@ const classificationTypes = computed(() => typeOptions('classification', CLASSIF
         :placeholder="$t('classification.form.type-placeholder')"
         :disabled="updating"
         required
-      />
-      <StatusToggle
-        v-if="updating"
-        name="active"
-        :label="$t('classification.form.active-label')"
-        :hint="$t('classification.form.active-hint')"
       />
       <InputField
         name="description"

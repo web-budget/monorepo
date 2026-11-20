@@ -66,7 +66,7 @@ describe('FinancialPeriodListView', () => {
     const { wrapper } = await render()
 
     expect(wrapper.find('h1').text()).toBe('Períodos financeiros')
-    expect(wrapper.find('[data-slot="page-actions"]').text()).toBe('Novo período financeiro')
+    expect(wrapper.find('[data-slot="page-actions"]').text()).toBe('Criar')
     expect(wrapper.findAll('[aria-pressed]').map((button) => button.text())).toEqual([
       'Abertos 2',
       'Contabilizados 1',
@@ -136,7 +136,7 @@ describe('FinancialPeriodListView', () => {
   it('navigates to the form, the detail and the edit form', async () => {
     const { wrapper, router } = await render()
 
-    await buttonWithText(wrapper, 'Novo período financeiro').trigger('click')
+    await buttonWithText(wrapper, 'Criar').trigger('click')
     await flushPromises()
     expect(router.currentRoute.value.name).toBe('financial-periods.create')
 

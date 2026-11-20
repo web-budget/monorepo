@@ -8,12 +8,12 @@ describe('router', () => {
     expect(router.options.history.location).toBe('/')
   })
 
-  it('registers the home, login and section routes', () => {
+  it('registers the start, login and section routes', () => {
     const names = router.getRoutes().map((record) => record.name)
 
     expect(names).toEqual(
       expect.arrayContaining([
-        'home',
+        'start',
         'login',
         'dashboards',
         'registration',
@@ -29,7 +29,7 @@ describe('router', () => {
       .map((record) => record.components?.default)
       .filter((component) => typeof component === 'function')
 
-    expect(loaders).toHaveLength(37)
+    expect(loaders).toHaveLength(40)
     for (const loader of loaders) {
       expect(await (loader as () => Promise<unknown>)()).toHaveProperty('default')
     }
@@ -154,7 +154,7 @@ describe('role of each section', () => {
     expect(router.resolve(path).matched.map((record) => record.meta.role)).toContain(role)
   })
 
-  it('asks for no role on the home page nor on the public screens', () => {
+  it('asks for no role on the start page nor on the public screens', () => {
     for (const path of ['/', '/login', '/error/forbidden', '/auth/forgot-password']) {
       expect(router.resolve(path).matched.some((record) => record.meta.role !== undefined)).toBe(
         false,
@@ -170,14 +170,43 @@ describe('content width', () => {
     '/registration/wallets/abc/detail',
     '/configuration/users/create',
     '/configuration/users/abc/update',
-  ])('limits %s to the narrow container', (path) => {
-    expect(router.resolve(path).meta.narrow).toBe(true)
+    '/registration/wallets',
+    '/dashboards',
+    '/',
+  ])('does not limit the width of %s', (path) => {
+    expect(Object.keys(router.resolve(path).meta)).not.toContain('narrow')
   })
+})
 
-  it.each(['/registration/wallets', '/configuration/users', '/registration', '/'])(
-    'keeps %s as wide as the page',
-    (path) => {
-      expect(router.resolve(path).meta.narrow).toBeUndefined()
-    },
-  )
+describe('start route', () => {
+  it('has its own record, so that the root is never the public catch-all', () => {
+    const resolved = router.resolve('/')
+
+    expect(resolved.name).toBe('start')
+    expect(resolved.matched).toHaveLength(1)
+    expect(isPublicRoute(resolved)).toBe(false)
+  })
+})
+
+describe('dashboards routes', () => {
+  it.each([
+    ['/dashboards', 'dashboards', 'overview'],
+    ['/dashboards/mes-atual', 'dashboards.current-month', 'current-month'],
+    ['/dashboards/meses-anteriores', 'dashboards.previous-months', 'previous-months'],
+    ['/dashboards/por-carteira', 'dashboards.by-wallet', 'by-wallet'],
+    ['/dashboards/por-classificacao', 'dashboards.by-classification', 'by-classification'],
+  ])('registers %s with its breadcrumb and the DASHBOARDS role', (path, name, key) => {
+    const resolved = router.resolve(path)
+
+    expect(resolved.name).toBe(name)
+    expect(resolved.matched.map((record) => record.meta.breadcrumb)).toEqual([
+      'menu.dashboards',
+      `dashboards.${key}`,
+    ])
+    expect(resolved.matched.map((record) => record.meta.role)).toContain('DASHBOARDS')
+    expect(router.getRoutes().find((record) => record.name === name)?.props.default).toEqual({
+      title: `dashboards.${key}`,
+      description: `dashboards.description.${key}`,
+    })
+  })
 })

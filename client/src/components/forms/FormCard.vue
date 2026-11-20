@@ -36,7 +36,7 @@ provide(
 </script>
 
 <template>
-  <PageContainer class="mt-4 grid gap-5">
+  <PageContainer>
     <PageHeader :title="title" :description="description ?? $t('crud.required-hint')">
       <template v-if="$slots.badge" #badge><slot name="badge" /></template>
     </PageHeader>
@@ -48,7 +48,7 @@ provide(
             <slot />
           </fieldset>
           <div
-            class="bg-muted sticky bottom-0 z-10 flex flex-wrap items-center justify-between gap-2 rounded-b-lg border-t px-5 py-3"
+            class="bg-muted sticky bottom-0 z-10 flex flex-wrap items-center justify-between gap-2 rounded-b-lg px-5 py-3"
           >
             <span class="text-muted-foreground text-xs max-md:hidden">
               <template v-if="dirty">{{ $t('crud.unsaved') }}</template>
