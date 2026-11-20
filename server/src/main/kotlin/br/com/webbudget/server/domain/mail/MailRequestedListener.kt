@@ -8,8 +8,15 @@ import org.springframework.transaction.event.TransactionalEventListener
 
 @Component
 class MailRequestedListener(
+    private val mailSender: MailSender,
     private val mailSenderService: MailSenderService
 ) {
+
+    @Async
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
+    fun onMailMessageRequested(event: MailMessageRequested) {
+        mailSender.send(event.message)
+    }
 
     @Async
     @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)

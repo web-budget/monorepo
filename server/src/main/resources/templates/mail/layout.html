@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="pt-BR" th:lang="${#locale.toLanguageTag()}" th:fragment="layout(content, footer)">
+<head>
+    <meta charset="UTF-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <meta name="color-scheme" content="light"/>
+    <meta name="supported-color-schemes" content="light"/>
+    <meta name="x-apple-disable-message-reformatting"/>
+    <title th:text="${subject}">webBudget</title>
+    <style>
+        :root { color-scheme: light; supported-color-schemes: light; }
+        body { margin: 0; padding: 0; }
+        a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; }
+        @media (max-width: 480px) {
+            .wb-outer { padding: 20px 12px !important; }
+            .wb-pad { padding: 24px 20px !important; }
+            .wb-ledger-label { display: block !important; width: auto !important; padding: 10px 0 0 0 !important; border-bottom: 0 !important; }
+            .wb-ledger-value { display: block !important; padding: 2px 0 10px 0 !important; }
+        }
+    </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #eff5f2; -webkit-text-size-adjust: 100%;">
+<div aria-hidden="true" style="display: none; max-height: 0; max-width: 0; overflow: hidden; opacity: 0; mso-hide: all;"><span th:text="${preheader}">Preheader</span>&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;&#8199;&#847;</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" bgcolor="#eff5f2" style="width: 100%; background-color: #eff5f2;">
+    <tr>
+        <td align="center" class="wb-outer" style="padding: 32px 16px;">
+            <table role="presentation" width="560" cellpadding="0" cellspacing="0" border="0" style="width: 100%; max-width: 560px;">
+                <tr>
+                    <td style="padding: 0 0 16px 2px;">
+                        <table role="presentation" cellpadding="0" cellspacing="0" border="0">
+                            <tr>
+                                <td aria-hidden="true" width="28" height="28" align="center" valign="middle" bgcolor="#0c6944" style="width: 28px; height: 28px; background-color: #0c6944; border-radius: 3px; font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12px; line-height: 12px; font-weight: 700; letter-spacing: -0.02em; color: #f3fbf6; padding-top: 2px;">wB<div style="width: 17px; height: 2px; margin: 3px auto 0 auto; background-color: #ffd890; font-size: 0; line-height: 0;">&#8203;</div></td>
+                                <td style="padding: 0 0 0 10px; font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 18px; line-height: 28px; font-weight: 600;"><span style="color: #596760;">web</span><span style="color: #121e18; border-bottom: 3px solid #ffd890;">Budget</span></td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="wb-pad" style="padding: 32px; background-color: #fcfefd; border: 1px solid #d1dad5; border-radius: 3px;">
+                        <div th:replace="${content}"></div>
+                    </td>
+                </tr>
+                <tr>
+                    <td style="padding: 20px 4px 0 4px; font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 12px; line-height: 18px; color: #596760;">
+                        <div th:replace="${footer}"></div>
+                        <p style="margin: 8px 0 0 0;"><span th:text="#{layout.sent-automatically}">Enviado automaticamente pelo webBudget.</span> <a th:href="${applicationUrl}" th:text="${applicationUrl}" href="#" target="_blank" style="color: #0c6944; text-decoration: underline;">webbudget</a></p>
+                    </td>
+                </tr>
+            </table>
+        </td>
+    </tr>
+</table>
+</body>
+</html>

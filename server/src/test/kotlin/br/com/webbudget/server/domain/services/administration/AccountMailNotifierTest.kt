@@ -2,9 +2,11 @@ package br.com.webbudget.server.domain.services.administration
 
 import br.com.webbudget.server.BaseIntegrationTest
 import br.com.webbudget.server.domain.entities.administration.Language
+import br.com.webbudget.server.domain.entities.administration.Role
 import br.com.webbudget.server.domain.entities.administration.User
 import br.com.webbudget.server.infrastructure.repository.administration.UserRepository
 import br.com.webbudget.server.jooq.administration.tables.references.USERS
+import br.com.webbudget.server.utilities.contents
 import org.assertj.core.api.Assertions.assertThat
 import org.jooq.DSLContext
 import org.junit.jupiter.api.AfterEach
@@ -71,9 +73,51 @@ class AccountMailNotifierTest : BaseIntegrationTest() {
     fun `should tell the owner in the language of the account that it was approved`() {
 
         accountMailNotifier.notifyAccountApproved(
-            User(name = "Owner", email = "owner@webbudget.com.br", password = "x", defaultLanguage = Language.EN_US)
+            User(name = "Owner", email = "owner@webbudget.com.br", password = "x", defaultLanguage = Language.EN_US),
+            listOf(Role.FINANCIAL)
         )
 
-        assertThat(greenMail.receivedMessages.single().subject).isEqualTo("Your account was approved")
+        val message = greenMail.receivedMessages.single()
+        val contents = message.contents()
+
+        assertThat(message.subject).isEqualTo("Your webBudget account was approved")
+        assertThat(contents.html).contains("<html lang=\"en-US\"", "Financial")
+        assertThat(contents.plainText).contains("Sign-in email: owner@webbudget.com.br", "Your areas: Financial")
+    }
+
+    @Test
+    fun `should list the areas in the order of the menu, in the language of the account`() {
+
+        val roleNames = listOf(Role.ADMINISTRATION, Role.REGISTRATION, Role.FINANCIAL, Role.DASHBOARDS)
+
+        accountMailNotifier.notifyAccountApproved(
+            User(name = "Dona Maria", email = "maria@webbudget.com.br", password = "x", defaultLanguage = Language.PT_BR),
+            roleNames
+        )
+        accountMailNotifier.notifyAccountApproved(
+            User(name = "Mary", email = "mary@webbudget.com.br", password = "x", defaultLanguage = Language.EN_US),
+            roleNames
+        )
+
+        val plainTexts = greenMail.receivedMessages.associate { it.allRecipients.single().toString() to it.contents().plainText }
+
+        assertThat(plainTexts.getValue("maria@webbudget.com.br"))
+            .contains("Áreas liberadas: Dashboards, Financeiro, Cadastros, Configurações")
+        assertThat(plainTexts.getValue("mary@webbudget.com.br"))
+            .contains("Your areas: Dashboards, Financial, Registration, Settings")
+    }
+
+    @Test
+    fun `should send the login link and the name of the owner`() {
+
+        accountMailNotifier.notifyAccountApproved(
+            User(name = "Maria & Co", email = "maria@webbudget.com.br", password = "x", defaultLanguage = Language.PT_BR),
+            listOf(Role.DASHBOARDS)
+        )
+
+        val contents = greenMail.receivedMessages.single().contents()
+
+        assertThat(contents.html).contains("Olá, Maria &amp; Co.", "href=\"http://localhost:8086/login\"")
+        assertThat(contents.plainText).contains("Entrar no webBudget: http://localhost:8086/login", "Olá, Maria & Co.")
     }
 }
