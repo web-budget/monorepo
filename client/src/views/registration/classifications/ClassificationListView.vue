@@ -70,9 +70,7 @@ const columns = computed(() => [
       :description="$t('classification.list.description')"
     >
       <template #actions>
-        <Button type="button" @click="changeToAdd()">
-          <Plus />{{ $t('classification.form.new') }}
-        </Button>
+        <Button type="button" @click="changeToAdd()"> <Plus />{{ $t('form.create') }} </Button>
       </template>
     </PageHeader>
     <div class="grid gap-3">

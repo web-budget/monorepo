@@ -45,7 +45,7 @@ describe('ClassificationListView', () => {
     const { wrapper } = await render()
 
     expect(wrapper.find('h1').text()).toBe('Classificações')
-    expect(wrapper.find('[data-slot="page-actions"]').text()).toBe('Nova classificação')
+    expect(wrapper.find('[data-slot="page-actions"]').text()).toBe('Criar')
     expect(wrapper.findAll('[aria-pressed]').map((button) => button.text())).toEqual([
       'Ativas 4',
       'Inativas 1',
@@ -108,7 +108,7 @@ describe('ClassificationListView', () => {
   it('navigates to the form, the detail and the edit form', async () => {
     const { wrapper, router } = await render()
 
-    await buttonWithText(wrapper, 'Nova classificação').trigger('click')
+    await buttonWithText(wrapper, 'Criar').trigger('click')
     await flushPromises()
     expect(router.currentRoute.value.name).toBe('classifications.create')
 

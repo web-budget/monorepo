@@ -70,7 +70,7 @@ describe('WalletListView', () => {
 
     expect(wrapper.find('h1').text()).toBe('Carteiras')
     expect(wrapper.find('[data-slot="page-description"]').text()).toContain('Contas bancárias')
-    expect(wrapper.find('[data-slot="page-actions"]').text()).toBe('Nova carteira')
+    expect(wrapper.find('[data-slot="page-actions"]').text()).toBe('Criar')
   })
 
   it('loads the active wallets on mount and lists them', async () => {
@@ -236,7 +236,7 @@ describe('WalletListView', () => {
   it('opens the form to create a wallet', async () => {
     const { wrapper, router } = await render()
 
-    await buttonWithText(wrapper, 'Nova carteira').trigger('click')
+    await buttonWithText(wrapper, 'Criar').trigger('click')
     await flushPromises()
 
     expect(router.currentRoute.value.name).toBe('wallets.create')

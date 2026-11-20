@@ -45,7 +45,7 @@ describe('CardListView', () => {
     const { wrapper } = await render()
 
     expect(wrapper.find('h1').text()).toBe('Cartões')
-    expect(wrapper.find('[data-slot="page-actions"]').text()).toBe('Novo cartão')
+    expect(wrapper.find('[data-slot="page-actions"]').text()).toBe('Criar')
     expect(wrapper.findAll('[aria-pressed]').map((button) => button.text())).toEqual([
       'Ativos 4',
       'Inativos 1',
@@ -116,7 +116,7 @@ describe('CardListView', () => {
   it('navigates to the form, the detail and the edit form', async () => {
     const { wrapper, router } = await render()
 
-    await buttonWithText(wrapper, 'Novo cartão').trigger('click')
+    await buttonWithText(wrapper, 'Criar').trigger('click')
     await flushPromises()
     expect(router.currentRoute.value.name).toBe('cards.create')
 
