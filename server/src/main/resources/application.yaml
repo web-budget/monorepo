@@ -33,6 +33,10 @@ spring:
     database-change-log-table: database_changelog
     database-change-log-lock-table: database_changelog_lock
 
+logging:
+  level:
+    org.jooq.Constants: off
+
 server:
   port: ${APPLICATION_PORT:8085}
   servlet:
