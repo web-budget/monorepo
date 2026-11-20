@@ -42,7 +42,7 @@ class MailSender(
     private fun deliver(message: MailMessage) {
 
         val subject = mailMessageSource
-            .getMessage("${message.templateName}.subject", message.subjectArgs.toTypedArray(), message.locale)
+            .getMessage("${message.messageKey}.subject", message.subjectArgs.toTypedArray(), message.locale)
             .withoutLineBreaks()
 
         val html = render(message, subject)
@@ -64,7 +64,7 @@ class MailSender(
 
     private fun render(message: MailMessage, subject: String): String {
 
-        val preheader = mailMessageSource.getMessage("${message.templateName}.preheader", null, "", message.locale)
+        val preheader = mailMessageSource.getMessage("${message.messageKey}.preheader", message.preheaderArgs.toTypedArray(), "", message.locale)
 
         val context = Context(message.locale).apply {
             setVariables(message.variables)

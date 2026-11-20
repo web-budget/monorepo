@@ -7,5 +7,7 @@ data class MailMessage(
     val templateName: String,
     val locale: Locale,
     val variables: Map<String, Any?> = emptyMap(),
-    val subjectArgs: List<Any> = emptyList()
+    val subjectArgs: List<Any> = emptyList(),
+    val preheaderArgs: List<Any> = subjectArgs,
+    val messageKey: String = templateName
 )

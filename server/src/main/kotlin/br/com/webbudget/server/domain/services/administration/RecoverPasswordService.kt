@@ -3,17 +3,12 @@ package br.com.webbudget.server.domain.services.administration
 import br.com.webbudget.server.domain.entities.administration.PasswordRecoverAttempt
 import br.com.webbudget.server.domain.exceptions.DomainException
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.INVALID_TOKEN
-import br.com.webbudget.server.domain.mail.MailRequested
-import br.com.webbudget.server.domain.mail.RecoverPasswordEmail
 import br.com.webbudget.server.infrastructure.repository.administration.PasswordRecoverAttemptRepository
 import br.com.webbudget.server.infrastructure.repository.administration.UserRepository
 import io.github.oshai.kotlinlogging.KotlinLogging
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
@@ -21,11 +16,9 @@ private val logger = KotlinLogging.logger {}
 @Service
 @Transactional(readOnly = true)
 class RecoverPasswordService(
-    @param:Value($$"${web-budget.frontend-url}")
-    private val frontendUrl: String,
     private val userService: UserService,
     private val userRepository: UserRepository,
-    private val applicationEventPublisher: ApplicationEventPublisher,
+    private val accountMailNotifier: AccountMailNotifier,
     private val passwordRecoverAttemptRepository: PasswordRecoverAttemptRepository
 ) {
 
@@ -41,15 +34,7 @@ class RecoverPasswordService(
 
         val recoverAttempt = passwordRecoverAttemptRepository.insert(PasswordRecoverAttempt(UUID.randomUUID(), user))
 
-        val formatter = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm")
-        val recoverPasswordUrl = "$frontendUrl/auth/recover-password" +
-                "?token=${recoverAttempt.token}&email=${user.email}"
-
-        val mailMessage = RecoverPasswordEmail(user)
-        mailMessage.addVariable("recoverPasswordUrl", recoverPasswordUrl)
-        mailMessage.addVariable("validUntil", recoverAttempt.validity.format(formatter))
-
-        applicationEventPublisher.publishEvent(MailRequested(mailMessage))
+        accountMailNotifier.notifyPasswordRecovery(user, recoverAttempt)
     }
 
     @Transactional

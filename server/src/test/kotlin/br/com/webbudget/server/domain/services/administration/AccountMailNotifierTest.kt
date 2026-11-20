@@ -51,8 +51,8 @@ class AccountMailNotifierTest : BaseIntegrationTest() {
         val messages = greenMail.receivedMessages.associateBy { message -> message.allRecipients.single().toString() }
 
         assertThat(messages.keys).containsExactlyInAnyOrder("admin@webbudget.com.br", "english-admin@webbudget.com.br")
-        assertThat(messages.getValue("admin@webbudget.com.br").subject).isEqualTo("Novo usuário aguardando aprovação")
-        assertThat(messages.getValue("english-admin@webbudget.com.br").subject).isEqualTo("New user waiting for approval")
+        assertThat(messages.getValue("admin@webbudget.com.br").subject).isEqualTo("Cadastro aguardando aprovação: Newcomer")
+        assertThat(messages.getValue("english-admin@webbudget.com.br").subject).isEqualTo("Sign-up waiting for approval: Newcomer")
     }
 
     @Test
