@@ -21,8 +21,6 @@ class MailSenderService(
     private val defaultFromAddress: String,
     @param:Value($$"${web-budget.mail.reply-to-address}")
     private val replyToAddress: String,
-    @param:Value($$"${web-budget.mail.logo-url}")
-    private val logoUrl: String,
     @param:Value($$"${web-budget.frontend-url}")
     private val frontendUrl: String
 ) {
@@ -35,7 +33,6 @@ class MailSenderService(
 
         context.setVariables(mailTemplate.variables)
 
-        context.setVariable("logoUrl", logoUrl)
         context.setVariable("applicationUrl", frontendUrl)
 
         val template = templateEngine.process(mailTemplate.name, context)

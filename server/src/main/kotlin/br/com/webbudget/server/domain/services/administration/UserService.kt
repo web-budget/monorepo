@@ -112,7 +112,7 @@ class UserService(
 
         val approved = userRepository.updateStatus(user, UserStatus.PENDING, UserStatus.APPROVED)
 
-        accountMailNotifier.notifyAccountApproved(approved)
+        accountMailNotifier.notifyAccountApproved(approved, roles.map { it.name })
 
         return approved
     }

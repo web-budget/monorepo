@@ -280,7 +280,7 @@ class AccountRegistrationTest : BaseIntegrationTest() {
             .exchange()
             .expectStatus().isOk
 
-        assertThat(greenMail.receivedMessages.single().subject).isEqualTo("Sua conta foi aprovada")
+        assertThat(greenMail.receivedMessages.single().subject).isEqualTo("Sua conta no webBudget foi aprovada")
 
         restTestClient.get()
             .uri("/private/v1/administration/roles")

@@ -7,6 +7,7 @@ import br.com.webbudget.server.domain.exceptions.DomainException
 import br.com.webbudget.server.domain.services.administration.UserService
 import br.com.webbudget.server.infrastructure.repository.administration.UserRepository
 import br.com.webbudget.server.jooq.administration.tables.references.USERS
+import br.com.webbudget.server.utilities.contents
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.jooq.DSLContext
@@ -41,8 +42,9 @@ class UserApprovalTest : BaseIntegrationTest() {
 
         val message = greenMail.receivedMessages.single()
 
-        assertThat(message.subject).isEqualTo("Sua conta foi aprovada")
+        assertThat(message.subject).isEqualTo("Sua conta no webBudget foi aprovada")
         assertThat(message.allRecipients.map { it.toString() }).containsExactly(EMAIL)
+        assertThat(message.contents().plainText).contains("Áreas liberadas: Financeiro, Cadastros")
     }
 
     @Test
