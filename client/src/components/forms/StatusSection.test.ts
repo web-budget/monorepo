@@ -23,6 +23,7 @@ describe('StatusSection', () => {
     const { wrapper } = render(true)
 
     expect(wrapper.find('h2').text()).toBe('Situação')
+    expect(wrapper.find('h2').classes()).toContain('text-base')
     expect(wrapper.text()).toContain('Inativar para sumir')
     expect(wrapper.text()).toContain('Ativa')
     expect(wrapper.find('button[role="switch"]').attributes('aria-checked')).toBe('true')
