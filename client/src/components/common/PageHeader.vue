@@ -4,7 +4,7 @@ defineProps<{ title: string; description?: string }>()
 
 <template>
   <div class="flex flex-wrap items-start justify-between gap-4">
-    <div class="grid min-w-0 gap-1.5">
+    <div class="grid min-w-0 gap-1">
       <div class="flex min-w-0 items-center gap-2.5">
         <h1
           class="text-2xl leading-9 font-semibold tracking-tight break-words"

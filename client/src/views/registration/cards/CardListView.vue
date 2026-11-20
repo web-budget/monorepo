@@ -58,7 +58,7 @@ const columns = computed(() => [
 </script>
 
 <template>
-  <PageContainer>
+  <PageContainer class="gap-6">
     <PageHeader :title="$t('card.title')" :description="$t('card.list.description')">
       <template #actions>
         <Button type="button" @click="changeToAdd()"><Plus />{{ $t('card.form.new') }}</Button>

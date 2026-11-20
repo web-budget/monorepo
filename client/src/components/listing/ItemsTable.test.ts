@@ -222,6 +222,29 @@ describe('ItemsTable', () => {
     expect(wrapper.text()).toContain('16–20 de 20')
   })
 
+  it('labels the status in the masculine by default and in the feminine on request', () => {
+    const masculine = render()
+    const feminine = render({ feminineStatus: true })
+
+    expect(masculine.findAll('tbody [data-slot="badge"]').map((badge) => badge.text())).toEqual([
+      'Ativo',
+      'Inativo',
+    ])
+    expect(feminine.findAll('tbody [data-slot="badge"]').map((badge) => badge.text())).toEqual([
+      'Ativa',
+      'Inativa',
+    ])
+  })
+
+  it('keeps the feminine status labels on the cards of the phone', () => {
+    useCompactViewport(true)
+
+    const wrapper = render({ feminineStatus: true })
+
+    expect(wrapper.text()).toContain('Ativa')
+    expect(wrapper.text()).toContain('Inativa')
+  })
+
   it('shows the summary it gets instead of the range, keeping the pagination', () => {
     const wrapper = render({
       totalElements: 100,

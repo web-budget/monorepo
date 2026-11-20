@@ -14,7 +14,7 @@ const features = [
 <template>
   <aside
     data-slot="auth-aside"
-    class="auth-aside bg-sidebar border-border relative hidden flex-col justify-between overflow-hidden border-r p-10 lg:flex"
+    class="ruled-paper bg-sidebar border-border before:bg-highlight/80 relative hidden flex-col justify-between overflow-hidden border-r p-10 before:absolute before:inset-y-0 before:left-7 before:w-px before:content-[''] lg:flex"
   >
     <div class="flex items-center gap-3">
       <BrandMark :size="32" />
@@ -37,7 +37,7 @@ const features = [
 </template>
 
 <style scoped>
-.auth-aside {
+.ruled-paper {
   background-image: repeating-linear-gradient(
     to bottom,
     transparent 0,
@@ -45,15 +45,5 @@ const features = [
     color-mix(in oklch, var(--border) 70%, transparent) 31px,
     color-mix(in oklch, var(--border) 70%, transparent) 32px
   );
-}
-
-.auth-aside::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 28px;
-  width: 1px;
-  background: color-mix(in oklch, var(--highlight) 80%, transparent);
 }
 </style>

@@ -94,6 +94,15 @@ describe('WalletListView', () => {
     expect(rows[1]!.text()).toContain('Pessoal')
   })
 
+  it('labels the status of a wallet in the feminine, as the tabs do', async () => {
+    const { wrapper } = await render()
+
+    expect(wrapper.findAll('tbody [data-slot="badge"]').map((badge) => badge.text())).toEqual([
+      'Ativa',
+      'Inativa',
+    ])
+  })
+
   it('offers the statuses with the active ones first, each with its count', async () => {
     const { wrapper } = await render()
 

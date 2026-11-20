@@ -421,7 +421,11 @@
   },
   "status": {
     "active": "Ativo",
-    "inactive": "Inativo"
+    "inactive": "Inativo",
+    "feminine": {
+      "active": "Ativa",
+      "inactive": "Inativa"
+    }
   },
   "integrations": {
     "title": "Integrações",
