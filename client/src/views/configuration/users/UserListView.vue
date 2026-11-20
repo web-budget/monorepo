@@ -106,7 +106,7 @@ onMounted(() => store.findRoles().catch(() => undefined))
 </script>
 
 <template>
-  <PageContainer class="mt-4 grid grid-cols-1 gap-5">
+  <PageContainer>
     <PageHeader :title="$t('users.title')" :description="$t('users.list.description')">
       <template #actions>
         <Button type="button" @click="changeToAdd()"><Plus />{{ $t('users.form.new') }}</Button>

@@ -13,7 +13,7 @@ const emit = defineEmits<{ edit: []; delete: [] }>()
 </script>
 
 <template>
-  <PageContainer class="mt-4 grid gap-5">
+  <PageContainer>
     <PageHeader :title="title" :description="description">
       <template #badge>
         <slot name="badge">

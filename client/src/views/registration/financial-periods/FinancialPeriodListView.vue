@@ -64,7 +64,7 @@ const columns = computed(() => [
 </script>
 
 <template>
-  <PageContainer class="mt-4 grid gap-5">
+  <PageContainer>
     <PageHeader
       :title="$t('financial-period.title')"
       :description="$t('financial-period.list.description')"

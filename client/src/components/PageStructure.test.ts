@@ -10,9 +10,7 @@ import type { Role } from '@/types'
 
 const allRoles: Role[] = ['DASHBOARDS', 'FINANCIAL', 'REGISTRATION', 'ADMINISTRATION']
 
-async function render(
-  options: { props?: Record<string, unknown>; narrow?: boolean; roles?: Role[] } = {},
-) {
+async function render(options: { path?: string; roles?: Role[] } = {}) {
   const { router, plugins } = createTestPlugins({
     initialState: {
       auth: { session: { name: 'Ana Souza', email: 'ana@example.com', roles: allRoles } },
@@ -20,17 +18,16 @@ async function render(
     routes: [
       {
         path: '/registration',
-        meta: { breadcrumb: 'menu.registration', narrow: options.narrow },
+        meta: { breadcrumb: 'menu.registration' },
         component: { render: () => h('div', 'section page') },
       },
     ],
   })
   const roles = options.roles ?? allRoles
   vi.mocked(useAuthStore().hasRole).mockImplementation((role) => roles.includes(role))
-  await router.push(options.narrow === undefined ? '/' : '/registration')
+  await router.push(options.path ?? '/')
   await router.isReady()
   return mount(PageStructure, {
-    props: options.props,
     slots: { 'side-menu': () => h('p', 'side menu content') },
     attachTo: document.body,
     global: { plugins },
@@ -100,19 +97,16 @@ describe('PageStructure', () => {
     expect(wrapper.find('[data-slot="sidebar"]').attributes('data-state')).toBe('collapsed')
   })
 
-  it('keeps the content as wide as the page for a list', async () => {
-    const wrapper = await render({ narrow: false })
+  it('puts the breadcrumb first in the content area, with nothing limiting the width', async () => {
+    const wrapper = await render({ path: '/registration' })
 
-    expect(wrapper.find('.max-w-\\[960px\\]').exists()).toBe(false)
-  })
-
-  it('limits a form or detail to 960px, with the breadcrumb inside the same container', async () => {
-    const wrapper = await render({ narrow: true })
-
-    const container = wrapper.find('.max-w-\\[960px\\]')
-    expect(container.exists()).toBe(true)
-    expect(container.find('nav[aria-label="Trilha de navegação"]').exists()).toBe(true)
-    expect(container.text()).toContain('section page')
+    const content = wrapper.find('main > div')
+    expect(content.element.firstElementChild?.getAttribute('aria-label')).toBe(
+      'Trilha de navegação',
+    )
+    expect(content.element.children[1]?.textContent).toBe('section page')
+    expect(wrapper.html()).not.toContain('max-w-[960px]')
+    expect(wrapper.html()).not.toContain('mx-auto')
   })
 
   describe('on a phone', () => {
