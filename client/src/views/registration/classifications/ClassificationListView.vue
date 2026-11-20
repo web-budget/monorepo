@@ -64,7 +64,7 @@ const columns = computed(() => [
 </script>
 
 <template>
-  <PageContainer>
+  <PageContainer class="gap-6">
     <PageHeader
       :title="$t('classification.title')"
       :description="$t('classification.list.description')"
@@ -101,6 +101,7 @@ const columns = computed(() => [
         v-else
         :data="pageResponse.content"
         :total-elements="pageResponse.totalElements"
+        feminine-status
         :summary="searchSummary"
         :columns="columns"
         :loading="busy"

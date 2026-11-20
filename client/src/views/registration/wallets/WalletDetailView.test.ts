@@ -47,7 +47,7 @@ describe('WalletDetailView', () => {
     expect(wrapper.find('h1').text()).toBe('Main')
     expect(wrapper.find('[data-slot="page-description"]').exists()).toBe(false)
     expect(wrapper.find('[data-slot="page-title"]').element.parentElement!.textContent).toContain(
-      'Ativo',
+      'Ativa',
     )
     expect(wrapper.findAll('h2').map((title) => title.text())).toEqual([
       'Identificação',

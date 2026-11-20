@@ -27,6 +27,7 @@ const { messages, changeToUpdate, remove } = useCrudDetail({
   <DetailCard
     :title="wallet?.name ?? $t('wallet.form.detailing')"
     :active="wallet?.active"
+    feminine-status
     :messages="messages"
     @edit="changeToUpdate"
     @delete="remove"

@@ -27,6 +27,7 @@ const { messages, changeToUpdate, remove } = useCrudDetail({
   <DetailCard
     :title="classification?.name ?? $t('classification.form.detailing')"
     :active="classification?.active"
+    feminine-status
     :messages="messages"
     @edit="changeToUpdate"
     @delete="remove"
