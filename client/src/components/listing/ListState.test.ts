@@ -21,7 +21,7 @@ describe('ListState', () => {
 
     await wrapper.find('button').trigger('click')
 
-    expect(wrapper.text()).toContain('Nova carteira')
+    expect(wrapper.text()).toContain('Criar')
     expect(wrapper.emitted('create')).toHaveLength(1)
     expect(wrapper.emitted('clear')).toBeUndefined()
     expect(wrapper.emitted('retry')).toBeUndefined()

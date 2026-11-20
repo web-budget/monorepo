@@ -71,9 +71,7 @@ const columns = computed(() => [
       :description="$t('financial-period.list.description')"
     >
       <template #actions>
-        <Button type="button" @click="changeToAdd()">
-          <Plus />{{ $t('financial-period.form.new') }}
-        </Button>
+        <Button type="button" @click="changeToAdd()"> <Plus />{{ $t('form.create') }} </Button>
       </template>
     </PageHeader>
     <div class="grid gap-3">

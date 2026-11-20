@@ -61,7 +61,7 @@ const columns = computed(() => [
   <PageContainer class="gap-6">
     <PageHeader :title="$t('wallet.title')" :description="$t('wallet.list.description')">
       <template #actions>
-        <Button type="button" @click="changeToAdd()"><Plus />{{ $t('wallet.form.new') }}</Button>
+        <Button type="button" @click="changeToAdd()"><Plus />{{ $t('form.create') }}</Button>
       </template>
     </PageHeader>
     <div class="grid gap-3">

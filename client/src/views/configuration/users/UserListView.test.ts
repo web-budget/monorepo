@@ -100,6 +100,12 @@ describe('UserListView', () => {
     document.body.replaceChildren()
   })
 
+  it('labels the button that leads to the creation form with just "Criar"', async () => {
+    const { wrapper } = await render()
+
+    expect(wrapper.find('[data-slot="page-actions"]').text()).toBe('Criar')
+  })
+
   it('lists the approved users on mount, with avatar, e-mail, areas and status', async () => {
     const { wrapper } = await render()
 
@@ -172,7 +178,7 @@ describe('UserListView', () => {
   it('opens the forms to create and to edit a user', async () => {
     const { wrapper, router } = await render()
 
-    await buttonWithText(wrapper, 'Novo usuário').trigger('click')
+    await buttonWithText(wrapper, 'Criar').trigger('click')
     await flushPromises()
     expect(router.currentRoute.value.name).toBe('users.create')
 

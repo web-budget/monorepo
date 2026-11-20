@@ -27,7 +27,7 @@ const texts = computed(() => {
     return {
       title: t(`${props.entity}.list.empty-title`),
       description: t(`${props.entity}.list.empty-description`),
-      action: t(`${props.entity}.form.new`),
+      action: t('form.create'),
     }
   }
   if (props.kind === 'error') {
