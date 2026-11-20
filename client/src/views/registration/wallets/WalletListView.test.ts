@@ -247,7 +247,7 @@ describe('WalletListView', () => {
       await chooseRowAction(wrapper, 0, 'Remover')
 
       expect(dialog.state.options.title).toBe('Remover a carteira “Main”?')
-      expect(dialog.state.options.description).toContain('marque a carteira como inativa')
+      expect(dialog.state.options.description).toBe('Não dá para desfazer.')
       expect(walletsApi.remove).not.toHaveBeenCalled()
 
       dialog.accept()

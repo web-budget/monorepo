@@ -70,7 +70,7 @@ describe('useConfirmDialog', () => {
     expect(dialog.state.options).toEqual({
       destructive: true,
       title: 'Remover a carteira “Main”?',
-      description: expect.stringContaining('o servidor recusa a remoção'),
+      description: 'Não dá para desfazer.',
       confirmLabel: 'Remover',
     })
     dialog.accept()

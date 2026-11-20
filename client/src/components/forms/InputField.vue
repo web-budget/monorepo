@@ -10,7 +10,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 
-withDefaults(
+const props = withDefaults(
   defineProps<{
     name: string
     label: string
@@ -36,6 +36,17 @@ withDefaults(
     class: undefined,
   },
 )
+
+function openCalendar(event: FocusEvent) {
+  if (props.type !== 'date') {
+    return
+  }
+  try {
+    ;(event.target as HTMLInputElement).showPicker?.()
+  } catch {
+    // showPicker throws NotAllowedError when the focus does not come from a user gesture
+  }
+}
 </script>
 
 <template>
@@ -66,6 +77,7 @@ withDefaults(
           :maxlength="maxlength"
           :disabled="disabled"
           :class="mono && 'font-mono'"
+          @focus="openCalendar"
           @update:model-value="handleChange($event, errors.length > 0)"
           @blur="handleBlur"
         />
