@@ -17,6 +17,7 @@ private val logger = KotlinLogging.logger {}
 @Transactional(readOnly = true)
 class RecoverPasswordService(
     private val userService: UserService,
+    private val securityNoticeNotifier: SecurityNoticeNotifier,
     private val userRepository: UserRepository,
     private val accountMailNotifier: AccountMailNotifier,
     private val passwordRecoverAttemptRepository: PasswordRecoverAttemptRepository
@@ -49,6 +50,8 @@ class RecoverPasswordService(
         }
 
         userService.updatePassword(attempt.user, newPassword)
+
+        securityNoticeNotifier.notifyPasswordChanged(attempt.user, PasswordChangedBy.RECOVERY)
 
         attempt.used = true
         passwordRecoverAttemptRepository.update(attempt)

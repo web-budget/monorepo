@@ -16,6 +16,7 @@ import br.com.webbudget.server.infrastructure.repository.administration.TrustedD
 import br.com.webbudget.server.infrastructure.repository.administration.UserRepository
 import br.com.webbudget.server.jooq.administration.tables.references.GRANTS
 import br.com.webbudget.server.jooq.administration.tables.references.USERS
+import br.com.webbudget.server.utilities.contents
 import dev.samstevens.totp.code.DefaultCodeGenerator
 import dev.samstevens.totp.time.SystemTimeProvider
 import org.assertj.core.api.Assertions.assertThat
@@ -306,6 +307,37 @@ class GoogleAuthenticationTest : BaseIntegrationTest() {
         assertThat(linked.grants).hasSize(1)
 
         postLogin(EMAIL, PASSWORD).expectStatus().isUnauthorized.expectBody().jsonPath("$.error").isEqualTo("invalid-credentials")
+    }
+
+    @Test
+    fun `should warn the owner by e-mail that the google account was linked`() {
+
+        createLoginUser(EMAIL, PASSWORD)
+        val token = startLink(EMAIL)
+
+        postLink(token, PASSWORD).expectStatus().isOk
+
+        val message = greenMail.receivedMessages.single()
+        val contents = message.contents()
+
+        assertThat(message.allRecipients.single().toString()).isEqualTo(EMAIL)
+        assertThat(message.subject).isEqualTo("Conta Google vinculada ao seu webBudget")
+        assertThat(contents.multipartTypes).contains("multipart/alternative")
+        assertThat(contents.html).contains("<html lang=\"pt-BR\"", "Conta Google vinculada")
+        assertThat(contents.plainText).containsPattern("Quando: \\d{2}/\\d{2}/\\d{4} às \\d{2}:\\d{2}")
+        assertThat(contents.plainText).contains("Conta Google: $EMAIL", "Não reconhece? Avise um administrador.")
+    }
+
+    @Test
+    fun `should send nothing when the link is refused`() {
+
+        createLoginUser(EMAIL, PASSWORD)
+        val token = startLink(EMAIL)
+
+        postLink(token, "wrong-password").expectStatus().isUnauthorized
+        postLink("unknown-token", PASSWORD).expectStatus().isBadRequest
+
+        assertThat(greenMail.receivedMessages).isEmpty()
     }
 
     @Test

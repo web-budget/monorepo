@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::content}, ~{::footer})}">
+<body>
+<div th:fragment="content">
+    <table th:replace="~{parts :: badge('neutral', #{totp-reset.badge})}"></table>
+    <h1 th:replace="~{parts :: title(#{totp-reset.title})}"></h1>
+    <p th:replace="~{parts :: paragraph(#{totp-reset.lead(${userName})})}"></p>
+    <p th:replace="~{parts :: paragraph(#{totp-reset.next})}"></p>
+    <table th:replace="~{parts :: button(#{totp-reset.cta}, ${loginUrl})}"></table>
+    <p th:replace="~{parts :: notice(#{totp-reset.unrecognized}, #{totp-reset.unrecognized-action})}"></p>
+</div>
+<p th:fragment="footer" th:text="#{totp-reset.footer}" style="margin: 0;">Você recebe este aviso sempre que algo muda na segurança da sua conta.</p>
+</body>
+</html>
