@@ -44,8 +44,8 @@ class CardPurchaseService(
             name = movement.name,
             purchasedOn = payment.paidOn,
             value = payment.valuePaid,
-            classification = movement.classification,
-            costCenter = movement.costCenter,
+            classification = movement.classification!!,
+            costCenter = movement.costCenter!!,
             card = payment.card!!,
             financialPeriod = movement.financialPeriod,
             movementId = movement.id

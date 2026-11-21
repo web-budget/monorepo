@@ -4,6 +4,7 @@ import br.com.webbudget.server.application.payloads.financial.MovementClassifica
 import br.com.webbudget.server.application.payloads.financial.MovementCostCenterView
 import br.com.webbudget.server.application.payloads.financial.MovementCreateForm
 import br.com.webbudget.server.application.payloads.financial.MovementFinancialPeriodView
+import br.com.webbudget.server.application.payloads.financial.MovementInvoiceView
 import br.com.webbudget.server.application.payloads.financial.MovementListView
 import br.com.webbudget.server.application.payloads.financial.MovementUpdateForm
 import br.com.webbudget.server.application.payloads.financial.MovementView
@@ -37,19 +38,16 @@ class MovementMapper(
             dueDate = movement.dueDate,
             status = movement.status.name,
             overdue = movement.isOverdue(today),
-            classification = MovementClassificationView(
-                movement.classification.externalId,
-                movement.classification.name,
-                movement.classification.type
-            ),
-            costCenter = MovementCostCenterView(
-                movement.costCenter.externalId,
-                movement.costCenter.name,
-                movement.costCenter.fullName
-            ),
+            classification = movement.classification?.let {
+                MovementClassificationView(it.externalId, it.name, it.type)
+            },
+            costCenter = movement.costCenter?.let { MovementCostCenterView(it.externalId, it.name, it.fullName) },
             financialPeriod = mapToPeriodView(movement.financialPeriod, today),
             description = movement.description,
-            payment = movement.payment?.let { mapToPaymentView(it) }
+            payment = movement.payment?.let { mapToPaymentView(it) },
+            invoice = movement.invoice?.let {
+                MovementInvoiceView(it.externalId!!, it.status.name, PaymentCardView(it.card.externalId, it.card.name))
+            }
         )
     }
 

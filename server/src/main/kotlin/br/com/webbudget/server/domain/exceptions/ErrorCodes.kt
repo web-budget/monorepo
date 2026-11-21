@@ -50,4 +50,7 @@ object ErrorCodes {
     const val CARD_PAYMENT_ONLY_FOR_EXPENSES = "card-payment-only-for-expenses"
     const val INACTIVE_CARD = "inactive-card"
     const val FINANCIAL_PERIOD_WITH_PURCHASES = "financial-period-with-purchases"
+    const val INVOICE_WITHOUT_PURCHASES = "invoice-without-purchases"
+    const val INVOICE_PAYMENT_NOT_PAYABLE_BY_CARD = "invoice-payment-not-payable-by-card"
+    const val INVOICE_PAYMENT_LOCKED = "invoice-payment-locked"
 }

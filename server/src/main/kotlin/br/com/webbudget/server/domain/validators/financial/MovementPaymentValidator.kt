@@ -6,6 +6,7 @@ import br.com.webbudget.server.domain.exceptions.ErrorCodes.CARD_PAYMENT_ONLY_FO
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.INACTIVE_CARD
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.INACTIVE_WALLET
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.INVALID_DISCOUNT
+import br.com.webbudget.server.domain.exceptions.ErrorCodes.INVOICE_PAYMENT_NOT_PAYABLE_BY_CARD
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.PAYMENT_DATE_IN_FUTURE
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.PAYMENT_REQUIRES_WALLET_OR_CARD
 import br.com.webbudget.server.domain.validators.OnPayValidation
@@ -29,6 +30,10 @@ class MovementPaymentValidator : MovementValidator {
 
         if (wallet != null && !wallet.active) {
             throw DomainException("The wallet of the payment is not active", INACTIVE_WALLET)
+        }
+
+        if (card != null && value.isInvoicePayment()) {
+            throw DomainException("An invoice payment can not be paid by card", INVOICE_PAYMENT_NOT_PAYABLE_BY_CARD)
         }
 
         if (card != null && value.type != Movement.Type.EXPENSE) {

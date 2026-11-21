@@ -99,6 +99,12 @@ data class PaymentView(
     val card: PaymentCardView?
 )
 
+data class MovementInvoiceView(
+    val id: UUID,
+    val status: String,
+    val card: PaymentCardView
+)
+
 data class MovementView(
     val id: UUID,
     val name: String,
@@ -107,11 +113,12 @@ data class MovementView(
     val dueDate: LocalDate,
     val status: String,
     val overdue: Boolean,
-    val classification: MovementClassificationView,
-    val costCenter: MovementCostCenterView,
+    val classification: MovementClassificationView?,
+    val costCenter: MovementCostCenterView?,
     val financialPeriod: MovementFinancialPeriodView,
     val description: String? = null,
-    val payment: PaymentView? = null
+    val payment: PaymentView? = null,
+    val invoice: MovementInvoiceView? = null
 )
 
 data class MovementListView(
@@ -136,7 +143,8 @@ data class MovementFilter(
     @param:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     val dueFrom: LocalDate? = null,
     @param:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    val dueTo: LocalDate? = null
+    val dueTo: LocalDate? = null,
+    val invoicePayments: Boolean? = null
 )
 
 data class FinancialPeriodResultView(

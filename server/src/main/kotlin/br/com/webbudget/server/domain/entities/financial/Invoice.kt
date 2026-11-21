@@ -22,6 +22,17 @@ class Invoice(
 
     fun isOpen(): Boolean = status == Status.OPEN
 
+    fun paymentDueDate(): LocalDate {
+        val endingAt = financialPeriod.endingAt
+        val paymentDay = card.invoicePaymentDay
+        val sameMonth = endingAt.withDayOfMonth(minOf(paymentDay, endingAt.lengthOfMonth()))
+        if (sameMonth.isAfter(endingAt)) {
+            return sameMonth
+        }
+        val nextMonth = endingAt.plusMonths(1)
+        return nextMonth.withDayOfMonth(minOf(paymentDay, nextMonth.lengthOfMonth()))
+    }
+
     enum class Status { OPEN, CLOSED, PAID }
 }
 

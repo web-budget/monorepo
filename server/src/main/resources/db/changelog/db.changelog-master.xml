@@ -21,5 +21,6 @@
     <include file="db/changelog/changes/2026/11/21-1200-create-transfers.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/changes/2026/11/21-1300-credit-cards-and-invoices.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/changes/2026/11/21-1400-card-purchases-and-card-payments.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/changes/2026/11/21-1500-invoice-payments.xml" relativeToChangelogFile="false"/>
 
 </databaseChangeLog>

@@ -2,6 +2,7 @@ package br.com.webbudget.server.infrastructure.repository.financial
 
 import br.com.webbudget.server.domain.entities.financial.CardReference
 import br.com.webbudget.server.domain.entities.financial.Invoice
+import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.financial.tables.references.CARD_PURCHASES
@@ -104,6 +105,20 @@ class InvoiceRepository(
             .fetchSingle()
 
         return record.externalId!!
+    }
+
+    fun updateStatus(invoiceId: Long, from: Invoice.Status, to: Invoice.Status) {
+        val updated = dsl.update(INVOICES)
+            .set(INVOICES.STATUS, to.name)
+            .set(INVOICES.VERSION, INVOICES.VERSION.plus(1))
+            .set(INVOICES.LAST_UPDATE, LocalDateTime.now())
+            .where(INVOICES.ID.eq(invoiceId))
+            .and(INVOICES.STATUS.eq(from.name))
+            .execute()
+
+        if (updated == 0) {
+            throw concurrentUpdate()
+        }
     }
 
     fun deleteByFinancialPeriod(financialPeriodId: Long) {
