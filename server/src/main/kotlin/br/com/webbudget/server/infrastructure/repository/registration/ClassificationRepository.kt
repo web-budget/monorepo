@@ -7,6 +7,7 @@ import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.registration.tables.references.CLASSIFICATIONS
 import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PagedModel
 import org.springframework.stereotype.Repository
@@ -30,15 +31,13 @@ class ClassificationRepository(
         val classifications = CLASSIFICATIONS.`as`("classifications")
 
         val textCondition = filter?.let { text ->
-            anyOf(
-                listOf(
-                    containsIgnoreCase(classifications.NAME, text),
-                    containsIgnoreCase(classifications.DESCRIPTION, text)
-                )
+            DSL.or(
+                classifications.NAME.containsIgnoreCase(text),
+                classifications.DESCRIPTION.containsIgnoreCase(text)
             )
         }
 
-        val condition = allOf(listOfNotNull(active?.let { classifications.ACTIVE.eq(it) }, textCondition))
+        val condition = DSL.and(listOfNotNull(active?.let { classifications.ACTIVE.eq(it) }, textCondition))
 
         val sortable = mapOf(
             "name" to classifications.NAME,

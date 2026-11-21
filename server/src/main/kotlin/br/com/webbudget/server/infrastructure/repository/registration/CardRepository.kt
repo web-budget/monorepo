@@ -8,6 +8,7 @@ import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.registration.tables.references.CARDS
 import br.com.webbudget.server.jooq.registration.tables.references.WALLETS
 import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PagedModel
 import org.springframework.stereotype.Repository
@@ -40,16 +41,14 @@ class CardRepository(
         val cards = CARDS.`as`("cards")
 
         val textCondition = filter?.let { text ->
-            anyOf(
-                listOf(
-                    containsIgnoreCase(cards.NAME, text),
-                    containsIgnoreCase(cards.LAST_FOUR_DIGITS, text),
-                    containsIgnoreCase(cards.FLAG, text)
-                )
+            DSL.or(
+                cards.NAME.containsIgnoreCase(text),
+                cards.LAST_FOUR_DIGITS.containsIgnoreCase(text),
+                cards.FLAG.containsIgnoreCase(text)
             )
         }
 
-        val condition = allOf(listOfNotNull(active?.let { cards.ACTIVE.eq(it) }, textCondition))
+        val condition = DSL.and(listOfNotNull(active?.let { cards.ACTIVE.eq(it) }, textCondition))
 
         val sortable = mapOf(
             "name" to cards.NAME,

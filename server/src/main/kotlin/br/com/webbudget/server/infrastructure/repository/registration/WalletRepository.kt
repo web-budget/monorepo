@@ -7,6 +7,7 @@ import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.registration.tables.references.WALLETS
 import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PagedModel
 import org.springframework.stereotype.Repository
@@ -30,18 +31,16 @@ class WalletRepository(
         val wallets = WALLETS.`as`("wallets")
 
         val textCondition = filter?.let { text ->
-            anyOf(
-                listOf(
-                    containsIgnoreCase(wallets.NAME, text),
-                    containsIgnoreCase(wallets.DESCRIPTION, text),
-                    containsIgnoreCase(wallets.BANK, text),
-                    wallets.AGENCY.eq(text),
-                    wallets.NUMBER.eq(text)
-                )
+            DSL.or(
+                wallets.NAME.containsIgnoreCase(text),
+                wallets.DESCRIPTION.containsIgnoreCase(text),
+                wallets.BANK.containsIgnoreCase(text),
+                wallets.AGENCY.eq(text),
+                wallets.NUMBER.eq(text)
             )
         }
 
-        val condition = allOf(listOfNotNull(active?.let { wallets.ACTIVE.eq(it) }, textCondition))
+        val condition = DSL.and(listOfNotNull(active?.let { wallets.ACTIVE.eq(it) }, textCondition))
 
         val sortable = mapOf(
             "name" to wallets.NAME,

@@ -32,9 +32,9 @@ class FinancialPeriodRepository(
 
     fun findAll(filter: String?, statuses: Collection<Status>, pageable: Pageable): PagedModel<FinancialPeriod> =
         page(pageable) { financialPeriods ->
-            allOf(
+            DSL.and(
                 listOfNotNull(
-                    filter?.let { text -> containsIgnoreCase(financialPeriods.NAME, text) },
+                    filter?.let { text -> financialPeriods.NAME.containsIgnoreCase(text) },
                     financialPeriods.STATUS.`in`(statuses.map { it.name })
                 )
             )

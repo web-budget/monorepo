@@ -7,6 +7,7 @@ import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.registration.tables.references.COST_CENTERS
 import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PagedModel
 import org.springframework.stereotype.Repository
@@ -52,16 +53,14 @@ class CostCenterRepository(
         val costCenters = COST_CENTERS.`as`("cost_centers")
 
         val textCondition = filter?.let { text ->
-            anyOf(
-                listOf(
-                    containsIgnoreCase(costCenters.NAME, text),
-                    containsIgnoreCase(costCenters.FULL_NAME, text),
-                    containsIgnoreCase(costCenters.DESCRIPTION, text)
-                )
+            DSL.or(
+                costCenters.NAME.containsIgnoreCase(text),
+                costCenters.FULL_NAME.containsIgnoreCase(text),
+                costCenters.DESCRIPTION.containsIgnoreCase(text)
             )
         }
 
-        val condition = allOf(listOfNotNull(active?.let { costCenters.ACTIVE.eq(it) }, textCondition))
+        val condition = DSL.and(listOfNotNull(active?.let { costCenters.ACTIVE.eq(it) }, textCondition))
 
         val sortable = mapOf(
             "name" to costCenters.NAME,
