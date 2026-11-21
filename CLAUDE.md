@@ -19,7 +19,7 @@ O client roda com Node 24 e com o pnpm fixado no `packageManager` de `client/pac
 
 Tudo o que fica no nível de cima, `.github/` e os arquivos da raiz (`README.md`, este `CLAUDE.md`, `.editorconfig`, `.gitattributes`, `.gitignore`), não tem `CLAUDE.md` próprio e conta como a camada **infra/docs** nas regras de PR abaixo.
 
-A versão do software é a do milestone e a do release, e o nome da tag do release acompanha o milestone (hoje `v4.0.0-alpha1`). O workflow `.github/workflows/release.yml` roda ao publicar um release e constrói o client com `VITE_APP_VERSION` igual ao nome da tag; o `workflow_dispatch` dele recebe a versão como input, para testar sem publicar um release. O client lê essa variável para mostrar a versão, então ela não é escrita à mão em lugar nenhum do código.
+A versão do software é a do milestone (hoje `v4.0.0-alpha2`). Milestones `alpha` só organizam o trabalho: não geram tag, release nem imagem, e quem quiser usá-las compila do código. Quando houver release, o nome da tag acompanha o milestone. O workflow `.github/workflows/release.yml` roda ao publicar um release e constrói o client com `VITE_APP_VERSION` igual ao nome da tag; o `workflow_dispatch` dele recebe a versão como input, para testar sem publicar um release. O client lê essa variável para mostrar a versão, então ela não é escrita à mão em lugar nenhum do código.
 
 **Tudo o que vem depois do marcador `<!-- rtk-instructions v2 -->` é gerado pelo `rtk init`; nunca edite à mão.** Ao reescrever as convenções acima dele, preserve o bloco byte a byte e confira antes do push:
 
@@ -33,6 +33,10 @@ Enquanto este arquivo não estiver na `main`, compare com o do investlog, de ond
 ## Idioma
 
 Conversa, issues, PRs e os arquivos `CLAUDE.md` são em português. Código, identificadores e mensagens de commit são em inglês.
+
+## Documentação
+
+Documentação do projeto (guias, configuração, build, arquitetura para leitores) vai na **wiki** do monorepo, em português, nunca em `docs/` nem em READMEs por pasta. O `README.md` da raiz fica curto (descrição, início rápido, índice da wiki, licença). A wiki é outro repositório git (`https://github.com/web-budget/monorepo.wiki.git`, branch `master`): clone-o fora deste repositório e faça push direto, sem PR. Mudou algo documentado numa página? Atualize a página na mesma tarefa. O perfil da organização (`web-budget/.github`) é a vitrine e fica lá.
 
 ## Todo trabalho começa com uma issue
 
