@@ -20,13 +20,7 @@ class BankingInformationValidator(
             return
         }
 
-        val conflicting = if (value.isSaved()) {
-            walletRepository.existsByBankInfoAndExternalIdNot(value.bank, value.agency, value.number, value.externalId!!)
-        } else {
-            walletRepository.existsByBankInfo(value.bank, value.agency, value.number)
-        }
-
-        if (conflicting) {
+        if (walletRepository.existsByBankInfo(value.bank, value.agency, value.number, value.externalId)) {
             throw DomainException.conflict(
                 parameters = mapOf(
                     "wallet.bank" to value.bank,

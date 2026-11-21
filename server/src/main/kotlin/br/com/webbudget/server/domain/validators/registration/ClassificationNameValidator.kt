@@ -15,13 +15,7 @@ class ClassificationNameValidator(
 ) : ClassificationValidator {
 
     override fun validate(value: Classification) {
-        val conflicting = if (value.isSaved()) {
-            classificationRepository.existsByNameAndExternalIdNot(value.name, value.externalId!!)
-        } else {
-            classificationRepository.existsByName(value.name)
-        }
-
-        if (conflicting) {
+        if (classificationRepository.existsByName(value.name, value.externalId)) {
             throw DomainException.conflict(parameters = mapOf("classification.name" to value.name))
         }
     }

@@ -2,6 +2,7 @@ package br.com.webbudget.server.infrastructure.repository.registration
 
 import br.com.webbudget.server.domain.entities.registration.Card
 import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
+import br.com.webbudget.server.infrastructure.repository.excluding
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.registration.tables.references.CARDS
@@ -72,21 +73,15 @@ class CardRepository(
         return pagedModelOf(content, pageable, total.toLong())
     }
 
-    fun existsByTypeAndLastFourDigits(type: Card.Type, lastFourDigits: String): Boolean = dsl.fetchExists(
-        dsl.selectOne().from(CARDS)
-            .where(CARDS.TYPE.eq(type.name))
-            .and(CARDS.LAST_FOUR_DIGITS.eq(lastFourDigits))
-    )
-
-    fun existsByTypeAndLastFourDigitsAndExternalIdNot(
+    fun existsByTypeAndLastFourDigits(
         type: Card.Type,
         lastFourDigits: String,
-        externalId: UUID
+        excludingExternalId: UUID? = null
     ): Boolean = dsl.fetchExists(
         dsl.selectOne().from(CARDS)
             .where(CARDS.TYPE.eq(type.name))
             .and(CARDS.LAST_FOUR_DIGITS.eq(lastFourDigits))
-            .and(CARDS.EXTERNAL_ID.ne(externalId))
+            .and(CARDS.EXTERNAL_ID.excluding(excludingExternalId))
     )
 
     fun insert(card: Card): Card {

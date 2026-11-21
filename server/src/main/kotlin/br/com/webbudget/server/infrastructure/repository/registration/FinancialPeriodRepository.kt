@@ -3,6 +3,7 @@ package br.com.webbudget.server.infrastructure.repository.registration
 import br.com.webbudget.server.domain.entities.registration.FinancialPeriod
 import br.com.webbudget.server.domain.entities.registration.FinancialPeriod.Status
 import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
+import br.com.webbudget.server.infrastructure.repository.excluding
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.registration.tables.FinancialPeriods
@@ -42,14 +43,10 @@ class FinancialPeriodRepository(
     fun findByStatus(status: Status, pageable: Pageable): PagedModel<FinancialPeriod> =
         page(pageable) { financialPeriods -> financialPeriods.STATUS.eq(status.name) }
 
-    fun existsByName(name: String): Boolean = dsl.fetchExists(
-        dsl.selectOne().from(FINANCIAL_PERIODS).where(FINANCIAL_PERIODS.NAME.equalIgnoreCase(name))
-    )
-
-    fun existsByNameAndExternalIdNot(name: String, externalId: UUID): Boolean = dsl.fetchExists(
+    fun existsByName(name: String, excludingExternalId: UUID? = null): Boolean = dsl.fetchExists(
         dsl.selectOne().from(FINANCIAL_PERIODS)
             .where(FINANCIAL_PERIODS.NAME.equalIgnoreCase(name))
-            .and(FINANCIAL_PERIODS.EXTERNAL_ID.ne(externalId))
+            .and(FINANCIAL_PERIODS.EXTERNAL_ID.excluding(excludingExternalId))
     )
 
     fun existsOpenBetween(startingAt: LocalDate, endingAt: LocalDate): Boolean = dsl.fetchExists(

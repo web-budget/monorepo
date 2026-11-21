@@ -2,6 +2,7 @@ package br.com.webbudget.server.infrastructure.repository.registration
 
 import br.com.webbudget.server.domain.entities.registration.Classification
 import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
+import br.com.webbudget.server.infrastructure.repository.excluding
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.registration.tables.references.CLASSIFICATIONS
@@ -60,14 +61,10 @@ class ClassificationRepository(
         return pagedModelOf(content, pageable, total.toLong())
     }
 
-    fun existsByName(name: String): Boolean = dsl.fetchExists(
-        dsl.selectOne().from(CLASSIFICATIONS).where(CLASSIFICATIONS.NAME.equalIgnoreCase(name))
-    )
-
-    fun existsByNameAndExternalIdNot(name: String, externalId: UUID): Boolean = dsl.fetchExists(
+    fun existsByName(name: String, excludingExternalId: UUID? = null): Boolean = dsl.fetchExists(
         dsl.selectOne().from(CLASSIFICATIONS)
             .where(CLASSIFICATIONS.NAME.equalIgnoreCase(name))
-            .and(CLASSIFICATIONS.EXTERNAL_ID.ne(externalId))
+            .and(CLASSIFICATIONS.EXTERNAL_ID.excluding(excludingExternalId))
     )
 
     fun insert(classification: Classification): Classification {

@@ -5,6 +5,7 @@ import br.com.webbudget.server.domain.entities.administration.Role
 import br.com.webbudget.server.domain.entities.administration.User
 import br.com.webbudget.server.domain.entities.administration.UserStatus
 import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
+import br.com.webbudget.server.infrastructure.repository.excluding
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.administration.tables.Users
@@ -26,12 +27,10 @@ class UserRepository(
     private val grantRepository: GrantRepository
 ) {
 
-    fun existsByEmail(email: String): Boolean = dsl.fetchExists(
-        dsl.selectOne().from(USERS).where(USERS.EMAIL.eq(email))
-    )
-
-    fun existsByEmailAndExternalIdNot(email: String, externalId: UUID): Boolean = dsl.fetchExists(
-        dsl.selectOne().from(USERS).where(USERS.EMAIL.eq(email)).and(USERS.EXTERNAL_ID.ne(externalId))
+    fun existsByEmail(email: String, excludingExternalId: UUID? = null): Boolean = dsl.fetchExists(
+        dsl.selectOne().from(USERS)
+            .where(USERS.EMAIL.eq(email))
+            .and(USERS.EXTERNAL_ID.excluding(excludingExternalId))
     )
 
     fun findByExternalId(externalId: UUID): User? = findOne { users -> users.EXTERNAL_ID.eq(externalId) }

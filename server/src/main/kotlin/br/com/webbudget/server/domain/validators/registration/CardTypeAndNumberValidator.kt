@@ -15,17 +15,7 @@ class CardTypeAndNumberValidator(
 ) : CardValidator {
 
     override fun validate(value: Card) {
-        val conflicting = if (value.isSaved()) {
-            cardRepository.existsByTypeAndLastFourDigitsAndExternalIdNot(
-                value.type,
-                value.lastFourDigits,
-                value.externalId!!
-            )
-        } else {
-            cardRepository.existsByTypeAndLastFourDigits(value.type, value.lastFourDigits)
-        }
-
-        if (conflicting) {
+        if (cardRepository.existsByTypeAndLastFourDigits(value.type, value.lastFourDigits, value.externalId)) {
             throw DomainException.conflict(
                 parameters = mapOf(
                     "card.type" to value.type,

@@ -2,6 +2,7 @@ package br.com.webbudget.server.infrastructure.repository.registration
 
 import br.com.webbudget.server.domain.entities.registration.Wallet
 import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
+import br.com.webbudget.server.infrastructure.repository.excluding
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.registration.tables.references.WALLETS
@@ -66,30 +67,19 @@ class WalletRepository(
         return pagedModelOf(content, pageable, total.toLong())
     }
 
-    fun existsByName(name: String): Boolean = dsl.fetchExists(
-        dsl.selectOne().from(WALLETS).where(WALLETS.NAME.equalIgnoreCase(name))
-    )
-
-    fun existsByNameAndExternalIdNot(name: String, externalId: UUID): Boolean = dsl.fetchExists(
+    fun existsByName(name: String, excludingExternalId: UUID? = null): Boolean = dsl.fetchExists(
         dsl.selectOne().from(WALLETS)
             .where(WALLETS.NAME.equalIgnoreCase(name))
-            .and(WALLETS.EXTERNAL_ID.ne(externalId))
+            .and(WALLETS.EXTERNAL_ID.excluding(excludingExternalId))
     )
 
-    fun existsByBankInfo(bank: String?, agency: String?, number: String?): Boolean = dsl.fetchExists(
-        dsl.selectOne().from(WALLETS)
-            .where(WALLETS.BANK.eq(bank))
-            .and(WALLETS.AGENCY.eq(agency))
-            .and(WALLETS.NUMBER.eq(number))
-    )
-
-    fun existsByBankInfoAndExternalIdNot(bank: String?, agency: String?, number: String?, externalId: UUID): Boolean =
+    fun existsByBankInfo(bank: String?, agency: String?, number: String?, excludingExternalId: UUID? = null): Boolean =
         dsl.fetchExists(
             dsl.selectOne().from(WALLETS)
                 .where(WALLETS.BANK.eq(bank))
                 .and(WALLETS.AGENCY.eq(agency))
                 .and(WALLETS.NUMBER.eq(number))
-                .and(WALLETS.EXTERNAL_ID.ne(externalId))
+                .and(WALLETS.EXTERNAL_ID.excluding(excludingExternalId))
         )
 
     fun insert(wallet: Wallet): Wallet {

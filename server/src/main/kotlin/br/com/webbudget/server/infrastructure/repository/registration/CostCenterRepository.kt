@@ -2,6 +2,7 @@ package br.com.webbudget.server.infrastructure.repository.registration
 
 import br.com.webbudget.server.domain.entities.registration.CostCenter
 import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
+import br.com.webbudget.server.infrastructure.repository.excluding
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.registration.tables.references.COST_CENTERS
@@ -84,24 +85,16 @@ class CostCenterRepository(
         return pagedModelOf(content, pageable, total.toLong())
     }
 
-    fun existsByName(name: String): Boolean = dsl.fetchExists(
-        dsl.selectOne().from(COST_CENTERS).where(COST_CENTERS.NAME.equalIgnoreCase(name))
-    )
-
-    fun existsByNameAndExternalIdNot(name: String, externalId: UUID): Boolean = dsl.fetchExists(
+    fun existsByName(name: String, excludingExternalId: UUID? = null): Boolean = dsl.fetchExists(
         dsl.selectOne().from(COST_CENTERS)
             .where(COST_CENTERS.NAME.equalIgnoreCase(name))
-            .and(COST_CENTERS.EXTERNAL_ID.ne(externalId))
+            .and(COST_CENTERS.EXTERNAL_ID.excluding(excludingExternalId))
     )
 
-    fun existsByFullName(fullName: String): Boolean = dsl.fetchExists(
-        dsl.selectOne().from(COST_CENTERS).where(COST_CENTERS.FULL_NAME.equalIgnoreCase(fullName))
-    )
-
-    fun existsByFullNameAndExternalIdNot(fullName: String, externalId: UUID): Boolean = dsl.fetchExists(
+    fun existsByFullName(fullName: String, excludingExternalId: UUID? = null): Boolean = dsl.fetchExists(
         dsl.selectOne().from(COST_CENTERS)
             .where(COST_CENTERS.FULL_NAME.equalIgnoreCase(fullName))
-            .and(COST_CENTERS.EXTERNAL_ID.ne(externalId))
+            .and(COST_CENTERS.EXTERNAL_ID.excluding(excludingExternalId))
     )
 
     fun insert(costCenter: CostCenter): CostCenter {
