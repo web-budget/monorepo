@@ -10,17 +10,14 @@ import org.springframework.stereotype.Component
 @Component
 @OnCreateValidation
 @OnUpdateValidation
-class CardTypeAndNumberValidator(
+class CardNumberValidator(
     private val cardRepository: CardRepository
 ) : CardValidator {
 
     override fun validate(value: Card) {
-        if (cardRepository.existsByTypeAndLastFourDigits(value.type, value.lastFourDigits, value.externalId)) {
+        if (cardRepository.existsByLastFourDigits(value.lastFourDigits, value.externalId)) {
             throw DomainException.conflict(
-                parameters = mapOf(
-                    "card.type" to value.type,
-                    "card.last-four-digits" to value.lastFourDigits
-                )
+                parameters = mapOf("card.last-four-digits" to value.lastFourDigits)
             )
         }
     }

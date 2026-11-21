@@ -21,7 +21,6 @@ class CardMapper(
         id = card.externalId!!,
         name = card.name,
         lastFourDigits = card.lastFourDigits,
-        type = card.type,
         active = card.active,
         flag = card.flag,
         invoicePaymentDay = card.invoicePaymentDay,
@@ -31,7 +30,6 @@ class CardMapper(
     fun mapToListView(card: Card): CardListView = CardListView(
         id = card.externalId!!,
         name = card.name,
-        type = card.type,
         active = card.active,
         flag = card.flag
     )
@@ -39,8 +37,7 @@ class CardMapper(
     fun mapToDomain(form: CardCreateForm): Card = Card(
         name = form.name!!,
         lastFourDigits = form.lastFourDigits!!,
-        type = form.type!!,
-        invoicePaymentDay = form.invoicePaymentDay,
+        invoicePaymentDay = form.invoicePaymentDay!!,
         flag = form.flag,
         wallet = mapWallet(form.wallet)
     )
@@ -48,7 +45,7 @@ class CardMapper(
     fun mapToDomain(form: CardUpdateForm, card: Card): Card = card.apply {
         this.name = form.name!!
         this.lastFourDigits = form.lastFourDigits!!
-        this.invoicePaymentDay = form.invoicePaymentDay
+        this.invoicePaymentDay = form.invoicePaymentDay!!
         this.active = form.active!!
         this.flag = form.flag
         this.wallet = mapWallet(form.wallet)
