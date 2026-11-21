@@ -69,7 +69,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
 
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
-    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
     implementation("org.springframework.data:spring-data-commons")
 
