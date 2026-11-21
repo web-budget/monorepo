@@ -17,6 +17,7 @@ interface ListFiltersOptions<S extends string> extends ListQuerySettings<S> {
 export function useListFilters<S extends string>(options: ListFiltersOptions<S>) {
   const route = useRoute()
   const router = useRouter()
+  const listPath = route.path
 
   function readRoute(): ListQueryState<S> {
     return parseListQuery(route.query, options)
@@ -34,6 +35,9 @@ export function useListFilters<S extends string>(options: ListFiltersOptions<S>)
   watch(
     () => route.query,
     () => {
+      if (route.path !== listPath) {
+        return
+      }
       const fromRoute = readRoute()
       if (sameListState(fromRoute, options.pageRequest.value)) {
         return

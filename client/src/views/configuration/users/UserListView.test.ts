@@ -192,7 +192,7 @@ describe('UserListView', () => {
     })
 
     it('follows the URL when it changes while the list is open', async () => {
-      const { wrapper, router } = await render()
+      const { wrapper, router } = await render(users, '/users')
 
       await router.push('/users?status=PENDING')
       await settle()
@@ -202,7 +202,7 @@ describe('UserListView', () => {
     })
 
     it('ignores an unknown status that arrives while the list is open', async () => {
-      const { wrapper, router } = await render()
+      const { wrapper, router } = await render(users, '/users')
 
       await router.push('/users?status=NOPE')
       await settle()

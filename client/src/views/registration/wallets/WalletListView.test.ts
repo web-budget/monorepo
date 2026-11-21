@@ -349,7 +349,8 @@ describe('WalletListView', () => {
     })
 
     it('reloads the list when the URL changes while it is open', async () => {
-      const { wrapper, router } = await render()
+      serve()
+      const { wrapper, router } = await mountView(WalletListView_, 'wallets', {}, {}, '/wallets')
 
       await router.push('/wallets?status=INACTIVE&page=3')
       await flushPromises()
@@ -361,13 +362,21 @@ describe('WalletListView', () => {
     })
 
     it('does not rewrite the URL when leaving the list', async () => {
-      const { wrapper, router } = await render()
+      serve()
+      const { wrapper, router } = await mountView(
+        WalletListView_,
+        'wallets',
+        {},
+        {},
+        '/wallets?status=ALL&page=2',
+      )
 
       await buttonWithText(wrapper, 'Criar').trigger('click')
       await flushPromises()
 
       expect(router.currentRoute.value.fullPath).toBe('/wallets/create')
       expect(listing()).toHaveLength(1)
+      expect(listing()[0]![0]).toEqual(expect.objectContaining({ status: 'ALL', page: 1 }))
     })
   })
 
