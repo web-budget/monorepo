@@ -21,11 +21,20 @@ class FinancialSchemaTest : BaseIntegrationTest() {
         assertThat(tables).doesNotContain(
             "period_movements",
             "recurring_movements",
-            "payments",
             "transferences",
             "wallet_balances",
             "credit_card_invoices"
         )
+    }
+
+    @Test
+    fun `should have replaced the payments table by the one of the new model`() {
+
+        val columns = dsl.fetch(
+            "SELECT column_name FROM information_schema.columns WHERE table_schema = 'financial' AND table_name = 'payments'"
+        ).map { it.get(0, String::class.java) }
+
+        assertThat(columns).contains("id_movement", "value_paid", "paid_on").doesNotContain("paid_at", "id_card")
     }
 
     @Test
