@@ -8,4 +8,6 @@ object ErrorCodes {
     const val EMAIL_IS_INVALID = "email-address-is-invalid"
     const val HAS_CONTROL_CHARACTERS = "has-control-characters"
     const val MAX_BYTES = "has-max-bytes-of-{max}"
+    const val IS_NOT_POSITIVE = "is-not-positive"
+    const val IS_NEGATIVE = "is-negative"
 }
