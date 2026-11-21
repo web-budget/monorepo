@@ -16,28 +16,15 @@ class CostCenterNameValidator(
 
     override fun validate(value: CostCenter) {
 
-        val conflicting = if (value.isSaved()) {
-            existsOtherWithSameName(value)
-        } else {
-            existsWithSameName(value)
-        }
-
-        if (conflicting) {
+        if (existsWithSameName(value)) {
             throw DomainException.conflict(parameters = mapOf("cost-center.name" to value.name))
         }
     }
 
-    private fun existsOtherWithSameName(value: CostCenter): Boolean =
-        if (value.parent != null) {
-            costCenterRepository.existsByFullNameAndExternalIdNot(value.fullName, value.externalId!!)
-        } else {
-            costCenterRepository.existsByNameAndExternalIdNot(value.name, value.externalId!!)
-        }
-
     private fun existsWithSameName(value: CostCenter): Boolean =
         if (value.parent != null) {
-            costCenterRepository.existsByFullName(value.fullName)
+            costCenterRepository.existsByFullName(value.fullName, value.externalId)
         } else {
-            costCenterRepository.existsByName(value.name)
+            costCenterRepository.existsByName(value.name, value.externalId)
         }
 }

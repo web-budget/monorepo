@@ -15,13 +15,7 @@ class UserAccountEmailValidator(
 ) : UserValidator {
 
     override fun validate(value: User) {
-        val conflicting = if (value.isSaved()) {
-            userRepository.existsByEmailAndExternalIdNot(value.email, value.externalId!!)
-        } else {
-            userRepository.existsByEmail(value.email)
-        }
-
-        if (conflicting) {
+        if (userRepository.existsByEmail(value.email, value.externalId)) {
             throw DomainException.conflict(parameters = mapOf("user.email" to value.email))
         }
     }

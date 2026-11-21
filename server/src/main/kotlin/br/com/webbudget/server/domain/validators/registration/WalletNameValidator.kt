@@ -15,13 +15,7 @@ class WalletNameValidator(
 ) : WalletValidator {
 
     override fun validate(value: Wallet) {
-        val conflicting = if (value.isSaved()) {
-            walletRepository.existsByNameAndExternalIdNot(value.name, value.externalId!!)
-        } else {
-            walletRepository.existsByName(value.name)
-        }
-
-        if (conflicting) {
+        if (walletRepository.existsByName(value.name, value.externalId)) {
             throw DomainException.conflict(parameters = mapOf("wallet.name" to value.name))
         }
     }

@@ -69,7 +69,6 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-webmvc")
 
     developmentOnly("org.springframework.boot:spring-boot-docker-compose")
-    annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
     implementation("org.springframework.data:spring-data-commons")
 
@@ -90,18 +89,12 @@ dependencies {
     jooqCodegen("org.postgresql:postgresql:$postgresDriverVersion")
 
     // testing
-    testImplementation("org.springframework.boot:spring-boot-starter-actuator-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-jooq-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-liquibase-test")
     testImplementation("org.springframework.boot:spring-boot-starter-mail-test")
     testImplementation("org.springframework.boot:spring-boot-starter-security-test")
-    testImplementation("org.springframework.boot:spring-boot-starter-validation-test")
     testImplementation("org.springframework.boot:spring-boot-starter-webmvc-test")
     testImplementation("org.springframework.boot:spring-boot-testcontainers")
 
-    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
 
-    testImplementation("org.testcontainers:testcontainers-junit-jupiter")
     testImplementation("org.testcontainers:testcontainers-postgresql")
 
     testImplementation("com.icegreen:greenmail:$greenMailVersion")

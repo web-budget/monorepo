@@ -16,9 +16,4 @@ class CostCenter(
     fun updateFullName() {
         this.fullName = parent?.let { "${it.fullName} > $name" } ?: name
     }
-
-    fun isBudgetValidationRequired(classificationType: Classification.Type): Boolean = when (classificationType) {
-        Classification.Type.INCOME -> incomeBudget != null
-        Classification.Type.EXPENSE -> expenseBudget != null
-    }
 }

@@ -2,10 +2,12 @@ package br.com.webbudget.server.infrastructure.repository.registration
 
 import br.com.webbudget.server.domain.entities.registration.CostCenter
 import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
+import br.com.webbudget.server.infrastructure.repository.excluding
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.registration.tables.references.COST_CENTERS
 import org.jooq.DSLContext
+import org.jooq.impl.DSL
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PagedModel
 import org.springframework.stereotype.Repository
@@ -51,16 +53,14 @@ class CostCenterRepository(
         val costCenters = COST_CENTERS.`as`("cost_centers")
 
         val textCondition = filter?.let { text ->
-            anyOf(
-                listOf(
-                    containsIgnoreCase(costCenters.NAME, text),
-                    containsIgnoreCase(costCenters.FULL_NAME, text),
-                    containsIgnoreCase(costCenters.DESCRIPTION, text)
-                )
+            DSL.or(
+                costCenters.NAME.containsIgnoreCase(text),
+                costCenters.FULL_NAME.containsIgnoreCase(text),
+                costCenters.DESCRIPTION.containsIgnoreCase(text)
             )
         }
 
-        val condition = allOf(listOfNotNull(active?.let { costCenters.ACTIVE.eq(it) }, textCondition))
+        val condition = DSL.and(listOfNotNull(active?.let { costCenters.ACTIVE.eq(it) }, textCondition))
 
         val sortable = mapOf(
             "name" to costCenters.NAME,
@@ -84,24 +84,16 @@ class CostCenterRepository(
         return pagedModelOf(content, pageable, total.toLong())
     }
 
-    fun existsByName(name: String): Boolean = dsl.fetchExists(
-        dsl.selectOne().from(COST_CENTERS).where(COST_CENTERS.NAME.equalIgnoreCase(name))
-    )
-
-    fun existsByNameAndExternalIdNot(name: String, externalId: UUID): Boolean = dsl.fetchExists(
+    fun existsByName(name: String, excludingExternalId: UUID? = null): Boolean = dsl.fetchExists(
         dsl.selectOne().from(COST_CENTERS)
             .where(COST_CENTERS.NAME.equalIgnoreCase(name))
-            .and(COST_CENTERS.EXTERNAL_ID.ne(externalId))
+            .and(COST_CENTERS.EXTERNAL_ID.excluding(excludingExternalId))
     )
 
-    fun existsByFullName(fullName: String): Boolean = dsl.fetchExists(
-        dsl.selectOne().from(COST_CENTERS).where(COST_CENTERS.FULL_NAME.equalIgnoreCase(fullName))
-    )
-
-    fun existsByFullNameAndExternalIdNot(fullName: String, externalId: UUID): Boolean = dsl.fetchExists(
+    fun existsByFullName(fullName: String, excludingExternalId: UUID? = null): Boolean = dsl.fetchExists(
         dsl.selectOne().from(COST_CENTERS)
             .where(COST_CENTERS.FULL_NAME.equalIgnoreCase(fullName))
-            .and(COST_CENTERS.EXTERNAL_ID.ne(externalId))
+            .and(COST_CENTERS.EXTERNAL_ID.excluding(excludingExternalId))
     )
 
     fun insert(costCenter: CostCenter): CostCenter {

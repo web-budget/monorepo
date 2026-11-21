@@ -15,13 +15,7 @@ class FinancialPeriodNameValidator(
 ) : FinancialPeriodValidator {
 
     override fun validate(value: FinancialPeriod) {
-        val conflicting = if (value.isSaved()) {
-            financialPeriodRepository.existsByNameAndExternalIdNot(value.name, value.externalId!!)
-        } else {
-            financialPeriodRepository.existsByName(value.name)
-        }
-
-        if (conflicting) {
+        if (financialPeriodRepository.existsByName(value.name, value.externalId)) {
             throw DomainException.conflict(parameters = mapOf("financial-period.name" to value.name))
         }
     }

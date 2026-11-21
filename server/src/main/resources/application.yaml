@@ -20,10 +20,8 @@ spring:
     username: ${MAIL_USER:maildev}
     password: ${MAIL_PASSWORD:maildev}
     properties:
-      mail.transport.protocol: smtp
       mail.smtp.auth: true
       mail.smtp.starttls.enable: true
-      mail.debug: false
 
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml

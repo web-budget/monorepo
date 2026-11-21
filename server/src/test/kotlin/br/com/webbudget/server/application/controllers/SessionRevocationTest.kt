@@ -7,7 +7,6 @@ import br.com.webbudget.server.domain.security.CurrentUserProvider
 import br.com.webbudget.server.domain.exceptions.UnauthenticatedException
 import br.com.webbudget.server.infrastructure.repository.administration.PasswordRecoverAttemptRepository
 import br.com.webbudget.server.jooq.administration.tables.references.USERS
-import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.jooq.DSLContext
 import org.junit.jupiter.api.Test

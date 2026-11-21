@@ -8,7 +8,6 @@ import br.com.webbudget.server.jooq.administration.tables.references.ACCOUNT_ACT
 import br.com.webbudget.server.jooq.administration.tables.references.USERS
 import org.jooq.Condition
 import org.jooq.DSLContext
-import org.jooq.Record
 import org.springframework.stereotype.Repository
 import java.time.LocalDateTime
 import java.util.UUID
