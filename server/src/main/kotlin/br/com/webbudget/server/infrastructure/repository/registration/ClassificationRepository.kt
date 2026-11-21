@@ -43,7 +43,6 @@ class ClassificationRepository(
             "name" to classifications.NAME,
             "type" to classifications.TYPE,
             "active" to classifications.ACTIVE,
-            "budget" to classifications.BUDGET,
             "description" to classifications.DESCRIPTION,
             "createdOn" to classifications.CREATED_ON
         )
@@ -75,7 +74,6 @@ class ClassificationRepository(
             .set(CLASSIFICATIONS.NAME, classification.name)
             .set(CLASSIFICATIONS.TYPE, classification.type.name)
             .set(CLASSIFICATIONS.DESCRIPTION, classification.description)
-            .set(CLASSIFICATIONS.BUDGET, classification.budget)
             .returning()
             .fetchSingle()
 
@@ -89,7 +87,6 @@ class ClassificationRepository(
             .set(CLASSIFICATIONS.NAME, classification.name)
             .set(CLASSIFICATIONS.TYPE, classification.type.name)
             .set(CLASSIFICATIONS.DESCRIPTION, classification.description)
-            .set(CLASSIFICATIONS.BUDGET, classification.budget)
             .set(CLASSIFICATIONS.VERSION, CLASSIFICATIONS.VERSION.plus(1))
             .set(CLASSIFICATIONS.LAST_UPDATE, LocalDateTime.now())
             .where(CLASSIFICATIONS.ID.eq(classification.id))

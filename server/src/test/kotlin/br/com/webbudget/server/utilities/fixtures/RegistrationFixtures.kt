@@ -48,9 +48,8 @@ fun createClassification(
     name: String = "Classification",
     type: Classification.Type = Classification.Type.INCOME,
     active: Boolean = true,
-    budget: BigDecimal? = BigDecimal.ONE,
     description: String = "Some description"
-) = Classification(name, type, active, budget, description)
+) = Classification(name, type, active, description)
     .apply {
         this.id = id
         this.externalId = externalId
@@ -78,7 +77,7 @@ fun createFinancialPeriod(
     name: String = "Financial Period",
     startingAt: LocalDate = LocalDate.now(),
     endingAt: LocalDate = LocalDate.now().plusDays(15),
-    status: FinancialPeriod.Status = FinancialPeriod.Status.ACTIVE,
+    status: FinancialPeriod.Status = FinancialPeriod.Status.OPEN,
     expensesGoal: BigDecimal = BigDecimal.ONE,
     revenuesGoal: BigDecimal = BigDecimal.TEN
 ) = FinancialPeriod(name, startingAt, endingAt, status, expensesGoal, revenuesGoal)

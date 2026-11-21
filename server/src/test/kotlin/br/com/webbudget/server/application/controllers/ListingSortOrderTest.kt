@@ -96,28 +96,31 @@ class ListingSortOrderTest : BaseIntegrationTest() {
     @Sql(
         "/sql/financial/clear-tables.sql",
         "/sql/financial/create-registration-data.sql",
-        "/sql/financial/create-period-movements.sql"
+        "/sql/financial/create-movements.sql"
     )
     @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
-    fun `should list the period movements from the newest to the oldest by default`() {
+    fun `should list the movements from the newest to the oldest by default`() {
 
-        assertNames("/financial/period-movements", "", "Groceries", "Salary", "Gym")
-        assertNames("/financial/period-movements", "sort=name,asc", "Groceries", "Gym", "Salary")
-        assertNames("/financial/period-movements", "sort=name,desc", "Salary", "Gym", "Groceries")
+        assertNames("/financial/movements", "", "Groceries", "Salary", "Gym")
+        assertNames("/financial/movements", "sort=name,asc", "Groceries", "Gym", "Salary")
+        assertNames("/financial/movements", "sort=name,desc", "Salary", "Gym", "Groceries")
     }
 
     @Test
     @Sql(
         "/sql/financial/clear-tables.sql",
         "/sql/financial/create-registration-data.sql",
-        "/sql/financial/create-recurring-movements.sql"
+        "/sql/financial/create-movements.sql",
+        "/sql/financial/create-wallet-entries.sql"
     )
     @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
-    fun `should list the recurring movements from the newest to the oldest by default`() {
+    fun `should list the wallet statement from the newest to the oldest by default`() {
 
-        assertNames("/financial/recurring-movements", "", "Pilates", "Gym")
-        assertNames("/financial/recurring-movements", "sort=name,asc", "Gym", "Pilates")
-        assertNames("/financial/recurring-movements", "sort=name,desc", "Pilates", "Gym")
+        val path = "/financial/wallets/7e1b6f3a-2c4d-4b8e-9a10-5d3f0c9b7a01/statement"
+
+        assertNames(path, "", "Rounding", "Financial test other wallet", "Rent", "Deposit")
+        assertNames(path, "sort=name,asc", "Deposit", "Financial test other wallet", "Rent", "Rounding")
+        assertNames(path, "sort=name,desc", "Rounding", "Rent", "Financial test other wallet", "Deposit")
     }
 
     @Test

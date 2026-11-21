@@ -6,6 +6,7 @@ import br.com.webbudget.server.application.payloads.registration.FinancialPeriod
 import br.com.webbudget.server.application.payloads.registration.FinancialPeriodView
 import br.com.webbudget.server.domain.entities.registration.FinancialPeriod
 import org.springframework.stereotype.Component
+import java.time.LocalDate
 
 @Component
 class FinancialPeriodMapper {
@@ -16,6 +17,7 @@ class FinancialPeriodMapper {
         startingAt = financialPeriod.startingAt,
         endingAt = financialPeriod.endingAt,
         status = financialPeriod.status.name,
+        expired = financialPeriod.isExpired(LocalDate.now()),
         expensesGoal = financialPeriod.expensesGoal,
         revenuesGoal = financialPeriod.revenuesGoal
     )
@@ -25,7 +27,8 @@ class FinancialPeriodMapper {
         name = financialPeriod.name,
         startingAt = financialPeriod.startingAt,
         endingAt = financialPeriod.endingAt,
-        status = financialPeriod.status.name
+        status = financialPeriod.status.name,
+        expired = financialPeriod.isExpired(LocalDate.now())
     )
 
     fun mapToDomain(form: FinancialPeriodCreateForm): FinancialPeriod = FinancialPeriod(

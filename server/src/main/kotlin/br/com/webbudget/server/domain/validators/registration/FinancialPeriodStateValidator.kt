@@ -1,8 +1,7 @@
 package br.com.webbudget.server.domain.validators.registration
 
 import br.com.webbudget.server.domain.entities.registration.FinancialPeriod
-import br.com.webbudget.server.domain.entities.registration.FinancialPeriod.Status.ACTIVE
-import br.com.webbudget.server.domain.entities.registration.FinancialPeriod.Status.ENDED
+import br.com.webbudget.server.domain.entities.registration.FinancialPeriod.Status.OPEN
 import br.com.webbudget.server.domain.exceptions.DomainException
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.FINANCIAL_PERIOD_NOT_OPEN
 import br.com.webbudget.server.domain.validators.OnDeleteValidation
@@ -18,7 +17,7 @@ class FinancialPeriodStateValidator(
 ) : FinancialPeriodValidator {
 
     override fun validate(value: FinancialPeriod) {
-        if (!financialPeriodRepository.existsByExternalIdAndStatusIn(value.externalId!!, listOf(ACTIVE, ENDED))) {
+        if (!financialPeriodRepository.existsByExternalIdAndStatusIn(value.externalId!!, listOf(OPEN))) {
             throw DomainException("You can not delete or update non open periods", FINANCIAL_PERIOD_NOT_OPEN)
         }
     }

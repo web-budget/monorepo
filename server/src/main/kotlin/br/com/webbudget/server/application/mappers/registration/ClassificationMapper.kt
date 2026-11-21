@@ -15,7 +15,6 @@ class ClassificationMapper {
         name = classification.name,
         type = classification.type.name,
         active = classification.active,
-        budget = classification.budget,
         description = classification.description
     )
 
@@ -23,14 +22,12 @@ class ClassificationMapper {
         id = classification.externalId!!,
         name = classification.name,
         type = classification.type.name,
-        active = classification.active,
-        budget = classification.budget
+        active = classification.active
     )
 
     fun mapToDomain(form: ClassificationCreateForm): Classification = Classification(
         name = form.name!!,
         type = form.type!!,
-        budget = form.budget,
         description = form.description
     )
 
@@ -38,7 +35,6 @@ class ClassificationMapper {
         classification.apply {
             this.name = form.name!!
             this.description = form.description
-            this.budget = form.budget
             this.active = form.active!!
         }
 }

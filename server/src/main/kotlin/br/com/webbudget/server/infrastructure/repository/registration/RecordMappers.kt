@@ -36,7 +36,6 @@ internal fun ClassificationsRecord.toClassification(): Classification = Classifi
     name = name!!,
     type = Classification.Type.valueOf(type!!),
     active = active!!,
-    budget = budget,
     description = description
 ).also { classification -> classification.restore(id, externalId, version, createdOn, lastUpdate) }
 

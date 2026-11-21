@@ -41,7 +41,7 @@ class FinancialPeriodControllerTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `should list only the accounted periods when no status is requested`() {
+    fun `should list only the closed periods when no status is requested`() {
 
         restTestClient.get()
             .uri(ENDPOINT_URL)
@@ -50,7 +50,20 @@ class FinancialPeriodControllerTest : BaseIntegrationTest() {
             .expectBody()
             .jsonPath("$.page.totalElements").isEqualTo(1)
             .jsonPath("$.content[0].name").isEqualTo("07/2024")
-            .jsonPath("$.content[0].status").isEqualTo("ACCOUNTED")
+            .jsonPath("$.content[0].status").isEqualTo("CLOSED")
+            .jsonPath("$.content[0].expired").isEqualTo(false)
+    }
+
+    @Test
+    fun `should list only the closed periods when the closed status is requested`() {
+
+        restTestClient.get()
+            .uri("$ENDPOINT_URL?status=CLOSED")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.page.totalElements").isEqualTo(1)
+            .jsonPath("$.content[0].status").isEqualTo("CLOSED")
     }
 
     @Test
@@ -85,7 +98,8 @@ class FinancialPeriodControllerTest : BaseIntegrationTest() {
             .expectStatus().isOk
             .expectBody()
             .jsonPath("$.page.totalElements").isEqualTo(1)
-            .jsonPath("$.content[0].status").isEqualTo("ENDED")
+            .jsonPath("$.content[0].status").isEqualTo("OPEN")
+            .jsonPath("$.content[0].expired").isEqualTo(true)
     }
 
     @Test
@@ -98,15 +112,16 @@ class FinancialPeriodControllerTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `should list only the active periods with the full view`() {
+    fun `should list only the open periods with the full view`() {
 
         restTestClient.get()
-            .uri("$ENDPOINT_URL/active")
+            .uri("$ENDPOINT_URL/active?sort=startingAt,desc")
             .exchange()
             .expectStatus().isOk
             .expectBody()
-            .jsonPath("$.page.totalElements").isEqualTo(1)
+            .jsonPath("$.page.totalElements").isEqualTo(2)
             .jsonPath("$.content[0].id").isEqualTo(ACTIVE_ID)
+            .jsonPath("$.content[0].expired").isEqualTo(true)
             .jsonPath("$.content[0].expensesGoal").isEqualTo(4500.00)
             .jsonPath("$.content[0].revenuesGoal").isEqualTo(9000.00)
     }
@@ -121,8 +136,25 @@ class FinancialPeriodControllerTest : BaseIntegrationTest() {
             .expectBody()
             .jsonPath("$.id").isEqualTo(ACTIVE_ID)
             .jsonPath("$.name").isEqualTo("08/2024")
-            .jsonPath("$.status").isEqualTo("ACTIVE")
+            .jsonPath("$.status").isEqualTo("OPEN")
+            .jsonPath("$.expired").isEqualTo(true)
             .jsonPath("$.expensesGoal").isEqualTo(4500.00)
+    }
+
+    @Test
+    fun `should not mark a period as expired while its end date is not past`() {
+
+        val upcoming = financialPeriodRepository.insert(
+            FinancialPeriod("Upcoming", LocalDate.now().plusDays(1), LocalDate.now().plusDays(30))
+        )
+
+        restTestClient.get()
+            .uri("$ENDPOINT_URL/${upcoming.externalId}")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.status").isEqualTo("OPEN")
+            .jsonPath("$.expired").isEqualTo(false)
     }
 
     @Test
@@ -135,7 +167,7 @@ class FinancialPeriodControllerTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `should create the period as active`() {
+    fun `should create the period as open`() {
 
         restTestClient.post()
             .uri(ENDPOINT_URL)
@@ -150,7 +182,7 @@ class FinancialPeriodControllerTest : BaseIntegrationTest() {
 
         val created = financialPeriodRepository.findAll("09/2024", FinancialPeriod.Status.entries, PageRequest.of(0, 1)).content.single()
 
-        assertThat(created.status).isEqualTo(FinancialPeriod.Status.ACTIVE)
+        assertThat(created.status).isEqualTo(FinancialPeriod.Status.OPEN)
         assertThat(created.startingAt).isEqualTo(LocalDate.of(2024, 9, 1))
         assertThat(created.expensesGoal).isEqualByComparingTo("5")
     }
@@ -197,6 +229,50 @@ class FinancialPeriodControllerTest : BaseIntegrationTest() {
     }
 
     @Test
+    fun `should answer bad request when the dates overlap a closed period`() {
+
+        restTestClient.post()
+            .uri(ENDPOINT_URL)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"name": "Overlap closed", "startingAt": "2024-07-31", "endingAt": "2024-07-31"}""")
+            .exchange()
+            .expectStatus().isBadRequest
+            .expectBody()
+            .jsonPath("$.error").isEqualTo("overlapping-start-end-dates")
+    }
+
+    @Test
+    fun `should answer bad request when the new period encloses an existing one`() {
+
+        restTestClient.post()
+            .uri(ENDPOINT_URL)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"name": "Enclosing", "startingAt": "2024-05-01", "endingAt": "2024-09-30"}""")
+            .exchange()
+            .expectStatus().isBadRequest
+            .expectBody()
+            .jsonPath("$.error").isEqualTo("overlapping-start-end-dates")
+    }
+
+    @Test
+    fun `should accept a period that touches no other period`() {
+
+        restTestClient.post()
+            .uri(ENDPOINT_URL)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"name": "05/2024", "startingAt": "2024-05-01", "endingAt": "2024-05-31"}""")
+            .exchange()
+            .expectStatus().isCreated
+
+        restTestClient.post()
+            .uri(ENDPOINT_URL)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"name": "09/2024", "startingAt": "2024-09-01", "endingAt": "2024-09-30"}""")
+            .exchange()
+            .expectStatus().isCreated
+    }
+
+    @Test
     fun `should answer conflict when the name is already taken ignoring case`() {
 
         restTestClient.post()
@@ -223,7 +299,7 @@ class FinancialPeriodControllerTest : BaseIntegrationTest() {
             .jsonPath("$.startingAt").isEqualTo("2024-08-01")
             .jsonPath("$.revenuesGoal").isEqualTo(1)
             .jsonPath("$.expensesGoal").isEqualTo(2)
-            .jsonPath("$.status").isEqualTo("ACTIVE")
+            .jsonPath("$.status").isEqualTo("OPEN")
 
         val updated = financialPeriodRepository.findByExternalId(UUID.fromString(ACTIVE_ID))!!
 
@@ -256,7 +332,7 @@ class FinancialPeriodControllerTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `should answer bad request when another open period overlaps the updated one`() {
+    fun `should answer bad request when another period overlaps the updated one`() {
 
         financialPeriodRepository.insert(
             FinancialPeriod("Overlapping", LocalDate.of(2024, 7, 25), LocalDate.of(2024, 8, 5))

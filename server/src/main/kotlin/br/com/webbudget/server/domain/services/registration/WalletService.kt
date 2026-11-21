@@ -2,6 +2,7 @@ package br.com.webbudget.server.domain.services.registration
 
 import br.com.webbudget.server.domain.entities.registration.Wallet
 import br.com.webbudget.server.domain.validators.OnCreateValidation
+import br.com.webbudget.server.domain.validators.OnDeleteValidation
 import br.com.webbudget.server.domain.validators.OnUpdateValidation
 import br.com.webbudget.server.domain.validators.registration.WalletValidator
 import br.com.webbudget.server.infrastructure.repository.registration.WalletRepository
@@ -16,7 +17,9 @@ class WalletService(
     @OnCreateValidation
     private val creationValidators: List<WalletValidator>,
     @OnUpdateValidation
-    private val updateValidators: List<WalletValidator>
+    private val updateValidators: List<WalletValidator>,
+    @OnDeleteValidation
+    private val deletionValidators: List<WalletValidator>
 ) {
 
     @Transactional
@@ -37,6 +40,9 @@ class WalletService(
 
     @Transactional
     fun delete(wallet: Wallet) {
+
+        deletionValidators.forEach { it.validate(wallet) }
+
         walletRepository.delete(wallet)
     }
 }

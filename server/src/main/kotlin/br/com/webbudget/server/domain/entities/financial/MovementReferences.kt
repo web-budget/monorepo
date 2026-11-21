@@ -9,8 +9,7 @@ class ClassificationReference(
     val externalId: UUID,
     val name: String,
     val type: String,
-    val active: Boolean,
-    val budget: BigDecimal?
+    val active: Boolean
 )
 
 class CostCenterReference(
@@ -18,9 +17,7 @@ class CostCenterReference(
     val externalId: UUID,
     val name: String,
     val fullName: String,
-    val active: Boolean,
-    val incomeBudget: BigDecimal?,
-    val expenseBudget: BigDecimal?
+    val active: Boolean
 )
 
 class FinancialPeriodReference(
@@ -32,7 +29,17 @@ class FinancialPeriodReference(
     val status: Status
 ) {
 
-    fun isOpen(): Boolean = status == Status.ACTIVE || status == Status.ENDED
+    fun isOpen(): Boolean = status == Status.OPEN
 
-    enum class Status { ACTIVE, ENDED, ACCOUNTED }
+    fun isExpired(today: LocalDate): Boolean = isOpen() && endingAt.isBefore(today)
+
+    enum class Status { OPEN, CLOSED }
 }
+
+class WalletReference(
+    val id: Long,
+    val externalId: UUID,
+    val name: String,
+    val active: Boolean,
+    val currentBalance: BigDecimal
+)
