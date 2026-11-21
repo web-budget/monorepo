@@ -210,6 +210,34 @@ describe('UserListView', () => {
       expect(buttonWithText(wrapper, 'Aprovados').attributes('aria-pressed')).toBe('true')
     })
 
+    it('opens with the search, page, size and sort of the URL, which stay there', async () => {
+      const location = '/users?filter=bru&status=BLOCKED&page=2&size=30&sort=name,asc'
+
+      const { wrapper, router } = await render(users, location)
+
+      expect(listingCalls(vi.mocked(usersApi.findAll))[0]).toEqual({
+        filter: 'bru',
+        status: 'BLOCKED',
+        page: 1,
+        size: 30,
+        sort: 'name,asc',
+      })
+      expect((wrapper.find('input').element as HTMLInputElement).value).toBe('bru')
+      expect(router.currentRoute.value.fullPath).toBe(location)
+    })
+
+    it('writes the search, the page and the sort to the URL', async () => {
+      const { wrapper, router } = await render()
+
+      await wrapper.find('input').setValue('bru')
+      await wrapper.find('input').trigger('keydown', { key: 'Enter' })
+      await settle()
+      await buttonWithText(wrapper, 'Nome').trigger('click')
+      await settle()
+
+      expect(router.currentRoute.value.query).toEqual({ filter: 'bru', sort: 'name,asc' })
+    })
+
     it('puts the pending tab in the URL from the pending notice', async () => {
       const { wrapper, router } = await render()
 

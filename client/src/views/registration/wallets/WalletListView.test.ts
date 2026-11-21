@@ -233,6 +233,144 @@ describe('WalletListView', () => {
     expect(listing().slice(-1)[0]![0]).toEqual(expect.objectContaining({ page: 0, size: 30 }))
   })
 
+  describe('the state in the URL', () => {
+    const SHARED = '/wallets?filter=Mai&status=ALL&page=2&size=30&sort=name,desc'
+
+    it('opens exactly the state of the URL', async () => {
+      serve(wallets, 70)
+
+      const { wrapper } = await mountView(WalletListView_, 'wallets', {}, {}, SHARED)
+
+      expect(listing()[0]![0]).toEqual({
+        filter: 'Mai',
+        status: 'ALL',
+        page: 1,
+        size: 30,
+        sort: 'name,desc',
+      })
+      expect((wrapper.find('input').element as HTMLInputElement).value).toBe('Mai')
+      expect(buttonWithText(wrapper, 'Todas').attributes('aria-pressed')).toBe('true')
+      expect(
+        wrapper
+          .findAll('th')
+          .find((header) => header.text() === 'Nome')!
+          .attributes('aria-sort'),
+      ).toBe('descending')
+      expect(wrapper.text()).toContain('70 carteiras encontradas para “Mai”')
+    })
+
+    it('keeps the shared state in the URL after opening', async () => {
+      serve(wallets, 70)
+
+      const { router } = await mountView(WalletListView_, 'wallets', {}, {}, SHARED)
+
+      expect(router.currentRoute.value.fullPath).toBe(SHARED)
+    })
+
+    it('falls back to the defaults for invalid values and cleans the URL', async () => {
+      serve()
+
+      const { wrapper, router } = await mountView(
+        WalletListView_,
+        'wallets',
+        {},
+        {},
+        '/wallets?status=NOPE&page=-3&size=7&sort=secret,asc',
+      )
+
+      expect(listing()[0]![0]).toEqual({
+        filter: '',
+        status: 'ACTIVE',
+        page: 0,
+        size: 15,
+        sort: 'createdOn,desc',
+      })
+      expect(wrapper.findAll('tbody tr')).toHaveLength(2)
+      expect(router.currentRoute.value.query).toEqual({})
+    })
+
+    it('starts from the defaults even when the store kept another state', async () => {
+      serve()
+      const state = {
+        wallets: {
+          pageRequest: {
+            filterText: 'old',
+            status: 'ALL',
+            current: 3,
+            size: 60,
+            direction: 'asc',
+            sortField: 'bank',
+          },
+        },
+      }
+
+      await mountView(WalletListView_, 'wallets', {}, state)
+
+      expect(listing()[0]![0]).toEqual({
+        filter: '',
+        status: 'ACTIVE',
+        page: 0,
+        size: 15,
+        sort: 'createdOn,desc',
+      })
+    })
+
+    it('writes each change of search, status, page, size and sort to the URL without piling up history', async () => {
+      serve(wallets, 70)
+      const { wrapper, router } = await mountView(WalletListView_, 'wallets')
+      const push = vi.spyOn(router, 'push')
+      const query = () => router.currentRoute.value.query
+
+      await wrapper.find('input').setValue('Mai')
+      await wrapper.find('input').trigger('keydown', { key: 'Enter' })
+      await flushPromises()
+      expect(query()).toEqual({ filter: 'Mai' })
+
+      await buttonWithText(wrapper, 'Todas').trigger('click')
+      await flushPromises()
+      expect(query()).toEqual({ filter: 'Mai', status: 'ALL' })
+
+      await buttonWithText(wrapper, '2').trigger('click')
+      await flushPromises()
+      expect(query()).toEqual({ filter: 'Mai', status: 'ALL', page: '2' })
+
+      wrapper.getComponent(Select).vm.$emit('update:modelValue', '30')
+      await flushPromises()
+      expect(query()).toEqual({ filter: 'Mai', status: 'ALL', size: '30' })
+
+      await buttonWithText(wrapper, 'Nome').trigger('click')
+      await flushPromises()
+      expect(query()).toEqual({ filter: 'Mai', status: 'ALL', size: '30', sort: 'name,asc' })
+
+      await buttonWithText(wrapper, 'Ativas').trigger('click')
+      await flushPromises()
+      expect(query()).toEqual({ filter: 'Mai', size: '30', sort: 'name,asc' })
+      expect(push).not.toHaveBeenCalled()
+    })
+
+    it('reloads the list when the URL changes while it is open', async () => {
+      const { wrapper, router } = await render()
+
+      await router.push('/wallets?status=INACTIVE&page=3')
+      await flushPromises()
+
+      expect(listing().slice(-1)[0]![0]).toEqual(
+        expect.objectContaining({ status: 'INACTIVE', page: 2 }),
+      )
+      expect(buttonWithText(wrapper, 'Inativas').attributes('aria-pressed')).toBe('true')
+    })
+
+    it('does not rewrite the URL when leaving the list', async () => {
+      const { wrapper, router } = await render()
+
+      await buttonWithText(wrapper, 'Criar').trigger('click')
+      await flushPromises()
+
+      expect(router.currentRoute.value.fullPath).toBe('/wallets/create')
+      expect(listing()).toHaveLength(1)
+    })
+  })
+
   it('opens the form to create a wallet', async () => {
     const { wrapper, router } = await render()
 

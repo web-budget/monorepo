@@ -48,6 +48,7 @@ const {
   entity: 'financial-period',
   initialStatus: 'OPEN',
   statuses: ['OPEN', 'ACCOUNTED', 'ALL'],
+  sortFields: ['name', 'status'],
   pageRequest,
   pageResponse,
   loading,
@@ -106,6 +107,8 @@ const columns = computed(() => [
         :loading="busy"
         :current-page="pageRequest.current"
         :page-size="pageRequest.size"
+        :sorted-field="pageRequest.sortField"
+        :sorted-order="pageRequest.direction"
         detail-route="financial-periods.detail"
         @page-changed="onPageChange"
         @table-sorted="onTableSorted"
