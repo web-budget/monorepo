@@ -22,6 +22,7 @@ class MovementService(
     private val walletLedger: WalletLedger,
     private val movementRepository: MovementRepository,
     private val paymentRepository: PaymentRepository,
+    private val cardPurchaseService: CardPurchaseService,
     @OnCreateValidation
     private val creationValidators: List<MovementValidator>,
     @OnUpdateValidation
@@ -77,15 +78,19 @@ class MovementService(
         movement.status = Movement.Status.PAID
         movementRepository.update(movement)
 
-        walletLedger.post(
-            walletId = payment.wallet.id,
-            direction = if (movement.type == Movement.Type.INCOME) Direction.CREDIT else Direction.DEBIT,
-            origin = if (movement.type == Movement.Type.INCOME) Origin.INCOME else Origin.EXPENSE,
-            value = payment.valuePaid,
-            name = movement.name,
-            movementId = movement.id,
-            financialPeriodId = movement.financialPeriod.id
-        )
+        if (payment.card != null) {
+            cardPurchaseService.createFromMovement(movement, payment)
+        } else {
+            walletLedger.post(
+                walletId = payment.wallet!!.id,
+                direction = if (movement.type == Movement.Type.INCOME) Direction.CREDIT else Direction.DEBIT,
+                origin = if (movement.type == Movement.Type.INCOME) Origin.INCOME else Origin.EXPENSE,
+                value = payment.valuePaid,
+                name = movement.name,
+                movementId = movement.id,
+                financialPeriodId = movement.financialPeriod.id
+            )
+        }
 
         return movement
     }
@@ -103,15 +108,19 @@ class MovementService(
         movement.payment = null
         movementRepository.update(movement)
 
-        walletLedger.post(
-            walletId = payment.wallet.id,
-            direction = if (movement.type == Movement.Type.INCOME) Direction.DEBIT else Direction.CREDIT,
-            origin = Origin.REVERSAL,
-            value = payment.valuePaid,
-            name = movement.name,
-            movementId = movement.id,
-            financialPeriodId = movement.financialPeriod.id
-        )
+        if (payment.card != null) {
+            cardPurchaseService.deleteFromMovement(movement)
+        } else {
+            walletLedger.post(
+                walletId = payment.wallet!!.id,
+                direction = if (movement.type == Movement.Type.INCOME) Direction.DEBIT else Direction.CREDIT,
+                origin = Origin.REVERSAL,
+                value = payment.valuePaid,
+                name = movement.name,
+                movementId = movement.id,
+                financialPeriodId = movement.financialPeriod.id
+            )
+        }
 
         return movement
     }

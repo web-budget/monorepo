@@ -124,6 +124,21 @@ class ListingSortOrderTest : BaseIntegrationTest() {
     }
 
     @Test
+    @Sql(
+        "/sql/financial/clear-tables.sql",
+        "/sql/financial/create-registration-data.sql",
+        "/sql/financial/create-invoices.sql",
+        "/sql/financial/create-card-purchases.sql"
+    )
+    @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
+    fun `should list the card purchases from the newest to the oldest by default`() {
+
+        assertNames("/financial/card-purchases", "", "Books", "Cinema", "Pizza")
+        assertNames("/financial/card-purchases", "sort=name,asc", "Books", "Cinema", "Pizza")
+        assertNames("/financial/card-purchases", "sort=name,desc", "Pizza", "Cinema", "Books")
+    }
+
+    @Test
     @Sql("/sql/administration/clear-tables.sql", "/sql/administration/create-user.sql")
     fun `should list the users from the newest to the oldest by default`() {
 

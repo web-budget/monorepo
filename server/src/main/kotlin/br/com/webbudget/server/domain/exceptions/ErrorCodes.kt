@@ -43,4 +43,11 @@ object ErrorCodes {
     const val TRANSFER_BETWEEN_SAME_WALLET = "transfer-between-same-wallet"
     const val TRANSFER_ALREADY_RETURNED = "transfer-already-returned"
     const val INVALID_ADJUSTMENT_VALUE = "invalid-adjustment-value"
+    const val NO_OPEN_INVOICE = "no-open-invoice"
+    const val INVOICE_NOT_OPEN = "invoice-not-open"
+    const val PURCHASE_BOUND_TO_MOVEMENT = "purchase-bound-to-movement"
+    const val PAYMENT_REQUIRES_WALLET_OR_CARD = "payment-requires-wallet-or-card"
+    const val CARD_PAYMENT_ONLY_FOR_EXPENSES = "card-payment-only-for-expenses"
+    const val INACTIVE_CARD = "inactive-card"
+    const val FINANCIAL_PERIOD_WITH_PURCHASES = "financial-period-with-purchases"
 }

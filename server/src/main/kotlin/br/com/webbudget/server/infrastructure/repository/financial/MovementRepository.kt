@@ -1,11 +1,13 @@
 package br.com.webbudget.server.infrastructure.repository.financial
 
 import br.com.webbudget.server.domain.entities.financial.Movement
+import br.com.webbudget.server.domain.entities.financial.Payment
 import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.financial.tables.references.MOVEMENTS
 import br.com.webbudget.server.jooq.financial.tables.references.PAYMENTS
+import br.com.webbudget.server.jooq.registration.tables.references.CARDS
 import br.com.webbudget.server.jooq.registration.tables.references.CLASSIFICATIONS
 import br.com.webbudget.server.jooq.registration.tables.references.COST_CENTERS
 import br.com.webbudget.server.jooq.registration.tables.references.FINANCIAL_PERIODS
@@ -33,6 +35,7 @@ class MovementRepository(
     private val financialPeriods = FINANCIAL_PERIODS.`as`("financial_periods")
     private val payments = PAYMENTS.`as`("payments")
     private val wallets = WALLETS.`as`("wallets")
+    private val cards = CARDS.`as`("cards")
 
     fun findByExternalId(externalId: UUID): Movement? = selectJoined()
         .where(movements.EXTERNAL_ID.eq(externalId))
@@ -84,6 +87,7 @@ class MovementRepository(
         .from(movements)
         .join(payments).on(payments.ID_MOVEMENT.eq(movements.ID))
         .where(movements.ID_FINANCIAL_PERIOD.eq(financialPeriodId))
+        .and(payments.METHOD.eq(Payment.Method.WALLET.name))
         .groupBy(movements.TYPE)
         .fetch()
         .associate { record -> Movement.Type.valueOf(record.value1()!!) to (record.value2() ?: BigDecimal.ZERO) }
@@ -143,11 +147,19 @@ class MovementRepository(
         .join(financialPeriods).on(financialPeriods.ID.eq(movements.ID_FINANCIAL_PERIOD))
         .leftJoin(payments).on(payments.ID_MOVEMENT.eq(movements.ID))
         .leftJoin(wallets).on(wallets.ID.eq(payments.ID_WALLET))
+        .leftJoin(cards).on(cards.ID.eq(payments.ID_CARD))
 
     private fun Record.toMovement(): Movement {
 
         val paymentRecord = into(payments)
-        val payment = paymentRecord.id?.let { paymentRecord.toPayment(into(wallets).toWalletReference()) }
+        val payment = paymentRecord.id?.let {
+            val walletRecord = into(wallets)
+            val cardRecord = into(cards)
+            paymentRecord.toPayment(
+                wallet = walletRecord.id?.let { walletRecord.toWalletReference() },
+                card = cardRecord.id?.let { cardRecord.toCardReference() }
+            )
+        }
 
         return into(movements).toMovement(
             classification = into(classifications).toClassificationReference(),

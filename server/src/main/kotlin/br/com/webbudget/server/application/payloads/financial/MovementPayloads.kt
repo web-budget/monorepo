@@ -18,8 +18,8 @@ import java.time.LocalDate
 import java.util.UUID
 
 data class PaymentForm(
-    @field:NotNull(message = IS_NULL)
     val wallet: UUID?,
+    val card: UUID?,
     val paidOn: LocalDate?,
     @field:PositiveOrZero(message = IS_NEGATIVE)
     val discount: BigDecimal?
@@ -85,12 +85,18 @@ data class PaymentWalletView(
     val name: String
 )
 
+data class PaymentCardView(
+    val id: UUID,
+    val name: String
+)
+
 data class PaymentView(
     val paidOn: LocalDate,
     val value: BigDecimal,
     val discount: BigDecimal,
     val valuePaid: BigDecimal,
-    val wallet: PaymentWalletView
+    val wallet: PaymentWalletView?,
+    val card: PaymentCardView?
 )
 
 data class MovementView(
