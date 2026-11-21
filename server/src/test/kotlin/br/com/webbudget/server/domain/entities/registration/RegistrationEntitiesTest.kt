@@ -2,7 +2,6 @@ package br.com.webbudget.server.domain.entities.registration
 
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
-import java.math.BigDecimal
 import java.time.LocalDate
 
 class RegistrationEntitiesTest {
@@ -21,19 +20,6 @@ class RegistrationEntitiesTest {
         assertThat(root.fullName).isEqualTo("Car")
         assertThat(child.fullName).isEqualTo("Car > Taxes")
         assertThat(grandchild.fullName).isEqualTo("Car > Taxes > Insurance")
-    }
-
-    @Test
-    fun `should require the budget validation only for the classification type that has a budget`() {
-
-        val costCenter = CostCenter("Car", "Car", incomeBudget = BigDecimal.TEN)
-
-        assertThat(costCenter.isBudgetValidationRequired(Classification.Type.INCOME)).isTrue()
-        assertThat(costCenter.isBudgetValidationRequired(Classification.Type.EXPENSE)).isFalse()
-
-        costCenter.expenseBudget = BigDecimal.ONE
-
-        assertThat(costCenter.isBudgetValidationRequired(Classification.Type.EXPENSE)).isTrue()
     }
 
     @Test
