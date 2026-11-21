@@ -53,7 +53,6 @@ class CardRepository(
         val sortable = mapOf(
             "name" to cards.NAME,
             "lastFourDigits" to cards.LAST_FOUR_DIGITS,
-            "type" to cards.TYPE,
             "active" to cards.ACTIVE,
             "invoicePaymentDay" to cards.INVOICE_PAYMENT_DAY,
             "flag" to cards.FLAG,
@@ -72,14 +71,9 @@ class CardRepository(
         return pagedModelOf(content, pageable, total.toLong())
     }
 
-    fun existsByTypeAndLastFourDigits(
-        type: Card.Type,
-        lastFourDigits: String,
-        excludingExternalId: UUID? = null
-    ): Boolean = dsl.fetchExists(
+    fun existsByLastFourDigits(lastFourDigits: String, excludingExternalId: UUID? = null): Boolean = dsl.fetchExists(
         dsl.selectOne().from(CARDS)
-            .where(CARDS.TYPE.eq(type.name))
-            .and(CARDS.LAST_FOUR_DIGITS.eq(lastFourDigits))
+            .where(CARDS.LAST_FOUR_DIGITS.eq(lastFourDigits))
             .and(CARDS.EXTERNAL_ID.excluding(excludingExternalId))
     )
 
@@ -91,7 +85,6 @@ class CardRepository(
             .set(CARDS.ACTIVE, card.active)
             .set(CARDS.NAME, card.name)
             .set(CARDS.LAST_FOUR_DIGITS, card.lastFourDigits)
-            .set(CARDS.TYPE, card.type.name)
             .set(CARDS.INVOICE_PAYMENT_DAY, card.invoicePaymentDay)
             .set(CARDS.FLAG, card.flag)
             .set(CARDS.ID_WALLET, card.wallet?.id)
@@ -107,7 +100,6 @@ class CardRepository(
             .set(CARDS.ACTIVE, card.active)
             .set(CARDS.NAME, card.name)
             .set(CARDS.LAST_FOUR_DIGITS, card.lastFourDigits)
-            .set(CARDS.TYPE, card.type.name)
             .set(CARDS.INVOICE_PAYMENT_DAY, card.invoicePaymentDay)
             .set(CARDS.FLAG, card.flag)
             .set(CARDS.ID_WALLET, card.wallet?.id)

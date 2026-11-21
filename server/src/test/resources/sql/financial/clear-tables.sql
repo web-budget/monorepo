@@ -2,6 +2,7 @@ DELETE FROM financial.wallet_entries;
 DELETE FROM financial.payments;
 DELETE FROM financial.movements;
 DELETE FROM financial.transfers;
+DELETE FROM financial.invoices;
 DELETE FROM registration.wallets WHERE id IN (9101, 9102, 9103);
 DELETE FROM registration.financial_periods WHERE id IN (9101, 9102, 9103);
 DELETE FROM registration.classifications WHERE id IN (9101, 9102, 9103);
