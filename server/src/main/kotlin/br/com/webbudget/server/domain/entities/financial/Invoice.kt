@@ -1,6 +1,8 @@
 package br.com.webbudget.server.domain.entities.financial
 
 import br.com.webbudget.server.domain.entities.PersistentEntity
+import java.math.BigDecimal
+import java.time.LocalDate
 import java.util.UUID
 
 class CardReference(
@@ -14,8 +16,35 @@ class CardReference(
 class Invoice(
     val card: CardReference,
     val financialPeriod: FinancialPeriodReference,
-    var status: Status = Status.OPEN
+    var status: Status = Status.OPEN,
+    var value: BigDecimal = BigDecimal.ZERO
 ) : PersistentEntity() {
+
+    fun isOpen(): Boolean = status == Status.OPEN
+
+    fun paymentDueDate(): LocalDate {
+        val endingAt = financialPeriod.endingAt
+        val paymentDay = card.invoicePaymentDay
+        val sameMonth = endingAt.withDayOfMonth(minOf(paymentDay, endingAt.lengthOfMonth()))
+        if (sameMonth.isAfter(endingAt)) {
+            return sameMonth
+        }
+        val nextMonth = endingAt.plusMonths(1)
+        return nextMonth.withDayOfMonth(minOf(paymentDay, nextMonth.lengthOfMonth()))
+    }
 
     enum class Status { OPEN, CLOSED, PAID }
 }
+
+class CardPurchase(
+    var name: String,
+    var purchasedOn: LocalDate,
+    var value: BigDecimal,
+    var classification: ClassificationReference,
+    var costCenter: CostCenterReference,
+    val card: CardReference,
+    val financialPeriod: FinancialPeriodReference,
+    var invoice: Invoice? = null,
+    val movementId: Long? = null,
+    val movementExternalId: UUID? = null
+) : PersistentEntity()

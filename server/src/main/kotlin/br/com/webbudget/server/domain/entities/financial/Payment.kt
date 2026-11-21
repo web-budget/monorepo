@@ -5,15 +5,18 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 class Payment(
-    var wallet: WalletReference,
+    var wallet: WalletReference?,
     var paidOn: LocalDate,
     var discount: BigDecimal = BigDecimal.ZERO,
     var value: BigDecimal = BigDecimal.ZERO,
-    var method: Method = Method.WALLET
+    var card: CardReference? = null
 ) : PersistentEntity() {
 
     val valuePaid: BigDecimal
         get() = value.subtract(discount)
 
-    enum class Method { WALLET }
+    val method: Method
+        get() = if (card != null) Method.CARD else Method.WALLET
+
+    enum class Method { WALLET, CARD }
 }

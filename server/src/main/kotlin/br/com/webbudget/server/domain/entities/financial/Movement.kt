@@ -9,15 +9,18 @@ class Movement(
     val type: Type,
     var value: BigDecimal,
     var dueDate: LocalDate,
-    var classification: ClassificationReference,
-    var costCenter: CostCenterReference,
+    var classification: ClassificationReference?,
+    var costCenter: CostCenterReference?,
     val financialPeriod: FinancialPeriodReference,
     var status: Status = Status.OPEN,
     var description: String? = null,
-    var payment: Payment? = null
+    var payment: Payment? = null,
+    val invoice: Invoice? = null
 ) : PersistentEntity() {
 
     fun isPaid(): Boolean = status == Status.PAID
+
+    fun isInvoicePayment(): Boolean = invoice != null
 
     fun isOverdue(today: LocalDate): Boolean = status == Status.OPEN && dueDate.isBefore(today)
 
