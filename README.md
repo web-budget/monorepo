@@ -11,9 +11,17 @@ O webBudget é um sistema livre e de código aberto para controle de finanças p
 
 Este repositório é um monorepo: `server/` (Kotlin, Spring Boot 4, jOOQ, PostgreSQL 18) e `client/` (Vue 3, TypeScript). É preciso ter JDK 25, Docker, Node 24 e pnpm.
 
+Em um terminal, a partir de `server/`, suba a API na porta 8085 (o PostgreSQL e o MailDev sobem junto):
+
 ```bash
-cd server && ./gradlew bootRun     # API na porta 8085, com o PostgreSQL e o MailDev
-cd client && pnpm install && pnpm dev   # interface na porta 8086
+./gradlew bootRun
+```
+
+Em outro, a partir de `client/`, suba a interface na porta 8086:
+
+```bash
+pnpm install
+pnpm dev
 ```
 
 Abra **http://localhost:8086**. Na primeira subida do server, o usuário `admin@webbudget.com.br` é criado com uma senha aleatória, que aparece no log. A página [Desenvolvimento local](https://github.com/web-budget/monorepo/wiki/Desenvolvimento-local) traz os detalhes.
