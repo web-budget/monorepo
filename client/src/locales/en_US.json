@@ -40,7 +40,7 @@
       "bad-request": "The request could not be processed, review the data and try again",
       "field-validation-failed": "Some information is missing or invalid, review the data and try again",
       "data-integrity-violation": "The operation could not be completed because the record is linked to other records",
-      "budget-limit-exceeded": "The budget available in the cost center for the selected type is ${available-budget}",
+      "budget-limit-exceeded": "The budget available in the cost center for the selected type is R${available-budget}",
       "overlapping-start-end-dates": "There is already a financial period that covers the selected start and end dates",
       "start-date-after-end-date": "The start date must be before the end date",
       "debit-card-without-wallet": "The debit card must be linked to a wallet",
