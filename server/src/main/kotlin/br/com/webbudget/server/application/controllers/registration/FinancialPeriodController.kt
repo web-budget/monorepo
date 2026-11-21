@@ -41,7 +41,7 @@ class FinancialPeriodController(
     @GetMapping
     fun get(filter: FinancialPeriodFilter, pageable: Pageable): ResponseEntity<PagedModel<FinancialPeriodListView>> {
 
-        val statuses = (filter.status ?: FinancialPeriodStatusFilter.ACCOUNTED).statuses
+        val statuses = (filter.status ?: FinancialPeriodStatusFilter.CLOSED).statuses
 
         return financialPeriodRepository.findAll(filter.filter, statuses, pageable)
             .map { financialPeriodMapper.mapToListView(it) }
@@ -57,7 +57,7 @@ class FinancialPeriodController(
 
     @GetMapping("/active")
     fun getActive(pageable: Pageable): ResponseEntity<PagedModel<FinancialPeriodView>> =
-        financialPeriodRepository.findByStatus(FinancialPeriod.Status.ACTIVE, pageable)
+        financialPeriodRepository.findByStatus(FinancialPeriod.Status.OPEN, pageable)
             .map { financialPeriodMapper.mapToView(it) }
             .let { ResponseEntity.ok(it) }
 

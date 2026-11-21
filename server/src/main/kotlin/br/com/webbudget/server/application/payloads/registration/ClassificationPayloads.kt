@@ -8,7 +8,6 @@ import br.com.webbudget.server.domain.entities.registration.Classification
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
-import java.math.BigDecimal
 import java.util.UUID
 
 data class ClassificationCreateForm(
@@ -17,7 +16,6 @@ data class ClassificationCreateForm(
     val name: String?,
     @field:NotNull(message = IS_NULL)
     var type: Classification.Type?,
-    val budget: BigDecimal? = null,
     val description: String? = null
 )
 
@@ -25,7 +23,6 @@ data class ClassificationUpdateForm(
     @field:NotBlank(message = IS_NULL_OR_BLANK)
     @field:Size(message = MAX_CHARS, max = 150)
     val name: String?,
-    val budget: BigDecimal? = null,
     val description: String? = null,
     @field:NotNull(message = IS_NULL)
     var active: Boolean?
@@ -36,7 +33,6 @@ data class ClassificationView(
     val name: String,
     val type: String,
     val active: Boolean,
-    val budget: BigDecimal? = null,
     val description: String? = null
 )
 
@@ -44,8 +40,7 @@ data class ClassificationListView(
     val id: UUID,
     val name: String,
     val type: String,
-    val active: Boolean,
-    val budget: BigDecimal? = null
+    val active: Boolean
 )
 
 data class ClassificationFilter(

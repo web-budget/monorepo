@@ -17,19 +17,9 @@ class FinancialPeriodDatesOverlapValidator(
 
     override fun validate(value: FinancialPeriod) {
 
-        val overlapping = if (value.isSaved()) {
-            financialPeriodRepository.existsOpenBetweenAndExternalIdNot(
-                value.startingAt,
-                value.endingAt,
-                value.externalId!!
-            )
-        } else {
-            financialPeriodRepository.existsOpenBetween(value.startingAt, value.endingAt)
-        }
-
-        if (overlapping) {
+        if (financialPeriodRepository.existsOverlapping(value.startingAt, value.endingAt, value.externalId)) {
             throw DomainException(
-                "Period start and end dates are overlapping with other open periods",
+                "Period start and end dates are overlapping with other periods",
                 OVERLAPPING_START_END_DATES
             )
         }

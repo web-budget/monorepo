@@ -16,5 +16,6 @@
     <include file="db/changelog/changes/2026/11/17-1000-widen-user-email.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/changes/2026/11/17-1100-add-totp-and-trusted-devices.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/changes/2026/11/18-1000-add-google-login.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/changes/2026/11/21-1000-replace-financial-model.xml" relativeToChangelogFile="false"/>
 
 </databaseChangeLog>
