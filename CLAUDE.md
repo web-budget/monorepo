@@ -28,7 +28,7 @@ rtkblock() { sed -n '/^<!-- rtk-instructions v2 -->$/,/^<!-- \/rtk-instructions 
 diff <(rtk proxy git show main:CLAUDE.md | rtkblock) <(rtkblock < CLAUDE.md)
 ```
 
-Enquanto este arquivo não estiver na `main`, compare com o do investlog, de onde o bloco veio: troque `rtk proxy git show main:CLAUDE.md` por `rtk proxy git -C D:/desenvolvimento/investlog show main:CLAUDE.md`. As âncoras `^…$` são de propósito: este próprio parágrafo cita o texto do marcador, e um padrão mais frouxo casaria aqui em vez de casar na linha do comentário de verdade.
+As âncoras `^…$` são de propósito: o texto do marcador aparece citado neste arquivo, e um padrão mais frouxo casaria numa citação em vez de casar na linha do comentário de verdade.
 
 ## Idioma
 
