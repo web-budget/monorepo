@@ -18,8 +18,8 @@ import java.time.LocalDate
 import java.util.UUID
 
 data class PaymentForm(
-    @field:NotNull(message = IS_NULL)
     val wallet: UUID?,
+    val card: UUID?,
     val paidOn: LocalDate?,
     @field:PositiveOrZero(message = IS_NEGATIVE)
     val discount: BigDecimal?
@@ -85,12 +85,24 @@ data class PaymentWalletView(
     val name: String
 )
 
+data class PaymentCardView(
+    val id: UUID,
+    val name: String
+)
+
 data class PaymentView(
     val paidOn: LocalDate,
     val value: BigDecimal,
     val discount: BigDecimal,
     val valuePaid: BigDecimal,
-    val wallet: PaymentWalletView
+    val wallet: PaymentWalletView?,
+    val card: PaymentCardView?
+)
+
+data class MovementInvoiceView(
+    val id: UUID,
+    val status: String,
+    val card: PaymentCardView
 )
 
 data class MovementView(
@@ -101,11 +113,12 @@ data class MovementView(
     val dueDate: LocalDate,
     val status: String,
     val overdue: Boolean,
-    val classification: MovementClassificationView,
-    val costCenter: MovementCostCenterView,
+    val classification: MovementClassificationView?,
+    val costCenter: MovementCostCenterView?,
     val financialPeriod: MovementFinancialPeriodView,
     val description: String? = null,
-    val payment: PaymentView? = null
+    val payment: PaymentView? = null,
+    val invoice: MovementInvoiceView? = null
 )
 
 data class MovementListView(
@@ -130,7 +143,8 @@ data class MovementFilter(
     @param:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
     val dueFrom: LocalDate? = null,
     @param:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
-    val dueTo: LocalDate? = null
+    val dueTo: LocalDate? = null,
+    val invoicePayments: Boolean? = null
 )
 
 data class FinancialPeriodResultView(

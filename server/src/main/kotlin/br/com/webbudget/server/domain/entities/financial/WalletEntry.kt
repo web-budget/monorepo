@@ -20,7 +20,7 @@ class WalletEntry(
 
     enum class Direction { CREDIT, DEBIT }
 
-    enum class Origin { INCOME, EXPENSE, REVERSAL, ADJUSTMENT, TRANSFER }
+    enum class Origin { INCOME, EXPENSE, REVERSAL, ADJUSTMENT, TRANSFER, INVOICE_PAYMENT }
 }
 
 class StatementLine(

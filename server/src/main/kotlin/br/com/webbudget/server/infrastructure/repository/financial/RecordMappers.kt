@@ -1,13 +1,16 @@
 package br.com.webbudget.server.infrastructure.repository.financial
 
+import br.com.webbudget.server.domain.entities.financial.CardReference
 import br.com.webbudget.server.domain.entities.financial.ClassificationReference
 import br.com.webbudget.server.domain.entities.financial.CostCenterReference
 import br.com.webbudget.server.domain.entities.financial.FinancialPeriodReference
+import br.com.webbudget.server.domain.entities.financial.Invoice
 import br.com.webbudget.server.domain.entities.financial.Movement
 import br.com.webbudget.server.domain.entities.financial.Payment
 import br.com.webbudget.server.domain.entities.financial.WalletReference
 import br.com.webbudget.server.jooq.financial.tables.records.MovementsRecord
 import br.com.webbudget.server.jooq.financial.tables.records.PaymentsRecord
+import br.com.webbudget.server.jooq.registration.tables.records.CardsRecord
 import br.com.webbudget.server.jooq.registration.tables.records.ClassificationsRecord
 import br.com.webbudget.server.jooq.registration.tables.records.CostCentersRecord
 import br.com.webbudget.server.jooq.registration.tables.records.FinancialPeriodsRecord
@@ -39,6 +42,14 @@ internal fun FinancialPeriodsRecord.toFinancialPeriodReference(): FinancialPerio
         status = FinancialPeriodReference.Status.valueOf(status!!)
     )
 
+internal fun CardsRecord.toCardReference(): CardReference = CardReference(
+    id = id!!,
+    externalId = externalId!!,
+    name = name!!,
+    active = active!!,
+    invoicePaymentDay = invoicePaymentDay!!
+)
+
 internal fun WalletsRecord.toWalletReference(): WalletReference = WalletReference(
     id = id!!,
     externalId = externalId!!,
@@ -47,19 +58,20 @@ internal fun WalletsRecord.toWalletReference(): WalletReference = WalletReferenc
     currentBalance = currentBalance!!
 )
 
-internal fun PaymentsRecord.toPayment(wallet: WalletReference): Payment = Payment(
+internal fun PaymentsRecord.toPayment(wallet: WalletReference?, card: CardReference?): Payment = Payment(
     wallet = wallet,
     paidOn = paidOn!!,
     discount = discount!!,
     value = value!!,
-    method = Payment.Method.valueOf(method!!)
+    card = card
 ).also { payment -> payment.restore(id, externalId, version, createdOn, lastUpdate) }
 
 internal fun MovementsRecord.toMovement(
-    classification: ClassificationReference,
-    costCenter: CostCenterReference,
+    classification: ClassificationReference?,
+    costCenter: CostCenterReference?,
     financialPeriod: FinancialPeriodReference,
-    payment: Payment?
+    payment: Payment?,
+    invoice: Invoice?
 ): Movement = Movement(
     name = name!!,
     type = Movement.Type.valueOf(type!!),
@@ -70,5 +82,6 @@ internal fun MovementsRecord.toMovement(
     financialPeriod = financialPeriod,
     status = Movement.Status.valueOf(status!!),
     description = description,
-    payment = payment
+    payment = payment,
+    invoice = invoice
 ).also { movement -> movement.restore(id, externalId, version, createdOn, lastUpdate) }

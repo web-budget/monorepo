@@ -1,7 +1,9 @@
+DELETE FROM financial.card_purchases;
 DELETE FROM financial.wallet_entries;
 DELETE FROM financial.payments;
 DELETE FROM financial.movements;
 DELETE FROM financial.transfers;
+DELETE FROM financial.invoices;
 DELETE FROM registration.cards;
 DELETE FROM registration.wallets;
 DELETE FROM registration.cost_centers;
