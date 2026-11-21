@@ -1,11 +1,23 @@
 package br.com.webbudget.server.infrastructure.repository.financial
 
+import br.com.webbudget.server.domain.entities.financial.StatementLine
 import br.com.webbudget.server.domain.entities.financial.WalletEntry
+import br.com.webbudget.server.infrastructure.repository.pagedModelOf
+import br.com.webbudget.server.infrastructure.repository.toOrderBy
+import br.com.webbudget.server.jooq.financial.tables.references.MOVEMENTS
+import br.com.webbudget.server.jooq.financial.tables.references.TRANSFERS
 import br.com.webbudget.server.jooq.financial.tables.references.WALLET_ENTRIES
+import br.com.webbudget.server.jooq.registration.tables.references.FINANCIAL_PERIODS
 import br.com.webbudget.server.jooq.registration.tables.references.WALLETS
 import org.jooq.DSLContext
+import org.jooq.Record
+import org.jooq.SelectJoinStep
+import org.jooq.impl.DSL
+import org.springframework.data.domain.Pageable
+import org.springframework.data.web.PagedModel
 import org.springframework.stereotype.Repository
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -13,6 +25,20 @@ import java.util.UUID
 class WalletEntryRepository(
     private val dsl: DSLContext
 ) {
+
+    private val entries = WALLET_ENTRIES.`as`("wallet_entries")
+    private val movements = MOVEMENTS.`as`("movements")
+    private val transfers = TRANSFERS.`as`("transfers")
+    private val financialPeriods = FINANCIAL_PERIODS.`as`("financial_periods")
+
+    fun lockWallets(sortedWalletIds: List<Long>) {
+        dsl.select(WALLETS.ID)
+            .from(WALLETS)
+            .where(WALLETS.ID.`in`(sortedWalletIds))
+            .orderBy(WALLETS.ID)
+            .forUpdate()
+            .fetch()
+    }
 
     fun applyBalanceDelta(walletId: Long, delta: BigDecimal): BigDecimal = dsl.update(WALLETS)
         .set(WALLETS.CURRENT_BALANCE, WALLETS.CURRENT_BALANCE.plus(delta))
@@ -35,6 +61,7 @@ class WalletEntryRepository(
             .set(WALLET_ENTRIES.ID_WALLET, entry.walletId)
             .set(WALLET_ENTRIES.ID_MOVEMENT, entry.movementId)
             .set(WALLET_ENTRIES.ID_FINANCIAL_PERIOD, entry.financialPeriodId)
+            .set(WALLET_ENTRIES.ID_TRANSFER, entry.transferId)
             .returning()
             .fetchSingle()
 
@@ -45,4 +72,78 @@ class WalletEntryRepository(
     fun existsByWallet(walletId: Long): Boolean = dsl.fetchExists(
         dsl.selectOne().from(WALLET_ENTRIES).where(WALLET_ENTRIES.ID_WALLET.eq(walletId))
     )
+
+    fun findAll(walletId: Long, criteria: StatementCriteria, pageable: Pageable): PagedModel<StatementLine> {
+
+        val condition = DSL.and(
+            listOfNotNull(
+                entries.ID_WALLET.eq(walletId),
+                criteria.from?.let { entries.CREATED_ON.ge(it.atStartOfDay()) },
+                criteria.to?.let { entries.CREATED_ON.lt(it.plusDays(1).atStartOfDay()) },
+                criteria.financialPeriod?.let { financialPeriods.EXTERNAL_ID.eq(it) },
+                criteria.origins?.takeIf { it.isNotEmpty() }
+                    ?.let { origins -> entries.ORIGIN.`in`(origins.map(WalletEntry.Origin::name)) },
+                criteria.direction?.let { entries.DIRECTION.eq(it.name) },
+                criteria.text?.let { entries.NAME.containsIgnoreCase(it) },
+                criteria.minValue?.let { entries.VALUE.ge(it) },
+                criteria.maxValue?.let { entries.VALUE.le(it) }
+            )
+        )
+
+        val sortable = mapOf(
+            "name" to entries.NAME,
+            "createdOn" to entries.CREATED_ON,
+            "value" to entries.VALUE,
+            "origin" to entries.ORIGIN,
+            "direction" to entries.DIRECTION
+        )
+
+        val content = dsl.select().from(entries).joinReferences()
+            .where(condition)
+            .orderBy(pageable.toOrderBy(sortable, entries.CREATED_ON, entries.ID))
+            .limit(pageable.pageSize)
+            .offset(pageable.offset)
+            .fetch()
+            .map { record -> record.toStatementLine() }
+
+        val total = dsl.fetchCount(dsl.selectOne().from(entries).joinReferences().where(condition))
+
+        return pagedModelOf(content, pageable, total.toLong())
+    }
+
+    private fun <R : Record> SelectJoinStep<R>.joinReferences(): SelectJoinStep<R> = this
+        .leftJoin(movements).on(movements.ID.eq(entries.ID_MOVEMENT))
+        .leftJoin(transfers).on(transfers.ID.eq(entries.ID_TRANSFER))
+        .leftJoin(financialPeriods).on(financialPeriods.ID.eq(entries.ID_FINANCIAL_PERIOD))
+
+    private fun Record.toStatementLine(): StatementLine {
+
+        val entry = into(entries)
+        val period = into(financialPeriods)
+
+        return StatementLine(
+            externalId = entry.externalId!!,
+            createdOn = entry.createdOn!!,
+            name = entry.name!!,
+            direction = WalletEntry.Direction.valueOf(entry.direction!!),
+            origin = WalletEntry.Origin.valueOf(entry.origin!!),
+            value = entry.value!!,
+            previousBalance = entry.previousBalance!!,
+            resultingBalance = entry.resultingBalance!!,
+            financialPeriod = period.id?.let { period.toFinancialPeriodReference() },
+            movementExternalId = into(movements).externalId,
+            transferExternalId = into(transfers).externalId
+        )
+    }
 }
+
+data class StatementCriteria(
+    val from: LocalDate? = null,
+    val to: LocalDate? = null,
+    val financialPeriod: UUID? = null,
+    val origins: List<WalletEntry.Origin>? = null,
+    val direction: WalletEntry.Direction? = null,
+    val text: String? = null,
+    val minValue: BigDecimal? = null,
+    val maxValue: BigDecimal? = null
+)

@@ -41,4 +41,7 @@ object ErrorCodes {
     const val INVALID_DISCOUNT = "invalid-discount"
     const val PAYMENT_DATE_IN_FUTURE = "payment-date-in-future"
     const val WALLET_HAS_ENTRIES = "wallet-has-entries"
+    const val TRANSFER_BETWEEN_SAME_WALLET = "transfer-between-same-wallet"
+    const val TRANSFER_ALREADY_RETURNED = "transfer-already-returned"
+    const val INVALID_ADJUSTMENT_VALUE = "invalid-adjustment-value"
 }

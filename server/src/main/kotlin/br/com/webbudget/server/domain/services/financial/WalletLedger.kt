@@ -22,7 +22,8 @@ class WalletLedger(
         value: BigDecimal,
         name: String,
         movementId: Long? = null,
-        financialPeriodId: Long? = null
+        financialPeriodId: Long? = null,
+        transferId: Long? = null
     ): WalletEntry {
 
         val delta = if (direction == Direction.CREDIT) value else value.negate()
@@ -37,7 +38,8 @@ class WalletLedger(
             resultingBalance = resultingBalance,
             walletId = walletId,
             movementId = movementId,
-            financialPeriodId = financialPeriodId
+            financialPeriodId = financialPeriodId,
+            transferId = transferId
         )
 
         return walletEntryRepository.insert(entry)
