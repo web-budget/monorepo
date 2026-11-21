@@ -82,15 +82,12 @@ O `src/api/client.ts` cria o `apiClient` com `baseURL: '/private/v1'` (sempre na
 
 O `client.ts` também cuida de duas coisas da sessão (veja [Autenticação](#autenticação)): carimba a hora de toda resposta que o server deu, sucesso ou erro, em `api/serverActivity.ts` (é o que o `useInactivityLogout` lê), e garante o token de CSRF antes de uma escrita. O `client.ts` não importa o store nem o router, porque o `api/auth` importa o `client` e o store importa o `api/auth`: tudo o que navega ou mexe na sessão fica no `plugins/apiErrorHandler.ts`.
 
-| Arquivo | Endpoints |
-|---|---|
-| `auth.ts` | `POST /auth/login` e `POST /auth/google/link` (devolvem um `LoginOutcome`: o **código HTTP** decide, 200 é a sessão e 202 é `needs_enrollment` ou `needs_totp`, porque o corpo de uma sessão também tem um `status`), `POST /auth/register`, `POST /auth/totp/enroll` e `/totp/verify`, `GET /auth/session`, `PATCH /auth/language` (`changeLanguage`, devolve a `SessionResponse` com o idioma novo), `GET /auth/config` (`{ googleAuthEnabled }`, `silent`), `GET`/`DELETE /auth/trusted-devices` (`findTrustedDevices`, `revokeTrustedDevice`, `revokeAllTrustedDevices`) e `POST /auth/logout` |
-| `accounts.ts` | `PATCH /accounts/activate`, `/accounts/forgot-password`, `/accounts/recover-password` |
-| `users.ts` | o CRUD de `/administration/users` (`CrudApi`) mais `PATCH /{id}/update-password` (`updatePassword`), `/approve` (`approve(id, roles)`, com `{ roles }` no corpo), `/block`, `/unblock` e `/totp-reset`. O `findAll` traduz as abas de status de aprovação (`PENDING`, `APPROVED`, `BLOCKED`) para o parâmetro `userStatus` do server, porque o `status` dele é o filtro de ativo e inativo |
-| `roles.ts` | `GET /administration/roles`, a lista de nomes de role que se pode conceder |
-| `wallets.ts`, `cards.ts`, `costCenters.ts`, `classifications.ts`, `financialPeriods.ts` | o CRUD de cada cadastro em `/registration/<recurso>`: `GET` paginado (com `PageQuery`), `GET /{id}`, `POST`, `PUT /{id}` e `DELETE /{id}` |
+Há um arquivo por recurso do server (`auth.ts`, `accounts.ts`, `users.ts`, `roles.ts` e um por cadastro); os endpoints estão neles e nos controllers do server. O que não se lê no código:
 
-Os módulos de cadastro têm a forma de `CrudApi` (`src/composables/useCrudResource.ts`): `findAll`, `findById`, `create`, `update` e `remove`.
+- `login` e `linkGoogle` (de `auth.ts`) devolvem um `LoginOutcome`, e o **código HTTP** decide: 200 é a sessão e 202 é `needs_enrollment` ou `needs_totp`, porque o corpo de uma sessão também tem um `status`.
+- O `GET /auth/config` é `silent`, como o `fetchSession`.
+- O `findAll` de `users.ts` traduz as abas de aprovação (`PENDING`, `APPROVED`, `BLOCKED`) para o parâmetro `userStatus` do server, porque o `status` dele é o filtro de ativo e inativo.
+- Os módulos de cadastro têm a forma de `CrudApi` (`src/composables/useCrudResource.ts`): `findAll`, `findById`, `create`, `update` e `remove`.
 
 ### Tipos (`src/types.ts`)
 
@@ -98,14 +95,12 @@ Todos os formatos que atravessam a API ficam em `src/types.ts`, num arquivo só,
 
 ### Stores (`src/stores/`)
 
-| Store | O que expõe |
-|---|---|
-| `auth` | `session`, `registeredEmail`, `isAuthenticated`, `isApproved`, `loading`, `endingSession`, `hasRole(role)`, `login` e `linkGoogle` (devolvem o `LoginOutcome` e só guardam a sessão quando ele é `authenticated`), `register`, `enrollTotp`, `verifyTotp`, `changeLanguage(language)` (grava o idioma no perfil e guarda a `SessionResponse` que o server devolve), `restoreSession` (devolve se há sessão), `clearSession`, `logout` e `expireSession(reason)` (veja [Autenticação](#autenticação)) |
-| `language` | `locale` (`pt-BR` ou `en-US`) e `select(locale)`; é quem aplica o idioma ao `i18n`, ao `lang` do `<html>` e ao `localStorage` (veja [i18n](#i18n-srclocales)) |
-| `trustedDevices` | `devices`, `loading`, `findAll`, `revoke`, `revokeAll` e `reset` |
-| `account` | `loading`, `activate`, `forgotPassword`, `recoverPassword` e `reset` |
-| `wallets`, `cards`, `costCenters`, `classifications`, `financialPeriods` | a ref da entidade (`wallet`, `card`, `costCenter`, `classification`, `financialPeriod`), `pageRequest`, `pageResponse`, `loading`, `findAll`, `findOne`, `create`, `update`, `remove` e `reset`; `wallets` e `costCenters` acrescentam `findByName` e a lista de opções que ele preenche |
-| `usersAdmin` | a ref `user`, `roles`, `pageRequest` (o status padrão é `APPROVED`, uma aba de aprovação, não `ACTIVE`), `pageResponse`, `loading`, `findAll`, `findOne`, `findRoles`, `create`, `update`, `updatePassword`, `approve(user, roles)`, `block`, `unblock`, `resetTotp`, `remove` e `reset` |
+Há um store por assunto (`auth`, `language`, `appearance`, `trustedDevices`, `account`, `usersAdmin` e um por cadastro); as ações estão em cada arquivo. O que não se lê no código:
+
+- `auth.login` e `auth.linkGoogle` devolvem o `LoginOutcome` e só guardam a sessão quando ele é `authenticated`; `auth.restoreSession` devolve se há sessão (veja [Autenticação](#autenticação)).
+- O `language` é quem aplica o idioma ao `i18n`, ao `lang` do `<html>` e ao `localStorage`; `auth.changeLanguage` grava no perfil e guarda a `SessionResponse` que o server devolve (veja [i18n](#i18n-srclocales)).
+- O `usersAdmin` abre com o status `APPROVED`, uma aba de aprovação, e não `ACTIVE`.
+- `wallets` e `costCenters` acrescentam `findByName` e a lista de opções que ele preenche, para o `SearchSelectField`.
 
 Os stores de cadastro montam tudo sobre o composable `useCrudResource`, que guarda o `pageRequest`, o `pageResponse` e a entidade corrente e conta as operações em andamento para o `loading`. Um store novo de CRUD usa o mesmo composable em vez de reescrever essa mecânica.
 
@@ -136,19 +131,12 @@ Um composable reutilizável vai em `src/composables/`; uma função pura sem est
 
 Os componentes se organizam pelo papel, não pela view que primeiro precisou deles:
 
-| Pasta | O que tem |
-|---|---|
-| `components/ui/` | os primitivos do shadcn-vue, já ajustados ao Caderno verde (veja [Estilos](#estilos)). Não escreva testes para eles (ficam fora da cobertura). **Estão editados à mão:** rodar `shadcn-vue add` sobre um que já existe sobrescreve as variantes do design, então confira o diff e refaça o ajuste |
-| `components/brand/` | `BrandMark` (o símbolo “wB”, com a prop `size`) e `BrandWordmark` (“web” em cinza e “Budget” com o `marker`; herda o tamanho da fonte de quem o usa) |
-| `components/layout/` | o shell: `TopBar`, `AppSidebar` (menu lateral do desktop e, no celular, o `MobileMenu`), `SideMenu`, `MenuItem`, `PageBreadcrumb`, `UserMenu`, `UserAvatar`, `ThemeSwitch`, `LanguageSwitch` (o seletor de idioma, no menu do usuário, no rodapé do celular e no `AuthLayout`), `ModuleHome` (a capa de um módulo), o registro das seções (`sections.ts`), os layouts por seção (`DashboardsLayout`, `RegistrationLayout`, `FinancialLayout`, `ConfigurationLayout`, `AuthLayout`) e o tipo `menu.ts` |
-| `components/` (raiz) | `PageStructure` (a moldura com barra superior, menu lateral e breadcrumb) e `ErrorPage` |
-| `components/auth/` | as etapas e peças das telas de conta: `AuthAside` (a folha pautada), `AuthStepHeader` (título e descrição), `AuthStatusIcon` (o ícone em quadrado das etapas de resultado), `AuthFailureAlert` (o alerta de erro e de limite de tentativas das etapas), `BackToLogin`, `CredentialsStep`, `RegisterStep`, `TotpEnrollStep`, `TotpVerifyStep`, `TotpCodeInput` (as seis caixas do código), `GoogleLinkStep` e `PasswordRequirements` |
-| `components/devices/` | `TrustedDevicesDialog`, o diálogo de dispositivos confiáveis aberto pelo menu do usuário (veja [Dispositivos confiáveis](#dispositivos-confiáveis)) |
-| `components/icons/` | `GoogleMark`, o G colorido do botão do Google (as cores fixas são da marca do Google, a exceção à regra dos tokens) |
-| `components/listing/` | `ItemsTable`, `SearchControls`, `ActionButtons`, `ListState`, `StatusBadge`, `PeriodStatusBadge` e `statusOptions.ts` (as abas de situação no masculino e no feminino) |
-| `components/common/` | `CurrencyDisplay`, `DateTimeDisplay`, `ConfirmDialog`, `PageContainer`, `PageHeader`, `DetailCard`, `DetailSection`, `DetailField` |
-| `components/users/` | as peças da tela de usuários (veja [Administração de usuários](#administração-de-usuários)): `UserAvatar`, `UserStatusBadge`, `UserRowActions`, `RoleSelectField`, `ResetPasswordDialog`, `ApproveUserDialog` e `roles.ts` |
-| `components/forms/` | `StatusToggle`, `StatusSection`, `MoneyField`, `PasswordInput` (campo de senha com botão de mostrar e ocultar; repassa os atributos ao `<input>`, então vai dentro de um `FormControl`), `FormCard`, `FormSection`, `InputField`, `SelectField`, `SearchSelectField`, `ServerErrorAlert` |
+As pastas de `src/components/` e o que cada uma guarda:
+
+- `ui/`: os primitivos do shadcn-vue, já ajustados ao Caderno verde (veja [Estilos](#estilos)); ficam fora da cobertura, então não escreva testes para eles. **Estão editados à mão:** rodar `shadcn-vue add` sobre um que já existe sobrescreve as variantes do design, então confira o diff e refaça o ajuste.
+- `brand/` (a marca), `layout/` (o shell, o registro de seções `sections.ts` e os layouts por seção), `auth/` (as etapas das telas de conta), `devices/`, `icons/`, `listing/` (tabela, busca, abas de situação), `common/` (cabeçalho, cartões, moeda e data), `users/` (as peças da tela de usuários) e `forms/` (campos e o cartão do formulário). A raiz tem a `PageStructure` e a `ErrorPage`.
+- `icons/GoogleMark` tem cores fixas, as da marca do Google: é a exceção à regra dos tokens.
+- `forms/PasswordInput` repassa os atributos ao `<input>`, então vai dentro de um `FormControl`.
 
 Um componente reutilizável e só de apresentação vai num diretório compartilhado, não ao lado do primeiro uso.
 
