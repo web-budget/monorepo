@@ -1,50 +1,38 @@
 # webBudget
 
-O webBudget é um sistema livre e de código aberto para controle de finanças pessoais: carteiras, cartões, centros de custo, classificações, períodos financeiros e os movimentos do dia a dia, com usuários e permissões por área. Mais informações em <https://webbudget.com.br/>.
+O webBudget é um sistema livre e de código aberto para controle de finanças pessoais: carteiras, cartões, centros de custo, classificações, períodos financeiros e os movimentos do dia a dia, com usuários e permissões por área. A interface está em português do Brasil e em inglês.
 
-> A versão 4 está em desenvolvimento e ainda em fase `alpha`. As versões `alpha` **não geram release nem imagem Docker**: quem quiser experimentá-las compila o código, como descrito em [Compilar a partir do código-fonte](https://github.com/web-budget/monorepo/wiki/Compilar-do-codigo-fonte). A última versão estável é a 3, em [arthurgregorio/web-budget](https://github.com/arthurgregorio/web-budget).
+- **Site:** https://webbudget.com.br/
+- **Versão estável:** a 3, em [arthurgregorio/web-budget](https://github.com/arthurgregorio/web-budget)
 
-## Estrutura
+> A versão 4 está em desenvolvimento e ainda em fase `alpha`. As versões `alpha` **não geram release nem imagem Docker**: quem quiser experimentá-las compila o código, como descrito em [Compilar a partir do código-fonte](https://github.com/web-budget/monorepo/wiki/Compilar-do-codigo-fonte).
 
-Este repositório é um monorepo com dois projetos construídos de forma independente:
+## Início rápido (desenvolvimento)
 
-| Pasta | O que é | Stack |
-|---|---|---|
-| [`server/`](server) | API | Kotlin, Spring Boot 4, jOOQ, Liquibase, PostgreSQL 18 |
-| [`client/`](client) | Interface web | Vue 3, TypeScript, Pinia, shadcn-vue |
-
-## Como rodar em desenvolvimento
-
-É preciso ter JDK 25, Docker, Node 24 e pnpm (a versão está fixada em `client/package.json`).
-
-Server, a partir de `server/`, com o Docker ligado (o PostgreSQL e o MailDev de `compose.yaml` sobem junto, e a aplicação, na porta 8085):
+Este repositório é um monorepo: `server/` (Kotlin, Spring Boot 4, jOOQ, PostgreSQL 18) e `client/` (Vue 3, TypeScript). É preciso ter JDK 25, Docker, Node 24 e pnpm.
 
 ```bash
-./gradlew bootRun
+cd server && ./gradlew bootRun     # API na porta 8085, com o PostgreSQL e o MailDev
+cd client && pnpm install && pnpm dev   # interface na porta 8086
 ```
 
-Client, a partir de `client/` (o Vite sobe na porta 8086 e encaminha `/private` para o server):
-
-```bash
-pnpm install
-pnpm dev
-```
-
-Depois, abra `http://localhost:8086`. Testes, cobertura e demais comandos estão na [wiki](https://github.com/web-budget/monorepo/wiki).
+Abra **http://localhost:8086**. Na primeira subida do server, o usuário `admin@webbudget.com.br` é criado com uma senha aleatória, que aparece no log. A página [Desenvolvimento local](https://github.com/web-budget/monorepo/wiki/Desenvolvimento-local) traz os detalhes.
 
 ## Documentação
 
-A documentação do projeto fica na [wiki](https://github.com/web-budget/monorepo/wiki):
+Toda a documentação fica na [wiki](https://github.com/web-budget/monorepo/wiki):
 
-- [Compilar a partir do código-fonte](https://github.com/web-budget/monorepo/wiki/Compilar-do-codigo-fonte)
-- [Desenvolvimento do server](https://github.com/web-budget/monorepo/wiki/Desenvolvimento-do-server)
-- [Desenvolvimento do client](https://github.com/web-budget/monorepo/wiki/Desenvolvimento-do-client)
+- **Começando:** [Visão geral e funcionalidades](https://github.com/web-budget/monorepo/wiki/Visao-geral-e-funcionalidades)
+- **Tecnologia e desenho:** [Arquitetura](https://github.com/web-budget/monorepo/wiki/Arquitetura), [Stack do server](https://github.com/web-budget/monorepo/wiki/Stack-do-server), [Stack do client](https://github.com/web-budget/monorepo/wiki/Stack-do-client), [Modelo de segurança](https://github.com/web-budget/monorepo/wiki/Modelo-de-seguranca)
+- **Compilar e rodar:** [Compilar a partir do código-fonte](https://github.com/web-budget/monorepo/wiki/Compilar-do-codigo-fonte), [Desenvolvimento local](https://github.com/web-budget/monorepo/wiki/Desenvolvimento-local), [Pipeline de CI](https://github.com/web-budget/monorepo/wiki/Pipeline-de-CI)
+- **Configuração:** [Variáveis de ambiente](https://github.com/web-budget/monorepo/wiki/Variaveis-de-ambiente), [Perfis do Spring](https://github.com/web-budget/monorepo/wiki/Perfis-do-Spring), [Login com Google](https://github.com/web-budget/monorepo/wiki/Login-com-Google), [E-mail](https://github.com/web-budget/monorepo/wiki/E-mail)
+- **Projeto:** [Lançamentos](https://github.com/web-budget/monorepo/wiki/Lancamentos), [Contribuindo](https://github.com/web-budget/monorepo/wiki/Contribuindo)
 
-Para quem desenvolve, as convenções de código e a arquitetura estão nos `CLAUDE.md` de cada camada: [raiz](CLAUDE.md), [server](server/CLAUDE.md) e [client](client/CLAUDE.md).
+## Acompanhe o desenvolvimento
 
-## Planejamento
-
-O andamento do trabalho está no [Project do webBudget](https://github.com/orgs/web-budget/projects/7), e o que entra em cada versão, nos [milestones](https://github.com/web-budget/monorepo/milestones).
+- [Issues](https://github.com/web-budget/monorepo/issues): todo trabalho começa como uma
+- [Milestones](https://github.com/web-budget/monorepo/milestones): o que entra em cada versão
+- [Project do webBudget](https://github.com/orgs/web-budget/projects/7): o andamento por tarefa
 
 ## Contato
 
