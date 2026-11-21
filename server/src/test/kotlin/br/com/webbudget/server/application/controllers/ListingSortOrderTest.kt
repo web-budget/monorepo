@@ -7,6 +7,7 @@ import org.jooq.DSLContext
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.jdbc.Sql
+import org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD
 import java.time.LocalDateTime
 
 class ListingSortOrderTest : BaseIntegrationTest() {
@@ -89,6 +90,20 @@ class ListingSortOrderTest : BaseIntegrationTest() {
         assertNames("/registration/financial-periods", "status=ALL", "07/2024", "06/2024", "08/2024")
         assertNames("/registration/financial-periods", "status=ALL&sort=name,asc", "06/2024", "07/2024", "08/2024")
         assertNames("/registration/financial-periods", "status=ALL&sort=name,desc", "08/2024", "07/2024", "06/2024")
+    }
+
+    @Test
+    @Sql(
+        "/sql/financial/clear-tables.sql",
+        "/sql/financial/create-registration-data.sql",
+        "/sql/financial/create-movements.sql"
+    )
+    @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
+    fun `should list the movements from the newest to the oldest by default`() {
+
+        assertNames("/financial/movements", "", "Groceries", "Salary", "Gym")
+        assertNames("/financial/movements", "sort=name,asc", "Groceries", "Gym", "Salary")
+        assertNames("/financial/movements", "sort=name,desc", "Salary", "Gym", "Groceries")
     }
 
     @Test

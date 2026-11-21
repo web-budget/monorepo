@@ -31,4 +31,14 @@ object ErrorCodes {
     const val INVALID_GOOGLE_LINK_TOKEN = "invalid_google_link_token"
     const val SELF_ACTION_NOT_ALLOWED = "self-action-not-allowed"
     const val INVALID_USER_STATUS_TRANSITION = "invalid-user-status-transition"
+
+    const val MOVEMENT_ALREADY_PAID = "movement-already-paid"
+    const val MOVEMENT_NOT_PAID = "movement-not-paid"
+    const val CLASSIFICATION_TYPE_MISMATCH = "classification-type-mismatch"
+    const val INACTIVE_CLASSIFICATION = "inactive-classification"
+    const val INACTIVE_COST_CENTER = "inactive-cost-center"
+    const val INACTIVE_WALLET = "inactive-wallet"
+    const val INVALID_DISCOUNT = "invalid-discount"
+    const val PAYMENT_DATE_IN_FUTURE = "payment-date-in-future"
+    const val WALLET_HAS_ENTRIES = "wallet-has-entries"
 }
