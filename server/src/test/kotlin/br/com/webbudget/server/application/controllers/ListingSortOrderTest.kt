@@ -107,6 +107,23 @@ class ListingSortOrderTest : BaseIntegrationTest() {
     }
 
     @Test
+    @Sql(
+        "/sql/financial/clear-tables.sql",
+        "/sql/financial/create-registration-data.sql",
+        "/sql/financial/create-movements.sql",
+        "/sql/financial/create-wallet-entries.sql"
+    )
+    @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
+    fun `should list the wallet statement from the newest to the oldest by default`() {
+
+        val path = "/financial/wallets/7e1b6f3a-2c4d-4b8e-9a10-5d3f0c9b7a01/statement"
+
+        assertNames(path, "", "Rounding", "Financial test other wallet", "Rent", "Deposit")
+        assertNames(path, "sort=name,asc", "Deposit", "Financial test other wallet", "Rent", "Rounding")
+        assertNames(path, "sort=name,desc", "Rounding", "Rent", "Financial test other wallet", "Deposit")
+    }
+
+    @Test
     @Sql("/sql/administration/clear-tables.sql", "/sql/administration/create-user.sql")
     fun `should list the users from the newest to the oldest by default`() {
 
