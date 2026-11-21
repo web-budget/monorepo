@@ -4,6 +4,7 @@ import br.com.webbudget.server.domain.entities.financial.CardReference
 import br.com.webbudget.server.domain.entities.financial.ClassificationReference
 import br.com.webbudget.server.domain.entities.financial.CostCenterReference
 import br.com.webbudget.server.domain.entities.financial.FinancialPeriodReference
+import br.com.webbudget.server.domain.entities.financial.Invoice
 import br.com.webbudget.server.domain.entities.financial.Movement
 import br.com.webbudget.server.domain.entities.financial.Payment
 import br.com.webbudget.server.domain.entities.financial.WalletReference
@@ -66,10 +67,11 @@ internal fun PaymentsRecord.toPayment(wallet: WalletReference?, card: CardRefere
 ).also { payment -> payment.restore(id, externalId, version, createdOn, lastUpdate) }
 
 internal fun MovementsRecord.toMovement(
-    classification: ClassificationReference,
-    costCenter: CostCenterReference,
+    classification: ClassificationReference?,
+    costCenter: CostCenterReference?,
     financialPeriod: FinancialPeriodReference,
-    payment: Payment?
+    payment: Payment?,
+    invoice: Invoice?
 ): Movement = Movement(
     name = name!!,
     type = Movement.Type.valueOf(type!!),
@@ -80,5 +82,6 @@ internal fun MovementsRecord.toMovement(
     financialPeriod = financialPeriod,
     status = Movement.Status.valueOf(status!!),
     description = description,
-    payment = payment
+    payment = payment,
+    invoice = invoice
 ).also { movement -> movement.restore(id, externalId, version, createdOn, lastUpdate) }

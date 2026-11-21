@@ -16,15 +16,19 @@ class MovementClassificationValidator : MovementValidator {
 
     override fun validate(value: Movement) {
 
-        if (value.classification.type != value.type.name) {
+        if (value.isInvoicePayment()) {
+            return
+        }
+
+        if (value.classification!!.type != value.type.name) {
             throw DomainException("The classification must have the same type of the movement", CLASSIFICATION_TYPE_MISMATCH)
         }
 
-        if (!value.classification.active) {
+        if (!value.classification!!.active) {
             throw DomainException("The classification of the movement is not active", INACTIVE_CLASSIFICATION)
         }
 
-        if (!value.costCenter.active) {
+        if (!value.costCenter!!.active) {
             throw DomainException("The cost center of the movement is not active", INACTIVE_COST_CENTER)
         }
     }

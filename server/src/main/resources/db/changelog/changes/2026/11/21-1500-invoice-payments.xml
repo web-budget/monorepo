@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <changeSet id="21-1500-1" author="${claude}">
+        <sql>
+            ALTER TABLE financial.movements
+                ALTER COLUMN id_classification DROP NOT NULL;
+            ALTER TABLE financial.movements
+                ALTER COLUMN id_cost_center DROP NOT NULL;
+            ALTER TABLE financial.movements
+                ADD COLUMN id_invoice bigint;
+            ALTER TABLE financial.movements
+                ADD CONSTRAINT movements_id_invoice_key UNIQUE (id_invoice);
+            ALTER TABLE financial.movements
+                ADD CONSTRAINT fk_invoices_on_movements FOREIGN KEY (id_invoice) REFERENCES financial.invoices (id);
+            ALTER TABLE financial.movements
+                ADD CONSTRAINT ck_movements_on_invoice CHECK (
+                    id_invoice IS NOT NULL OR (id_classification IS NOT NULL AND id_cost_center IS NOT NULL)
+                );
+        </sql>
+        <rollback>
+            <sql>
+                DELETE FROM financial.wallet_entries WHERE id_movement IN (SELECT id FROM financial.movements WHERE id_invoice IS NOT NULL);
+                DELETE FROM financial.payments WHERE id_movement IN (SELECT id FROM financial.movements WHERE id_invoice IS NOT NULL);
+                DELETE FROM financial.movements WHERE id_invoice IS NOT NULL;
+                ALTER TABLE financial.movements
+                    DROP CONSTRAINT ck_movements_on_invoice;
+                ALTER TABLE financial.movements
+                    DROP CONSTRAINT fk_invoices_on_movements;
+                ALTER TABLE financial.movements
+                    DROP CONSTRAINT movements_id_invoice_key;
+                ALTER TABLE financial.movements
+                    DROP COLUMN id_invoice;
+                ALTER TABLE financial.movements
+                    ALTER COLUMN id_cost_center SET NOT NULL;
+                ALTER TABLE financial.movements
+                    ALTER COLUMN id_classification SET NOT NULL;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="21-1500-2" author="${claude}">
+        <sql>
+            ALTER TABLE financial.wallet_entries
+                ALTER COLUMN origin TYPE varchar(20);
+            ALTER TABLE financial.wallet_entries
+                DROP CONSTRAINT ck_wallet_entries_on_origin;
+            ALTER TABLE financial.wallet_entries
+                ADD CONSTRAINT ck_wallet_entries_on_origin CHECK (
+                    origin IN ('INCOME', 'EXPENSE', 'REVERSAL', 'ADJUSTMENT', 'TRANSFER', 'INVOICE_PAYMENT')
+                );
+        </sql>
+        <rollback>
+            <sql>
+                DELETE FROM financial.wallet_entries WHERE origin = 'INVOICE_PAYMENT';
+                ALTER TABLE financial.wallet_entries
+                    DROP CONSTRAINT ck_wallet_entries_on_origin;
+                ALTER TABLE financial.wallet_entries
+                    ADD CONSTRAINT ck_wallet_entries_on_origin CHECK (
+                        origin IN ('INCOME', 'EXPENSE', 'REVERSAL', 'ADJUSTMENT', 'TRANSFER')
+                    );
+                ALTER TABLE financial.wallet_entries
+                    ALTER COLUMN origin TYPE varchar(12);
+            </sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
