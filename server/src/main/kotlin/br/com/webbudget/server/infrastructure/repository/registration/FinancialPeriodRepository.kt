@@ -49,17 +49,12 @@ class FinancialPeriodRepository(
             .and(FINANCIAL_PERIODS.EXTERNAL_ID.excluding(excludingExternalId))
     )
 
-    fun existsOpenBetween(startingAt: LocalDate, endingAt: LocalDate): Boolean = dsl.fetchExists(
-        dsl.selectOne().from(FINANCIAL_PERIODS)
-            .where(openStatus().and(contains(startingAt)).or(contains(endingAt)))
-    )
-
-    fun existsOpenBetweenAndExternalIdNot(startingAt: LocalDate, endingAt: LocalDate, externalId: UUID): Boolean =
+    fun existsOverlapping(startingAt: LocalDate, endingAt: LocalDate, excludingExternalId: UUID? = null): Boolean =
         dsl.fetchExists(
             dsl.selectOne().from(FINANCIAL_PERIODS)
-                .where(openStatus())
-                .and(contains(startingAt).or(contains(endingAt)))
-                .and(FINANCIAL_PERIODS.EXTERNAL_ID.ne(externalId))
+                .where(FINANCIAL_PERIODS.STARTING_AT.le(endingAt))
+                .and(FINANCIAL_PERIODS.ENDING_AT.ge(startingAt))
+                .and(FINANCIAL_PERIODS.EXTERNAL_ID.excluding(excludingExternalId))
         )
 
     fun existsByExternalIdAndStatusIn(externalId: UUID, statuses: Collection<Status>): Boolean = dsl.fetchExists(
@@ -137,9 +132,4 @@ class FinancialPeriodRepository(
 
         return pagedModelOf(content, pageable, total.toLong())
     }
-
-    private fun openStatus(): Condition = FINANCIAL_PERIODS.STATUS.`in`(Status.ACTIVE.name, Status.ENDED.name)
-
-    private fun contains(date: LocalDate): Condition =
-        DSL.value(date).between(FINANCIAL_PERIODS.STARTING_AT, FINANCIAL_PERIODS.ENDING_AT)
 }
