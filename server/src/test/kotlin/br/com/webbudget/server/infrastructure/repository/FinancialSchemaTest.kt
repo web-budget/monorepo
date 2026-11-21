@@ -34,7 +34,7 @@ class FinancialSchemaTest : BaseIntegrationTest() {
             "SELECT column_name FROM information_schema.columns WHERE table_schema = 'financial' AND table_name = 'payments'"
         ).map { it.get(0, String::class.java) }
 
-        assertThat(columns).contains("id_movement", "value_paid", "paid_on").doesNotContain("paid_at", "id_card")
+        assertThat(columns).contains("id_movement", "value_paid", "paid_on").doesNotContain("paid_at")
     }
 
     @Test

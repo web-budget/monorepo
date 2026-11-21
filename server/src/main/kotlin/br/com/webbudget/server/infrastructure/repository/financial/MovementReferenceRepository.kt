@@ -1,9 +1,11 @@
 package br.com.webbudget.server.infrastructure.repository.financial
 
+import br.com.webbudget.server.domain.entities.financial.CardReference
 import br.com.webbudget.server.domain.entities.financial.ClassificationReference
 import br.com.webbudget.server.domain.entities.financial.CostCenterReference
 import br.com.webbudget.server.domain.entities.financial.FinancialPeriodReference
 import br.com.webbudget.server.domain.entities.financial.WalletReference
+import br.com.webbudget.server.jooq.registration.tables.references.CARDS
 import br.com.webbudget.server.jooq.registration.tables.references.CLASSIFICATIONS
 import br.com.webbudget.server.jooq.registration.tables.references.COST_CENTERS
 import br.com.webbudget.server.jooq.registration.tables.references.FINANCIAL_PERIODS
@@ -47,5 +49,13 @@ class MovementReferenceRepository(
             .where(wallets.EXTERNAL_ID.eq(externalId))
             .fetchOne()
             ?.toWalletReference()
+    }
+
+    fun findCard(externalId: UUID): CardReference? {
+        val cards = CARDS.`as`("cards")
+        return dsl.selectFrom(cards)
+            .where(cards.EXTERNAL_ID.eq(externalId))
+            .fetchOne()
+            ?.toCardReference()
     }
 }

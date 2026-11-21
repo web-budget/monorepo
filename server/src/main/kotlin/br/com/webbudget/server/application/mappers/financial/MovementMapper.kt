@@ -7,6 +7,7 @@ import br.com.webbudget.server.application.payloads.financial.MovementFinancialP
 import br.com.webbudget.server.application.payloads.financial.MovementListView
 import br.com.webbudget.server.application.payloads.financial.MovementUpdateForm
 import br.com.webbudget.server.application.payloads.financial.MovementView
+import br.com.webbudget.server.application.payloads.financial.PaymentCardView
 import br.com.webbudget.server.application.payloads.financial.PaymentForm
 import br.com.webbudget.server.application.payloads.financial.PaymentView
 import br.com.webbudget.server.application.payloads.financial.PaymentWalletView
@@ -94,9 +95,10 @@ class MovementMapper(
     }
 
     fun mapToDomain(form: PaymentForm): Payment = Payment(
-        wallet = movementReferenceRepository.findWallet(form.wallet!!) ?: throw ResourceNotFoundException(),
+        wallet = form.wallet?.let { movementReferenceRepository.findWallet(it) ?: throw ResourceNotFoundException() },
         paidOn = form.paidOn ?: LocalDate.now(),
-        discount = form.discount ?: BigDecimal.ZERO
+        discount = form.discount ?: BigDecimal.ZERO,
+        card = form.card?.let { movementReferenceRepository.findCard(it) ?: throw ResourceNotFoundException() }
     )
 
     private fun mapToPeriodView(period: FinancialPeriodReference, today: LocalDate) = MovementFinancialPeriodView(
@@ -111,6 +113,7 @@ class MovementMapper(
         value = payment.value,
         discount = payment.discount,
         valuePaid = payment.valuePaid,
-        wallet = PaymentWalletView(payment.wallet.externalId, payment.wallet.name)
+        wallet = payment.wallet?.let { PaymentWalletView(it.externalId, it.name) },
+        card = payment.card?.let { PaymentCardView(it.externalId, it.name) }
     )
 }
