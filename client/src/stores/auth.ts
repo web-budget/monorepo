@@ -6,6 +6,7 @@ import { isPublicRoute } from '@/router/publicRoutes'
 import { resetUserStores } from '@/stores/resetUserStores'
 import type {
   GoogleLinkRequest,
+  Language,
   LoginOutcome,
   LoginRequest,
   RegisterRequest,
@@ -80,6 +81,10 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function changeLanguage(language: Language): Promise<void> {
+    session.value = await authApi.changeLanguage(language)
+  }
+
   async function restoreSession(): Promise<boolean> {
     loading.value = true
     try {
@@ -145,6 +150,7 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     enrollTotp,
     verifyTotp,
+    changeLanguage,
     restoreSession,
     clearSession,
     logout,

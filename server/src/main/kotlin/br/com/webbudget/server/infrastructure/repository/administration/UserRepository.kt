@@ -1,6 +1,7 @@
 package br.com.webbudget.server.infrastructure.repository.administration
 
 import br.com.webbudget.server.domain.entities.administration.AuthProvider
+import br.com.webbudget.server.domain.entities.administration.Language
 import br.com.webbudget.server.domain.entities.administration.Role
 import br.com.webbudget.server.domain.entities.administration.User
 import br.com.webbudget.server.domain.entities.administration.UserStatus
@@ -152,6 +153,15 @@ class UserRepository(
 
         user.restore(record.id, record.externalId, record.version, record.createdOn, record.lastUpdate)
         return user
+    }
+
+    fun updateDefaultLanguage(userId: Long, language: Language) {
+        dsl.update(USERS)
+            .set(USERS.DEFAULT_LANGUAGE, language.name)
+            .set(USERS.VERSION, USERS.VERSION.plus(1))
+            .set(USERS.LAST_UPDATE, LocalDateTime.now())
+            .where(USERS.ID.eq(userId))
+            .execute()
     }
 
     fun updatePassword(user: User, passwordHash: String): User {

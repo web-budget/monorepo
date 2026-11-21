@@ -8,6 +8,7 @@ import i18n from './locales'
 import { installApiErrorHandler } from './plugins/apiErrorHandler'
 import { installZodErrorMap } from './schemas/zodErrorMap'
 import { useAppearanceStore } from './stores/appearance'
+import { useLanguageStore } from './stores/language'
 
 import '@fontsource-variable/ibm-plex-sans'
 import '@fontsource/ibm-plex-mono/400.css'
@@ -25,6 +26,7 @@ app.use(router)
 app.use(i18n)
 
 useAppearanceStore(pinia)
+useLanguageStore(pinia)
 installZodErrorMap()
 installApiErrorHandler(apiClient, router)
 

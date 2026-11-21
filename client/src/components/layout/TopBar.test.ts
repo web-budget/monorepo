@@ -5,6 +5,7 @@ import TopBar from '@/components/layout/TopBar.vue'
 import { useTrustedDevicesDialog } from '@/composables/useTrustedDevicesDialog'
 import { useAppearanceStore } from '@/stores/appearance'
 import { useAuthStore } from '@/stores/auth'
+import { useLanguageStore } from '@/stores/language'
 import { createTestPlugins, mountInSidebar } from '@/test/mounting'
 import type { Role } from '@/types'
 
@@ -14,6 +15,7 @@ const session = {
   name: 'Ana Souza',
   email: 'ana@example.com',
   status: 'APPROVED',
+  language: 'PT_BR',
   roles: allRoles,
 }
 
@@ -144,7 +146,7 @@ describe('TopBar', () => {
     const { wrapper } = await render()
     await openUserMenu(wrapper)
 
-    const options = [...document.body.querySelectorAll('[role="menuitemradio"]')]
+    const options = [...document.body.querySelectorAll('[role="menuitemradio"]:not([aria-label])')]
 
     expect(options.map((option) => option.textContent?.trim())).toEqual([
       'Claro',
@@ -156,6 +158,31 @@ describe('TopBar', () => {
       'false',
       'true',
     ])
+  })
+
+  it('offers the two languages and marks the current one', async () => {
+    const { wrapper } = await render()
+    await openUserMenu(wrapper)
+
+    const options = [...document.body.querySelectorAll('[role="menuitemradio"][aria-label]')]
+
+    expect(options.map((option) => option.textContent?.trim())).toEqual(['pt-BR', 'en-US'])
+    expect(options.map((option) => option.getAttribute('aria-label'))).toEqual([
+      'Português (Brasil)',
+      'Inglês (Estados Unidos)',
+    ])
+    expect(options.map((option) => option.getAttribute('aria-checked'))).toEqual(['true', 'false'])
+  })
+
+  it('changes the language from the menu and keeps the menu open', async () => {
+    const { wrapper } = await render()
+    await openUserMenu(wrapper)
+
+    menuItem('[role="menuitemradio"]', 'en-US').click()
+    await flushPromises()
+
+    expect(useLanguageStore().select).toHaveBeenCalledWith('en-US')
+    expect(document.body.querySelector('[role="menu"]')).not.toBeNull()
   })
 
   it('changes the theme from the menu and keeps the menu open', async () => {

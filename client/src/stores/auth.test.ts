@@ -20,6 +20,7 @@ const session: SessionResponse = {
   name: 'Admin',
   email: 'admin@webbudget.com.br',
   status: 'APPROVED',
+  language: 'PT_BR',
   roles: ['ADMINISTRATION', 'REGISTRATION'],
 }
 
@@ -95,6 +96,26 @@ describe('useAuthStore', () => {
     expect(store.session).toBeNull()
     expect(store.loading).toBe(false)
     expect(resetUserStores).not.toHaveBeenCalled()
+  })
+
+  it('changeLanguage() keeps the session the server answers with', async () => {
+    const store = await authenticatedStore()
+    vi.mocked(authApi.changeLanguage).mockResolvedValue({ ...session, language: 'EN_US' })
+
+    await store.changeLanguage('EN_US')
+
+    expect(authApi.changeLanguage).toHaveBeenCalledWith('EN_US')
+    expect(store.session).toEqual({ ...session, language: 'EN_US' })
+  })
+
+  it('changeLanguage() keeps the session as it was when the server refuses', async () => {
+    const store = await authenticatedStore()
+    const failure = new ApiError({ error: 'field-validation-failed' }, 422)
+    vi.mocked(authApi.changeLanguage).mockRejectedValue(failure)
+
+    await expect(store.changeLanguage('EN_US')).rejects.toBe(failure)
+
+    expect(store.session).toEqual(session)
   })
 
   it('hasRole() is true only for a role of the session', async () => {

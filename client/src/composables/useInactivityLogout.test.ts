@@ -50,7 +50,13 @@ describe('useInactivityLogout', () => {
   })
 
   it('ends the session as the idle time reaches the timeout', () => {
-    auth.session = { name: 'Ana', email: 'ana@example.com', status: 'APPROVED', roles: [] }
+    auth.session = {
+      name: 'Ana',
+      email: 'ana@example.com',
+      status: 'APPROVED',
+      language: 'PT_BR',
+      roles: [],
+    }
     start()
 
     vi.advanceTimersByTime(29 * MINUTE)
@@ -61,7 +67,13 @@ describe('useInactivityLogout', () => {
   })
 
   it('keeps the session while the server keeps answering', () => {
-    auth.session = { name: 'Ana', email: 'ana@example.com', status: 'APPROVED', roles: [] }
+    auth.session = {
+      name: 'Ana',
+      email: 'ana@example.com',
+      status: 'APPROVED',
+      language: 'PT_BR',
+      roles: [],
+    }
     start()
 
     vi.advanceTimersByTime(25 * MINUTE)
@@ -72,7 +84,13 @@ describe('useInactivityLogout', () => {
   })
 
   it('checks again when the tab becomes visible, and not when it is hidden', () => {
-    auth.session = { name: 'Ana', email: 'ana@example.com', status: 'APPROVED', roles: [] }
+    auth.session = {
+      name: 'Ana',
+      email: 'ana@example.com',
+      status: 'APPROVED',
+      language: 'PT_BR',
+      roles: [],
+    }
     start()
     vi.setSystemTime(Date.now() + 31 * MINUTE)
 
@@ -85,12 +103,19 @@ describe('useInactivityLogout', () => {
 
   it('starts watching when a session begins and stops when it ends', async () => {
     start()
-    auth.session = { name: 'Ana', email: 'ana@example.com', status: 'APPROVED', roles: [] }
+    auth.session = {
+      name: 'Ana',
+      email: 'ana@example.com',
+      status: 'APPROVED',
+      language: 'PT_BR',
+      roles: [],
+    }
     await nextTick()
     auth.session = {
       name: 'Ana',
       email: 'ana@example.com',
       status: 'APPROVED',
+      language: 'PT_BR',
       roles: ['FINANCIAL'],
     }
     await nextTick()
@@ -108,7 +133,13 @@ describe('useInactivityLogout', () => {
   })
 
   it('stops watching with its scope', () => {
-    auth.session = { name: 'Ana', email: 'ana@example.com', status: 'APPROVED', roles: [] }
+    auth.session = {
+      name: 'Ana',
+      email: 'ana@example.com',
+      status: 'APPROVED',
+      language: 'PT_BR',
+      roles: [],
+    }
     start()
 
     scope.stop()

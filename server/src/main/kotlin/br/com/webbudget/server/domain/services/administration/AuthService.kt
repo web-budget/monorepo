@@ -215,6 +215,14 @@ class AuthService(
 
     fun currentSession(): CurrentUser = currentUserProvider.getSessionUser()
 
+    @Transactional
+    fun changeLanguage(language: Language): CurrentUser {
+
+        userRepository.updateDefaultLanguage(currentUserProvider.getSessionUser().id, language)
+
+        return currentUserProvider.getSessionUser()
+    }
+
     fun logout(request: HttpServletRequest) {
         request.session.invalidate()
         SecurityContextHolder.clearContext()

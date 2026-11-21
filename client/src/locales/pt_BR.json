@@ -914,7 +914,10 @@
     "theme": "Tema",
     "theme-light": "Claro",
     "theme-dark": "Escuro",
-    "theme-system": "Sistema"
+    "theme-system": "Sistema",
+    "language": "Idioma",
+    "language-pt-BR": "Português (Brasil)",
+    "language-en-US": "Inglês (Estados Unidos)"
   },
   "confirm": {
     "title": "Confirmação"

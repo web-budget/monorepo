@@ -101,4 +101,12 @@ describe('layouts', () => {
     expect(wrapper.find('[data-slot="auth-brand"]').text()).toContain('webBudget')
     expect(wrapper.find('main').text()).toContain('root')
   })
+
+  it('AuthLayout offers the language selector to whoever has not signed in', async () => {
+    const wrapper = await render(AuthLayout)
+
+    const radios = wrapper.find('main').findAll('[role="radio"]')
+
+    expect(radios.map((radio) => radio.text())).toEqual(['pt-BR', 'en-US'])
+  })
 })

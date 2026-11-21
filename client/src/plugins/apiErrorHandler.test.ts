@@ -100,7 +100,13 @@ describe('installApiErrorHandler', () => {
     const router = createRouterAt()
     await router.push('/private')
     const auth = useAuthStore()
-    auth.session = { name: 'Ana', email: 'ana@example.com', status: 'APPROVED', roles: [] }
+    auth.session = {
+      name: 'Ana',
+      email: 'ana@example.com',
+      status: 'APPROVED',
+      language: 'PT_BR',
+      roles: [],
+    }
     const client = createClient({ status: 401, data: { error: 'session-revoked' } }, router)
 
     await expect(client.get('/x')).rejects.toMatchObject({ status: 401 })

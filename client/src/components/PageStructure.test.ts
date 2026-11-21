@@ -152,7 +152,7 @@ describe('PageStructure', () => {
       )!
       expect(footer.textContent).toContain('Ana Souza')
       expect(footer.textContent).toContain('ana@example.com')
-      expect(footer.querySelectorAll('[role="radio"]')).toHaveLength(3)
+      expect(footer.querySelectorAll('[role="radio"]')).toHaveLength(5)
 
       ;(footer.querySelector('button[aria-label="Sair"]') as HTMLElement).click()
 

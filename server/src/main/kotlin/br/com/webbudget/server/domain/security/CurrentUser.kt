@@ -1,6 +1,7 @@
 package br.com.webbudget.server.domain.security
 
 import br.com.webbudget.server.domain.entities.administration.AuthProvider
+import br.com.webbudget.server.domain.entities.administration.Language
 import br.com.webbudget.server.domain.entities.administration.User
 import br.com.webbudget.server.domain.entities.administration.UserStatus
 import java.io.Serializable
@@ -14,6 +15,7 @@ data class CurrentUser(
     val status: UserStatus,
     val authProvider: AuthProvider,
     val credentialsVersion: Int,
+    val language: Language,
     val roles: Set<String>
 ) : Serializable {
 
@@ -27,6 +29,7 @@ data class CurrentUser(
             status = user.status,
             authProvider = user.authProvider,
             credentialsVersion = user.credentialsVersion,
+            language = user.defaultLanguage,
             roles = user.roleNames()
         )
     }

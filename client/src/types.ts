@@ -93,6 +93,7 @@ export interface SessionResponse {
   name: string
   email: string
   status: UserStatus
+  language: Language
   roles: Role[]
 }
 

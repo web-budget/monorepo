@@ -2,6 +2,7 @@ package br.com.webbudget.server.application.payloads
 
 import br.com.webbudget.server.application.payloads.ErrorCodes.EMAIL_IS_INVALID
 import br.com.webbudget.server.application.payloads.ErrorCodes.HAS_CONTROL_CHARACTERS
+import br.com.webbudget.server.application.payloads.ErrorCodes.IS_NULL
 import br.com.webbudget.server.application.payloads.ErrorCodes.IS_NULL_OR_BLANK
 import br.com.webbudget.server.application.payloads.ErrorCodes.MAX_CHARS
 import br.com.webbudget.server.domain.entities.administration.Language
@@ -10,6 +11,7 @@ import br.com.webbudget.server.domain.entities.administration.UserStatus
 import br.com.webbudget.server.domain.security.CurrentUser
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
+import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Pattern
 import jakarta.validation.constraints.Size
 import java.time.LocalDateTime
@@ -60,6 +62,11 @@ data class GoogleLinkForm(
     val password: String?,
     @field:Size(max = MAX_TOTP_CODE_LENGTH, message = MAX_CHARS)
     val totpCode: String? = null
+)
+
+data class LanguageForm(
+    @field:NotNull(message = IS_NULL)
+    val language: Language?
 )
 
 data class AuthConfigView(
@@ -127,6 +134,7 @@ data class SessionView(
     val name: String,
     val email: String,
     val status: UserStatus,
+    val language: Language,
     val roles: List<String>
 ) {
 
@@ -136,6 +144,7 @@ data class SessionView(
             name = user.name,
             email = user.email,
             status = user.status,
+            language = user.language,
             roles = user.roles.sorted()
         )
     }

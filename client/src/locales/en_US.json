@@ -1,1 +1,975 @@
-{}
+{
+  "error": {
+    "unknown": {
+      "title": "Unknown error",
+      "details": "An unexpected error happened, contact the administrator"
+    },
+    "connection-failure": {
+      "title": "Connection failure",
+      "details": "Could not connect to the server, try again later"
+    },
+    "conflict": {
+      "title": "Conflict",
+      "cost-center": {
+        "name": "Name \"{value}\" is already in use"
+      },
+      "wallet": {
+        "name": "Name \"{value}\" is already in use",
+        "bank": "Bank \"{value}\" is already in use",
+        "agency": "Branch \"{value}\" is already in use",
+        "number": "Account number \"{value}\" is already in use"
+      },
+      "card": {
+        "type": "Type is already in use",
+        "last-four-digits": "Last digits \"{value}\" are already in use"
+      },
+      "classification": {
+        "name": "Name \"{value}\" is already in use"
+      },
+      "user": {
+        "email": "Email \"{value}\" is already in use"
+      },
+      "invalid-user-status-transition": "The account changed status while the screen was open. Refresh the list."
+    },
+    "unprocessable-entity": {
+      "title": "Request failed",
+      "details": "Review the data and try again"
+    },
+    "bad-request": {
+      "title": "Invalid request",
+      "bad-request": "The request could not be processed, review the data and try again",
+      "field-validation-failed": "Some information is missing or invalid, review the data and try again",
+      "data-integrity-violation": "The operation could not be completed because the record is linked to other records",
+      "budget-limit-exceeded": "The budget available in the cost center for the selected type is R${available-budget}",
+      "overlapping-start-end-dates": "There is already a financial period that covers the selected start and end dates",
+      "start-date-after-end-date": "The start date must be before the end date",
+      "debit-card-without-wallet": "The debit card must be linked to a wallet",
+      "invalid-invoice-payment-day": "{payment-day} is not a valid day of the month, use something between 1 and 30",
+      "financial-period-not-open": "The financial period is not open and cannot be modified",
+      "accounted-period-movement": "The movement belongs to an accounted period and cannot be changed",
+      "invalid-token": "Invalid or expired token",
+      "self-action-not-allowed": "This action does not apply to your own account"
+    },
+    "not-found": {
+      "detail": "Not found",
+      "description": "The requested resource does not exist"
+    },
+    "forbidden": {
+      "detail": "Not authorized",
+      "description": "You do not have permission to access this resource"
+    },
+    "invalid-csrf-token": {
+      "title": "Request not authorized",
+      "details": "The security check of the request failed, reload the page and try again"
+    },
+    "server-error": {
+      "detail": "Server failure",
+      "description": "Try again later or contact the administrator"
+    }
+  },
+  "auth-aside": {
+    "headline": "Your accounts, set straight.",
+    "tagline": "Record income and expenses in each period, follow the balance of your wallets and see where the money goes.",
+    "features": {
+      "periods": "Entries by financial period",
+      "dashboards": "Dashboards for the month and previous ones",
+      "forecast": "Forecast of expenses and income"
+    }
+  },
+  "auth-step": {
+    "back-to-login": "Back to login"
+  },
+  "register": {
+    "title": "Create account",
+    "description": "An administrator approves the account before the first sign-in.",
+    "form": {
+      "name": "Name",
+      "email": "Email",
+      "password": "Password",
+      "submit": "Create account",
+      "submitting": "Creating…"
+    },
+    "rate-limit": {
+      "title": "Too many sign-ups in a row",
+      "description": "For security, wait a few minutes before creating another account."
+    },
+    "back": {
+      "prompt": "Already have an account?",
+      "action": "Sign in"
+    }
+  },
+  "pending-approval": {
+    "title": "Account awaiting approval",
+    "description": "We received the sign-up for {email}. As soon as an administrator approves the account, just sign in with your email and password.",
+    "description-anonymous": "As soon as an administrator approves the account, just sign in with your email and password.",
+    "activation": {
+      "title": "Confirm your email",
+      "description": "We sent an activation link to the email used in the sign-up. The account only joins the approval queue once it is activated."
+    },
+    "waiting": {
+      "title": "Taking long?",
+      "description": "Talk to whoever manages webBudget at your home or company."
+    }
+  },
+  "enroll": {
+    "title": "Protect your account",
+    "description": "Signing in asks for a code from an authenticator app, such as Google Authenticator, Microsoft Authenticator or 1Password.",
+    "scan": "Scan the QR code with the app.",
+    "qr-alt": "QR code to register the authenticator",
+    "manual": "Can't scan it? Type the key:",
+    "copy": "Copy key",
+    "key-copied": "Key copied",
+    "enter-code": "Enter the 6-digit code shown in the app.",
+    "submit": "Activate and sign in",
+    "submitting": "Activating…"
+  },
+  "totp": {
+    "title": "Verification code",
+    "description": "Enter the 6-digit code from your authenticator app.",
+    "code-label": "Code digit",
+    "invalid-code": "Invalid code. Check that your phone's clock is right and try again.",
+    "trust": {
+      "label": "Trust this device",
+      "hint": "The code is not asked for again in this browser. You can revoke it in Trusted devices."
+    },
+    "submit": "Sign in",
+    "submitting": "Verifying…",
+    "use-another-account": "Use another account",
+    "rate-limit": {
+      "title": "Too many attempts in a row",
+      "description": "For security, wait a few minutes before trying again."
+    }
+  },
+  "google-link": {
+    "title": "Link your Google account",
+    "description": "An account with your Google email already exists. Enter its password to link them. Afterwards, you can sign in either way.",
+    "totp-description": "Enter the 6-digit code from your authenticator app to finish linking.",
+    "password": "Account password",
+    "submit": "Link and sign in",
+    "submitting": "Linking…",
+    "cancel": "Cancel",
+    "rate-limit": {
+      "title": "Too many attempts in a row",
+      "description": "For security, wait a few minutes before trying again."
+    },
+    "expired": {
+      "title": "The link was not completed",
+      "description": "The password or the code do not match, or the request expired. For security, sign in with Google again to start over."
+    }
+  },
+  "devices": {
+    "title": "Trusted devices",
+    "description": "On these devices, signing in does not ask for the authenticator code.",
+    "description-with-devices": "On these devices, signing in does not ask for the authenticator code. Revoke the ones you do not recognize.",
+    "dates": "Last used on {lastUsed} · trusted on {created}",
+    "close": "Close",
+    "empty": {
+      "title": "No trusted devices",
+      "description": "Check “Trust this device” when entering the authenticator code at sign-in."
+    },
+    "revoke": {
+      "action": "Revoke",
+      "title": "Revoke “{label}”?",
+      "description": "If this is the device you are using, the authenticator code will be asked for again at the next sign-in."
+    },
+    "revoke-all": {
+      "action": "Revoke all",
+      "title": "Revoke all devices?",
+      "description": "The authenticator code will be asked for again at the next sign-in, on any device, including this one."
+    },
+    "toast": {
+      "revoked": "Device revoked",
+      "revoked-all": "Devices revoked"
+    }
+  },
+  "password-rules": {
+    "min-length": "At least {minimum} characters",
+    "uppercase": "One uppercase letter",
+    "number": "One number",
+    "met": "met",
+    "pending": "pending"
+  },
+  "login": {
+    "title": "Sign in",
+    "description": "Use the email and password of your account.",
+    "session-ended": {
+      "title": "Session ended",
+      "inactivity": "Your session ended due to inactivity, sign in again",
+      "expired": "Your session expired, sign in again"
+    },
+    "failure": {
+      "credentials": {
+        "title": "Incorrect email or password",
+        "description": "Check the data and try again."
+      },
+      "rate-limit": {
+        "title": "Too many attempts in a row",
+        "description": "For security, wait a few minutes before trying again."
+      },
+      "oauth-failed": {
+        "title": "Could not sign in with Google",
+        "description": "Try again or sign in with your email and password."
+      },
+      "email-in-use": {
+        "title": "This email already has an account",
+        "description": "Sign in with the email and password of the account."
+      }
+    },
+    "form": {
+      "email": "Email",
+      "email-placeholder": "you{'@'}example.com",
+      "password": "Password",
+      "password-placeholder": "Your password",
+      "forgot-password": "Forgot password",
+      "sign-in": "Sign in",
+      "signing-in": "Signing in…"
+    },
+    "divider": "or",
+    "google": "Sign in with Google",
+    "register": {
+      "prompt": "Don't have an account?",
+      "action": "Create account"
+    }
+  },
+  "forgot-password": {
+    "title": "Forgot password",
+    "description": "Enter the account email to receive a recovery link.",
+    "form": {
+      "email": "Email",
+      "email-placeholder": "you{'@'}example.com",
+      "submit": "Send link",
+      "submitting": "Sending…"
+    },
+    "sent": {
+      "title": "Check your email",
+      "description": "If {email} is registered, you will receive a link to create a new password. Check your spam folder too."
+    }
+  },
+  "recover-password": {
+    "title": "Create new password",
+    "description": "For the account {email}.",
+    "form": {
+      "password": "New password",
+      "password-placeholder": "Enter your new password",
+      "confirmation": "Confirm the new password",
+      "confirmation-placeholder": "Enter your new password again",
+      "submit": "Save new password",
+      "submitting": "Saving…"
+    }
+  },
+  "account-activation": {
+    "activating": "Activating account, please wait...",
+    "success": {
+      "title": "Account activated",
+      "description": "All set with {email}. Sign in with your email and password.",
+      "action": "Go to sign in"
+    },
+    "error": {
+      "title": "Invalid or expired link",
+      "description": "This activation link was already used or has expired. Ask whoever manages webBudget for a new one."
+    }
+  },
+  "menu": {
+    "financial": "Financial",
+    "configuration": "Settings",
+    "registration": "Registrations",
+    "dashboards": "Dashboards"
+  },
+  "dashboards": {
+    "overview": "Overview",
+    "current-month": "Current month",
+    "previous-months": "Previous months",
+    "by-wallet": "By wallet",
+    "by-classification": "By classification",
+    "description": {
+      "overview": "Balances, income and expenses of the period.",
+      "current-month": "The movement of the month in progress.",
+      "previous-months": "Comparison of the previous months.",
+      "by-wallet": "How much comes in and goes out of each wallet.",
+      "by-classification": "Where the money goes, by classification."
+    },
+    "empty": {
+      "title": "Dashboards arrive with the financial module",
+      "description": "Numbers and charts show up here when the financial module is ready."
+    }
+  },
+  "module-home": {
+    "description": {
+      "financial": "Entries, invoices and period closing.",
+      "registration": "Choose what to register or look up.",
+      "configuration": "User accounts, access areas and integrations."
+    },
+    "items": {
+      "period-movement": "Income and expenses recorded in the financial period.",
+      "recurrent-movement": "Entries that repeat every month.",
+      "credit-card-invoice": "Open and closed invoices of each card.",
+      "period-closing": "Closes the period and accounts the balance.",
+      "wallet": "Bank accounts, investments and cash.",
+      "card": "Credit and debit cards linked to wallets.",
+      "classification": "Income and expense categories for entries.",
+      "cost-center": "A hierarchy to group where the money is spent.",
+      "financial-period": "Time ranges with income and expense goals.",
+      "users": "Accounts, access areas and approvals.",
+      "integrations": "Connections with banks and external services."
+    }
+  },
+  "action-button": {
+    "delete": "Delete",
+    "edit": "Edit",
+    "go-home": "Go to home",
+    "go-login": "Go to sign in"
+  },
+  "form": {
+    "save": "Save",
+    "create": "Create",
+    "cancel": "Cancel",
+    "edit": "Edit",
+    "delete": "Delete",
+    "back": "Back",
+    "yes": "Yes",
+    "no": "No",
+    "recover": "Recover",
+    "clear-selection": "Clear selection"
+  },
+  "notification": {
+    "success": "Success!",
+    "error": "Error",
+    "confirm-delete": "Confirm the deletion of the record?",
+    "record-deleted": "Record deleted",
+    "record-created": "Record created",
+    "record-updated": "Record updated",
+    "cost-center": {
+      "deleted": "Cost center deleted successfully",
+      "created": "Cost center created successfully",
+      "updated": "Cost center updated successfully"
+    },
+    "wallet": {
+      "deleted": "Wallet deleted successfully",
+      "created": "Wallet created successfully",
+      "updated": "Wallet updated successfully"
+    },
+    "card": {
+      "deleted": "Card deleted successfully",
+      "created": "Card created successfully",
+      "updated": "Card updated successfully"
+    },
+    "financial-period": {
+      "deleted": "Financial period deleted successfully",
+      "created": "Financial period created successfully",
+      "updated": "Financial period updated successfully"
+    },
+    "classification": {
+      "deleted": "Classification deleted successfully",
+      "created": "Classification created successfully",
+      "updated": "Classification updated successfully"
+    },
+    "user": {
+      "deleted": "User deleted successfully",
+      "created": "User created successfully",
+      "updated": "User updated successfully"
+    },
+    "forgot-password": {
+      "requested": "Request sent, wait for the recovery email"
+    },
+    "recover-password": {
+      "success": "Password recovered, sign in to continue",
+      "error": "Failed to recover the password, invalid or expired token"
+    }
+  },
+  "search-control": {
+    "field": "Search field",
+    "actions": {
+      "new": "New",
+      "search": "Search",
+      "clear": "Clear filter"
+    },
+    "all": "All",
+    "active": "Active",
+    "inactive": "Inactive",
+    "status": "Status",
+    "feminine": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "all": "All"
+    }
+  },
+  "items-table": {
+    "state": {
+      "empty": "No records found",
+      "loading": "Loading..."
+    },
+    "columns": {
+      "actions": "Actions",
+      "status": "Status"
+    },
+    "footer": {
+      "until": " to ",
+      "total": ", total ",
+      "range": "{first}–{last} of {total}"
+    },
+    "pagination": {
+      "rows-per-page": "Rows per page",
+      "previous": "Previous page",
+      "next": "Next page",
+      "first": "First page",
+      "last": "Last page"
+    },
+    "sort": {
+      "ascending": "Sort ascending",
+      "descending": "Sort descending"
+    }
+  },
+  "status": {
+    "active": "Active",
+    "inactive": "Inactive",
+    "feminine": {
+      "active": "Active",
+      "inactive": "Inactive"
+    }
+  },
+  "integrations": {
+    "title": "Integrations",
+    "menu": "Integrations"
+  },
+  "users": {
+    "title": "Users",
+    "menu": "Users",
+    "own-account": "Your account",
+    "search": {
+      "placeholder": "Search by name or email"
+    },
+    "table-columns": {
+      "name": "Name",
+      "roles": "Access areas",
+      "status": "Status",
+      "totp": "TOTP"
+    },
+    "status": {
+      "approved": "Approved",
+      "pending": "Pending",
+      "blocked": "Blocked"
+    },
+    "status-tabs": {
+      "approved": "Approved",
+      "pending": "Pending",
+      "blocked": "Blocked"
+    },
+    "totp": {
+      "enabled": "Active",
+      "disabled": "Not set up"
+    },
+    "roles-none": "None yet",
+    "no-pending": {
+      "title": "No accounts awaiting approval",
+      "description": "When someone signs up from the login screen, the account shows up here for you to approve."
+    },
+    "pending-notice": {
+      "title": "No accounts awaiting approval | 1 account awaiting approval | {count} accounts awaiting approval",
+      "description": "They signed up from the login screen and only get in once approved.",
+      "action": "View pending"
+    },
+    "approve": {
+      "shortcut": "Approve",
+      "title": "Approve the account of {name}?",
+      "description": "The person will sign in with {email}. Choose the areas they can use.",
+      "action": "Approve"
+    },
+    "block": {
+      "menu": "Block",
+      "title": "Block {name}?",
+      "description": "The person's session ends now and they cannot sign in until unblocked. Their data stays in the app.",
+      "action": "Block"
+    },
+    "unblock": {
+      "menu": "Unblock",
+      "title": "Unblock {name}?",
+      "description": "The person signs in again with the same access areas they had before the block.",
+      "action": "Unblock"
+    },
+    "totp-reset": {
+      "menu": "Reset TOTP",
+      "title": "Reset the TOTP of {name}?",
+      "description": "The current authenticator stops working and the person's trusted devices are forgotten. At the next sign-in, they set up the authenticator app again.",
+      "action": "Reset TOTP"
+    },
+    "role": {
+      "administration": "Settings",
+      "dashboards": "Dashboards",
+      "financial": "Financial",
+      "registration": "Registrations"
+    },
+    "language": {
+      "pt-br": "Portuguese (Brazil)",
+      "en-us": "English (United States)"
+    },
+    "form": {
+      "new": "New user",
+      "editing": "Editing user",
+      "name": "Name",
+      "email": "Email",
+      "password": "Password",
+      "language": "Language",
+      "roles": "Access areas",
+      "send-activation-email": "Send activation email",
+      "email-hint": "The email does not change after sign-up.",
+      "active-label": "Active account",
+      "active-hint": "Deactivate to prevent sign-in",
+      "activation-heading": "Account activation",
+      "activation-hint": "The person activates the account through the link sent to their email."
+    },
+    "confirm": {
+      "create-title": "Create the user “{name}”?",
+      "create": "The account is created with the access areas you chose.",
+      "create-label": "Create",
+      "update-title": "Save the changes to “{name}”?",
+      "update": "The new data and access areas apply from the person's next request.",
+      "update-label": "Save"
+    },
+    "password": {
+      "action": "Reset password",
+      "title": "Reset the password of {name}?",
+      "description": "Set the new password and pass it to the person through a secure channel. Their open sessions will be ended.",
+      "password": "New password",
+      "confirmation": "Confirmation",
+      "submit": "Reset password"
+    },
+    "list": {
+      "description": "Who accesses webBudget and which areas each person can use.",
+      "empty-title": "No users yet",
+      "empty-description": "Register the people who will use the system.",
+      "plural": "users",
+      "found": "{count} user found for “{query}” | {count} users found for “{query}”"
+    },
+    "remove": {
+      "title": "Remove the user “{name}”?",
+      "description": "This cannot be undone. The person's access is ended.",
+      "action": "Remove user"
+    },
+    "toast": {
+      "created": "User created",
+      "created-detail": "“{name}” was registered.",
+      "updated": "Changes saved",
+      "updated-detail": "The data of “{name}” was saved.",
+      "removed": "User removed",
+      "removed-detail": "“{name}” left the list.",
+      "password-reset": "Password reset",
+      "password-reset-detail": "The new password of “{name}” is now valid.",
+      "approved": "Account approved",
+      "approved-detail": "{name} can now sign in.",
+      "blocked": "Account blocked",
+      "blocked-detail": "{name} can no longer sign in.",
+      "unblocked": "Account unblocked",
+      "unblocked-detail": "{name} can sign in again.",
+      "totp-reset": "TOTP reset",
+      "totp-reset-detail": "{name} sets up the authenticator again at the next sign-in."
+    },
+    "sections": {
+      "data": "Data",
+      "data-help": "How the person appears in the app.",
+      "access": "Access",
+      "access-help": "The initial password of the account. The person can change it through “Forgot password”.",
+      "roles": "Access areas",
+      "roles-help": "What shows up in this person's menu."
+    },
+    "role-description": {
+      "dashboards": "Panels of the period, history and forecast.",
+      "financial": "Record income and expenses and close periods.",
+      "registration": "Wallets, cards, classifications, cost centers and periods.",
+      "administration": "Users and the access of each person."
+    },
+    "you": "(you)",
+    "aside": {
+      "title": "Account",
+      "status": "Status",
+      "approval": "Approval",
+      "totp": "TOTP",
+      "language": "Language",
+      "roles": "Access areas"
+    }
+  },
+  "period-movement": {
+    "title": "Period movements",
+    "menu": "Period movements"
+  },
+  "recurrent-movement": {
+    "title": "Recurring movements",
+    "menu": "Recurring movements"
+  },
+  "credit-card-invoice": {
+    "title": "Credit card invoice",
+    "menu": "Credit card invoice"
+  },
+  "period-closing": {
+    "title": "Period closing",
+    "menu": "Period closing"
+  },
+  "wallet": {
+    "title": "Wallets",
+    "menu": "Wallets",
+    "search": {
+      "placeholder": "Name, description, bank, branch or number"
+    },
+    "table-columns": {
+      "name": "Name",
+      "type": "Type",
+      "bank": "Bank"
+    },
+    "form": {
+      "new": "New wallet",
+      "editing": "Editing wallet",
+      "detailing": "Wallet details",
+      "deleting": "Deleting wallet",
+      "name": "Name",
+      "description": "Description",
+      "type": "Type",
+      "bank": "Bank",
+      "agency": "Branch",
+      "number": "Account number",
+      "type-placeholder": "Select a type",
+      "active-label": "Active",
+      "active-hint": "Deactivate to remove from listings",
+      "type-hint": "The type does not change after creation.",
+      "balance": "Current balance"
+    },
+    "type": {
+      "bank-account": "Bank account",
+      "personal": "Personal",
+      "investment": "Investment"
+    },
+    "list": {
+      "description": "Bank accounts, investments and cash that entries come from and go to.",
+      "empty-title": "No wallets yet",
+      "empty-description": "Register the accounts and cash you use. Entries always come from a wallet.",
+      "plural": "wallets",
+      "found": "{count} wallet found for “{query}” | {count} wallets found for “{query}”"
+    },
+    "remove": {
+      "title": "Remove the wallet “{name}”?",
+      "description": "This cannot be undone."
+    },
+    "toast": {
+      "created": "Wallet created",
+      "created-detail": "“{name}” now shows up in entries.",
+      "updated": "Changes saved",
+      "updated-detail": "“{name}” was updated.",
+      "removed": "Wallet removed",
+      "removed-detail": "“{name}” left the list."
+    },
+    "sections": {
+      "identification": "Identification",
+      "identification-help": "How the wallet appears in entries and dashboards.",
+      "bank": "Bank details",
+      "bank-help": "Shown for Bank account and Investment.",
+      "balance": "Balance"
+    }
+  },
+  "card": {
+    "title": "Cards",
+    "menu": "Cards",
+    "search": {
+      "placeholder": "Name, last 4 digits or network"
+    },
+    "table-columns": {
+      "name": "Name",
+      "type": "Type",
+      "flag": "Network"
+    },
+    "type": {
+      "debit": "Debit",
+      "credit": "Credit"
+    },
+    "form": {
+      "new": "New card",
+      "editing": "Editing card",
+      "detailing": "Card details",
+      "deleting": "Deleting card",
+      "name": "Name",
+      "type": "Type",
+      "flag": "Network",
+      "last-four-digits": "Last 4 digits",
+      "wallet": "Wallet",
+      "invoice-payment-day": "Due day",
+      "type-placeholder": "Select a type",
+      "wallet-search-empty": "No wallets found",
+      "wallet-search-placeholder": "Type the name",
+      "active-label": "Active",
+      "active-hint": "Deactivate to remove from listings",
+      "type-hint": "The type does not change after creation."
+    },
+    "list": {
+      "description": "Credit and debit cards used in entries.",
+      "empty-title": "No cards yet",
+      "empty-description": "Register the cards you use. Debit cards draw from a wallet; credit cards go to the invoice.",
+      "plural": "cards",
+      "found": "{count} card found for “{query}” | {count} cards found for “{query}”"
+    },
+    "remove": {
+      "title": "Remove the card “{name}”?",
+      "description": "This cannot be undone."
+    },
+    "toast": {
+      "created": "Card created",
+      "created-detail": "“{name}” now shows up in entries.",
+      "updated": "Changes saved",
+      "updated-detail": "“{name}” was updated.",
+      "removed": "Card removed",
+      "removed-detail": "“{name}” left the list."
+    },
+    "sections": {
+      "identification": "Identification",
+      "identification-help": "How the card appears in entries.",
+      "wallet": "Wallet",
+      "wallet-help": "The debit card draws from this wallet.",
+      "invoice": "Invoice",
+      "invoice-help": "Day of the month the credit card invoice is due."
+    }
+  },
+  "financial-period": {
+    "title": "Financial periods",
+    "menu": "Financial periods",
+    "search": {
+      "placeholder": "Name"
+    },
+    "table-columns": {
+      "name": "Name",
+      "starting-at": "Start",
+      "ending-at": "End",
+      "status": "Status"
+    },
+    "status": {
+      "active": "Active",
+      "ended": "Ended",
+      "accounted": "Accounted"
+    },
+    "options": {
+      "all": "All",
+      "open": "Open",
+      "accounted": "Accounted"
+    },
+    "form": {
+      "new": "New financial period",
+      "editing": "Editing financial period",
+      "detailing": "Financial period details",
+      "deleting": "Deleting financial period",
+      "name": "Name",
+      "starting-at": "Start",
+      "ending-at": "End",
+      "expenses-goal": "Expenses goal",
+      "revenues-goal": "Income goal"
+    },
+    "errors": {
+      "overlapping-dates": "The start and end dates overlap with another existing financial period",
+      "invalid-dates": "The start and end dates are invalid",
+      "period-not-open": "The financial period is not open and cannot be changed or deleted"
+    },
+    "list": {
+      "description": "The periods in which entries are closed and accounted.",
+      "empty-title": "No financial periods yet",
+      "empty-description": "Create a financial period to start recording entries.",
+      "plural": "financial periods",
+      "found": "{count} financial period found for “{query}” | {count} financial periods found for “{query}”"
+    },
+    "remove": {
+      "title": "Remove the financial period “{name}”?",
+      "description": "This cannot be undone."
+    },
+    "toast": {
+      "created": "Financial period created",
+      "created-detail": "“{name}” now accepts entries.",
+      "updated": "Changes saved",
+      "updated-detail": "“{name}” was updated.",
+      "removed": "Financial period removed",
+      "removed-detail": "“{name}” left the list."
+    },
+    "sections": {
+      "identification": "Identification",
+      "identification-help": "How the period appears in entries.",
+      "dates": "Dates",
+      "dates-help": "The dates do not change after creation.",
+      "goals": "Goals",
+      "goals-help": "Expected income and expense amounts for the period."
+    }
+  },
+  "classification": {
+    "title": "Classifications",
+    "menu": "Classifications",
+    "search": {
+      "placeholder": "Name or description"
+    },
+    "table-columns": {
+      "name": "Name",
+      "type": "Type",
+      "budget": "Budget"
+    },
+    "type": {
+      "income": "Income",
+      "expense": "Expense"
+    },
+    "form": {
+      "new": "New classification",
+      "editing": "Editing classification",
+      "detailing": "Classification details",
+      "deleting": "Deleting classification",
+      "name": "Name",
+      "description": "Description",
+      "type": "Type",
+      "budget": "Budget",
+      "type-placeholder": "Select a type",
+      "active-label": "Active",
+      "active-hint": "Deactivate to remove from listings",
+      "type-hint": "The type does not change after creation."
+    },
+    "list": {
+      "description": "How income and expenses are grouped in reports and budgets.",
+      "empty-title": "No classifications yet",
+      "empty-description": "Create classifications to group your income and expenses.",
+      "plural": "classifications",
+      "found": "{count} classification found for “{query}” | {count} classifications found for “{query}”"
+    },
+    "remove": {
+      "title": "Remove the classification “{name}”?",
+      "description": "This cannot be undone."
+    },
+    "toast": {
+      "created": "Classification created",
+      "created-detail": "“{name}” now shows up in entries.",
+      "updated": "Changes saved",
+      "updated-detail": "“{name}” was updated.",
+      "removed": "Classification removed",
+      "removed-detail": "“{name}” left the list."
+    },
+    "sections": {
+      "identification": "Identification",
+      "identification-help": "How the classification appears in entries.",
+      "budget": "Budget",
+      "budget-help": "Optional limit for what is classified here."
+    }
+  },
+  "cost-center": {
+    "title": "Cost centers",
+    "menu": "Cost centers",
+    "search": {
+      "placeholder": "Name"
+    },
+    "form": {
+      "new": "New cost center",
+      "editing": "Editing cost center",
+      "detailing": "Cost center details",
+      "deleting": "Deleting cost center",
+      "name": "Name",
+      "description": "Description",
+      "income-budget": "Income budget",
+      "expense-budget": "Expense budget",
+      "parent": "Subcost center of",
+      "parent-search-empty": "No cost centers found",
+      "parent-search-placeholder": "Type the name",
+      "active-label": "Active",
+      "active-hint": "Deactivate to remove from listings"
+    },
+    "table-columns": {
+      "full-name": "Name",
+      "income-budget": "Income budget",
+      "expense-budget": "Expense budget"
+    },
+    "list": {
+      "description": "The hierarchy of areas and projects where money is spent or received.",
+      "empty-title": "No cost centers yet",
+      "empty-description": "Create cost centers to know where money is spent and received.",
+      "plural": "cost centers",
+      "found": "{count} cost center found for “{query}” | {count} cost centers found for “{query}”"
+    },
+    "remove": {
+      "title": "Remove the cost center “{name}”?",
+      "description": "This cannot be undone."
+    },
+    "toast": {
+      "created": "Cost center created",
+      "created-detail": "“{name}” now shows up in entries.",
+      "updated": "Changes saved",
+      "updated-detail": "“{name}” was updated.",
+      "removed": "Cost center removed",
+      "removed-detail": "“{name}” left the list."
+    },
+    "sections": {
+      "identification": "Identification",
+      "identification-help": "The name and place of the cost center in the hierarchy.",
+      "budget": "Budget",
+      "budget-help": "Optional income and expense limits."
+    }
+  },
+  "layout": {
+    "toggle-menu": "Toggle side menu",
+    "main-menu": "Sections",
+    "user-menu": "User menu",
+    "dark-theme": "Dark theme",
+    "light-theme": "Light theme",
+    "logout": "Sign out",
+    "trusted-devices": "Trusted devices",
+    "breadcrumb": "Breadcrumb",
+    "coming-soon": "Coming soon",
+    "loading": "Loading...",
+    "menu": "Menu",
+    "menu-description": "Navigation between the webBudget sections",
+    "close-menu": "Close menu",
+    "theme": "Theme",
+    "theme-light": "Light",
+    "theme-dark": "Dark",
+    "theme-system": "System",
+    "language": "Language",
+    "language-pt-BR": "Portuguese (Brazil)",
+    "language-en-US": "English (United States)"
+  },
+  "confirm": {
+    "title": "Confirmation"
+  },
+  "password-input": {
+    "show": "Show password",
+    "hide": "Hide password"
+  },
+  "validation": {
+    "required": "Required field",
+    "email": "Enter a valid email",
+    "password-mismatch": "The confirmation must match the password",
+    "password-requirements": "The password does not meet the requirements",
+    "password-too-long": "The password can have at most 72 bytes",
+    "invalid": "Invalid value",
+    "string-min": "Enter at least {minimum} characters",
+    "string-max": "Enter at most {maximum} characters",
+    "number-min": "The minimum value is {minimum}",
+    "number-max": "The maximum value is {maximum}",
+    "end-before-start": "The end date cannot be before the start date",
+    "roles-required": "Choose at least one area."
+  },
+  "crud": {
+    "required-hint": "Fields with * are required.",
+    "unsaved": "Unsaved changes",
+    "saving": "Saving…",
+    "status": "Status",
+    "actions": {
+      "edit": "Edit",
+      "remove": "Remove",
+      "more": "More actions"
+    },
+    "discard": {
+      "title": "Leave without saving?",
+      "description": "The data you entered will be lost.",
+      "description-named": "The changes to “{name}” will be lost.",
+      "stay": "Keep editing",
+      "leave": "Leave without saving"
+    },
+    "list": {
+      "no-result": {
+        "title-query": "Nothing found for “{query}”",
+        "title-filter": "Nothing found with this filter",
+        "hint": "Check the spelling or look under another status.",
+        "clear": "Clear search",
+        "show-all": "Show all"
+      },
+      "error": {
+        "title": "Could not load {plural}",
+        "description": "The server did not respond. Check your connection and try again.",
+        "retry": "Try again"
+      }
+    }
+  }
+}

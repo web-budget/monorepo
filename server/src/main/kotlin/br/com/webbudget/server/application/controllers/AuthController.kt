@@ -2,6 +2,7 @@ package br.com.webbudget.server.application.controllers
 
 import br.com.webbudget.server.application.payloads.AuthConfigView
 import br.com.webbudget.server.application.payloads.GoogleLinkForm
+import br.com.webbudget.server.application.payloads.LanguageForm
 import br.com.webbudget.server.application.payloads.LoginForm
 import br.com.webbudget.server.application.payloads.LoginStepView
 import br.com.webbudget.server.application.payloads.RegisterForm
@@ -25,6 +26,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -154,6 +156,10 @@ class AuthController(
 
     @GetMapping("/session")
     fun session(): ResponseEntity<SessionView> = ResponseEntity.ok(SessionView.from(authService.currentSession()))
+
+    @PatchMapping("/language")
+    fun changeLanguage(@RequestBody @Valid form: LanguageForm): ResponseEntity<SessionView> =
+        ResponseEntity.ok(SessionView.from(authService.changeLanguage(form.language!!)))
 
     @PostMapping("/logout")
     fun logout(request: HttpServletRequest): ResponseEntity<Void> {
