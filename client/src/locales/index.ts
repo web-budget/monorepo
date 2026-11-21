@@ -1,18 +1,15 @@
 import { createI18n } from 'vue-i18n'
 import enUS from './en_US.json'
+import { DEFAULT_LOCALE } from './languages'
 import ptBR from './pt_BR.json'
 
 export type MessageSchema = typeof ptBR
 
-export const SUPPORTED_LOCALES = ['pt-BR', 'en-US'] as const
-
-export type SupportedLocale = (typeof SUPPORTED_LOCALES)[number]
-
-export const DEFAULT_LOCALE: SupportedLocale = 'pt-BR'
+export { DEFAULT_LOCALE, SUPPORTED_LOCALES, type SupportedLocale } from './languages'
 
 const numberFormats = {
   'en-US': {
-    currency: { style: 'currency', currency: 'USD', notation: 'standard' },
+    currency: { style: 'currency', currency: 'BRL', useGrouping: true, currencyDisplay: 'symbol' },
     decimal: { style: 'decimal', minimumFractionDigits: 2, maximumFractionDigits: 2 },
     percent: { style: 'percent', useGrouping: false },
   },
@@ -41,7 +38,7 @@ export const i18n = createI18n({
   fallbackLocale: DEFAULT_LOCALE,
   messages: {
     'pt-BR': ptBR,
-    'en-US': enUS as Partial<MessageSchema>,
+    'en-US': enUS,
   },
   numberFormats,
   datetimeFormats: { 'pt-BR': dateTimeFormat, 'en-US': dateTimeFormat },

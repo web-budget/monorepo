@@ -1,10 +1,9 @@
 import type { RouteLocationMatched, RouteRecordRaw } from 'vue-router'
-import AuthLayout from '@/components/layout/AuthLayout.vue'
 
 export const publicRoutes: RouteRecordRaw[] = [
   {
     path: '/login',
-    component: AuthLayout,
+    component: () => import('@/components/layout/AuthLayout.vue'),
     meta: { public: true },
     children: [
       {
@@ -16,7 +15,7 @@ export const publicRoutes: RouteRecordRaw[] = [
   },
   {
     path: '/pending-approval',
-    component: AuthLayout,
+    component: () => import('@/components/layout/AuthLayout.vue'),
     meta: { public: true },
     children: [
       {
@@ -28,7 +27,7 @@ export const publicRoutes: RouteRecordRaw[] = [
   },
   {
     path: '/auth',
-    component: AuthLayout,
+    component: () => import('@/components/layout/AuthLayout.vue'),
     meta: { public: true },
     children: [
       {

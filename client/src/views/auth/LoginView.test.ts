@@ -28,6 +28,7 @@ const session: SessionResponse = {
   name: 'Ana',
   email: 'ana@example.com',
   status: 'APPROVED',
+  language: 'PT_BR',
   roles: [],
 }
 

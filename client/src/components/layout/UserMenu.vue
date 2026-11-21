@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ChevronDown, LogOut, MonitorSmartphone } from 'lucide-vue-next'
+import LanguageSwitch from '@/components/layout/LanguageSwitch.vue'
 import ThemeSwitch from '@/components/layout/ThemeSwitch.vue'
 import UserAvatar from '@/components/layout/UserAvatar.vue'
 import { Button } from '@/components/ui/button'
@@ -41,6 +42,12 @@ const trustedDevicesDialog = useTrustedDevicesDialog()
       </DropdownMenuLabel>
       <div class="px-1 pb-1.5">
         <ThemeSwitch in-menu />
+      </div>
+      <DropdownMenuLabel class="text-muted-foreground text-xs font-medium">
+        {{ $t('layout.language') }}
+      </DropdownMenuLabel>
+      <div class="px-1 pb-1.5">
+        <LanguageSwitch in-menu />
       </div>
       <DropdownMenuSeparator />
       <DropdownMenuItem @select="trustedDevicesDialog.show()">

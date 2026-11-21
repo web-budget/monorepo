@@ -1,7 +1,17 @@
 import { afterEach } from 'vitest'
 import { enableAutoUnmount } from '@vue/test-utils'
+import i18n from '@/locales'
+import { DEFAULT_LOCALE } from '@/locales/languages'
 
 enableAutoUnmount(afterEach)
+
+Object.defineProperty(navigator, 'languages', { get: () => ['pt-BR'], configurable: true })
+
+afterEach(() => {
+  i18n.global.locale.value = DEFAULT_LOCALE
+  document.documentElement.lang = ''
+  localStorage.removeItem('webbudget.language')
+})
 
 class ResizeObserverStub {
   observe() {

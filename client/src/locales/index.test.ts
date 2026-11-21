@@ -3,12 +3,16 @@ import enUS from './en_US.json'
 import { i18n, SUPPORTED_LOCALES } from './index'
 import ptBR from './pt_BR.json'
 
-function keysOf(messages: object, prefix = ''): string[] {
+function entriesOf(messages: object, prefix = ''): [string, string][] {
   return Object.entries(messages).flatMap(([key, value]) =>
     typeof value === 'object' && value !== null
-      ? keysOf(value as object, `${prefix}${key}.`)
-      : [`${prefix}${key}`],
+      ? entriesOf(value as object, `${prefix}${key}.`)
+      : [[`${prefix}${key}`, String(value)] as [string, string]],
   )
+}
+
+function keysOf(messages: object): string[] {
+  return entriesOf(messages).map(([key]) => key)
 }
 
 describe('i18n', () => {
@@ -19,27 +23,34 @@ describe('i18n', () => {
 
   it('translates a message', () => {
     expect(i18n.global.t('form.save')).toBe('Salvar')
+    expect(i18n.global.t('form.save', {}, { locale: 'en-US' })).toBe('Save')
   })
 
   it('interpolates named parameters', () => {
     expect(i18n.global.t('error.conflict.wallet.name', { value: 'Main' })).toBe(
       'Nome "Main" já esta em uso',
     )
+    expect(
+      i18n.global.t('error.conflict.wallet.name', { value: 'Main' }, { locale: 'en-US' }),
+    ).toBe('Name "Main" is already in use')
   })
 
   it('interpolates the hyphenated parameters the server sends', () => {
     expect(
       i18n.global.t('error.bad-request.invalid-invoice-payment-day', { 'payment-day': 31 }),
     ).toBe('31 não é um dia do mês válido, use algo entre 1 e 30')
+    expect(
+      i18n.global.t(
+        'error.bad-request.invalid-invoice-payment-day',
+        { 'payment-day': 31 },
+        { locale: 'en-US' },
+      ),
+    ).toBe('31 is not a valid day of the month, use something between 1 and 30')
   })
 
-  it('falls back to Portuguese for a message English does not have', () => {
-    expect(i18n.global.t('form.save', {}, { locale: 'en-US' })).toBe('Salvar')
-  })
-
-  it('formats currency per locale', () => {
+  it('formats currency per locale, in reais in both', () => {
     expect(i18n.global.n(1234.5, 'currency', 'pt-BR')).toBe('R$ 1.234,50')
-    expect(i18n.global.n(1234.5, 'currency', 'en-US')).toBe('$1,234.50')
+    expect(i18n.global.n(1234.5, 'currency', 'en-US')).toBe('R$1,234.50')
   })
 
   it('formats dates per locale', () => {
@@ -49,16 +60,35 @@ describe('i18n', () => {
     expect(i18n.global.d(date, 'short', 'en-US')).toBe('1/31/2026')
   })
 
-  it('has no message left empty', () => {
-    const empty = keysOf(ptBR).filter((key) => i18n.global.t(key) === '')
+  it('has no message left empty in either language', () => {
+    for (const locale of SUPPORTED_LOCALES) {
+      const empty = keysOf(ptBR).filter((key) => i18n.global.t(key, {}, { locale }) === '')
 
-    expect(empty).toEqual([])
+      expect(empty).toEqual([])
+    }
   })
 
-  it('keeps English keys a subset of the Portuguese ones', () => {
-    const portuguese = new Set(keysOf(ptBR))
+  it('has exactly the same keys in Portuguese and in English', () => {
+    const portuguese = keysOf(ptBR)
+    const english = keysOf(enUS)
 
-    expect(keysOf(enUS).filter((key) => !portuguese.has(key))).toEqual([])
+    expect(english.filter((key) => !portuguese.includes(key))).toEqual([])
+    expect(portuguese.filter((key) => !english.includes(key))).toEqual([])
+  })
+
+  it('keeps the same parameters in the English messages', () => {
+    const parameters = (text: string) =>
+      [...text.matchAll(/\{[\w-]+\}/g)].map(([match]) => match).sort()
+    const english = new Map(entriesOf(enUS))
+
+    const mismatched = entriesOf(ptBR)
+      .filter(
+        ([key, portuguese]) =>
+          parameters(english.get(key) ?? '').join() !== parameters(portuguese).join(),
+      )
+      .map(([key]) => key)
+
+    expect(mismatched).toEqual([])
   })
 
   it('carries nothing from the investment section', () => {

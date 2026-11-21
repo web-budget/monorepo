@@ -3,6 +3,7 @@ import { apiClient } from './client'
 import type {
   AuthConfigResponse,
   GoogleLinkRequest,
+  Language,
   LoginOutcome,
   LoginRequest,
   RegisterRequest,
@@ -46,6 +47,10 @@ export const authApi = {
 
   fetchSession(): Promise<SessionResponse> {
     return apiClient.get<SessionResponse>('/auth/session', { silent: true }).then((r) => r.data)
+  },
+
+  changeLanguage(language: Language): Promise<SessionResponse> {
+    return apiClient.patch<SessionResponse>('/auth/language', { language }).then((r) => r.data)
   },
 
   fetchConfig(): Promise<AuthConfigResponse> {

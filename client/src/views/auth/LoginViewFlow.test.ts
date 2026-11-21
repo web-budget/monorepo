@@ -5,6 +5,7 @@ import { authApi } from '@/api/auth'
 import { ApiError } from '@/api/client'
 import { installZodErrorMap } from '@/schemas/zodErrorMap'
 import { useAuthStore } from '@/stores/auth'
+import { useLanguageStore } from '@/stores/language'
 import { createTestPlugins } from '@/test/mounting'
 import { settle } from '@/test/settle'
 import type { LoginOutcome, SessionResponse } from '@/types'
@@ -19,6 +20,7 @@ const session: SessionResponse = {
   name: 'Ana',
   email: 'ana@example.com',
   status: 'APPROVED',
+  language: 'PT_BR',
   roles: [],
 }
 
@@ -356,8 +358,21 @@ describe('LoginView, the steps of the flow', () => {
         name: 'Maria',
         email: 'maria@example.com',
         password: 'Caderno1',
+        defaultLanguage: 'PT_BR',
       })
       expect(router.currentRoute.value.name).toBe('pending-approval')
+    })
+
+    it('registers the account in the language that is on screen', async () => {
+      const { wrapper, auth } = await render()
+      useLanguageStore().locale = 'en-US'
+
+      await openRegister(wrapper)
+      await fillRegister(wrapper)
+
+      expect(auth.register).toHaveBeenCalledWith(
+        expect.objectContaining({ defaultLanguage: 'EN_US' }),
+      )
     })
 
     it('warns about too many registrations and stays on the step', async () => {

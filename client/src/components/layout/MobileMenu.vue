@@ -4,6 +4,7 @@ import { computed } from 'vue'
 import BrandMark from '@/components/brand/BrandMark.vue'
 import BrandWordmark from '@/components/brand/BrandWordmark.vue'
 import SideMenu from '@/components/layout/SideMenu.vue'
+import LanguageSwitch from '@/components/layout/LanguageSwitch.vue'
 import ThemeSwitch from '@/components/layout/ThemeSwitch.vue'
 import UserAvatar from '@/components/layout/UserAvatar.vue'
 import { sections } from '@/components/layout/sections'
@@ -62,6 +63,7 @@ function openTrustedDevices() {
         <LogOut />
       </Button>
     </div>
+    <LanguageSwitch />
     <div class="flex items-center gap-2">
       <ThemeSwitch icon-only class="flex-1" />
       <Button

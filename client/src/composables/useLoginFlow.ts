@@ -4,7 +4,9 @@ import { ApiError } from '@/api/client'
 import type { GoogleLinkMode } from '@/components/auth/GoogleLinkStep.vue'
 import type { CredentialsFailure } from '@/components/auth/CredentialsStep.vue'
 import type { TotpFailure } from '@/components/auth/totpFailure'
+import { LOCALE_LANGUAGES } from '@/locales/languages'
 import { useAuthStore } from '@/stores/auth'
+import { useLanguageStore } from '@/stores/language'
 import type { LoginOutcome, SessionResponse, TotpEnrollResponse } from '@/types'
 import { describeApiError } from '@/utils/apiErrorNotice'
 import { markHandled } from '@/utils/handledErrors'
@@ -26,6 +28,7 @@ export function useLoginFlow() {
   const route = useRoute()
   const router = useRouter()
   const auth = useAuthStore()
+  const language = useLanguageStore()
 
   const step = ref<LoginStep>('credentials')
   const submitting = ref(false)
@@ -166,7 +169,7 @@ export function useLoginFlow() {
     return run(async () => {
       registerRateLimited.value = false
       try {
-        await auth.register(values)
+        await auth.register({ ...values, defaultLanguage: LOCALE_LANGUAGES[language.locale] })
       } catch (error) {
         registerRateLimited.value = isRateLimited(error)
         return

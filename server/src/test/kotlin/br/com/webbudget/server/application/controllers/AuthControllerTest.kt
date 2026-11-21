@@ -247,6 +247,72 @@ class AuthControllerTest : BaseIntegrationTest() {
     }
 
     @Test
+    fun `should answer the language of the profile on the session`() {
+
+        authenticateAs("admin@webbudget.com.br", ADMIN_PASSWORD)
+
+        restTestClient.get()
+            .uri(SESSION_URL)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.language").isEqualTo("PT_BR")
+    }
+
+    @Test
+    fun `should change the language of the own profile`() {
+
+        authenticateWithRoles("REGISTRATION")
+
+        patchLanguage("EN_US")
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.language").isEqualTo("EN_US")
+
+        restTestClient.get()
+            .uri(SESSION_URL)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.language").isEqualTo("EN_US")
+    }
+
+    @Test
+    fun `should let a pending account change its language`() {
+
+        createLoginUser("pending-language@webbudget.com.br", TEST_PASSWORD, "REGISTRATION")
+        changeStatus("pending-language@webbudget.com.br", "PENDING")
+        authenticateAs("pending-language@webbudget.com.br", TEST_PASSWORD)
+
+        patchLanguage("EN_US")
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.status").isEqualTo("PENDING")
+            .jsonPath("$.language").isEqualTo("EN_US")
+    }
+
+    @Test
+    fun `should refuse an unknown or missing language`() {
+
+        patchLanguageBody("""{"language": "FR_FR"}""")
+            .expectStatus().isEqualTo(422)
+            .expectBody()
+            .jsonPath("$.error").isEqualTo("field-validation-failed")
+
+        patchLanguageBody("{}")
+            .expectStatus().isEqualTo(422)
+    }
+
+    @Test
+    fun `should require a session to change the language`() {
+
+        authenticateAnonymously()
+
+        patchLanguage("EN_US")
+            .expectStatus().isUnauthorized
+    }
+
+    @Test
     fun `should time the session out after thirty minutes`() {
 
         assertThat(environment.getRequiredProperty("server.servlet.session.timeout")).isEqualTo("30m")
@@ -256,6 +322,14 @@ class AuthControllerTest : BaseIntegrationTest() {
         .uri(LOGIN_URL)
         .contentType(MediaType.APPLICATION_JSON)
         .body("""{"email": "$email", "password": "$password"}""")
+        .exchange()
+
+    private fun patchLanguage(language: String): ResponseSpec = patchLanguageBody("""{"language": "$language"}""")
+
+    private fun patchLanguageBody(body: String): ResponseSpec = restTestClient.patch()
+        .uri("/private/v1/auth/language")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(body)
         .exchange()
 
     private fun changeStatus(email: String, status: String) {
