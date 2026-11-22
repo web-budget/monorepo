@@ -205,4 +205,20 @@ describe('ClassificationListView', () => {
     expect(stateOf(wrapper)).toBeUndefined()
     expect(wrapper.findAll('tbody tr')).toHaveLength(2)
   })
+
+  it('opens with the state of the URL, which stays there', async () => {
+    const location = '/classifications?filter=Ab&status=ALL&page=2&size=30&sort=budget,asc'
+    serveListing(vi.mocked(classificationsApi.findAll), classifications, 70)
+
+    const { router } = await mountView(ClassificationListView, 'classifications', {}, {}, location)
+
+    expect(listingCalls(vi.mocked(classificationsApi.findAll))[0]).toEqual({
+      filter: 'Ab',
+      status: 'ALL',
+      page: 1,
+      size: 30,
+      sort: 'budget,asc',
+    })
+    expect(router.currentRoute.value.fullPath).toBe(location)
+  })
 })

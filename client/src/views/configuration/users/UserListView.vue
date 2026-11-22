@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { Plus, UserCheck, Users } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
-import { computed, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRoute, useRouter } from 'vue-router'
 import PageContainer from '@/components/common/PageContainer.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import ServerErrorAlert from '@/components/forms/ServerErrorAlert.vue'
@@ -25,11 +24,9 @@ import { useCrudList } from '@/composables/useCrudList'
 import { useUserActions } from '@/composables/useUserActions'
 import { useAuthStore } from '@/stores/auth'
 import { INITIAL_USER_STATUS, useUsersAdminStore } from '@/stores/usersAdmin'
-import type { UserStatusFilter, UserView } from '@/types'
+import type { UserView } from '@/types'
 
 const { t } = useI18n()
-const route = useRoute()
-const router = useRouter()
 
 const auth = useAuthStore()
 const store = useUsersAdminStore()
@@ -58,36 +55,13 @@ const {
   entity: 'users',
   initialStatus: INITIAL_USER_STATUS,
   statuses: USER_STATUS_OPTIONS.map((option) => option.value),
+  sortFields: ['name'],
   pageRequest,
   pageResponse,
   loading,
   findAll: store.findAll,
   count: store.count,
   remove: store.remove,
-})
-
-const statusFromUrl = computed<UserStatusFilter | undefined>(
-  () => USER_STATUS_OPTIONS.find((option) => option.value === route.query.status)?.value,
-)
-
-if (route.query.status !== undefined) {
-  pageRequest.value.status = statusFromUrl.value ?? INITIAL_USER_STATUS
-}
-
-watch(
-  () => pageRequest.value.status,
-  (status) => {
-    if (status !== route.query.status) {
-      void router.replace({ query: { ...route.query, status } })
-    }
-  },
-)
-
-watch(statusFromUrl, (status) => {
-  if (status !== undefined && status !== pageRequest.value.status) {
-    pageRequest.value.status = status
-    void search()
-  }
 })
 
 const {
@@ -197,6 +171,8 @@ onMounted(() => store.findRoles().catch(() => undefined))
         :loading="busy"
         :current-page="pageRequest.current"
         :page-size="pageRequest.size"
+        :sorted-field="pageRequest.sortField"
+        :sorted-order="pageRequest.direction"
         :show-status="false"
         :marked-row="(user) => user.status === 'PENDING'"
         @page-changed="onPageChange"

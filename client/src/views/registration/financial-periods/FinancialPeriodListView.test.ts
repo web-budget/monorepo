@@ -233,4 +233,26 @@ describe('FinancialPeriodListView', () => {
     expect(stateOf(wrapper)).toBeUndefined()
     expect(wrapper.findAll('tbody tr')).toHaveLength(3)
   })
+
+  it('opens with the state of the URL, which stays there', async () => {
+    const location = '/financial-periods?filter=Ab&status=ACCOUNTED&page=2&size=30&sort=status,asc'
+    serveListing(vi.mocked(financialPeriodsApi.findAll), periods, 70)
+
+    const { router } = await mountView(
+      FinancialPeriodListView,
+      'financial-periods',
+      {},
+      {},
+      location,
+    )
+
+    expect(listingCalls(vi.mocked(financialPeriodsApi.findAll))[0]).toEqual({
+      filter: 'Ab',
+      status: 'ACCOUNTED',
+      page: 1,
+      size: 30,
+      sort: 'status,asc',
+    })
+    expect(router.currentRoute.value.fullPath).toBe(location)
+  })
 })
