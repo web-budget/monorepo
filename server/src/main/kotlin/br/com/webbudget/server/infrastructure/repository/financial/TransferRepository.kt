@@ -1,10 +1,19 @@
 package br.com.webbudget.server.infrastructure.repository.financial
 
 import br.com.webbudget.server.domain.entities.financial.Transfer
+import br.com.webbudget.server.domain.entities.financial.TransferLink
+import br.com.webbudget.server.infrastructure.repository.pagedModelOf
+import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.financial.tables.references.TRANSFERS
 import br.com.webbudget.server.jooq.registration.tables.references.WALLETS
 import org.jooq.DSLContext
+import org.jooq.Record
+import org.jooq.SelectOnConditionStep
+import org.jooq.impl.DSL
+import org.springframework.data.domain.Pageable
+import org.springframework.data.web.PagedModel
 import org.springframework.stereotype.Repository
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -14,43 +23,64 @@ class TransferRepository(
 ) {
 
     private val transfers = TRANSFERS.`as`("transfers")
-    private val returnedTransfers = TRANSFERS.`as`("returned_transfers")
+    private val originalTransfers = TRANSFERS.`as`("original_transfers")
+    private val returnTransfers = TRANSFERS.`as`("return_transfers")
     private val fromWallets = WALLETS.`as`("from_wallets")
     private val toWallets = WALLETS.`as`("to_wallets")
 
-    fun findByExternalId(externalId: UUID): Transfer? {
+    fun findByExternalId(externalId: UUID): Transfer? = selectTransfers()
+        .where(transfers.EXTERNAL_ID.eq(externalId))
+        .fetchOne()
+        ?.toTransfer()
 
-        val record = dsl.select()
-            .from(transfers)
-            .join(fromWallets).on(fromWallets.ID.eq(transfers.ID_FROM_WALLET))
-            .join(toWallets).on(toWallets.ID.eq(transfers.ID_TO_WALLET))
-            .leftJoin(returnedTransfers).on(returnedTransfers.ID.eq(transfers.ID_RETURNED_TRANSFER))
-            .where(transfers.EXTERNAL_ID.eq(externalId))
-            .fetchOne() ?: return null
+    fun findAll(criteria: TransferCriteria, pageable: Pageable): PagedModel<Transfer> {
 
-        val transferRecord = record.into(transfers)
-
-        return Transfer(
-            fromWallet = record.into(fromWallets).toWalletReference(),
-            toWallet = record.into(toWallets).toWalletReference(),
-            value = transferRecord.value!!,
-            description = transferRecord.description,
-            returnedTransferId = transferRecord.idReturnedTransfer,
-            returnedTransferExternalId = record.into(returnedTransfers).externalId,
-            returned = existsReturnOf(transferRecord.id!!)
-        ).also { transfer ->
-            transfer.restore(
-                transferRecord.id,
-                transferRecord.externalId,
-                transferRecord.version,
-                transferRecord.createdOn,
-                transferRecord.lastUpdate
+        val condition = DSL.and(
+            listOfNotNull(
+                criteria.wallet?.let { fromWallets.EXTERNAL_ID.eq(it).or(toWallets.EXTERNAL_ID.eq(it)) },
+                criteria.from?.let { transfers.CREATED_ON.ge(it.atStartOfDay()) },
+                criteria.to?.let { transfers.CREATED_ON.lt(it.plusDays(1).atStartOfDay()) },
+                criteria.text?.let { text ->
+                    transfers.DESCRIPTION.containsIgnoreCase(text)
+                        .or(fromWallets.NAME.containsIgnoreCase(text))
+                        .or(toWallets.NAME.containsIgnoreCase(text))
+                }
             )
-        }
+        )
+
+        val sortable = mapOf(
+            "createdOn" to transfers.CREATED_ON,
+            "value" to transfers.VALUE,
+            "fromWallet" to fromWallets.NAME,
+            "toWallet" to toWallets.NAME
+        )
+
+        val content = selectTransfers()
+            .where(condition)
+            .orderBy(pageable.toOrderBy(sortable, transfers.CREATED_ON, transfers.ID))
+            .limit(pageable.pageSize)
+            .offset(pageable.offset)
+            .fetch()
+            .map { record -> record.toTransfer() }
+
+        val total = dsl.fetchCount(
+            dsl.selectOne().from(transfers)
+                .join(fromWallets).on(fromWallets.ID.eq(transfers.ID_FROM_WALLET))
+                .join(toWallets).on(toWallets.ID.eq(transfers.ID_TO_WALLET))
+                .where(condition)
+        )
+
+        return pagedModelOf(content, pageable, total.toLong())
     }
 
     fun existsReturnOf(transferId: Long): Boolean = dsl.fetchExists(
         dsl.selectOne().from(TRANSFERS).where(TRANSFERS.ID_RETURNED_TRANSFER.eq(transferId))
+    )
+
+    fun isReturn(transferId: Long): Boolean = dsl.fetchExists(
+        dsl.selectOne().from(TRANSFERS)
+            .where(TRANSFERS.ID.eq(transferId))
+            .and(TRANSFERS.ID_RETURNED_TRANSFER.isNotNull)
     )
 
     fun insert(transfer: Transfer): Transfer {
@@ -69,4 +99,44 @@ class TransferRepository(
         transfer.restore(record.id, record.externalId, record.version, record.createdOn, record.lastUpdate)
         return transfer
     }
+
+    private fun selectTransfers(): SelectOnConditionStep<Record> = dsl.select()
+        .from(transfers)
+        .join(fromWallets).on(fromWallets.ID.eq(transfers.ID_FROM_WALLET))
+        .join(toWallets).on(toWallets.ID.eq(transfers.ID_TO_WALLET))
+        .leftJoin(originalTransfers).on(originalTransfers.ID.eq(transfers.ID_RETURNED_TRANSFER))
+        .leftJoin(returnTransfers).on(returnTransfers.ID_RETURNED_TRANSFER.eq(transfers.ID))
+
+    private fun Record.toTransfer(): Transfer {
+
+        val transferRecord = into(transfers)
+        val original = into(originalTransfers)
+        val returning = into(returnTransfers)
+
+        return Transfer(
+            fromWallet = into(fromWallets).toWalletReference(),
+            toWallet = into(toWallets).toWalletReference(),
+            value = transferRecord.value!!,
+            description = transferRecord.description,
+            returnedTransferId = transferRecord.idReturnedTransfer,
+            returnedTransferExternalId = original.externalId,
+            returnedTransferCreatedOn = original.createdOn,
+            returnedBy = returning.externalId?.let { TransferLink(it, returning.createdOn!!) }
+        ).also { transfer ->
+            transfer.restore(
+                transferRecord.id,
+                transferRecord.externalId,
+                transferRecord.version,
+                transferRecord.createdOn,
+                transferRecord.lastUpdate
+            )
+        }
+    }
 }
+
+data class TransferCriteria(
+    val wallet: UUID? = null,
+    val from: LocalDate? = null,
+    val to: LocalDate? = null,
+    val text: String? = null
+)
