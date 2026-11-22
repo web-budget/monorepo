@@ -139,6 +139,20 @@ class ListingSortOrderTest : BaseIntegrationTest() {
     }
 
     @Test
+    @Sql(
+        "/sql/financial/clear-tables.sql",
+        "/sql/financial/create-registration-data.sql",
+        "/sql/financial/create-recurring-movements.sql"
+    )
+    @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
+    fun `should list the recurring movements from the newest to the oldest by default`() {
+
+        assertNames("/financial/recurring-movements", "", "Salary", "Phone", "Electricity", "Streaming")
+        assertNames("/financial/recurring-movements", "sort=name,asc", "Electricity", "Phone", "Salary", "Streaming")
+        assertNames("/financial/recurring-movements", "sort=name,desc", "Streaming", "Salary", "Phone", "Electricity")
+    }
+
+    @Test
     @Sql("/sql/administration/clear-tables.sql", "/sql/administration/create-user.sql")
     fun `should list the users from the newest to the oldest by default`() {
 
