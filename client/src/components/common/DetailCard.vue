@@ -13,6 +13,7 @@ defineProps<{
   active?: boolean
   feminineStatus?: boolean
   messages: string[]
+  readonly?: boolean
 }>()
 
 const emit = defineEmits<{ edit: []; delete: [] }>()
@@ -26,7 +27,7 @@ const emit = defineEmits<{ edit: []; delete: [] }>()
           <StatusBadge v-if="active !== undefined" :active="active" :feminine="feminineStatus" />
         </slot>
       </template>
-      <template #actions>
+      <template v-if="!readonly" #actions>
         <Button
           type="button"
           variant="outline"

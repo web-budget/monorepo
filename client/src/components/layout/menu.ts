@@ -6,6 +6,7 @@ export interface MenuItemDefinition {
   to?: string
   exact?: boolean
   visible?: boolean
+  group?: string
 }
 
 export interface MenuGroup {

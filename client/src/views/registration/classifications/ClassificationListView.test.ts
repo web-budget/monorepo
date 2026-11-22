@@ -26,8 +26,8 @@ vi.mock('vue-sonner', () => ({
 }))
 
 const classifications: ClassificationRow[] = [
-  { id: 'c-1', name: 'Salary', type: 'INCOME', active: true, budget: 1500 },
-  { id: 'c-2', name: 'Rent', type: 'EXPENSE', active: true, budget: null },
+  { id: 'c-1', name: 'Salary', type: 'INCOME', active: true },
+  { id: 'c-2', name: 'Rent', type: 'EXPENSE', active: true },
 ]
 
 async function render(content = classifications, counts?: Record<string, number>) {
@@ -53,7 +53,7 @@ describe('ClassificationListView', () => {
     ])
   })
 
-  it('loads the active classifications and lists them with type and budget aligned to the right', async () => {
+  it('loads the active classifications and lists them with the type', async () => {
     const { wrapper } = await render()
 
     expect(classificationsApi.findAll).toHaveBeenCalledWith(
@@ -63,14 +63,11 @@ describe('ClassificationListView', () => {
     expect(rows).toHaveLength(2)
     expect(rows[0]!.text()).toContain('Salary')
     expect(rows[0]!.text()).toContain('Receita')
-    expect(rows[0]!.text()).toContain('R$')
-    expect(rows[0]!.text()).toContain('1.500,00')
     expect(rows[1]!.text()).toContain('Despesa')
-    expect(rows[0]!.findAll('td')[2]!.classes()).toContain('text-right')
     expect(rows[0]!.find('a').attributes('href')).toBe('/classifications/c-1/detail')
   })
 
-  it('searches by the typed filter, filters by status and sorts by the budget', async () => {
+  it('searches by the typed filter, filters by status and sorts by the type', async () => {
     const { wrapper } = await render()
 
     await wrapper.find('input').setValue('Sal')
@@ -86,10 +83,10 @@ describe('ClassificationListView', () => {
       expect.objectContaining({ status: 'INACTIVE' }),
     )
 
-    await buttonWithText(wrapper, 'Orçamento').trigger('click')
+    await buttonWithText(wrapper, 'Tipo').trigger('click')
     await flushPromises()
     expect(listingCalls(vi.mocked(classificationsApi.findAll)).slice(-1)[0]).toEqual(
-      expect.objectContaining({ sort: 'budget,asc' }),
+      expect.objectContaining({ sort: 'type,asc' }),
     )
   })
 
@@ -207,7 +204,7 @@ describe('ClassificationListView', () => {
   })
 
   it('opens with the state of the URL, which stays there', async () => {
-    const location = '/classifications?filter=Ab&status=ALL&page=2&size=30&sort=budget,asc'
+    const location = '/classifications?filter=Ab&status=ALL&page=2&size=30&sort=type,asc'
     serveListing(vi.mocked(classificationsApi.findAll), classifications, 70)
 
     const { router } = await mountView(ClassificationListView, 'classifications', {}, {}, location)
@@ -217,7 +214,7 @@ describe('ClassificationListView', () => {
       status: 'ALL',
       page: 1,
       size: 30,
-      sort: 'budget,asc',
+      sort: 'type,asc',
     })
     expect(router.currentRoute.value.fullPath).toBe(location)
   })

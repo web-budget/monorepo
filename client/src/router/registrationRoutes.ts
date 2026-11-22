@@ -45,15 +45,6 @@ export const registrationRoutes: RouteRecordRaw[] = [
         form: () => import('@/views/registration/classifications/ClassificationFormView.vue'),
         detail: () => import('@/views/registration/classifications/ClassificationDetailView.vue'),
       }),
-      crudRoutes({
-        path: 'financial-periods',
-        name: 'financial-periods',
-        entity: 'financial-period',
-        list: () => import('@/views/registration/financial-periods/FinancialPeriodListView.vue'),
-        form: () => import('@/views/registration/financial-periods/FinancialPeriodFormView.vue'),
-        detail: () =>
-          import('@/views/registration/financial-periods/FinancialPeriodDetailView.vue'),
-      }),
     ],
   },
 ]

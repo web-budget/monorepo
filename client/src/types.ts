@@ -232,13 +232,11 @@ export type ClassificationType = 'INCOME' | 'EXPENSE'
 export interface ClassificationCreateForm {
   name: string
   type: ClassificationType
-  budget?: number | null
   description?: string | null
 }
 
 export interface ClassificationUpdateForm {
   name: string
-  budget?: number | null
   description?: string | null
   active: boolean
 }
@@ -248,7 +246,6 @@ export interface ClassificationView {
   name: string
   type: ClassificationType
   active: boolean
-  budget: number | null
   description: string | null
 }
 
@@ -257,12 +254,11 @@ export interface ClassificationListView {
   name: string
   type: ClassificationType
   active: boolean
-  budget: number | null
 }
 
-export type FinancialPeriodStatus = 'ACTIVE' | 'ENDED' | 'ACCOUNTED'
+export type FinancialPeriodStatus = 'OPEN' | 'CLOSED'
 
-export type FinancialPeriodStatusFilter = 'OPEN' | 'ALL' | 'ACCOUNTED'
+export type FinancialPeriodStatusFilter = FinancialPeriodStatus | 'ALL'
 
 export interface FinancialPeriodCreateForm {
   name: string
@@ -284,6 +280,7 @@ export interface FinancialPeriodView {
   startingAt: string
   endingAt: string
   status: FinancialPeriodStatus
+  expired: boolean
   revenuesGoal: number | null
   expensesGoal: number | null
 }
@@ -294,6 +291,13 @@ export interface FinancialPeriodListView {
   startingAt: string
   endingAt: string
   status: FinancialPeriodStatus
+  expired: boolean
+}
+
+export interface FinancialPeriodResultView {
+  revenues: number
+  expenses: number
+  result: number
 }
 
 export type Language = 'PT_BR' | 'EN_US'

@@ -13,7 +13,7 @@ import {
   stateOf,
 } from '@/test/crud'
 import type { FinancialPeriodListView as FinancialPeriodRow } from '@/types'
-import FinancialPeriodListView from '@/views/registration/financial-periods/FinancialPeriodListView.vue'
+import FinancialPeriodListView from '@/views/financial/periods/FinancialPeriodListView.vue'
 
 vi.mock('@/api/financialPeriods')
 vi.mock('vue-sonner', () => ({
@@ -31,25 +31,28 @@ const periods: FinancialPeriodRow[] = [
     name: 'January',
     startingAt: '2026-01-01',
     endingAt: '2026-01-31',
-    status: 'ACTIVE',
+    status: 'OPEN',
+    expired: false,
   },
   {
     id: 'p-2',
     name: 'December',
     startingAt: '2025-12-01',
     endingAt: '2025-12-31',
-    status: 'ENDED',
+    status: 'OPEN',
+    expired: true,
   },
   {
     id: 'p-3',
     name: 'November',
     startingAt: '2025-11-01',
     endingAt: '2025-11-30',
-    status: 'ACCOUNTED',
+    status: 'CLOSED',
+    expired: false,
   },
 ]
 
-const COUNTS = { OPEN: 2, ACCOUNTED: 1, ALL: 3 }
+const COUNTS = { OPEN: 2, CLOSED: 1, ALL: 3 }
 
 async function render(content = periods, counts: Record<string, number> = COUNTS) {
   serveListing(vi.mocked(financialPeriodsApi.findAll), content, content.length, counts)
@@ -65,11 +68,11 @@ describe('FinancialPeriodListView', () => {
   it('introduces the page and offers the open periods first, with the counts', async () => {
     const { wrapper } = await render()
 
-    expect(wrapper.find('h1').text()).toBe('Períodos financeiros')
+    expect(wrapper.find('h1').text()).toBe('Períodos')
     expect(wrapper.find('[data-slot="page-actions"]').text()).toBe('Criar')
     expect(wrapper.findAll('[aria-pressed]').map((button) => button.text())).toEqual([
       'Abertos 2',
-      'Contabilizados 1',
+      'Encerrados 1',
       'Todos 3',
     ])
     expect(buttonWithText(wrapper, 'Abertos').attributes('aria-pressed')).toBe('true')
@@ -93,20 +96,27 @@ describe('FinancialPeriodListView', () => {
     expect(rows[0]!.text()).toContain('January')
     expect(rows[0]!.text()).toContain('01/01/2026')
     expect(rows[0]!.text()).toContain('31/01/2026')
-    expect(rows[0]!.text()).toContain('Ativo')
-    expect(rows[1]!.text()).toContain('Encerrado')
-    expect(rows[2]!.text()).toContain('Contabilizado')
+    expect(rows[0]!.text()).toContain('Aberto')
+    expect(rows[1]!.text()).toContain('Aberto · expirado')
+    expect(rows[2]!.text()).toContain('Encerrado')
+    expect(rows[1]!.attributes('data-state')).toBe('selected')
+    expect(rows[0]!.attributes('data-state')).toBeUndefined()
+    expect(rows[0]!.find('button[aria-label="Mais ações"]').exists()).toBe(true)
+    expect(rows[2]!.find('button[aria-label="Mais ações"]').exists()).toBe(false)
+    expect(wrapper.find('[data-slot="expired-notice"]').text()).toContain(
+      '1 período expirado: December. Ainda aceita lançamentos.',
+    )
     expect(rows[0]!.find('a').attributes('href')).toBe('/financial-periods/p-1/detail')
   })
 
   it('filters by the period status', async () => {
     const { wrapper } = await render()
 
-    await buttonWithText(wrapper, 'Contabilizados').trigger('click')
+    await buttonWithText(wrapper, 'Encerrados').trigger('click')
     await flushPromises()
 
     expect(listingCalls(vi.mocked(financialPeriodsApi.findAll)).slice(-1)[0]).toEqual(
-      expect.objectContaining({ status: 'ACCOUNTED', page: 0 }),
+      expect.objectContaining({ status: 'CLOSED', page: 0 }),
     )
   })
 
@@ -196,7 +206,7 @@ describe('FinancialPeriodListView', () => {
   })
 
   it('invites the user to create the first period when none exists', async () => {
-    const { wrapper, router } = await render([], { OPEN: 0, ACCOUNTED: 0, ALL: 0 })
+    const { wrapper, router } = await render([], { OPEN: 0, CLOSED: 0, ALL: 0 })
 
     expect(wrapper.find('[data-state="empty"]').text()).toContain('Nenhum período financeiro ainda')
 
@@ -235,7 +245,7 @@ describe('FinancialPeriodListView', () => {
   })
 
   it('opens with the state of the URL, which stays there', async () => {
-    const location = '/financial-periods?filter=Ab&status=ACCOUNTED&page=2&size=30&sort=status,asc'
+    const location = '/financial-periods?filter=Ab&status=CLOSED&page=2&size=30&sort=status,asc'
     serveListing(vi.mocked(financialPeriodsApi.findAll), periods, 70)
 
     const { router } = await mountView(
@@ -248,7 +258,7 @@ describe('FinancialPeriodListView', () => {
 
     expect(listingCalls(vi.mocked(financialPeriodsApi.findAll))[0]).toEqual({
       filter: 'Ab',
-      status: 'ACCOUNTED',
+      status: 'CLOSED',
       page: 1,
       size: 30,
       sort: 'status,asc',

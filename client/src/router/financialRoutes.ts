@@ -1,5 +1,6 @@
 import type { RouteRecordRaw } from 'vue-router'
 import FinancialLayout from '@/components/layout/FinancialLayout.vue'
+import { crudRoutes } from '@/router/crudRoutes'
 
 export const financialRoutes: RouteRecordRaw[] = [
   {
@@ -12,6 +13,14 @@ export const financialRoutes: RouteRecordRaw[] = [
         name: 'financial',
         component: () => import('@/views/financial/FinancialHomeView.vue'),
       },
+      crudRoutes({
+        path: 'periods',
+        name: 'financial-periods',
+        entity: 'financial-period',
+        list: () => import('@/views/financial/periods/FinancialPeriodListView.vue'),
+        form: () => import('@/views/financial/periods/FinancialPeriodFormView.vue'),
+        detail: () => import('@/views/financial/periods/FinancialPeriodDetailView.vue'),
+      }),
     ],
   },
 ]

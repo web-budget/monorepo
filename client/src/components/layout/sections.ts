@@ -1,13 +1,16 @@
 import {
+  ArrowLeftRight,
   ArrowRightLeft,
   CalendarDays,
   CalendarRange,
   ChartColumn,
-  ChartLine,
   CreditCard,
   History,
+  Lock,
   Network,
+  ReceiptText,
   RefreshCw,
+  ScrollText,
   Tags,
   Users,
   Wallet,
@@ -47,9 +50,20 @@ export const financialSection: ModuleSectionDefinition = {
   role: 'FINANCIAL',
   items: [
     {
-      label: 'period-movement.menu',
-      icon: CalendarDays,
-      description: 'module-home.items.period-movement',
+      label: 'movement.menu',
+      icon: ReceiptText,
+      description: 'module-home.items.movement',
+      group: 'menu.financial-daily',
+    },
+    {
+      label: 'transfer.menu',
+      icon: ArrowLeftRight,
+      description: 'module-home.items.transfer',
+    },
+    {
+      label: 'statement.menu',
+      icon: ScrollText,
+      description: 'module-home.items.statement',
     },
     {
       label: 'recurrent-movement.menu',
@@ -62,8 +76,15 @@ export const financialSection: ModuleSectionDefinition = {
       description: 'module-home.items.credit-card-invoice',
     },
     {
+      label: 'financial-period.menu',
+      icon: CalendarRange,
+      to: '/financial/periods',
+      description: 'module-home.items.financial-period',
+      group: 'menu.financial-period',
+    },
+    {
       label: 'period-closing.menu',
-      icon: ChartLine,
+      icon: Lock,
       description: 'module-home.items.period-closing',
     },
   ],
@@ -97,12 +118,6 @@ export const registrationSection: ModuleSectionDefinition = {
       icon: Network,
       to: '/registration/cost-centers',
       description: 'module-home.items.cost-center',
-    },
-    {
-      label: 'financial-period.menu',
-      icon: CalendarRange,
-      to: '/registration/financial-periods',
-      description: 'module-home.items.financial-period',
     },
   ],
 }

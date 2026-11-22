@@ -3,7 +3,6 @@ import { describe, expect, it, vi } from 'vitest'
 import { useCardsStore } from '@/stores/cards'
 import { useClassificationsStore } from '@/stores/classifications'
 import { useCostCentersStore } from '@/stores/costCenters'
-import { useFinancialPeriodsStore } from '@/stores/financialPeriods'
 import { useWalletsStore } from '@/stores/wallets'
 import { createTestPlugins } from '@/test/mounting'
 import RegistrationHomeView from '@/views/registration/RegistrationHomeView.vue'
@@ -15,7 +14,6 @@ function render() {
     cards: useCardsStore(),
     classifications: useClassificationsStore(),
     costCenters: useCostCentersStore(),
-    financialPeriods: useFinancialPeriodsStore(),
   }
   return { stores, mountView: () => mount(RegistrationHomeView, { global: { plugins } }) }
 }
@@ -27,7 +25,6 @@ describe('RegistrationHomeView', () => {
     vi.mocked(stores.cards.count).mockResolvedValue(4)
     vi.mocked(stores.classifications.count).mockResolvedValue(23)
     vi.mocked(stores.costCenters.count).mockResolvedValue(12)
-    vi.mocked(stores.financialPeriods.count).mockResolvedValue(11)
 
     const wrapper = mountView()
     await flushPromises()
@@ -39,14 +36,12 @@ describe('RegistrationHomeView', () => {
       '/registration/cards',
       '/registration/classifications',
       '/registration/cost-centers',
-      '/registration/financial-periods',
     ])
     expect(cards.map((card) => card.find('[data-slot="module-card-count"]').text())).toEqual([
       '6',
       '4',
       '23',
       '12',
-      '11',
     ])
     for (const store of Object.values(stores)) {
       expect(store.count).toHaveBeenCalledWith('ALL')
@@ -59,7 +54,6 @@ describe('RegistrationHomeView', () => {
     vi.mocked(stores.cards.count).mockResolvedValue(4)
     vi.mocked(stores.classifications.count).mockResolvedValue(0)
     vi.mocked(stores.costCenters.count).mockResolvedValue(0)
-    vi.mocked(stores.financialPeriods.count).mockResolvedValue(0)
 
     const wrapper = mountView()
     await flushPromises()
