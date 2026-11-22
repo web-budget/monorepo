@@ -83,7 +83,6 @@ describe('registration crud routes', () => {
     ['cards', 'card'],
     ['cost-centers', 'cost-center'],
     ['classifications', 'classification'],
-    ['financial-periods', 'financial-period'],
   ])('registers the list, create, update and detail routes of %s', (name, entity) => {
     const base = `/registration/${name}`
 
@@ -113,6 +112,20 @@ describe('registration crud routes', () => {
 
     expect(update?.props.default).toBe(true)
     expect(list?.props.default).toBeFalsy()
+  })
+})
+
+describe('financial crud routes', () => {
+  it('registers the periods under the financial section', () => {
+    expect(router.resolve('/financial/periods').name).toBe('financial-periods')
+    expect(router.resolve('/financial/periods/create').name).toBe('financial-periods.create')
+    expect(router.resolve('/financial/periods/abc/update').name).toBe('financial-periods.update')
+    expect(router.resolve('/financial/periods/abc/detail').params.id).toBe('abc')
+    expect(
+      router
+        .resolve('/financial/periods/abc/detail')
+        .matched.map((record) => record.meta.breadcrumb),
+    ).toEqual(['menu.financial', 'financial-period.menu', 'financial-period.form.detailing'])
   })
 })
 

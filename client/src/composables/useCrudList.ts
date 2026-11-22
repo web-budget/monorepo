@@ -10,6 +10,7 @@ import type {
 } from '@/components/listing/itemsTable'
 import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import { useNotification } from '@/composables/useNotification'
+import { useListFilters } from '@/composables/useListFilters'
 import { useServerErrors } from '@/composables/useServerErrors'
 import type { PageRequest } from '@/utils/pageRequest'
 
@@ -31,6 +32,7 @@ interface CrudListOptions<S extends string> {
   remove: (id: string) => Promise<void>
   count: (status: S) => Promise<number | null>
   statuses: S[]
+  sortFields: string[]
   allStatus?: S
 }
 
@@ -42,6 +44,14 @@ export function useCrudList<S extends string>(options: CrudListOptions<S>) {
   const actionErrors = useServerErrors()
   const loadErrors = useServerErrors()
   const allStatus = options.allStatus ?? ('ALL' as S)
+
+  const filters = useListFilters({
+    pageRequest: options.pageRequest,
+    initialStatus: options.initialStatus,
+    statuses: options.statuses,
+    sortFields: options.sortFields,
+    onExternalChange: reload,
+  })
 
   const loadFailed = ref(false)
   const initializing = ref(true)
@@ -74,6 +84,7 @@ export function useCrudList<S extends string>(options: CrudListOptions<S>) {
   })
 
   async function reload() {
+    filters.writeRoute()
     searchedText.value = options.pageRequest.value.filterText
     loadFailed.value = !(await loadErrors.run(options.findAll))
     initializing.value = false

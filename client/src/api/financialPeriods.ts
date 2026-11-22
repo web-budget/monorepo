@@ -2,6 +2,7 @@ import { apiClient } from './client'
 import { createdId } from './createdId'
 import type {
   FinancialPeriodListView,
+  FinancialPeriodResultView,
   FinancialPeriodView,
   FinancialPeriodCreateForm,
   FinancialPeriodUpdateForm,
@@ -32,5 +33,11 @@ export const financialPeriodsApi = {
 
   remove(id: string): Promise<void> {
     return apiClient.delete(`${PATH}/${id}`).then(() => undefined)
+  },
+
+  findResult(id: string): Promise<FinancialPeriodResultView> {
+    return apiClient
+      .get<FinancialPeriodResultView>(`/financial/financial-periods/${id}/result`)
+      .then((r) => r.data)
   },
 }

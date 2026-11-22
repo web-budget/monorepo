@@ -45,7 +45,7 @@ function openTrustedDevices() {
     </Button>
   </SidebarHeader>
   <SidebarContent>
-    <SideMenu :items="visibleSections" />
+    <SideMenu :items="visibleSections" flat />
   </SidebarContent>
   <SidebarFooter class="border-sidebar-border gap-3 border-t p-3">
     <div class="flex items-center gap-2.5">

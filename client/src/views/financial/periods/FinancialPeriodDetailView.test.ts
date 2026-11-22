@@ -5,7 +5,7 @@ import { financialPeriodsApi } from '@/api/financialPeriods'
 import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import { buttonWithText, mountView, problem } from '@/test/crud'
 import type { FinancialPeriodView } from '@/types'
-import FinancialPeriodDetailView from '@/views/registration/financial-periods/FinancialPeriodDetailView.vue'
+import FinancialPeriodDetailView from '@/views/financial/periods/FinancialPeriodDetailView.vue'
 
 vi.mock('@/api/financialPeriods')
 vi.mock('vue-sonner', () => ({
@@ -22,13 +22,17 @@ const period: FinancialPeriodView = {
   name: 'January',
   startingAt: '2026-01-01',
   endingAt: '2026-01-31',
-  status: 'ENDED',
+  status: 'OPEN',
+  expired: false,
   revenuesGoal: 5000,
   expensesGoal: null,
 }
 
-async function render() {
-  vi.mocked(financialPeriodsApi.findById).mockResolvedValue(period)
+const result = { revenues: 3000, expenses: 3500, result: -500 }
+
+async function render(view: FinancialPeriodView = period) {
+  vi.mocked(financialPeriodsApi.findById).mockResolvedValue(view)
+  vi.mocked(financialPeriodsApi.findResult).mockResolvedValue(result)
   return mountView(FinancialPeriodDetailView, 'financial-periods', { id: 'p-1' })
 }
 
@@ -44,17 +48,50 @@ describe('FinancialPeriodDetailView', () => {
     expect(financialPeriodsApi.findById).toHaveBeenCalledWith('p-1')
     expect(wrapper.find('h1').text()).toBe('January')
     expect(wrapper.find('[data-slot="page-title"]').element.parentElement!.textContent).toContain(
-      'Encerrado',
+      'Aberto',
     )
+    expect(financialPeriodsApi.findResult).toHaveBeenCalledWith('p-1')
     expect(wrapper.findAll('h2').map((title) => title.text())).toEqual([
       'Identificação',
       'Datas',
+      'Resultado provisório',
       'Metas',
     ])
+    expect(wrapper.text()).toContain('3.000,00')
+    expect(wrapper.text()).toMatch(/−\sR\$\s500,00/)
     expect(wrapper.text()).toContain('01/01/2026')
     expect(wrapper.text()).toContain('31/01/2026')
     expect(wrapper.text()).toContain('5.000,00')
     expect(wrapper.text()).toMatch(/R\$\s0,00/)
+  })
+
+  it('shows the closed result and offers no edit or removal for a closed period', async () => {
+    const { wrapper } = await render({ ...period, status: 'CLOSED' })
+
+    expect(wrapper.find('[data-slot="page-title"]').element.parentElement!.textContent).toContain(
+      'Encerrado',
+    )
+    expect(wrapper.findAll('h2').map((title) => title.text())).toContain('Resultado')
+    expect(wrapper.find('[data-slot="page-actions"]').exists()).toBe(false)
+  })
+
+  it('shows the expired mark on an open period past its end', async () => {
+    const { wrapper } = await render({ ...period, expired: true })
+
+    expect(wrapper.find('[data-slot="page-title"]').element.parentElement!.textContent).toContain(
+      'Aberto · expirado',
+    )
+  })
+
+  it('shows the server error when the result cannot be loaded', async () => {
+    vi.mocked(financialPeriodsApi.findResult).mockRejectedValue(problem(500))
+    vi.mocked(financialPeriodsApi.findById).mockResolvedValue(period)
+    const { wrapper } = await mountView(FinancialPeriodDetailView, 'financial-periods', {
+      id: 'p-1',
+    })
+
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
+    expect(wrapper.findAll('h2').map((title) => title.text())).not.toContain('Resultado provisório')
   })
 
   it('shows no status while the period is loading', async () => {

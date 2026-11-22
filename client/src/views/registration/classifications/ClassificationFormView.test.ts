@@ -23,7 +23,6 @@ const existing: ClassificationView = {
   name: 'Salary',
   type: 'INCOME',
   active: true,
-  budget: 1500,
   description: 'Monthly',
 }
 
@@ -47,10 +46,7 @@ describe('ClassificationFormView', () => {
 
     expect(wrapper.find('h1').text()).toBe('Nova classificação')
     expect(buttonWithText(wrapper, 'Criar')).toBeDefined()
-    expect(wrapper.findAll('h2').map((title) => title.text())).toEqual([
-      'Identificação',
-      'Orçamento',
-    ])
+    expect(wrapper.findAll('h2').map((title) => title.text())).toEqual(['Identificação'])
 
     await submit(wrapper)
 
@@ -65,13 +61,11 @@ describe('ClassificationFormView', () => {
 
     await field(wrapper, 'name').setValue('Salary')
     wrapper.getComponent(Select).vm.$emit('update:modelValue', 'INCOME')
-    await field(wrapper, 'budget').setValue('150050')
     await submit(wrapper)
 
     expect(classificationsApi.create).toHaveBeenCalledWith({
       name: 'Salary',
       type: 'INCOME',
-      budget: 1500.5,
       description: null,
     })
     expect(toast.success).toHaveBeenCalledWith('Classificação criada', {
@@ -82,7 +76,7 @@ describe('ClassificationFormView', () => {
     expect(router.currentRoute.value.params.id).toBe('c-9')
   })
 
-  it('sends no budget when the field is left empty', async () => {
+  it('sends no description when the field is left empty', async () => {
     vi.mocked(classificationsApi.create).mockResolvedValue('c-9')
     const { wrapper } = await mountView(ClassificationFormView, 'classifications')
 
@@ -91,7 +85,7 @@ describe('ClassificationFormView', () => {
     await submit(wrapper)
 
     expect(classificationsApi.create).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'EXPENSE', budget: null }),
+      expect.objectContaining({ type: 'EXPENSE', description: null }),
     )
   })
 
@@ -142,7 +136,6 @@ describe('ClassificationFormView', () => {
 
     expect(wrapper.find('h1').text()).toBe('Editando classificação')
     expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('Salary')
-    expect((field(wrapper, 'budget').element as HTMLInputElement).value).toBe('R$ 1.500,00')
     expect(wrapper.find('button[role="combobox"]').attributes('disabled')).toBeDefined()
     expect(wrapper.text()).toContain('O tipo não muda depois de criada.')
   })
@@ -161,7 +154,6 @@ describe('ClassificationFormView', () => {
     expect(classificationsApi.update).toHaveBeenCalledWith('c-1', {
       name: 'Bonus',
       active: false,
-      budget: 1500,
       description: 'Monthly',
     })
     expect(toast.success).toHaveBeenCalledWith('Alterações salvas', {

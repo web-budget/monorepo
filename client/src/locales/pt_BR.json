@@ -273,7 +273,9 @@
     "financial": "Financeiro",
     "configuration": "Configurações",
     "registration": "Cadastros",
-    "dashboards": "Dashboards"
+    "dashboards": "Dashboards",
+    "financial-daily": "Dia a dia",
+    "financial-period": "Período"
   },
   "dashboards": {
     "overview": "Visão geral",
@@ -300,17 +302,19 @@
       "configuration": "Contas de usuários, áreas de acesso e integrações."
     },
     "items": {
-      "period-movement": "Receitas e despesas lançadas no período financeiro.",
-      "recurrent-movement": "Lançamentos que se repetem todo mês.",
-      "credit-card-invoice": "Faturas abertas e fechadas de cada cartão.",
-      "period-closing": "Encerra o período e contabiliza o saldo.",
+      "recurrent-movement": "Lançam movimentos e compras a cada período.",
+      "credit-card-invoice": "Compras de cada cartão por período.",
+      "period-closing": "Resolver pendências e gravar o resultado.",
       "wallet": "Contas bancárias, investimentos e dinheiro em espécie.",
       "card": "Cartões de crédito e débito ligados às carteiras.",
       "classification": "Categorias de receita e despesa dos lançamentos.",
       "cost-center": "Hierarquia para agrupar onde o dinheiro é gasto.",
-      "financial-period": "Intervalos de tempo com metas de receita e despesa.",
+      "financial-period": "Criar, editar e acompanhar os períodos.",
       "users": "Contas, áreas de acesso e aprovações.",
-      "integrations": "Conexões com bancos e serviços externos."
+      "integrations": "Conexões com bancos e serviços externos.",
+      "movement": "Receitas e despesas do período.",
+      "transfer": "Dinheiro que muda de carteira.",
+      "statement": "Mudanças de saldo de cada carteira."
     }
   },
   "action-button": {
@@ -587,21 +591,17 @@
       "roles": "Áreas de acesso"
     }
   },
-  "period-movement": {
-    "title": "Movimentos do período",
-    "menu": "Movimentos do período"
-  },
   "recurrent-movement": {
-    "title": "Movimentos recorrentes",
-    "menu": "Movimentos recorrentes"
+    "title": "Recorrentes",
+    "menu": "Recorrentes"
   },
   "credit-card-invoice": {
-    "title": "Fatura do cartão de crédito",
-    "menu": "Fatura do cartão de crédito"
+    "title": "Fatura do cartão",
+    "menu": "Fatura do cartão"
   },
   "period-closing": {
-    "title": "Encerramento do período",
-    "menu": "Encerramento do período"
+    "title": "Fechamento",
+    "menu": "Fechamento"
   },
   "wallet": {
     "title": "Carteiras",
@@ -725,8 +725,8 @@
     }
   },
   "financial-period": {
-    "title": "Períodos financeiros",
-    "menu": "Períodos financeiros",
+    "title": "Períodos",
+    "menu": "Períodos",
     "search": {
       "placeholder": "Nome"
     },
@@ -737,14 +737,14 @@
       "status": "Status"
     },
     "status": {
-      "active": "Ativo",
-      "ended": "Encerrado",
-      "accounted": "Contabilizado"
+      "open": "Aberto",
+      "closed": "Encerrado",
+      "expired": "Aberto · expirado"
     },
     "options": {
       "all": "Todos",
       "open": "Abertos",
-      "accounted": "Contabilizados"
+      "closed": "Encerrados"
     },
     "form": {
       "new": "Novo período financeiro",
@@ -763,11 +763,12 @@
       "period-not-open": "Período financeiro não está aberto e não pode ser alterado ou excluído"
     },
     "list": {
-      "description": "Os períodos em que os lançamentos são fechados e contabilizados.",
+      "description": "Intervalos de datas dos lançamentos.",
       "empty-title": "Nenhum período financeiro ainda",
       "empty-description": "Crie um período financeiro para começar a registrar os lançamentos.",
       "plural": "os períodos financeiros",
-      "found": "{count} período financeiro encontrado para “{query}” | {count} períodos financeiros encontrados para “{query}”"
+      "found": "{count} período financeiro encontrado para “{query}” | {count} períodos financeiros encontrados para “{query}”",
+      "expired-notice": "{count} período expirado: {names}. Ainda aceita lançamentos. | {count} períodos expirados: {names}. Ainda aceitam lançamentos."
     },
     "remove": {
       "title": "Remover o período financeiro “{name}”?",
@@ -787,7 +788,14 @@
       "dates": "Datas",
       "dates-help": "As datas não mudam depois de criado.",
       "goals": "Metas",
-      "goals-help": "Valores previstos de receitas e despesas no período."
+      "goals-help": "Valores previstos de receitas e despesas no período.",
+      "result": "Resultado provisório",
+      "result-closed": "Resultado"
+    },
+    "result": {
+      "revenues": "Receitas",
+      "expenses": "Despesas",
+      "result": "Resultado"
     }
   },
   "classification": {
@@ -798,8 +806,7 @@
     },
     "table-columns": {
       "name": "Nome",
-      "type": "Tipo",
-      "budget": "Orçamento"
+      "type": "Tipo"
     },
     "type": {
       "income": "Receita",
@@ -813,7 +820,6 @@
       "name": "Nome",
       "description": "Descrição",
       "type": "Tipo",
-      "budget": "Orçamento",
       "type-placeholder": "Selecione um tipo",
       "active-label": "Ativa",
       "active-hint": "Inativar para remover das listagens",
@@ -840,9 +846,7 @@
     },
     "sections": {
       "identification": "Identificação",
-      "identification-help": "Como a classificação aparece nos lançamentos.",
-      "budget": "Orçamento",
-      "budget-help": "Limite opcional para o que for classificado aqui."
+      "identification-help": "Como a classificação aparece nos lançamentos."
     }
   },
   "cost-center": {
@@ -971,5 +975,17 @@
         "retry": "Tentar de novo"
       }
     }
+  },
+  "movement": {
+    "title": "Movimentos",
+    "menu": "Movimentos"
+  },
+  "transfer": {
+    "title": "Transferências",
+    "menu": "Transferências"
+  },
+  "statement": {
+    "title": "Extrato",
+    "menu": "Extrato"
   }
 }

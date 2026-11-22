@@ -273,7 +273,9 @@
     "financial": "Financial",
     "configuration": "Settings",
     "registration": "Registrations",
-    "dashboards": "Dashboards"
+    "dashboards": "Dashboards",
+    "financial-daily": "Day to day",
+    "financial-period": "Period"
   },
   "dashboards": {
     "overview": "Overview",
@@ -300,17 +302,19 @@
       "configuration": "User accounts, access areas and integrations."
     },
     "items": {
-      "period-movement": "Income and expenses recorded in the financial period.",
-      "recurrent-movement": "Entries that repeat every month.",
-      "credit-card-invoice": "Open and closed invoices of each card.",
-      "period-closing": "Closes the period and accounts the balance.",
+      "recurrent-movement": "Post movements and purchases every period.",
+      "credit-card-invoice": "Purchases of each card by period.",
+      "period-closing": "Settle pending items and record the result.",
       "wallet": "Bank accounts, investments and cash.",
       "card": "Credit and debit cards linked to wallets.",
       "classification": "Income and expense categories for entries.",
       "cost-center": "A hierarchy to group where the money is spent.",
-      "financial-period": "Time ranges with income and expense goals.",
+      "financial-period": "Create, edit and follow the periods.",
       "users": "Accounts, access areas and approvals.",
-      "integrations": "Connections with banks and external services."
+      "integrations": "Connections with banks and external services.",
+      "movement": "Income and expenses of the period.",
+      "transfer": "Money that moves between wallets.",
+      "statement": "Balance changes of each wallet."
     }
   },
   "action-button": {
@@ -587,21 +591,17 @@
       "roles": "Access areas"
     }
   },
-  "period-movement": {
-    "title": "Period movements",
-    "menu": "Period movements"
-  },
   "recurrent-movement": {
-    "title": "Recurring movements",
-    "menu": "Recurring movements"
+    "title": "Recurring",
+    "menu": "Recurring"
   },
   "credit-card-invoice": {
-    "title": "Credit card invoice",
-    "menu": "Credit card invoice"
+    "title": "Card invoice",
+    "menu": "Card invoice"
   },
   "period-closing": {
-    "title": "Period closing",
-    "menu": "Period closing"
+    "title": "Closing",
+    "menu": "Closing"
   },
   "wallet": {
     "title": "Wallets",
@@ -725,8 +725,8 @@
     }
   },
   "financial-period": {
-    "title": "Financial periods",
-    "menu": "Financial periods",
+    "title": "Periods",
+    "menu": "Periods",
     "search": {
       "placeholder": "Name"
     },
@@ -737,14 +737,14 @@
       "status": "Status"
     },
     "status": {
-      "active": "Active",
-      "ended": "Ended",
-      "accounted": "Accounted"
+      "open": "Open",
+      "closed": "Closed",
+      "expired": "Open · expired"
     },
     "options": {
       "all": "All",
       "open": "Open",
-      "accounted": "Accounted"
+      "closed": "Closed"
     },
     "form": {
       "new": "New financial period",
@@ -763,11 +763,12 @@
       "period-not-open": "The financial period is not open and cannot be changed or deleted"
     },
     "list": {
-      "description": "The periods in which entries are closed and accounted.",
+      "description": "Date ranges for postings.",
       "empty-title": "No financial periods yet",
       "empty-description": "Create a financial period to start recording entries.",
       "plural": "financial periods",
-      "found": "{count} financial period found for “{query}” | {count} financial periods found for “{query}”"
+      "found": "{count} financial period found for “{query}” | {count} financial periods found for “{query}”",
+      "expired-notice": "{count} expired period: {names}. It still accepts postings. | {count} expired periods: {names}. They still accept postings."
     },
     "remove": {
       "title": "Remove the financial period “{name}”?",
@@ -787,7 +788,14 @@
       "dates": "Dates",
       "dates-help": "The dates do not change after creation.",
       "goals": "Goals",
-      "goals-help": "Expected income and expense amounts for the period."
+      "goals-help": "Expected income and expense amounts for the period.",
+      "result": "Provisional result",
+      "result-closed": "Result"
+    },
+    "result": {
+      "revenues": "Revenues",
+      "expenses": "Expenses",
+      "result": "Result"
     }
   },
   "classification": {
@@ -798,8 +806,7 @@
     },
     "table-columns": {
       "name": "Name",
-      "type": "Type",
-      "budget": "Budget"
+      "type": "Type"
     },
     "type": {
       "income": "Income",
@@ -813,7 +820,6 @@
       "name": "Name",
       "description": "Description",
       "type": "Type",
-      "budget": "Budget",
       "type-placeholder": "Select a type",
       "active-label": "Active",
       "active-hint": "Deactivate to remove from listings",
@@ -840,9 +846,7 @@
     },
     "sections": {
       "identification": "Identification",
-      "identification-help": "How the classification appears in entries.",
-      "budget": "Budget",
-      "budget-help": "Optional limit for what is classified here."
+      "identification-help": "How the classification appears in entries."
     }
   },
   "cost-center": {
@@ -971,5 +975,17 @@
         "retry": "Try again"
       }
     }
+  },
+  "movement": {
+    "title": "Movements",
+    "menu": "Movements"
+  },
+  "transfer": {
+    "title": "Transfers",
+    "menu": "Transfers"
+  },
+  "statement": {
+    "title": "Statement",
+    "menu": "Statement"
   }
 }

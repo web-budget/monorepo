@@ -168,6 +168,52 @@ describe('ItemsTable', () => {
     ])
   })
 
+  describe('the sort given by the parent', () => {
+    it('shows the column and the direction of the sort', () => {
+      const wrapper = render({ sortedField: 'name', sortedOrder: 'desc' })
+
+      expect(
+        wrapper
+          .findAll('th')
+          .find((header) => header.text() === 'Nome')!
+          .attributes('aria-sort'),
+      ).toBe('descending')
+    })
+
+    it('shows no sort for the default order', () => {
+      const wrapper = render({ sortedField: 'createdOn', sortedOrder: 'desc' })
+
+      expect(
+        wrapper.findAll('th').every((header) => header.attributes('aria-sort') !== 'ascending'),
+      ).toBe(true)
+      expect(wrapper.find('[aria-sort="descending"]').exists()).toBe(false)
+    })
+
+    it('sorts a field given alone in the default direction', () => {
+      const wrapper = render({ sortedField: 'name' })
+
+      expect(
+        wrapper
+          .findAll('th')
+          .find((header) => header.text() === 'Nome')!
+          .attributes('aria-sort'),
+      ).toBe('descending')
+    })
+
+    it('follows the sort when the parent changes it', async () => {
+      const wrapper = render({ sortedField: 'createdOn', sortedOrder: 'desc' })
+
+      await wrapper.setProps({ sortedField: 'name', sortedOrder: 'asc' })
+
+      expect(
+        wrapper
+          .findAll('th')
+          .find((header) => header.text() === 'Nome')!
+          .attributes('aria-sort'),
+      ).toBe('ascending')
+    })
+  })
+
   it('sorts by the status column', async () => {
     const wrapper = render()
 
