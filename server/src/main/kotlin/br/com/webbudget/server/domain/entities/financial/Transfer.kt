@@ -2,6 +2,7 @@ package br.com.webbudget.server.domain.entities.financial
 
 import br.com.webbudget.server.domain.entities.PersistentEntity
 import java.math.BigDecimal
+import java.time.LocalDateTime
 import java.util.UUID
 
 class Transfer(
@@ -11,8 +12,18 @@ class Transfer(
     val description: String? = null,
     val returnedTransferId: Long? = null,
     val returnedTransferExternalId: UUID? = null,
-    var returned: Boolean = false
+    val returnedTransferCreatedOn: LocalDateTime? = null,
+    val returnedBy: TransferLink? = null
 ) : PersistentEntity() {
+
+    val returned: Boolean
+        get() = returnedBy != null
+
+    val isReturn: Boolean
+        get() = returnedTransferId != null
+
+    val returnable: Boolean
+        get() = !returned && !isReturn
 
     fun returnTransfer(): Transfer = Transfer(
         fromWallet = toWallet,
@@ -23,6 +34,11 @@ class Transfer(
         returnedTransferExternalId = externalId
     )
 }
+
+class TransferLink(
+    val externalId: UUID,
+    val createdOn: LocalDateTime
+)
 
 class WalletAdjustment(
     val wallet: WalletReference,
