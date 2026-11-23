@@ -31,6 +31,14 @@ class PeriodResultRepository(
         .fetchOne()
         ?.toPeriodResult()
 
+    fun findByFinancialPeriods(financialPeriodIds: Collection<Long>): Map<Long, PeriodResult> = dsl.select()
+        .from(periodResults)
+        .join(financialPeriods).on(financialPeriods.ID.eq(periodResults.ID_FINANCIAL_PERIOD))
+        .where(periodResults.ID_FINANCIAL_PERIOD.`in`(financialPeriodIds))
+        .fetch()
+        .map { record -> record.toPeriodResult() }
+        .associateBy { periodResult -> periodResult.financialPeriod.id }
+
     fun findAll(criteria: PeriodResultCriteria, pageable: Pageable): PagedModel<PeriodResult> {
 
         val condition = DSL.and(
