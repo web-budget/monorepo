@@ -21,6 +21,7 @@ const session: SessionResponse = {
   email: 'admin@webbudget.com.br',
   status: 'APPROVED',
   language: 'PT_BR',
+  dueDateNotices: true,
   roles: ['ADMINISTRATION', 'REGISTRATION'],
 }
 
@@ -106,6 +107,19 @@ describe('useAuthStore', () => {
 
     expect(authApi.changeLanguage).toHaveBeenCalledWith('EN_US')
     expect(store.session).toEqual({ ...session, language: 'EN_US' })
+  })
+
+  it('changeDueDateNotices() keeps the session the server answers with', async () => {
+    const store = await authenticatedStore()
+    vi.mocked(authApi.updateDueDateNotices).mockResolvedValue({
+      ...session,
+      dueDateNotices: false,
+    })
+
+    await store.changeDueDateNotices(false)
+
+    expect(authApi.updateDueDateNotices).toHaveBeenCalledWith(false)
+    expect(store.session?.dueDateNotices).toBe(false)
   })
 
   it('changeLanguage() keeps the session as it was when the server refuses', async () => {

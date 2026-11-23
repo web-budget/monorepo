@@ -55,6 +55,7 @@ describe('useInactivityLogout', () => {
       email: 'ana@example.com',
       status: 'APPROVED',
       language: 'PT_BR',
+      dueDateNotices: true,
       roles: [],
     }
     start()
@@ -72,6 +73,7 @@ describe('useInactivityLogout', () => {
       email: 'ana@example.com',
       status: 'APPROVED',
       language: 'PT_BR',
+      dueDateNotices: true,
       roles: [],
     }
     start()
@@ -89,6 +91,7 @@ describe('useInactivityLogout', () => {
       email: 'ana@example.com',
       status: 'APPROVED',
       language: 'PT_BR',
+      dueDateNotices: true,
       roles: [],
     }
     start()
@@ -108,6 +111,7 @@ describe('useInactivityLogout', () => {
       email: 'ana@example.com',
       status: 'APPROVED',
       language: 'PT_BR',
+      dueDateNotices: true,
       roles: [],
     }
     await nextTick()
@@ -116,6 +120,7 @@ describe('useInactivityLogout', () => {
       email: 'ana@example.com',
       status: 'APPROVED',
       language: 'PT_BR',
+      dueDateNotices: true,
       roles: ['FINANCIAL'],
     }
     await nextTick()
@@ -138,6 +143,7 @@ describe('useInactivityLogout', () => {
       email: 'ana@example.com',
       status: 'APPROVED',
       language: 'PT_BR',
+      dueDateNotices: true,
       roles: [],
     }
     start()

@@ -3,6 +3,7 @@ import { configurationRoutes } from '@/router/configurationRoutes'
 import { dashboardsRoutes } from '@/router/dashboardsRoutes'
 import { financialRoutes } from '@/router/financialRoutes'
 import { authGuard } from '@/router/guard'
+import { profileRoutes } from '@/router/profileRoutes'
 import { publicRoutes } from '@/router/publicRoutes'
 import { registrationRoutes } from '@/router/registrationRoutes'
 
@@ -15,6 +16,7 @@ const router = createRouter({
     ...registrationRoutes,
     ...financialRoutes,
     ...configurationRoutes,
+    ...profileRoutes,
   ],
 })
 

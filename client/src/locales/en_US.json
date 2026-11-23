@@ -294,7 +294,9 @@
     "registration": "Registrations",
     "dashboards": "Dashboards",
     "financial-daily": "Day to day",
-    "financial-period": "Period"
+    "financial-period": "Period",
+    "home": "Home",
+    "sections": "Sections"
   },
   "dashboards": {
     "overview": "Overview",
@@ -1011,7 +1013,8 @@
     "theme-system": "System",
     "language": "Language",
     "language-pt-BR": "Portuguese (Brazil)",
-    "language-en-US": "English (United States)"
+    "language-en-US": "English (United States)",
+    "profile": "Profile"
   },
   "confirm": {
     "title": "Confirmation"
@@ -1455,6 +1458,37 @@
     "remove": {
       "title": "Remove the purchase “{name}”?",
       "description": "It leaves the invoice and the spending by cost center. This cannot be undone."
+    }
+  },
+  "profile": {
+    "breadcrumb": "Editing profile",
+    "title": "Profile",
+    "description": "Your data and notices.",
+    "data-hint": "The e-mail does not change.",
+    "sections": {
+      "data": "Data",
+      "notices": "Due date notices"
+    },
+    "form": {
+      "name": "Name",
+      "email": "E-mail",
+      "language": "Language",
+      "notices": "Receive the due date notices by e-mail",
+      "notices-on": "On.",
+      "notices-off": "Off."
+    },
+    "languages": {
+      "pt-BR": "Português (Brasil)",
+      "en-US": "English"
+    },
+    "notices": {
+      "daily": "Daily: one e-mail a day, only when something falls due that day.",
+      "weekly": "Weekly: every Friday, a summary of the due dates of the next week. With no due dates, nothing is sent."
+    },
+    "toast": {
+      "saved": "Profile saved",
+      "notices-on": "The due date notices are still on.",
+      "notices-off": "The due date notices were turned off."
     }
   }
 }

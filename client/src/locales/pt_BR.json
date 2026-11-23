@@ -294,7 +294,9 @@
     "registration": "Cadastros",
     "dashboards": "Dashboards",
     "financial-daily": "Dia a dia",
-    "financial-period": "Período"
+    "financial-period": "Período",
+    "home": "Início",
+    "sections": "Seções"
   },
   "dashboards": {
     "overview": "Visão geral",
@@ -1011,7 +1013,8 @@
     "theme-system": "Sistema",
     "language": "Idioma",
     "language-pt-BR": "Português (Brasil)",
-    "language-en-US": "Inglês (Estados Unidos)"
+    "language-en-US": "Inglês (Estados Unidos)",
+    "profile": "Perfil"
   },
   "confirm": {
     "title": "Confirmação"
@@ -1455,6 +1458,37 @@
     "remove": {
       "title": "Remover a compra “{name}”?",
       "description": "Ela sai da fatura e do gasto por centro de custo. Não dá para desfazer."
+    }
+  },
+  "profile": {
+    "breadcrumb": "Editando perfil",
+    "title": "Perfil",
+    "description": "Seus dados e avisos.",
+    "data-hint": "O e-mail não muda.",
+    "sections": {
+      "data": "Dados",
+      "notices": "Avisos de vencimento"
+    },
+    "form": {
+      "name": "Nome",
+      "email": "E-mail",
+      "language": "Idioma",
+      "notices": "Receber os avisos de vencimento por e-mail",
+      "notices-on": "Ligado.",
+      "notices-off": "Desligado."
+    },
+    "languages": {
+      "pt-BR": "Português (Brasil)",
+      "en-US": "English"
+    },
+    "notices": {
+      "daily": "Diário: um e-mail por dia, só quando algo vence naquele dia.",
+      "weekly": "Semanal: toda sexta, um resumo dos vencimentos da semana seguinte. Sem vencimentos, nada é enviado."
+    },
+    "toast": {
+      "saved": "Perfil salvo",
+      "notices-on": "Os avisos de vencimento continuam ligados.",
+      "notices-off": "Os avisos de vencimento foram desligados."
     }
   }
 }

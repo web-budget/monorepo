@@ -25,6 +25,7 @@ async function render(options: { path?: string; roles?: Role[] } = {}) {
     routes: [
       { path: '/registration/:rest(.*)*', component: { render: () => h('div') } },
       { path: '/login', name: 'login', component: { render: () => h('div') } },
+      { path: '/profile', name: 'profile', component: { render: () => h('div') } },
     ],
   })
   const roles = options.roles ?? allRoles
@@ -194,6 +195,16 @@ describe('TopBar', () => {
 
     expect(useAppearanceStore().setMode).toHaveBeenCalledWith('dark')
     expect(document.body.querySelector('[role="menu"]')).not.toBeNull()
+  })
+
+  it('opens the profile from the top of the user menu', async () => {
+    const { wrapper, router } = await render()
+    await openUserMenu(wrapper)
+
+    menuItem('[role="menuitem"]', 'Perfil').click()
+    await flushPromises()
+
+    expect(router.currentRoute.value.name).toBe('profile')
   })
 
   it('opens the trusted devices from the user menu', async () => {

@@ -85,6 +85,10 @@ export const useAuthStore = defineStore('auth', () => {
     session.value = await authApi.changeLanguage(language)
   }
 
+  async function changeDueDateNotices(enabled: boolean): Promise<void> {
+    session.value = await authApi.updateDueDateNotices(enabled)
+  }
+
   async function restoreSession(): Promise<boolean> {
     loading.value = true
     try {
@@ -151,6 +155,7 @@ export const useAuthStore = defineStore('auth', () => {
     enrollTotp,
     verifyTotp,
     changeLanguage,
+    changeDueDateNotices,
     restoreSession,
     clearSession,
     logout,

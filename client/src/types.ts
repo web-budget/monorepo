@@ -95,6 +95,7 @@ export interface SessionResponse {
   status: UserStatus
   language: Language
   roles: Role[]
+  dueDateNotices: boolean
 }
 
 export interface ActivateAccountForm {
