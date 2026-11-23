@@ -20,7 +20,6 @@
         "number": "Número de conta \"{value}\" já esta em uso"
       },
       "card": {
-        "type": "Tipo já esta em uso",
         "last-four-digits": "Últimos dígitos \"{value}\" já esta em uso"
       },
       "classification": {
@@ -45,7 +44,6 @@
       "budget-limit-exceeded": "O orçamento disponível no centro de custo para o tipo selecionado é ${available-budget}",
       "overlapping-start-end-dates": "Já existe um período financeiro que compreende a data de inicio e fim selecionada",
       "start-date-after-end-date": "Data de início precisa ser antes da data de fim",
-      "debit-card-without-wallet": "O cartão de débito deve estar vinculado a uma carteira",
       "invalid-invoice-payment-day": "{payment-day} não é um dia do mês válido, use algo entre 1 e 30",
       "financial-period-not-open": "O período financeiro não esta aberto e não pode receber modificações",
       "accounted-period-movement": "O movimento pertence a um período contabilizado e não pode ser alterado",
@@ -689,12 +687,7 @@
     },
     "table-columns": {
       "name": "Nome",
-      "type": "Tipo",
       "flag": "Bandeira"
-    },
-    "type": {
-      "debit": "Débito",
-      "credit": "Crédito"
     },
     "form": {
       "new": "Novo cartão",
@@ -702,22 +695,19 @@
       "detailing": "Detalhando cartão",
       "deleting": "Excluindo cartão",
       "name": "Nome",
-      "type": "Tipo",
       "flag": "Bandeira",
       "last-four-digits": "Últimos 4 dígitos",
-      "wallet": "Carteira",
-      "invoice-payment-day": "Dia do vencimento",
-      "type-placeholder": "Selecione um tipo",
+      "wallet": "Carteira que paga a fatura",
+      "invoice-payment-day": "Dia do pagamento da fatura",
       "wallet-search-empty": "Nenhuma carteira encontrada",
       "wallet-search-placeholder": "Digite o nome",
       "active-label": "Ativo",
-      "active-hint": "Inativar para remover das listagens",
-      "type-hint": "O tipo não muda depois de criado."
+      "active-hint": "Inativar para remover das listagens"
     },
     "list": {
-      "description": "Cartões de crédito e débito usados nos lançamentos.",
+      "description": "Cartões de crédito.",
       "empty-title": "Nenhum cartão ainda",
-      "empty-description": "Cadastre os cartões que você usa. Os de débito saem de uma carteira; os de crédito entram na fatura.",
+      "empty-description": "Cadastre os cartões de crédito que você usa. As compras entram na fatura.",
       "plural": "os cartões",
       "found": "{count} cartão encontrado para “{query}” | {count} cartões encontrados para “{query}”"
     },
@@ -736,10 +726,8 @@
     "sections": {
       "identification": "Identificação",
       "identification-help": "Como o cartão aparece nos lançamentos.",
-      "wallet": "Carteira",
-      "wallet-help": "O cartão de débito sai desta carteira.",
       "invoice": "Fatura",
-      "invoice-help": "Dia do mês em que a fatura do cartão de crédito vence."
+      "invoice-help": "Usados como sugestão ao pagar a fatura fechada. A carteira vem sugerida ao pagar; dá para trocar na hora."
     }
   },
   "financial-period": {
