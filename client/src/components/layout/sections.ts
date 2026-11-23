@@ -59,6 +59,7 @@ export const financialSection: ModuleSectionDefinition = {
     {
       label: 'transfer.menu',
       icon: ArrowLeftRight,
+      to: '/financial/transfers',
       description: 'module-home.items.transfer',
     },
     {

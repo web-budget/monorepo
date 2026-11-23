@@ -471,3 +471,32 @@ export interface AdjustmentForm {
   value: number
   name: string
 }
+
+export interface TransferForm {
+  fromWallet: string
+  toWallet: string
+  value: number
+  description: string | null
+}
+
+export interface TransferWalletView {
+  id: string
+  name: string
+}
+
+export interface TransferReferenceView {
+  id: string
+  createdOn: string
+}
+
+export interface TransferView {
+  id: string
+  createdOn: string
+  value: number
+  description: string | null
+  fromWallet: TransferWalletView
+  toWallet: TransferWalletView
+  returnOf: TransferReferenceView | null
+  returnedBy: TransferReferenceView | null
+  returnable: boolean
+}

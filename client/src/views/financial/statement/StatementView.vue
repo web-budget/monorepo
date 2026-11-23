@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import {
   ArrowDownLeft,
+  ArrowLeftRight,
   ArrowUpRight,
   ArrowUpRightFromSquare,
   Scale,
@@ -183,11 +184,12 @@ function signedValue(entry: WalletEntryView) {
   return entry.direction === 'CREDIT' ? entry.value : -entry.value
 }
 
+const REFERENCE_PATHS = { MOVEMENT: 'movements', TRANSFER: 'transfers' }
+
 function referenceLink(entry: WalletEntryView) {
-  if (entry.reference?.type === 'MOVEMENT') {
-    return `/financial/movements/${entry.reference.id}/detail`
-  }
-  return null
+  return entry.reference
+    ? `/financial/${REFERENCE_PATHS[entry.reference.type]}/${entry.reference.id}/detail`
+    : null
 }
 
 function search() {
@@ -243,6 +245,11 @@ async function adjust(target: { id: string }, form: { value: number; name: strin
       :description="wallet ? $t('statement.description', { name: wallet.name }) : undefined"
     >
       <template #actions>
+        <Button as-child variant="outline">
+          <RouterLink :to="{ path: '/financial/transfers/create', query: { from: wallet?.id } }">
+            <ArrowLeftRight />{{ $t('statement.actions.transfer') }}
+          </RouterLink>
+        </Button>
         <Button
           type="button"
           variant="outline"
