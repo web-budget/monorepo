@@ -50,6 +50,7 @@ object ErrorCodes {
     const val CARD_PAYMENT_ONLY_FOR_EXPENSES = "card-payment-only-for-expenses"
     const val RECURRING_MOVEMENT_WITH_LAUNCHES = "recurring-movement-with-launches"
     const val INVALID_INSTALLMENTS = "invalid-installments"
+    const val CARD_RECURRING_MUST_BE_EXPENSE = "card-recurring-must-be-expense"
     const val LAUNCH_VALUE_ONLY_FOR_VARIABLE = "launch-value-only-for-variable"
     const val INACTIVE_CARD = "inactive-card"
     const val FINANCIAL_PERIOD_WITH_PURCHASES = "financial-period-with-purchases"

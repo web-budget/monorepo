@@ -2,6 +2,7 @@ package br.com.webbudget.server.application.mappers.financial
 
 import br.com.webbudget.server.application.payloads.financial.MovementClassificationView
 import br.com.webbudget.server.application.payloads.financial.MovementCostCenterView
+import br.com.webbudget.server.application.payloads.financial.PaymentCardView
 import br.com.webbudget.server.application.payloads.financial.RecurringLaunchForm
 import br.com.webbudget.server.application.payloads.financial.RecurringLaunchView
 import br.com.webbudget.server.application.payloads.financial.RecurringLaunchedView
@@ -42,6 +43,7 @@ class RecurringMovementMapper(
             MovementClassificationView(it.externalId, it.name, it.type)
         },
         costCenter = recurringMovement.costCenter.let { MovementCostCenterView(it.externalId, it.name, it.fullName) },
+        card = recurringMovement.card?.let { PaymentCardView(it.externalId, it.name) },
         launchedInPeriod = recurringMovement.launchedInPeriod,
         createdOn = recurringMovement.createdOn!!
     )
@@ -69,12 +71,13 @@ class RecurringMovementMapper(
         value = form.value!!,
         installments = form.installments,
         firstInstallment = form.firstInstallment ?: 1,
-        autoLaunch = form.autoLaunch ?: false,
+        autoLaunch = form.autoLaunch!!,
         active = true,
         classification = movementReferenceRepository.findClassification(form.classification!!)
             ?: throw ResourceNotFoundException(),
         costCenter = movementReferenceRepository.findCostCenter(form.costCenter!!)
-            ?: throw ResourceNotFoundException()
+            ?: throw ResourceNotFoundException(),
+        card = form.card?.let { movementReferenceRepository.findCard(it) ?: throw ResourceNotFoundException() }
     )
 
     fun mapToDomain(form: RecurringMovementUpdateForm, recurringMovement: RecurringMovement): RecurringMovement =
@@ -82,11 +85,12 @@ class RecurringMovementMapper(
             this.name = form.name!!
             this.active = form.active!!
             this.installments = form.installments
-            this.autoLaunch = form.autoLaunch ?: false
+            this.autoLaunch = form.autoLaunch!!
             this.classification = movementReferenceRepository.findClassification(form.classification!!)
                 ?: throw ResourceNotFoundException()
             this.costCenter = movementReferenceRepository.findCostCenter(form.costCenter!!)
                 ?: throw ResourceNotFoundException()
+            this.card = form.card?.let { movementReferenceRepository.findCard(it) ?: throw ResourceNotFoundException() }
         }
 
     fun mapToDomain(form: RecurringLaunchForm): List<LaunchRequest> =

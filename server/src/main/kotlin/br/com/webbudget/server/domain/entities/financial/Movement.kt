@@ -15,7 +15,8 @@ class Movement(
     var status: Status = Status.OPEN,
     var description: String? = null,
     var payment: Payment? = null,
-    val invoice: Invoice? = null
+    val invoice: Invoice? = null,
+    val recurringMovement: RecurringMovementReference? = null
 ) : PersistentEntity() {
 
     fun isPaid(): Boolean = status == Status.PAID

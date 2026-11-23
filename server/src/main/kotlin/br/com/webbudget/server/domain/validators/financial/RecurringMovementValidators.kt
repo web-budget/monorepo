@@ -1,8 +1,11 @@
 package br.com.webbudget.server.domain.validators.financial
 
 import br.com.webbudget.server.domain.entities.financial.RecurringMovement
+import br.com.webbudget.server.domain.entities.financial.Movement
 import br.com.webbudget.server.domain.exceptions.DomainException
+import br.com.webbudget.server.domain.exceptions.ErrorCodes.CARD_RECURRING_MUST_BE_EXPENSE
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.CLASSIFICATION_TYPE_MISMATCH
+import br.com.webbudget.server.domain.exceptions.ErrorCodes.INACTIVE_CARD
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.INACTIVE_CLASSIFICATION
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.INACTIVE_COST_CENTER
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.INVALID_INSTALLMENTS
@@ -66,6 +69,25 @@ class RecurringMovementLaunchesValidator : RecurringMovementValidator {
     override fun validate(value: RecurringMovement) {
         if (value.launchedInstallments != null) {
             throw DomainException("The recurring movement already has launches", RECURRING_MOVEMENT_WITH_LAUNCHES)
+        }
+    }
+}
+
+@Component
+@OnCreateValidation
+@OnUpdateValidation
+class RecurringMovementCardValidator : RecurringMovementValidator {
+
+    override fun validate(value: RecurringMovement) {
+
+        val card = value.card ?: return
+
+        if (value.type != Movement.Type.EXPENSE) {
+            throw DomainException("Only an expense can have a card", CARD_RECURRING_MUST_BE_EXPENSE)
+        }
+
+        if (value.active && !card.active) {
+            throw DomainException("The card of the recurring movement is not active", INACTIVE_CARD)
         }
     }
 }

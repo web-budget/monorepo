@@ -7,6 +7,7 @@ import br.com.webbudget.server.domain.entities.financial.FinancialPeriodReferenc
 import br.com.webbudget.server.domain.entities.financial.Invoice
 import br.com.webbudget.server.domain.entities.financial.Movement
 import br.com.webbudget.server.domain.entities.financial.Payment
+import br.com.webbudget.server.domain.entities.financial.RecurringMovementReference
 import br.com.webbudget.server.domain.entities.financial.WalletReference
 import br.com.webbudget.server.jooq.financial.tables.records.MovementsRecord
 import br.com.webbudget.server.jooq.financial.tables.records.PaymentsRecord
@@ -71,7 +72,8 @@ internal fun MovementsRecord.toMovement(
     costCenter: CostCenterReference?,
     financialPeriod: FinancialPeriodReference,
     payment: Payment?,
-    invoice: Invoice?
+    invoice: Invoice?,
+    recurringMovement: RecurringMovementReference?
 ): Movement = Movement(
     name = name!!,
     type = Movement.Type.valueOf(type!!),
@@ -83,5 +85,6 @@ internal fun MovementsRecord.toMovement(
     status = Movement.Status.valueOf(status!!),
     description = description,
     payment = payment,
-    invoice = invoice
+    invoice = invoice,
+    recurringMovement = recurringMovement
 ).also { movement -> movement.restore(id, externalId, version, createdOn, lastUpdate) }
