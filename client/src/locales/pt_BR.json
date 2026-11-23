@@ -1218,17 +1218,43 @@
     },
     "status": {
       "returned": "Devolvida",
-      "is-return": "Devolução"
+      "is-return": "Devolução",
+      "return-of": "Devolução de {date}"
     },
     "actions": {
       "view-statement": "Ver no extrato",
-      "give-back": "Devolver"
+      "give-back": "Devolver",
+      "details": "Ver detalhes"
     },
     "give-back": {
       "title": "Devolver a transferência de {from} para {to}?",
       "description": "O dinheiro volta para a carteira de origem em uma nova transferência.",
       "value": "Valor devolvido",
       "confirm": "Devolver"
+    },
+    "list": {
+      "description": "Dinheiro que mudou de carteira, da mais recente para a mais antiga.",
+      "empty-title": "Nenhuma transferência ainda",
+      "empty-description": "Transfira dinheiro de uma carteira para outra.",
+      "plural": "as transferências"
+    },
+    "search": {
+      "placeholder": "Carteira de origem, carteira de destino ou observação"
+    },
+    "filters": {
+      "wallet": "Carteira",
+      "all-wallets": "Todas",
+      "from": "De",
+      "to": "Até",
+      "clear": "Limpar"
+    },
+    "table-columns": {
+      "created-on": "Data e hora",
+      "from": "De",
+      "to": "Para",
+      "value": "Valor (R$)",
+      "note": "Observação",
+      "status": "Situação"
     }
   },
   "statement": {

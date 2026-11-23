@@ -1218,17 +1218,43 @@
     },
     "status": {
       "returned": "Returned",
-      "is-return": "Return"
+      "is-return": "Return",
+      "return-of": "Return of {date}"
     },
     "actions": {
       "view-statement": "View in statement",
-      "give-back": "Return"
+      "give-back": "Return",
+      "details": "View details"
     },
     "give-back": {
       "title": "Return the transfer from {from} to {to}?",
       "description": "The money goes back to the origin wallet in a new transfer.",
       "value": "Returned value",
       "confirm": "Return"
+    },
+    "list": {
+      "description": "Money that changed wallets, newest first.",
+      "empty-title": "No transfers yet",
+      "empty-description": "Transfer money from one wallet to another.",
+      "plural": "the transfers"
+    },
+    "search": {
+      "placeholder": "Origin wallet, destination wallet or note"
+    },
+    "filters": {
+      "wallet": "Wallet",
+      "all-wallets": "All",
+      "from": "From",
+      "to": "To",
+      "clear": "Clear"
+    },
+    "table-columns": {
+      "created-on": "Date and time",
+      "from": "From",
+      "to": "To",
+      "value": "Value (R$)",
+      "note": "Note",
+      "status": "Status"
     }
   },
   "statement": {

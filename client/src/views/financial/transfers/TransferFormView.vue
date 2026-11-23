@@ -62,7 +62,7 @@ watch(() => form.values.toWallet, loadBalance)
 watch(() => form.values, clearFields, { deep: true })
 
 function cancel() {
-  return router.push('/financial')
+  return router.push({ name: 'transfers' })
 }
 
 const onSubmit = form.handleSubmit(async (values) => {
