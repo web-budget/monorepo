@@ -112,6 +112,19 @@ class MovementRepository(
             Movement.Type.valueOf(record.value1()!!) to ClosingSummary.OpenTotal(record.value2()!!, record.value3() ?: BigDecimal.ZERO)
         }
 
+    fun sumPaidValueByPeriodAndType(financialPeriodIds: Collection<Long>): Map<Long, Map<Movement.Type, BigDecimal>> = dsl
+        .select(movements.ID_FINANCIAL_PERIOD, movements.TYPE, DSL.sum(payments.VALUE_PAID))
+        .from(movements)
+        .join(payments).on(payments.ID_MOVEMENT.eq(movements.ID))
+        .where(movements.ID_FINANCIAL_PERIOD.`in`(financialPeriodIds))
+        .and(payments.METHOD.eq(Payment.Method.WALLET.name))
+        .groupBy(movements.ID_FINANCIAL_PERIOD, movements.TYPE)
+        .fetch()
+        .groupBy({ record -> record.value1()!! }) { record ->
+            Movement.Type.valueOf(record.value2()!!) to (record.value3() ?: BigDecimal.ZERO)
+        }
+        .mapValues { entry -> entry.value.toMap() }
+
     fun sumPaidValueByType(financialPeriodId: Long): Map<Movement.Type, BigDecimal> = dsl
         .select(movements.TYPE, DSL.sum(payments.VALUE_PAID))
         .from(movements)

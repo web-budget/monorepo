@@ -63,6 +63,14 @@ class MovementReferenceRepository(
             ?.toFinancialPeriodReference()
     }
 
+    fun findOpenFinancialPeriods(): List<FinancialPeriodReference> {
+        val financialPeriods = FINANCIAL_PERIODS.`as`("financial_periods")
+        return dsl.selectFrom(financialPeriods)
+            .where(financialPeriods.STATUS.eq(FinancialPeriodReference.Status.OPEN.name))
+            .orderBy(financialPeriods.STARTING_AT)
+            .fetch { record -> record.toFinancialPeriodReference() }
+    }
+
     fun findOpenFinancialPeriodsExcept(id: Long): List<FinancialPeriodReference> {
         val financialPeriods = FINANCIAL_PERIODS.`as`("financial_periods")
         return dsl.selectFrom(financialPeriods)
