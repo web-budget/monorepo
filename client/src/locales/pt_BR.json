@@ -608,7 +608,78 @@
   },
   "credit-card-invoice": {
     "title": "Fatura do cartão",
-    "menu": "Fatura do cartão"
+    "menu": "Fatura do cartão",
+    "detail": {
+      "title": "Detalhando fatura",
+      "breadcrumb": "Detalhando",
+      "total": "Total da fatura",
+      "purchases": "Compras",
+      "due-date": "Vencimento",
+      "no-purchases": "Nenhuma compra nesta fatura"
+    },
+    "list": {
+      "description": "Compras de cada cartão por período.",
+      "empty-title": "Nenhuma fatura neste período",
+      "empty-description": "Crie um período para gerar as faturas.",
+      "plural": "as faturas"
+    },
+    "options": {
+      "all": "Todas",
+      "open": "Abertas",
+      "closed": "Fechadas",
+      "paid": "Pagas"
+    },
+    "filters": {
+      "period": "Período",
+      "all-periods": "Todos",
+      "card": "Cartão",
+      "all-cards": "Todos"
+    },
+    "table-columns": {
+      "card": "Cartão",
+      "period": "Período",
+      "value": "Total (R$)",
+      "status": "Situação"
+    },
+    "status": {
+      "OPEN": "Aberta",
+      "CLOSED": "Fechada",
+      "PAID": "Paga"
+    },
+    "sections": {
+      "purchases": "Compras"
+    },
+    "purchases": {
+      "date": "Data",
+      "name": "Compra",
+      "value": "Valor (R$)"
+    },
+    "actions": {
+      "close": "Fechar fatura",
+      "view-payment": "Ver pagamento de fatura",
+      "delete-payment": "Excluir pagamento de fatura"
+    },
+    "close": {
+      "title": "Fechar a fatura de {period}, {card}?",
+      "description": "Gera o pagamento de fatura e fecha a fatura para novas compras.",
+      "description-empty": "Fatura sem compras fecha com valor zero.",
+      "purchases": "Compras",
+      "payment": "Pagamento de fatura",
+      "due-date": "Vencimento",
+      "wallet": "Carteira sugerida ao pagar",
+      "confirm": "Fechar fatura"
+    },
+    "delete-payment": {
+      "title": "Excluir o pagamento de fatura?",
+      "description": "Excluir o pagamento reabre a fatura de {card}.",
+      "confirm": "Excluir e reabrir"
+    },
+    "toast": {
+      "closed": "Fatura fechada",
+      "closed-detail": "Pagamento de fatura de {value} gerado, em aberto.",
+      "reopened": "Fatura reaberta",
+      "reopened-detail": "O pagamento de fatura foi excluído."
+    }
   },
   "period-closing": {
     "title": "Fechamento",

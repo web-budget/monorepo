@@ -69,7 +69,7 @@ describe('layouts', () => {
     ])
   })
 
-  it('FinancialLayout lists the financial entries in two groups, only the movements, the transfers, the statement and the periods enabled', async () => {
+  it('FinancialLayout lists the financial entries in two groups, only the movements, the transfers, the statement, the invoices and the periods enabled', async () => {
     const wrapper = await render(FinancialLayout)
 
     expect(menuLabels(wrapper)).toEqual([
@@ -84,8 +84,8 @@ describe('layouts', () => {
     expect(
       wrapper.findAll('[data-slot="sidebar-group-label"]').map((label) => label.text()),
     ).toEqual(['Dia a dia', 'Período'])
-    expect(wrapper.findAll('[data-slot="sidebar"] button[disabled]')).toHaveLength(3)
-    expect(wrapper.findAll('[data-slot="sidebar-menu"] a')).toHaveLength(4)
+    expect(wrapper.findAll('[data-slot="sidebar"] button[disabled]')).toHaveLength(2)
+    expect(wrapper.findAll('[data-slot="sidebar-menu"] a')).toHaveLength(5)
   })
 
   it('ConfigurationLayout links the users and still lists the integrations, disabled', async () => {

@@ -76,6 +76,7 @@ export const financialSection: ModuleSectionDefinition = {
     {
       label: 'credit-card-invoice.menu',
       icon: CreditCard,
+      to: '/financial/invoices',
       description: 'module-home.items.credit-card-invoice',
     },
     {
