@@ -15,6 +15,7 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD
 import java.math.BigDecimal
+import java.time.LocalDateTime
 import java.util.UUID
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
@@ -203,10 +204,145 @@ class TransferControllerTest : BaseIntegrationTest() {
             .expectBody()
             .jsonPath("$.error").isEqualTo("transfer-already-returned")
 
-        returnTransfer(returning).expectStatus().isCreated
+        returnTransfer(returning)
+            .expectStatus().isEqualTo(409)
+            .expectBody()
+            .jsonPath("$.error").isEqualTo("transfer-is-a-return")
 
-        assertThat(balanceOf(9101L)).isEqualByComparingTo("-50.00")
-        assertThat(dsl.fetchCount(TRANSFERS)).isEqualTo(3)
+        assertThat(balanceOf(9101L)).isEqualByComparingTo("0")
+        assertThat(balanceOf(9103L)).isEqualByComparingTo("0")
+        assertThat(dsl.fetchCount(TRANSFERS)).isEqualTo(2)
+        assertThat(dsl.fetchCount(WALLET_ENTRIES)).isEqualTo(4)
+    }
+
+    @Test
+    fun `should tell whether a transfer was returned, is a return or can still be returned`() {
+
+        transfer(WALLET, OTHER_WALLET, "50.00").expectStatus().isCreated
+        val common = lastTransferId()
+
+        transfer(WALLET, OTHER_WALLET, "20.00").expectStatus().isCreated
+        val original = lastTransferId()
+
+        returnTransfer(original).expectStatus().isCreated
+        val returning = lastTransferId()
+
+        restTestClient.get().uri("$ENDPOINT_URL/$common").exchange()
+            .expectBody()
+            .jsonPath("$.returnable").isEqualTo(true)
+            .jsonPath("$.returnOf").doesNotExist()
+            .jsonPath("$.returnedBy").doesNotExist()
+
+        restTestClient.get().uri("$ENDPOINT_URL/$original").exchange()
+            .expectBody()
+            .jsonPath("$.returnable").isEqualTo(false)
+            .jsonPath("$.returned").isEqualTo(true)
+            .jsonPath("$.returnedBy.id").isEqualTo(returning)
+            .jsonPath("$.returnedBy.createdOn").isNotEmpty
+            .jsonPath("$.returnOf").doesNotExist()
+
+        restTestClient.get().uri("$ENDPOINT_URL/$returning").exchange()
+            .expectBody()
+            .jsonPath("$.returnable").isEqualTo(false)
+            .jsonPath("$.returned").isEqualTo(false)
+            .jsonPath("$.returnOf.id").isEqualTo(original)
+            .jsonPath("$.returnOf.createdOn").isNotEmpty
+            .jsonPath("$.returnedBy").doesNotExist()
+    }
+
+    @Test
+    fun `should list the transfers from the newest to the oldest with the return state of each one`() {
+
+        transfer(WALLET, OTHER_WALLET, "10.00", """, "description": "Rent split" """).expectStatus().isCreated
+        val first = lastTransferId()
+        transfer(OTHER_WALLET, WALLET, "30.00", """, "description": "Groceries" """).expectStatus().isCreated
+        val second = lastTransferId()
+        returnTransfer(first).expectStatus().isCreated
+        val returning = lastTransferId()
+
+        setCreatedOn(first, LocalDateTime.of(2026, 11, 1, 9, 0))
+        setCreatedOn(second, LocalDateTime.of(2026, 11, 10, 18, 30))
+        setCreatedOn(returning, LocalDateTime.of(2026, 11, 20, 10, 5))
+
+        restTestClient.get().uri(ENDPOINT_URL).exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.page.totalElements").isEqualTo(3)
+            .jsonPath("$.content[0].id").isEqualTo(returning)
+            .jsonPath("$.content[1].id").isEqualTo(second)
+            .jsonPath("$.content[2].id").isEqualTo(first)
+            .jsonPath("$.content[0].returnOf.id").isEqualTo(first)
+            .jsonPath("$.content[0].returnable").isEqualTo(false)
+            .jsonPath("$.content[1].returnable").isEqualTo(true)
+            .jsonPath("$.content[2].returnedBy.id").isEqualTo(returning)
+            .jsonPath("$.content[2].returnable").isEqualTo(false)
+    }
+
+    @Test
+    fun `should filter the transfers by wallet, dates and text`() {
+
+        transfer(WALLET, OTHER_WALLET, "10.00", """, "description": "Rent split" """).expectStatus().isCreated
+        val rent = lastTransferId()
+        transfer(OTHER_WALLET, WALLET, "30.00", """, "description": "Groceries" """).expectStatus().isCreated
+        val groceries = lastTransferId()
+
+        setCreatedOn(rent, LocalDateTime.of(2026, 11, 1, 9, 0))
+        setCreatedOn(groceries, LocalDateTime.of(2026, 11, 10, 18, 30))
+
+        assertIds("wallet=$WALLET", groceries, rent)
+        assertIds("wallet=$OTHER_WALLET", groceries, rent)
+        assertIds("wallet=${UUID.randomUUID()}")
+        assertIds("from=2026-11-10", groceries)
+        assertIds("to=2026-11-01", rent)
+        assertIds("from=2026-11-01&to=2026-11-10", groceries, rent)
+        assertIds("from=2026-11-02&to=2026-11-09")
+        assertIds("filter=rent", rent)
+        assertIds("filter=OTHER", groceries, rent)
+        assertIds("filter=wallet", groceries, rent)
+        assertIds("filter=nothing")
+        assertIds("wallet=$WALLET&filter=gro&from=2026-11-10&to=2026-11-10", groceries)
+    }
+
+    @Test
+    fun `should sort the transfers by date, value and wallet names and ignore name`() {
+
+        transfer(WALLET, OTHER_WALLET, "30.00").expectStatus().isCreated
+        val big = lastTransferId()
+        transfer(OTHER_WALLET, WALLET, "10.00").expectStatus().isCreated
+        val small = lastTransferId()
+
+        setCreatedOn(big, LocalDateTime.of(2026, 11, 1, 9, 0))
+        setCreatedOn(small, LocalDateTime.of(2026, 11, 10, 9, 0))
+
+        assertIds("", small, big)
+        assertIds("sort=name,asc", small, big)
+        assertIds("sort=createdOn,asc", big, small)
+        assertIds("sort=value,asc", small, big)
+        assertIds("sort=value,desc", big, small)
+        assertIds("sort=fromWallet,asc", small, big)
+        assertIds("sort=fromWallet,desc", big, small)
+        assertIds("sort=toWallet,asc", big, small)
+    }
+
+    @Test
+    fun `should page the transfers`() {
+
+        repeat(3) { transfer(WALLET, OTHER_WALLET, "10.00").expectStatus().isCreated }
+
+        restTestClient.get().uri("$ENDPOINT_URL?size=2&page=1").exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.content.length()").isEqualTo(1)
+            .jsonPath("$.page.totalElements").isEqualTo(3)
+            .jsonPath("$.page.totalPages").isEqualTo(2)
+    }
+
+    @Test
+    fun `should require the financial role to list the transfers`() {
+
+        authenticateWithRoles("REGISTRATION")
+
+        restTestClient.get().uri(ENDPOINT_URL).exchange().expectStatus().isForbidden
     }
 
     @Test
@@ -255,6 +391,30 @@ class TransferControllerTest : BaseIntegrationTest() {
                 assertThat(next.previousBalance).isEqualByComparingTo(previous.resultingBalance)
             }
         }
+    }
+
+    private fun setCreatedOn(transferId: String, createdOn: LocalDateTime) {
+        dsl.update(TRANSFERS)
+            .set(TRANSFERS.CREATED_ON, createdOn)
+            .where(TRANSFERS.EXTERNAL_ID.eq(UUID.fromString(transferId)))
+            .execute()
+    }
+
+    private fun assertIds(query: String, vararg expected: String) {
+
+        val ids = mutableListOf<String>()
+
+        restTestClient.get()
+            .uri("$ENDPOINT_URL?size=50&$query")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody(Map::class.java)
+            .value { body ->
+                @Suppress("UNCHECKED_CAST")
+                (body!!["content"] as List<Map<String, Any?>>).mapTo(ids) { it["id"] as String }
+            }
+
+        assertThat(ids).containsExactly(*expected)
     }
 
     private fun transfer(from: String, to: String, value: String, extra: String = "") = restTestClient.post()
