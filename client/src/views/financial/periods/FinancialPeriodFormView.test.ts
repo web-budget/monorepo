@@ -69,7 +69,10 @@ describe('FinancialPeriodFormView', () => {
   })
 
   it('creates a period with its dates and goals and goes to its detail', async () => {
-    vi.mocked(financialPeriodsApi.create).mockResolvedValue('p-9')
+    vi.mocked(financialPeriodsApi.create).mockResolvedValue({
+      id: 'p-9',
+      recurringLaunch: { launched: [], skipped: [] },
+    })
     const { wrapper, router } = await mountView(FinancialPeriodFormView, 'financial-periods')
 
     await fillCreation(wrapper)
@@ -91,8 +94,57 @@ describe('FinancialPeriodFormView', () => {
     expect(router.currentRoute.value.params.id).toBe('p-9')
   })
 
+  it('says how many recurring movements entered with the period', async () => {
+    const launched = [{ recurringMovement: 'r-1' }, { recurringMovement: 'r-2' }] as never
+    vi.mocked(financialPeriodsApi.create).mockResolvedValue({
+      id: 'p-9',
+      recurringLaunch: { launched, skipped: [] },
+    })
+    const { wrapper } = await mountView(FinancialPeriodFormView, 'financial-periods')
+
+    await fillCreation(wrapper)
+    await submit(wrapper)
+
+    expect(toast.success).toHaveBeenCalledWith('Período financeiro criado', {
+      description: '“January” já aceita lançamentos. 2 recorrentes lançados.',
+      duration: 4000,
+    })
+  })
+
+  it('says one recurring movement entered in the singular', async () => {
+    vi.mocked(financialPeriodsApi.create).mockResolvedValue({
+      id: 'p-9',
+      recurringLaunch: { launched: [{ recurringMovement: 'r-1' }] as never, skipped: [] },
+    })
+    const { wrapper } = await mountView(FinancialPeriodFormView, 'financial-periods')
+
+    await fillCreation(wrapper)
+    await submit(wrapper)
+
+    expect(toast.success).toHaveBeenCalledWith('Período financeiro criado', {
+      description: '“January” já aceita lançamentos. 1 recorrente lançado.',
+      duration: 4000,
+    })
+  })
+
+  it('shows the error that undoes the creation when a launch fails', async () => {
+    vi.mocked(financialPeriodsApi.create).mockRejectedValue(
+      problem(400, { error: 'inactive-classification' }),
+    )
+    const { wrapper } = await mountView(FinancialPeriodFormView, 'financial-periods')
+
+    await fillCreation(wrapper)
+    await submit(wrapper)
+
+    expect(wrapper.find('[role="alert"]').text()).toContain('A classificação está inativa')
+    expect(toast.success).not.toHaveBeenCalled()
+  })
+
   it('accepts a one day period', async () => {
-    vi.mocked(financialPeriodsApi.create).mockResolvedValue('p-9')
+    vi.mocked(financialPeriodsApi.create).mockResolvedValue({
+      id: 'p-9',
+      recurringLaunch: { launched: [], skipped: [] },
+    })
     const { wrapper } = await mountView(FinancialPeriodFormView, 'financial-periods')
 
     await field(wrapper, 'name').setValue('Holiday')

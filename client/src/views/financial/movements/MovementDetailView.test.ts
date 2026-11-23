@@ -159,6 +159,34 @@ describe('MovementDetailView', () => {
     })
   })
 
+  it('links the recurring movement and pays on the card it suggests', async () => {
+    const { wrapper } = await render({
+      ...open,
+      recurringMovement: { id: 'r-1', name: 'Celular novo', card: { id: 'k-1', name: 'Visa' } },
+    })
+
+    expect(wrapper.find('a[href="/financial/recurring-movements/r-1/detail"]').text()).toBe(
+      'Celular novo',
+    )
+    expect(wrapper.text()).toContain('Recorrente')
+    await buttonWithText(wrapper, 'Pagar').trigger('click')
+    expect(wrapper.getComponent(PayMovementDialog).props('movement')).toMatchObject({
+      suggestedCard: 'k-1',
+    })
+  })
+
+  it('has no suggested card when the recurring movement has none', async () => {
+    const { wrapper } = await render({
+      ...open,
+      recurringMovement: { id: 'r-1', name: 'Aluguel', card: null },
+    })
+
+    await buttonWithText(wrapper, 'Pagar').trigger('click')
+    expect(wrapper.getComponent(PayMovementDialog).props('movement')).toMatchObject({
+      suggestedCard: undefined,
+    })
+  })
+
   it('says the period is closed and offers nothing to change', async () => {
     const { wrapper } = await render({
       ...open,

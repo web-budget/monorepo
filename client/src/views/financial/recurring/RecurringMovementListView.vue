@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowDownLeft, ArrowUpRight, Plus, RefreshCw, X, Zap } from 'lucide-vue-next'
+import { ArrowDownLeft, ArrowUpRight, ListChecks, Plus, RefreshCw, X, Zap } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -115,6 +115,11 @@ function openDetail(recurringMovement: RecurringMovementView) {
       :description="$t('recurrent-movement.list.description')"
     >
       <template #actions>
+        <Button as-child variant="outline">
+          <RouterLink to="/financial/recurring-movements/launch">
+            <ListChecks />{{ $t('recurrent-movement.list.launch') }}
+          </RouterLink>
+        </Button>
         <Button type="button" @click="changeToAdd()">
           <Plus />{{ $t('recurrent-movement.list.create') }}
         </Button>

@@ -111,7 +111,8 @@ describe('RecurringMovementListView', () => {
     expect(wrapper.find('[data-slot="page-description"]').text()).toBe(
       'Modelos que lançam movimentos e compras a cada período.',
     )
-    expect(wrapper.find('[data-slot="page-actions"]').text()).toBe('Novo recorrente')
+    expect(wrapper.find('[data-slot="page-actions"]').text()).toBe('Lançar em loteNovo recorrente')
+    expect(wrapper.find('a[href="/financial/recurring-movements/launch"]').exists()).toBe(true)
     expect(wrapper.find('input').attributes('placeholder')).toBe(
       'Nome, centro de custo ou classificação',
     )

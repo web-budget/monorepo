@@ -97,6 +97,14 @@ export const financialRoutes: RouteRecordRaw[] = [
         list: () => import('@/views/financial/recurring/RecurringMovementListView.vue'),
         form: () => import('@/views/financial/recurring/RecurringMovementFormView.vue'),
         detail: () => import('@/views/financial/recurring/RecurringMovementDetailView.vue'),
+        extra: [
+          {
+            path: 'launch',
+            name: 'recurring-movements.launch',
+            meta: { breadcrumb: 'recurrent-movement.launch.breadcrumb' },
+            component: () => import('@/views/financial/recurring/RecurringLaunchView.vue'),
+          },
+        ],
       }),
       crudRoutes({
         path: 'movements',

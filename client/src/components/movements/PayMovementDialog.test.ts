@@ -12,6 +12,7 @@ interface Payable {
   type: 'INCOME' | 'EXPENSE'
   value: number
   invoicePayment?: boolean
+  suggestedCard?: string | null
 }
 
 const expense: Payable = { id: 'm-1', name: 'Conta de água', type: 'EXPENSE', value: 100 }
@@ -244,5 +245,26 @@ describe('PayMovementDialog', () => {
 
     expect(document.body.textContent).toContain('Receber “Salário”')
     expect(input('discount').value).toBe('')
+  })
+})
+
+describe('PayMovementDialog with a suggested card', () => {
+  beforeEach(() => {
+    document.body.replaceChildren()
+  })
+
+  it('opens on the card the recurring movement suggests and pays on it', async () => {
+    const { wrapper } = await render({ ...expense, suggestedCard: 'k-1' })
+
+    expect(document.body.querySelector('[data-slot="card-note"]')).not.toBeNull()
+    await submit()
+
+    expect(wrapper.emitted('pay')![0]![1]).toMatchObject({ card: 'k-1' })
+  })
+
+  it('opens on the wallet when nothing is suggested', async () => {
+    await render({ ...expense, suggestedCard: null })
+
+    expect(document.body.querySelector('[data-slot="card-note"]')).toBeNull()
   })
 })
