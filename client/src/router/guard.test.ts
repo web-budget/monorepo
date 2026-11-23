@@ -15,7 +15,14 @@ function runGuard(path: string) {
 }
 
 function sessionWith(roles: Role[]): SessionResponse {
-  return { name: 'Ana', email: 'ana@example.com', status: 'APPROVED', language: 'PT_BR', roles }
+  return {
+    name: 'Ana',
+    email: 'ana@example.com',
+    status: 'APPROVED',
+    language: 'PT_BR',
+    roles,
+    dueDateNotices: true,
+  }
 }
 
 describe('authGuard', () => {

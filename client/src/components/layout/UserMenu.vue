@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ChevronDown, LogOut, MonitorSmartphone } from 'lucide-vue-next'
+import { ChevronDown, LogOut, MonitorSmartphone, User } from 'lucide-vue-next'
+import { useRouter } from 'vue-router'
 import LanguageSwitch from '@/components/layout/LanguageSwitch.vue'
 import ThemeSwitch from '@/components/layout/ThemeSwitch.vue'
 import UserAvatar from '@/components/layout/UserAvatar.vue'
@@ -17,6 +18,7 @@ import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
 const trustedDevicesDialog = useTrustedDevicesDialog()
+const router = useRouter()
 </script>
 
 <template>
@@ -36,6 +38,11 @@ const trustedDevicesDialog = useTrustedDevicesDialog()
           <span class="text-muted-foreground truncate text-xs">{{ auth.session?.email }}</span>
         </div>
       </DropdownMenuLabel>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem @select="router.push({ name: 'profile' })">
+        <User />
+        {{ $t('layout.profile') }}
+      </DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuLabel class="text-muted-foreground text-xs font-medium">
         {{ $t('layout.theme') }}
