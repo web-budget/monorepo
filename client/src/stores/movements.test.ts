@@ -126,6 +126,24 @@ describe('useMovementsStore', () => {
     expect(store.movement?.status).toBe('OPEN')
   })
 
+  it('finds the card a recurring movement suggests, if any', async () => {
+    const store = useMovementsStore()
+    vi.mocked(movementsApi.findById).mockResolvedValueOnce({
+      ...view,
+      recurringMovement: { id: 'r-1', name: 'Celular', card: { id: 'k-1', name: 'Visa' } },
+    })
+    await expect(store.suggestedCardOf('m-1')).resolves.toBe('k-1')
+
+    vi.mocked(movementsApi.findById).mockResolvedValueOnce({
+      ...view,
+      recurringMovement: { id: 'r-1', name: 'Aluguel', card: null },
+    })
+    await expect(store.suggestedCardOf('m-1')).resolves.toBeNull()
+
+    vi.mocked(movementsApi.findById).mockResolvedValueOnce(view)
+    await expect(store.suggestedCardOf('m-1')).resolves.toBeNull()
+  })
+
   it('forgets the filters and the page when it is reset', async () => {
     vi.mocked(movementsApi.findAll).mockResolvedValue(page)
     const store = useMovementsStore()

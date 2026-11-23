@@ -86,8 +86,8 @@ describe('layouts', () => {
     expect(
       wrapper.findAll('[data-slot="sidebar-group-label"]').map((label) => label.text()),
     ).toEqual(['Dia a dia', 'Período'])
-    expect(wrapper.findAll('[data-slot="sidebar"] button[disabled]')).toHaveLength(2)
-    expect(wrapper.findAll('[data-slot="sidebar-menu"] a')).toHaveLength(5)
+    expect(wrapper.findAll('[data-slot="sidebar"] button[disabled]')).toHaveLength(0)
+    expect(wrapper.findAll('[data-slot="sidebar-menu"] a')).toHaveLength(7)
   })
 
   it('ProfileLayout lists only the sections the user can open', async () => {
