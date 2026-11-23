@@ -5,6 +5,7 @@ import br.com.webbudget.server.domain.exceptions.DomainException
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.INACTIVE_WALLET
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.TRANSFER_ALREADY_RETURNED
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.TRANSFER_BETWEEN_SAME_WALLET
+import br.com.webbudget.server.domain.exceptions.ErrorCodes.TRANSFER_IS_A_RETURN
 import br.com.webbudget.server.domain.validators.BusinessValidator
 import br.com.webbudget.server.domain.validators.OnCreateValidation
 import br.com.webbudget.server.infrastructure.repository.financial.TransferRepository
@@ -43,6 +44,26 @@ class TransferNotReturnedValidator(
                 parameters = mapOf("transfer" to value.returnedTransferExternalId),
                 message = "The transfer was already returned",
                 error = TRANSFER_ALREADY_RETURNED
+            )
+        }
+    }
+}
+
+@Component
+@OnCreateValidation
+class TransferNotAReturnValidator(
+    private val transferRepository: TransferRepository
+) : TransferValidator {
+
+    override fun validate(value: Transfer) {
+
+        val returnedTransferId = value.returnedTransferId ?: return
+
+        if (transferRepository.isReturn(returnedTransferId)) {
+            throw DomainException.conflict(
+                parameters = mapOf("transfer" to value.returnedTransferExternalId),
+                message = "A return cannot be returned",
+                error = TRANSFER_IS_A_RETURN
             )
         }
     }

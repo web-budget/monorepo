@@ -26,8 +26,8 @@ vi.mock('vue-sonner', () => ({
 }))
 
 const cards: CardRow[] = [
-  { id: 'k-1', name: 'Travel', type: 'CREDIT', active: true, flag: 'Visa' },
-  { id: 'k-2', name: 'Daily', type: 'DEBIT', active: true, flag: null },
+  { id: 'k-1', name: 'Travel', active: true, flag: 'Visa' },
+  { id: 'k-2', name: 'Daily', active: true, flag: null },
 ]
 
 async function render(content = cards, counts?: Record<string, number>) {
@@ -62,7 +62,7 @@ describe('CardListView', () => {
     ])
   })
 
-  it('loads the active cards and lists them with the translated type', async () => {
+  it('loads the active cards and lists them', async () => {
     const { wrapper } = await render()
 
     expect(cardsApi.findAll).toHaveBeenCalledWith(
@@ -72,8 +72,6 @@ describe('CardListView', () => {
     expect(rows).toHaveLength(2)
     expect(rows[0]!.text()).toContain('Travel')
     expect(rows[0]!.text()).toContain('Visa')
-    expect(rows[0]!.text()).toContain('Crédito')
-    expect(rows[1]!.text()).toContain('Débito')
     expect(rows[0]!.find('a').attributes('href')).toBe('/cards/k-1/detail')
   })
 
@@ -212,5 +210,21 @@ describe('CardListView', () => {
     await flushPromises()
     expect(stateOf(wrapper)).toBeUndefined()
     expect(wrapper.findAll('tbody tr')).toHaveLength(2)
+  })
+
+  it('opens with the state of the URL, which stays there', async () => {
+    const location = '/cards?filter=Ab&status=INACTIVE&page=2&size=30&sort=flag,asc'
+    serveListing(vi.mocked(cardsApi.findAll), cards, 70)
+
+    const { router } = await mountView(CardListView, 'cards', {}, {}, location)
+
+    expect(listingCalls(vi.mocked(cardsApi.findAll))[0]).toEqual({
+      filter: 'Ab',
+      status: 'INACTIVE',
+      page: 1,
+      size: 30,
+      sort: 'flag,asc',
+    })
+    expect(router.currentRoute.value.fullPath).toBe(location)
   })
 })

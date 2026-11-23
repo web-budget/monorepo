@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CalendarRange, Plus } from 'lucide-vue-next'
+import { CalendarRange, Clock, Plus } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -12,6 +12,7 @@ import ItemsTable from '@/components/listing/ItemsTable.vue'
 import ListState from '@/components/listing/ListState.vue'
 import PeriodStatusBadge from '@/components/listing/PeriodStatusBadge.vue'
 import SearchControls from '@/components/listing/SearchControls.vue'
+import { Alert, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { useCrudList } from '@/composables/useCrudList'
 import { useFinancialPeriodsStore } from '@/stores/financialPeriods'
@@ -23,7 +24,7 @@ const { pageRequest, pageResponse, loading } = storeToRefs(store)
 
 const statusOptions = [
   { label: 'financial-period.options.open', value: 'OPEN' },
-  { label: 'financial-period.options.accounted', value: 'ACCOUNTED' },
+  { label: 'financial-period.options.closed', value: 'CLOSED' },
   { label: 'financial-period.options.all', value: 'ALL' },
 ]
 
@@ -47,7 +48,8 @@ const {
   routeName: 'financial-periods',
   entity: 'financial-period',
   initialStatus: 'OPEN',
-  statuses: ['OPEN', 'ACCOUNTED', 'ALL'],
+  statuses: ['OPEN', 'CLOSED', 'ALL'],
+  sortFields: ['name', 'status'],
   pageRequest,
   pageResponse,
   loading,
@@ -55,6 +57,9 @@ const {
   count: store.count,
   remove: store.remove,
 })
+
+const expiredPeriods = computed(() => pageResponse.value.content.filter((period) => period.expired))
+const expiredNames = computed(() => expiredPeriods.value.map((period) => period.name).join(', '))
 
 const columns = computed(() => [
   { field: 'name', header: t('financial-period.table-columns.name'), sortable: true },
@@ -84,6 +89,18 @@ const columns = computed(() => [
         @on-filter-change="search()"
         @on-filter-reset="search()"
       />
+      <Alert v-if="expiredPeriods.length > 0" variant="attention" data-slot="expired-notice">
+        <Clock />
+        <AlertTitle>
+          {{
+            $t(
+              'financial-period.list.expired-notice',
+              { count: expiredPeriods.length, names: expiredNames },
+              expiredPeriods.length,
+            )
+          }}
+        </AlertTitle>
+      </Alert>
       <ServerErrorAlert :messages="messages" />
       <ListState
         v-if="listState !== 'table'"
@@ -103,9 +120,12 @@ const columns = computed(() => [
         :summary="searchSummary"
         :columns="columns"
         :show-status="false"
+        :marked-row="(period) => period.expired"
         :loading="busy"
         :current-page="pageRequest.current"
         :page-size="pageRequest.size"
+        :sorted-field="pageRequest.sortField"
+        :sorted-order="pageRequest.direction"
         detail-route="financial-periods.detail"
         @page-changed="onPageChange"
         @table-sorted="onTableSorted"
@@ -117,9 +137,15 @@ const columns = computed(() => [
         <template #cell-endingAt="{ item }">
           <DateTimeDisplay fix-time :value="item.endingAt" />
         </template>
-        <template #cell-status="{ item }"><PeriodStatusBadge :status="item.status" /></template>
+        <template #cell-status="{ item }"
+          ><PeriodStatusBadge :status="item.status" :expired="item.expired"
+        /></template>
         <template #actions="{ item }">
-          <ActionButtons @on-edit="changeToUpdate(item.id)" @on-delete="remove(item)" />
+          <ActionButtons
+            v-if="item.status === 'OPEN'"
+            @on-edit="changeToUpdate(item.id)"
+            @on-delete="remove(item)"
+          />
         </template>
       </ItemsTable>
     </div>

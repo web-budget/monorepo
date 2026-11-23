@@ -20,6 +20,7 @@ export const useFinancialPeriodsStore = defineStore('financialPeriods', () => {
     create: resource.create,
     update: resource.update,
     remove: resource.remove,
+    findResult: financialPeriodsApi.findResult,
     reset: resource.reset,
   }
 })
