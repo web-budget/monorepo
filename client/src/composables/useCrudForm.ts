@@ -1,10 +1,9 @@
 import type { FormContext, GenericObject } from 'vee-validate'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useConfirmDialog } from '@/composables/useConfirmDialog'
+import { useDiscardGuard } from '@/composables/useDiscardGuard'
 import { useNotification } from '@/composables/useNotification'
 import { useServerErrors } from '@/composables/useServerErrors'
-import { isPublicRoute } from '@/router/publicRoutes'
 
 type Resettable<Values extends GenericObject, Output extends GenericObject> = NonNullable<
   Parameters<FormContext<Values, Output>['resetForm']>[0]
@@ -31,12 +30,10 @@ export function useCrudForm<Values extends GenericObject, Output extends Generic
   options: CrudFormOptions<Values, Output, Entity>,
 ) {
   const router = useRouter()
-  const { confirmDiscard } = useConfirmDialog()
   const { showSuccess } = useNotification()
   const { messages, fields, clearFields, run } = useServerErrors()
 
   const submitting = ref(false)
-  const saved = ref(false)
   const loadingRecord = ref(false)
   const dirty = computed(() => options.form.meta.value.dirty)
 
@@ -58,6 +55,8 @@ export function useCrudForm<Values extends GenericObject, Output extends Generic
     const value = options.form.values.name
     return typeof value === 'string' ? value : ''
   }
+
+  const { saved } = useDiscardGuard(() => dirty.value, recordName)
 
   async function finish(id: string | undefined, updating: boolean) {
     if (!options.redirectToDetail) {
@@ -104,13 +103,6 @@ export function useCrudForm<Values extends GenericObject, Output extends Generic
     () => nextTick(focusFirstInvalidControl),
   )
 
-  const removeGuard = router.beforeEach((to) => {
-    if (saved.value || !dirty.value || isPublicRoute(to)) {
-      return true
-    }
-    return confirmDiscard(recordName())
-  })
-
   watch(() => options.form.values, clearFields, { deep: true })
 
   onMounted(() => {
@@ -119,8 +111,6 @@ export function useCrudForm<Values extends GenericObject, Output extends Generic
       return run(() => load(id))
     }
   })
-
-  onBeforeUnmount(removeGuard)
 
   return { messages, fields, submitting, loadingRecord, dirty, changeToList, onSubmit, run }
 }

@@ -3,7 +3,7 @@ import { toast } from 'vue-sonner'
 import { financialPeriodsApi } from '@/api/financialPeriods'
 import { buttonWithText, mountView, problem, settle } from '@/test/crud'
 import type { FinancialPeriodView } from '@/types'
-import FinancialPeriodFormView from '@/views/registration/financial-periods/FinancialPeriodFormView.vue'
+import FinancialPeriodFormView from '@/views/financial/periods/FinancialPeriodFormView.vue'
 
 vi.mock('@/api/financialPeriods')
 vi.mock('vue-sonner', () => ({
@@ -22,7 +22,8 @@ const existing: FinancialPeriodView = {
   name: 'January',
   startingAt: '2026-01-01',
   endingAt: '2026-01-31',
-  status: 'ACTIVE',
+  status: 'OPEN',
+  expired: false,
   revenuesGoal: 5000,
   expensesGoal: null,
 }

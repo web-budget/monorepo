@@ -1,0 +1,254 @@
+<script setup lang="ts">
+import { CreditCard, Plus } from 'lucide-vue-next'
+import { storeToRefs } from 'pinia'
+import { computed, onMounted, ref } from 'vue'
+import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+import { cardsApi } from '@/api/cards'
+import { financialPeriodsApi } from '@/api/financialPeriods'
+import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
+import PageContainer from '@/components/common/PageContainer.vue'
+import PageHeader from '@/components/common/PageHeader.vue'
+import FilterSelect from '@/components/forms/FilterSelect.vue'
+import ServerErrorAlert from '@/components/forms/ServerErrorAlert.vue'
+import InvoiceStatusBadge from '@/components/invoices/InvoiceStatusBadge.vue'
+import ItemsTable from '@/components/listing/ItemsTable.vue'
+import ListState, { type ListStateKind } from '@/components/listing/ListState.vue'
+import StatusTabs from '@/components/listing/StatusTabs.vue'
+import { Button } from '@/components/ui/button'
+import { useListFilters } from '@/composables/useListFilters'
+import { useServerErrors } from '@/composables/useServerErrors'
+import { ALL_PERIODS, INVOICE_FILTER_KEYS, useInvoicesStore } from '@/stores/invoices'
+import type {
+  CardListView,
+  FinancialPeriodListView,
+  InvoiceStatusFilter,
+  InvoiceView,
+} from '@/types'
+import { defaultPeriod } from '@/utils/movements'
+
+const OPTIONS_PAGE_SIZE = 100
+
+const { t } = useI18n()
+const router = useRouter()
+
+const store = useInvoicesStore()
+const { pageRequest, pageResponse, loading, filters } = storeToRefs(store)
+
+const loadErrors = useServerErrors()
+const optionErrors = useServerErrors()
+
+const periods = ref<FinancialPeriodListView[]>([])
+const cards = ref<CardListView[]>([])
+const counts = ref<Partial<Record<InvoiceStatusFilter, number | null>>>({})
+const loadFailed = ref(false)
+const initializing = ref(true)
+
+const statuses: InvoiceStatusFilter[] = ['ALL', 'OPEN', 'CLOSED', 'PAID']
+const statusOptions = [
+  { label: 'credit-card-invoice.options.all', value: 'ALL' },
+  { label: 'credit-card-invoice.options.open', value: 'OPEN' },
+  { label: 'credit-card-invoice.options.closed', value: 'CLOSED' },
+  { label: 'credit-card-invoice.options.paid', value: 'PAID' },
+]
+
+const { writeRoute } = useListFilters({
+  pageRequest,
+  initialStatus: 'ALL',
+  statuses,
+  sortFields: ['name', 'value', 'status'],
+  extra: { keys: INVOICE_FILTER_KEYS, values: filters },
+  onExternalChange: reload,
+})
+
+const ready = optionErrors
+  .run(async () => {
+    const [periodPage, cardPage] = await Promise.all([
+      financialPeriodsApi.findAll({ status: 'ALL', size: OPTIONS_PAGE_SIZE }),
+      cardsApi.findAll({ status: 'ACTIVE', size: OPTIONS_PAGE_SIZE, sort: 'name,asc' }),
+    ])
+    periods.value = periodPage.content
+    cards.value = cardPage.content
+  })
+  .then(applyDefaultPeriod)
+
+function applyDefaultPeriod() {
+  const period = defaultPeriod(periods.value)
+  if (filters.value.period === undefined && period) {
+    filters.value = { ...filters.value, period: period.id }
+  }
+}
+
+async function loadCounts() {
+  const entries = await Promise.all(
+    statuses.map(async (status) => [status, await store.count(status)] as const),
+  )
+  counts.value = Object.fromEntries(entries)
+}
+
+async function reload() {
+  await ready
+  writeRoute()
+  loadFailed.value = !(await loadErrors.run(store.findAll))
+  initializing.value = false
+}
+
+onMounted(async () => {
+  await reload()
+  void loadCounts()
+})
+
+const busy = computed(() => loading.value || initializing.value)
+const narrowed = computed(() => Boolean(filters.value.card) || pageRequest.value.status !== 'ALL')
+const listState = computed<ListStateKind | 'table'>(() => {
+  if (loadFailed.value) {
+    return 'error'
+  }
+  if (busy.value || pageResponse.value.totalElements > 0) {
+    return 'table'
+  }
+  return narrowed.value ? 'no-result' : 'empty'
+})
+
+const periodChoices = computed(() =>
+  periods.value.map((period) => ({ value: period.id, label: period.name })),
+)
+const cardChoices = computed(() =>
+  cards.value.map((card) => ({ value: card.id, label: card.name })),
+)
+
+const columns = computed(() => [
+  { field: 'name', header: t('credit-card-invoice.table-columns.card'), sortable: true },
+  { field: 'period', header: t('credit-card-invoice.table-columns.period') },
+  {
+    field: 'value',
+    header: t('credit-card-invoice.table-columns.value'),
+    sortable: true,
+    align: 'end' as const,
+  },
+  { field: 'status', header: t('credit-card-invoice.table-columns.status'), sortable: true },
+])
+
+function search() {
+  pageRequest.value.current = 0
+  return reload()
+}
+
+function changeFilter(key: string, value: string) {
+  filters.value = { ...filters.value, [key]: value }
+  return search()
+}
+
+function changePeriod(value: string) {
+  return changeFilter('period', value === '' ? ALL_PERIODS : value)
+}
+
+function changeStatus(status: string) {
+  pageRequest.value.status = status as InvoiceStatusFilter
+  return search()
+}
+
+function clearFilters() {
+  pageRequest.value.status = 'ALL'
+  filters.value = { period: ALL_PERIODS }
+  return search()
+}
+
+function onPageChange(event: { currentPage: number; pageSize: number }) {
+  pageRequest.value.size = event.pageSize
+  pageRequest.value.current = event.currentPage
+  return reload()
+}
+
+function onTableSorted(event: { sortField: string; sortOrder: 'asc' | 'desc' }) {
+  pageRequest.value.sortField = event.sortField
+  pageRequest.value.direction = event.sortOrder
+  return reload()
+}
+
+function createPurchase() {
+  return router.push('/financial/invoices/purchases/create')
+}
+
+function openDetail(invoice: { id: string }) {
+  return router.push({ name: 'invoices.detail', params: { id: invoice.id } })
+}
+</script>
+
+<template>
+  <PageContainer class="gap-6">
+    <PageHeader
+      :title="$t('credit-card-invoice.title')"
+      :description="$t('credit-card-invoice.list.description')"
+    >
+      <template #actions>
+        <Button type="button" @click="createPurchase()">
+          <Plus />{{ $t('credit-card-invoice.actions.new-purchase') }}
+        </Button>
+      </template>
+    </PageHeader>
+    <div class="grid gap-3">
+      <div class="flex flex-wrap items-end justify-between gap-3">
+        <div
+          class="grid w-full grid-cols-2 gap-3 md:w-auto md:grid-cols-[220px_220px]"
+          data-slot="filters"
+        >
+          <FilterSelect
+            :label="$t('credit-card-invoice.filters.period')"
+            :none-label="$t('credit-card-invoice.filters.all-periods')"
+            :options="periodChoices"
+            :model-value="filters.period === ALL_PERIODS ? '' : (filters.period ?? '')"
+            @update:model-value="changePeriod"
+          />
+          <FilterSelect
+            :label="$t('credit-card-invoice.filters.card')"
+            :none-label="$t('credit-card-invoice.filters.all-cards')"
+            :options="cardChoices"
+            :model-value="filters.card ?? ''"
+            @update:model-value="(value: string) => changeFilter('card', value)"
+          />
+        </div>
+        <StatusTabs
+          :status="pageRequest.status"
+          :options="statusOptions"
+          :counts="counts"
+          @select="changeStatus"
+        />
+      </div>
+      <ServerErrorAlert :messages="optionErrors.messages.value" />
+      <ListState
+        v-if="listState !== 'table'"
+        :kind="listState"
+        entity="credit-card-invoice"
+        :icon="CreditCard"
+        :creatable="false"
+        :query="''"
+        :message="loadErrors.messages.value[0]"
+        @clear="clearFilters()"
+        @retry="reload()"
+      />
+      <ItemsTable
+        v-else
+        :data="pageResponse.content"
+        :total-elements="pageResponse.totalElements"
+        :columns="columns"
+        :show-status="false"
+        :marked-row="(invoice: InvoiceView) => invoice.status === 'CLOSED'"
+        :loading="busy"
+        :current-page="pageRequest.current"
+        :page-size="pageRequest.size"
+        :sorted-field="pageRequest.sortField"
+        :sorted-order="pageRequest.direction"
+        detail-route="invoices.detail"
+        @page-changed="onPageChange"
+        @table-sorted="onTableSorted"
+        @row-selected="({ data }) => openDetail(data)"
+      >
+        <template #cell-name="{ item }">{{ item.card.name }}</template>
+        <template #cell-period="{ item }">{{ item.financialPeriod.name }}</template>
+        <template #cell-value="{ item }"><CurrencyDisplay :value="item.value" /></template>
+        <template #cell-status="{ item }"><InvoiceStatusBadge :status="item.status" /></template>
+      </ItemsTable>
+    </div>
+  </PageContainer>
+</template>
