@@ -69,6 +69,11 @@ data class LanguageForm(
     val language: Language?
 )
 
+data class DueDateNoticesForm(
+    @field:NotNull(message = IS_NULL)
+    val enabled: Boolean?
+)
+
 data class AuthConfigView(
     val googleAuthEnabled: Boolean
 )
@@ -135,6 +140,7 @@ data class SessionView(
     val email: String,
     val status: UserStatus,
     val language: Language,
+    val dueDateNotices: Boolean,
     val roles: List<String>
 ) {
 
@@ -145,6 +151,7 @@ data class SessionView(
             email = user.email,
             status = user.status,
             language = user.language,
+            dueDateNotices = user.dueDateNotices,
             roles = user.roles.sorted()
         )
     }

@@ -57,7 +57,8 @@ data class UserView(
     val defaultLanguage: Language,
     val authorities: List<String>,
     val status: UserStatus,
-    val totpEnabled: Boolean
+    val totpEnabled: Boolean,
+    val dueDateNotices: Boolean
 )
 
 data class UserFilter(

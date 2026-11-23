@@ -216,6 +216,14 @@ class AuthService(
     fun currentSession(): CurrentUser = currentUserProvider.getSessionUser()
 
     @Transactional
+    fun changeDueDateNotices(enabled: Boolean): CurrentUser {
+
+        userRepository.updateDueDateNotices(currentUserProvider.getSessionUser().id, enabled)
+
+        return currentUserProvider.getSessionUser()
+    }
+
+    @Transactional
     fun changeLanguage(language: Language): CurrentUser {
 
         userRepository.updateDefaultLanguage(currentUserProvider.getSessionUser().id, language)

@@ -13,7 +13,8 @@ class User(
     var authProvider: AuthProvider = AuthProvider.LOCAL,
     var credentialsVersion: Int = 0,
     var totpEnabled: Boolean = false,
-    var googleSub: String? = null
+    var googleSub: String? = null,
+    var dueDateNotices: Boolean = true
 ) : PersistentEntity() {
 
     fun isMainAdmin(): Boolean = this.email == ADMIN_USERNAME

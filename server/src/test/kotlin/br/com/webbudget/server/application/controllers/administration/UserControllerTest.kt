@@ -206,7 +206,8 @@ class UserControllerTest : BaseIntegrationTest() {
                   "defaultLanguage": "PT_BR",
                   "authorities": ["DASHBOARDS"],
                   "status": "APPROVED",
-                  "totpEnabled": false
+                  "totpEnabled": false,
+                  "dueDateNotices": true
                 }
                 """.trimIndent(),
                 JsonCompareMode.STRICT
