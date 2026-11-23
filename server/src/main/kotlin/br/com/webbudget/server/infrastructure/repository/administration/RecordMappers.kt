@@ -21,7 +21,8 @@ internal fun UsersRecord.toUser(grants: List<Grant> = emptyList()): User = User(
     authProvider = AuthProvider.valueOf(authProvider!!),
     credentialsVersion = credentialsVersion!!,
     totpEnabled = totpEnabled!!,
-    googleSub = googleSub
+    googleSub = googleSub,
+    dueDateNotices = dueDateNotices!!
 ).also { user -> user.restore(id, externalId, version, createdOn, lastUpdate) }
 
 internal fun RolesRecord.toRole(): Role = Role(name!!)

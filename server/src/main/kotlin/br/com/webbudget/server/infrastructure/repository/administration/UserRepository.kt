@@ -64,6 +64,28 @@ class UserRepository(
             .map { record -> record.toUser() }
     }
 
+    fun findDueDateNoticeRecipients(): List<User> {
+
+        val users = USERS.`as`("users")
+        val grants = GRANTS.`as`("grants")
+        val roles = ROLES.`as`("roles")
+
+        val financialGrants = DSL.selectOne()
+            .from(grants)
+            .join(roles).on(roles.ID.eq(grants.ID_ROLE))
+            .where(grants.ID_USER.eq(users.ID))
+            .and(roles.NAME.eq(Role.FINANCIAL))
+
+        return dsl.selectFrom(users)
+            .where(users.STATUS.eq(UserStatus.APPROVED.name))
+            .and(users.ACTIVE.isTrue)
+            .and(users.DUE_DATE_NOTICES.isTrue)
+            .and(DSL.exists(financialGrants))
+            .orderBy(users.ID.asc())
+            .fetch()
+            .map { record -> record.toUser() }
+    }
+
     fun findAll(filter: String?, active: Boolean?, status: UserStatus?, pageable: Pageable): PagedModel<User> {
 
         val users = USERS.`as`("users")
@@ -158,6 +180,15 @@ class UserRepository(
     fun updateDefaultLanguage(userId: Long, language: Language) {
         dsl.update(USERS)
             .set(USERS.DEFAULT_LANGUAGE, language.name)
+            .set(USERS.VERSION, USERS.VERSION.plus(1))
+            .set(USERS.LAST_UPDATE, LocalDateTime.now())
+            .where(USERS.ID.eq(userId))
+            .execute()
+    }
+
+    fun updateDueDateNotices(userId: Long, enabled: Boolean) {
+        dsl.update(USERS)
+            .set(USERS.DUE_DATE_NOTICES, enabled)
             .set(USERS.VERSION, USERS.VERSION.plus(1))
             .set(USERS.LAST_UPDATE, LocalDateTime.now())
             .where(USERS.ID.eq(userId))

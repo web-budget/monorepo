@@ -1,4 +1,6 @@
 web-budget:
+  scheduling:
+    enabled: false
   security:
     admin-default-password: test-admin-password
     login:

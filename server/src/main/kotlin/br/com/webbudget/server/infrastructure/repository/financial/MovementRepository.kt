@@ -1,6 +1,7 @@
 package br.com.webbudget.server.infrastructure.repository.financial
 
 import br.com.webbudget.server.domain.entities.financial.Invoice
+import br.com.webbudget.server.domain.entities.financial.DueMovement
 import br.com.webbudget.server.domain.entities.financial.ClosingSummary
 import br.com.webbudget.server.domain.entities.financial.Movement
 import br.com.webbudget.server.domain.entities.financial.Payment
@@ -110,6 +111,23 @@ class MovementRepository(
         .fetch()
         .associate { record ->
             Movement.Type.valueOf(record.value1()!!) to ClosingSummary.OpenTotal(record.value2()!!, record.value3() ?: BigDecimal.ZERO)
+        }
+
+    fun findOpenDueBetween(from: LocalDate, to: LocalDate): List<DueMovement> = dsl
+        .select(movements.NAME, movements.TYPE, movements.VALUE, movements.DUE_DATE, financialPeriods.NAME)
+        .from(movements)
+        .join(financialPeriods).on(financialPeriods.ID.eq(movements.ID_FINANCIAL_PERIOD))
+        .where(movements.STATUS.eq(Movement.Status.OPEN.name))
+        .and(movements.DUE_DATE.between(from, to))
+        .orderBy(movements.DUE_DATE, movements.NAME, movements.ID)
+        .fetch { record ->
+            DueMovement(
+                name = record.value1()!!,
+                type = Movement.Type.valueOf(record.value2()!!),
+                value = record.value3()!!,
+                dueDate = record.value4()!!,
+                financialPeriod = record.value5()!!
+            )
         }
 
     fun sumPaidValueByPeriodAndType(financialPeriodIds: Collection<Long>): Map<Long, Map<Movement.Type, BigDecimal>> = dsl

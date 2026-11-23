@@ -17,7 +17,8 @@ class UserMapper {
         defaultLanguage = user.defaultLanguage,
         authorities = user.grants.map { it.role.name },
         status = user.status,
-        totpEnabled = user.totpEnabled
+        totpEnabled = user.totpEnabled,
+        dueDateNotices = user.dueDateNotices
     )
 
     fun mapToDomain(form: UserCreateForm): User = User(
