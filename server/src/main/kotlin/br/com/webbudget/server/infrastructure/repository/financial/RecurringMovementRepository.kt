@@ -12,6 +12,7 @@ import br.com.webbudget.server.jooq.financial.tables.references.PAYMENTS
 import br.com.webbudget.server.jooq.financial.tables.references.RECURRING_LAUNCHES
 import br.com.webbudget.server.jooq.financial.tables.references.RECURRING_MOVEMENTS
 import br.com.webbudget.server.jooq.financial.tables.references.RECURRING_VALUES
+import br.com.webbudget.server.jooq.registration.tables.references.CARDS
 import br.com.webbudget.server.jooq.registration.tables.references.CLASSIFICATIONS
 import br.com.webbudget.server.jooq.registration.tables.references.COST_CENTERS
 import br.com.webbudget.server.jooq.registration.tables.references.FINANCIAL_PERIODS
@@ -34,6 +35,7 @@ class RecurringMovementRepository(
     private val recurringMovements = RECURRING_MOVEMENTS.`as`("recurring_movements")
     private val classifications = CLASSIFICATIONS.`as`("classifications")
     private val costCenters = COST_CENTERS.`as`("cost_centers")
+    private val cards = CARDS.`as`("cards")
 
     private val currentValue: Field<BigDecimal?> = run {
         val values = RECURRING_VALUES.`as`("current_values")
@@ -89,9 +91,10 @@ class RecurringMovementRepository(
                         .or(costCenters.NAME.containsIgnoreCase(text))
                 },
                 criteria.type?.let { recurringMovements.TYPE.eq(it.name) },
-                criteria.valueKinds?.takeIf { it.isNotEmpty() }
+                criteria.valueKinds
                     ?.let { kinds -> recurringMovements.VALUE_KIND.`in`(kinds.map(RecurringMovement.ValueKind::name)) },
                 criteria.active?.let { recurringMovements.ACTIVE.eq(it) },
+                criteria.cards?.let { cards.EXTERNAL_ID.`in`(it) },
                 criteria.finished?.let { requested -> if (requested) finished else DSL.not(finished) }
             )
         )
@@ -114,6 +117,7 @@ class RecurringMovementRepository(
             dsl.selectOne().from(recurringMovements)
                 .join(classifications).on(classifications.ID.eq(recurringMovements.ID_CLASSIFICATION))
                 .join(costCenters).on(costCenters.ID.eq(recurringMovements.ID_COST_CENTER))
+                .leftJoin(cards).on(cards.ID.eq(recurringMovements.ID_CARD))
                 .where(condition)
         )
 
@@ -152,6 +156,7 @@ class RecurringMovementRepository(
             .set(RECURRING_MOVEMENTS.ACTIVE, recurringMovement.active)
             .set(RECURRING_MOVEMENTS.ID_COST_CENTER, recurringMovement.costCenter.id)
             .set(RECURRING_MOVEMENTS.ID_CLASSIFICATION, recurringMovement.classification.id)
+            .set(RECURRING_MOVEMENTS.ID_CARD, recurringMovement.card?.id)
             .returning()
             .fetchSingle()
 
@@ -171,6 +176,7 @@ class RecurringMovementRepository(
             .set(RECURRING_MOVEMENTS.ACTIVE, recurringMovement.active)
             .set(RECURRING_MOVEMENTS.ID_COST_CENTER, recurringMovement.costCenter.id)
             .set(RECURRING_MOVEMENTS.ID_CLASSIFICATION, recurringMovement.classification.id)
+            .set(RECURRING_MOVEMENTS.ID_CARD, recurringMovement.card?.id)
             .set(RECURRING_MOVEMENTS.VERSION, RECURRING_MOVEMENTS.VERSION.plus(1))
             .set(RECURRING_MOVEMENTS.LAST_UPDATE, LocalDateTime.now())
             .where(RECURRING_MOVEMENTS.ID.eq(recurringMovement.id))
@@ -208,6 +214,7 @@ class RecurringMovementRepository(
             *recurringMovements.fields(),
             *classifications.fields(),
             *costCenters.fields(),
+            *cards.fields(),
             currentValue.`as`("current_value"),
             launchedInstallments.`as`("launched_installments"),
             lastPaidValue.`as`("last_paid_value"),
@@ -216,6 +223,7 @@ class RecurringMovementRepository(
         .from(recurringMovements)
         .join(classifications).on(classifications.ID.eq(recurringMovements.ID_CLASSIFICATION))
         .join(costCenters).on(costCenters.ID.eq(recurringMovements.ID_COST_CENTER))
+        .leftJoin(cards).on(cards.ID.eq(recurringMovements.ID_CARD))
 
     private fun launchedInPeriod(financialPeriod: UUID?): Field<UUID?> {
 
@@ -252,6 +260,7 @@ class RecurringMovementRepository(
             active = record.active!!,
             classification = into(classifications).toClassificationReference(),
             costCenter = into(costCenters).toCostCenterReference(),
+            card = into(cards).let { record -> record.id?.let { record.toCardReference() } },
             launchedInstallments = get("launched_installments", Int::class.javaObjectType),
             lastPaidValue = get("last_paid_value", BigDecimal::class.java),
             launchedInPeriod = get("launched_in_period", UUID::class.java)
@@ -267,5 +276,6 @@ data class RecurringMovementCriteria(
     val valueKinds: List<RecurringMovement.ValueKind>? = null,
     val active: Boolean? = null,
     val finished: Boolean? = null,
+    val cards: List<UUID>? = null,
     val financialPeriod: UUID? = null
 )

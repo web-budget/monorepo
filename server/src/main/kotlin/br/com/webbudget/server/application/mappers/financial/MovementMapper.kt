@@ -6,6 +6,7 @@ import br.com.webbudget.server.application.payloads.financial.MovementCreateForm
 import br.com.webbudget.server.application.payloads.financial.MovementFinancialPeriodView
 import br.com.webbudget.server.application.payloads.financial.MovementInvoiceView
 import br.com.webbudget.server.application.payloads.financial.MovementListView
+import br.com.webbudget.server.application.payloads.financial.MovementRecurringView
 import br.com.webbudget.server.application.payloads.financial.MovementUpdateForm
 import br.com.webbudget.server.application.payloads.financial.MovementView
 import br.com.webbudget.server.application.payloads.financial.PaymentCardView
@@ -47,6 +48,9 @@ class MovementMapper(
             payment = movement.payment?.let { mapToPaymentView(it) },
             invoice = movement.invoice?.let {
                 MovementInvoiceView(it.externalId!!, it.status.name, PaymentCardView(it.card.externalId, it.card.name))
+            },
+            recurringMovement = movement.recurringMovement?.let {
+                MovementRecurringView(it.externalId, it.name, it.card?.let { card -> PaymentCardView(card.externalId, card.name) })
             }
         )
     }

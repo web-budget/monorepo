@@ -54,6 +54,7 @@ class RecurringMovementController(
             valueKinds = filter.valueKinds,
             active = filter.active,
             finished = filter.finished,
+            cards = filter.cards,
             financialPeriod = filter.financialPeriod
         )
 

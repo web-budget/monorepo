@@ -16,6 +16,7 @@ class RecurringMovement(
     var active: Boolean,
     var classification: ClassificationReference,
     var costCenter: CostCenterReference,
+    var card: CardReference?,
     val launchedInstallments: Int? = null,
     val lastPaidValue: BigDecimal? = null,
     val launchedInPeriod: UUID? = null

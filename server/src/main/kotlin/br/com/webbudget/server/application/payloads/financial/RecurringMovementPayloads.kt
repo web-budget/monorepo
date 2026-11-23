@@ -32,11 +32,13 @@ data class RecurringMovementCreateForm(
     val installments: Int?,
     @field:Positive(message = IS_NOT_POSITIVE)
     val firstInstallment: Int?,
+    @field:NotNull(message = IS_NULL)
     val autoLaunch: Boolean?,
     @field:NotNull(message = IS_NULL)
     val classification: UUID?,
     @field:NotNull(message = IS_NULL)
-    val costCenter: UUID?
+    val costCenter: UUID?,
+    val card: UUID?
 )
 
 data class RecurringMovementUpdateForm(
@@ -47,11 +49,13 @@ data class RecurringMovementUpdateForm(
     val active: Boolean?,
     @field:Positive(message = IS_NOT_POSITIVE)
     val installments: Int?,
+    @field:NotNull(message = IS_NULL)
     val autoLaunch: Boolean?,
     @field:NotNull(message = IS_NULL)
     val classification: UUID?,
     @field:NotNull(message = IS_NULL)
-    val costCenter: UUID?
+    val costCenter: UUID?,
+    val card: UUID?
 )
 
 data class RecurringValueForm(
@@ -83,6 +87,7 @@ data class RecurringMovementFilter(
     val valueKinds: List<RecurringMovement.ValueKind>? = null,
     val active: Boolean? = null,
     val finished: Boolean? = null,
+    val cards: List<UUID>? = null,
     val financialPeriod: UUID? = null
 )
 
@@ -102,6 +107,7 @@ data class RecurringMovementView(
     val active: Boolean,
     val classification: MovementClassificationView,
     val costCenter: MovementCostCenterView,
+    val card: PaymentCardView?,
     val launchedInPeriod: UUID?,
     val createdOn: LocalDateTime
 )

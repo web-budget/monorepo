@@ -1,10 +1,12 @@
 package br.com.webbudget.server.application.controllers.financial
 
 import br.com.webbudget.server.BaseIntegrationTest
+import br.com.webbudget.server.jooq.financial.tables.references.CARD_PURCHASES
 import br.com.webbudget.server.jooq.financial.tables.references.MOVEMENTS
 import br.com.webbudget.server.jooq.financial.tables.references.RECURRING_LAUNCHES
 import br.com.webbudget.server.jooq.financial.tables.references.RECURRING_MOVEMENTS
 import br.com.webbudget.server.jooq.financial.tables.references.RECURRING_VALUES
+import br.com.webbudget.server.jooq.registration.tables.references.CARDS
 import org.assertj.core.api.Assertions.assertThat
 import org.jooq.DSLContext
 import org.junit.jupiter.api.Test
@@ -98,6 +100,7 @@ class RecurringMovementControllerTest : BaseIntegrationTest() {
             .jsonPath("$.parameters.name").isEqualTo("is-null-or-blank")
             .jsonPath("$.parameters.type").isEqualTo("is-null")
             .jsonPath("$.parameters.valueKind").isEqualTo("is-null")
+            .jsonPath("$.parameters.autoLaunch").isEqualTo("is-null")
             .jsonPath("$.parameters.value").isEqualTo("is-not-positive")
             .jsonPath("$.parameters.installments").isEqualTo("is-not-positive")
 
@@ -208,6 +211,11 @@ class RecurringMovementControllerTest : BaseIntegrationTest() {
             .jsonPath("$.launchedInstallments").isEqualTo(1)
             .jsonPath("$.nextInstallment").isEqualTo(2)
             .jsonPath("$.finished").isEqualTo(false)
+
+        restTestClient.get().uri("/private/v1/financial/movements/${movement.externalId}").exchange()
+            .expectBody()
+            .jsonPath("$.recurringMovement.id").isEqualTo(id)
+            .jsonPath("$.recurringMovement.card").doesNotExist()
     }
 
     @Test
@@ -482,6 +490,182 @@ class RecurringMovementControllerTest : BaseIntegrationTest() {
             .jsonPath("$.page.totalPages").isEqualTo(2)
     }
 
+    @Test
+    @Sql(
+        "/sql/financial/clear-tables.sql",
+        "/sql/financial/create-registration-data.sql",
+        "/sql/financial/create-invoices.sql"
+    )
+    @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
+    fun `should suggest a card for an expense and filter by it`() {
+
+        create("Life insurance", "FIXED", "59.90", extra = """, "card": "$CARD"""").expectStatus().isCreated
+        val insurance = lastRecurringId()
+        create("Streaming", "FIXED", "39.90").expectStatus().isCreated
+
+        restTestClient.get().uri("$ENDPOINT_URL/$insurance").exchange()
+            .expectBody()
+            .jsonPath("$.card.id").isEqualTo(CARD)
+            .jsonPath("$.card.name").isEqualTo("Financial test card")
+
+        assertNames("cards=$CARD", "Life insurance")
+        assertNames("cards=$OTHER_CARD")
+
+        restTestClient.put()
+            .uri("$ENDPOINT_URL/$insurance")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(updateBody("Life insurance", extra = """, "card": "$OTHER_CARD""""))
+            .exchange()
+            .expectStatus().isOk
+            .expectBody().jsonPath("$.card.id").isEqualTo(OTHER_CARD)
+
+        restTestClient.put()
+            .uri("$ENDPOINT_URL/$insurance")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(updateBody("Life insurance"))
+            .exchange()
+            .expectStatus().isOk
+            .expectBody().jsonPath("$.card").doesNotExist()
+    }
+
+    @Test
+    @Sql(
+        "/sql/financial/clear-tables.sql",
+        "/sql/financial/create-registration-data.sql",
+        "/sql/financial/create-invoices.sql"
+    )
+    @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
+    fun `should answer not found for unknown references and let an inactive one keep its inactive card`() {
+
+        create("Life insurance", "FIXED", "59.90", extra = """, "card": "$CARD"""").expectStatus().isCreated
+        val id = lastRecurringId()
+
+        create("Streaming", "FIXED", "39.90", costCenter = UUID.randomUUID().toString()).expectStatus().isNotFound
+
+        val unknown = UUID.randomUUID()
+
+        listOf(
+            """{"name": "A", "active": true, "autoLaunch": true, "classification": "$unknown", "costCenter": "$COST_CENTER"}""",
+            """{"name": "A", "active": true, "autoLaunch": true, "classification": "$EXPENSE_CLASSIFICATION", "costCenter": "$unknown"}""",
+            """{"name": "A", "active": true, "autoLaunch": true, "classification": "$EXPENSE_CLASSIFICATION", "costCenter": "$COST_CENTER", "card": "$unknown"}"""
+        ).forEach { body ->
+            restTestClient.put()
+                .uri("$ENDPOINT_URL/$id")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(body)
+                .exchange()
+                .expectStatus().isNotFound
+        }
+
+        dsl.update(CARDS).set(CARDS.ACTIVE, false).where(CARDS.ID.eq(9101L)).execute()
+
+        restTestClient.put()
+            .uri("$ENDPOINT_URL/$id")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(updateBody("Life insurance", active = false, extra = """, "card": "$CARD""""))
+            .exchange()
+            .expectStatus().isOk
+            .expectBody().jsonPath("$.active").isEqualTo(false)
+
+        restTestClient.put()
+            .uri("$ENDPOINT_URL/$id")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(updateBody("Life insurance", extra = """, "card": "$CARD""""))
+            .exchange()
+            .expectStatus().isBadRequest
+            .expectBody().jsonPath("$.error").isEqualTo("inactive-card")
+    }
+
+    @Test
+    @Sql(
+        "/sql/financial/clear-tables.sql",
+        "/sql/financial/create-registration-data.sql",
+        "/sql/financial/create-invoices.sql"
+    )
+    @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
+    fun `should refuse a card for an income, an inactive card and an unknown card`() {
+
+        create("Salary", "FIXED", "100.00", type = "INCOME", classification = INCOME_CLASSIFICATION, extra = """, "card": "$CARD"""")
+            .expectStatus().isBadRequest
+            .expectBody().jsonPath("$.error").isEqualTo("card-recurring-must-be-expense")
+
+        dsl.update(CARDS).set(CARDS.ACTIVE, false).where(CARDS.ID.eq(9102L)).execute()
+
+        create("Life insurance", "FIXED", "59.90", extra = """, "card": "$OTHER_CARD"""")
+            .expectStatus().isBadRequest
+            .expectBody().jsonPath("$.error").isEqualTo("inactive-card")
+
+        create("Life insurance", "FIXED", "59.90", extra = """, "card": "${UUID.randomUUID()}"""")
+            .expectStatus().isNotFound
+
+        assertThat(dsl.fetchCount(RECURRING_MOVEMENTS)).isZero()
+    }
+
+    @Test
+    @Sql(
+        "/sql/financial/clear-tables.sql",
+        "/sql/financial/create-registration-data.sql",
+        "/sql/financial/create-invoices.sql"
+    )
+    @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
+    fun `should pay the launched installment by card into the invoice of the period of the movement`() {
+
+        create("Phone", "FIXED", "249.90", extra = """, "installments": 3, "card": "$CARD"""").expectStatus().isCreated
+        val id = lastRecurringId()
+
+        launch(OPEN_PERIOD, id).expectStatus().isOk
+
+        val movement = dsl.selectFrom(MOVEMENTS).fetchSingle().externalId
+
+        restTestClient.get().uri("/private/v1/financial/movements/$movement").exchange()
+            .expectBody()
+            .jsonPath("$.recurringMovement.id").isEqualTo(id)
+            .jsonPath("$.recurringMovement.name").isEqualTo("Phone")
+            .jsonPath("$.recurringMovement.card.id").isEqualTo(CARD)
+
+        restTestClient.patch()
+            .uri("/private/v1/financial/movements/$movement/pay")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"card": "$CARD"}""")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.status").isEqualTo("PAID")
+            .jsonPath("$.payment.card.id").isEqualTo(CARD)
+
+        val purchase = dsl.selectFrom(CARD_PURCHASES).where(CARD_PURCHASES.NAME.eq("Phone 1/3")).fetchSingle()
+
+        assertThat(purchase.value).isEqualByComparingTo("249.90")
+        assertThat(purchase.idInvoice).isEqualTo(9101L)
+    }
+
+    @Test
+    @Sql(
+        "/sql/financial/clear-tables.sql",
+        "/sql/financial/create-registration-data.sql",
+        "/sql/financial/create-invoices.sql"
+    )
+    @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
+    fun `should refuse to pay the installment by card without an open invoice and keep it open`() {
+
+        create("Phone", "FIXED", "249.90", extra = """, "installments": 3, "card": "$CARD"""").expectStatus().isCreated
+
+        launch(OTHER_OPEN_PERIOD, lastRecurringId()).expectStatus().isOk
+
+        val movement = dsl.selectFrom(MOVEMENTS).fetchSingle().externalId
+
+        restTestClient.patch()
+            .uri("/private/v1/financial/movements/$movement/pay")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"card": "$CARD"}""")
+            .exchange()
+            .expectStatus().isBadRequest
+            .expectBody().jsonPath("$.error").isEqualTo("no-open-invoice")
+
+        assertThat(dsl.selectFrom(MOVEMENTS).fetchSingle().status).isEqualTo("OPEN")
+        assertThat(dsl.fetchCount(CARD_PURCHASES)).isZero()
+    }
+
     private fun create(
         name: String,
         valueKind: String,
@@ -501,9 +685,9 @@ class RecurringMovementControllerTest : BaseIntegrationTest() {
         )
         .exchange()
 
-    private fun updateBody(name: String, active: Boolean = true, installments: Int? = null) = """
+    private fun updateBody(name: String, active: Boolean = true, installments: Int? = null, extra: String = "") = """
         {"name": "$name", "active": $active, "autoLaunch": true, "installments": ${installments ?: "null"},
-         "classification": "$EXPENSE_CLASSIFICATION", "costCenter": "$COST_CENTER"}
+         "classification": "$EXPENSE_CLASSIFICATION", "costCenter": "$COST_CENTER"$extra}
     """.trimIndent()
 
     private fun launch(period: String, vararg recurringMovements: String, value: String? = null): ResponseSpec {
@@ -558,5 +742,7 @@ class RecurringMovementControllerTest : BaseIntegrationTest() {
         private const val OTHER_OPEN_PERIOD = "6248abb7-a8ad-4d2b-a0a4-0417b98cb008"
         private const val CLOSED_PERIOD = "6531c609-577b-4a45-82a9-debe0b53eeab"
         private const val WALLET = "7e1b6f3a-2c4d-4b8e-9a10-5d3f0c9b7a01"
+        private const val CARD = "3c9a7e52-1f4b-4d0a-8e6c-2b7d9f1a0b01"
+        private const val OTHER_CARD = "3c9a7e52-1f4b-4d0a-8e6c-2b7d9f1a0b02"
     }
 }

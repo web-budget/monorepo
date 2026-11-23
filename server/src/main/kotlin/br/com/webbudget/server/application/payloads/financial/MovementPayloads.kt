@@ -118,7 +118,8 @@ data class MovementView(
     val financialPeriod: MovementFinancialPeriodView,
     val description: String? = null,
     val payment: PaymentView? = null,
-    val invoice: MovementInvoiceView? = null
+    val invoice: MovementInvoiceView? = null,
+    val recurringMovement: MovementRecurringView? = null
 )
 
 data class MovementListView(
@@ -151,4 +152,10 @@ data class FinancialPeriodResultView(
     val revenues: BigDecimal,
     val expenses: BigDecimal,
     val result: BigDecimal
+)
+
+data class MovementRecurringView(
+    val id: UUID,
+    val name: String,
+    val card: PaymentCardView?
 )
