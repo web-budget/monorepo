@@ -90,6 +90,12 @@ export const financialRoutes: RouteRecordRaw[] = [
           },
         ],
       },
+      {
+        path: 'closing',
+        name: 'closing',
+        meta: { breadcrumb: 'period-closing.breadcrumb' },
+        component: () => import('@/views/financial/closing/PeriodClosingView.vue'),
+      },
       crudRoutes({
         path: 'movements',
         name: 'movements',

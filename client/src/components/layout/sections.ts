@@ -89,6 +89,7 @@ export const financialSection: ModuleSectionDefinition = {
     {
       label: 'period-closing.menu',
       icon: Lock,
+      to: '/financial/closing',
       description: 'module-home.items.period-closing',
     },
   ],

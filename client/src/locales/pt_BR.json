@@ -67,7 +67,15 @@
       "invoice-payment-not-payable-by-card": "O pagamento de fatura não se paga no cartão",
       "invoice-payment-locked": "O pagamento de fatura não pode ser alterado",
       "card-payment-only-for-expenses": "Só despesa se paga no cartão",
-      "payment-requires-wallet-or-card": "Escolha a carteira ou o cartão do pagamento"
+      "payment-requires-wallet-or-card": "Escolha a carteira ou o cartão do pagamento",
+      "no-open-period-after": "Não há período aberto depois do período do movimento",
+      "move-target-same-period": "O movimento já está nesse período",
+      "move-target-not-open": "O período de destino não está aberto",
+      "invoice-payment-moved": "O pagamento de fatura fora do período da fatura não se exclui. Mova-o de volta ou reabra o período",
+      "financial-period-with-open-movements": "O período ainda tem movimentos em aberto",
+      "financial-period-with-open-invoices": "O período ainda tem fatura aberta com compras",
+      "financial-period-not-closed": "O período não está encerrado",
+      "only-the-last-closed-period-can-be-reopened": "Só o último período encerrado reabre"
     },
     "not-found": {
       "detail": "Não encontrado",
@@ -692,7 +700,87 @@
   },
   "period-closing": {
     "title": "Fechamento",
-    "menu": "Fechamento"
+    "menu": "Fechamento",
+    "breadcrumb": "Fechando",
+    "title-of": "Fechamento de {name}",
+    "description": "Resolva as pendências e grave o resultado.",
+    "period": "Período a fechar",
+    "none": "Nenhum",
+    "summary": {
+      "revenues": "Receitas pagas",
+      "revenues-note": "Só o que foi recebido",
+      "expenses": "Despesas pagas",
+      "expenses-note": "Inclui pagamentos de fatura pagos",
+      "result": "Resultado",
+      "result-note": "Receitas − despesas",
+      "accumulated": "Acumulado",
+      "accumulated-note": "Fechados mais provisório dos abertos"
+    },
+    "pendencies": {
+      "title": "Pendências",
+      "hint": "Pague ou mova para outro período aberto.",
+      "none": "Nenhuma pendência",
+      "movement": "Movimento",
+      "due-date": "Vencimento",
+      "value": "Valor (R$)",
+      "invoice": "fatura",
+      "overdue": "vencido",
+      "move": "Mover",
+      "move-disabled": "Crie um período aberto para poder mover.",
+      "no-next": "Não há período aberto depois de {name}",
+      "no-next-hint": "Pague tudo ou crie um período para mover.",
+      "create-period": "Criar período"
+    },
+    "invoices": {
+      "title": "Faturas",
+      "hint": "Fatura aberta com compras bloqueia o fechamento.",
+      "none": "Nenhuma fatura neste período",
+      "close": "Fechar fatura",
+      "note": {
+        "blocking": "Bloqueia o fechamento",
+        "empty": "Fecha sozinha com valor zero",
+        "payment": "Pagamento de fatura nas pendências",
+        "paid": "Paga"
+      }
+    },
+    "checklist": {
+      "title": "Para fechar",
+      "pendencies": "Pendências resolvidas",
+      "invoices": "Faturas resolvidas",
+      "next-period": "Período seguinte aberto",
+      "close": "Fechar {name}"
+    },
+    "move": {
+      "title": "Mover “{name}”",
+      "description": "O movimento vai para outro período aberto.",
+      "period": "Período",
+      "none": "Escolha um período",
+      "expired": "expirado",
+      "confirm": "Mover"
+    },
+    "close": {
+      "title": "Fechar {name}?",
+      "description": "Grava o resultado e congela o período.",
+      "confirm": "Fechar período"
+    },
+    "reopen": {
+      "title": "Reabrir {name}?",
+      "description": "O resultado gravado é apagado e o período volta a aceitar lançamentos. Faturas fechadas sozinhas reabrem.",
+      "confirm": "Reabrir",
+      "only-last": "Só o último período encerrado reabre"
+    },
+    "actions": {
+      "close": "Fechar período",
+      "close-named": "Fechar {name}",
+      "reopen": "Reabrir"
+    },
+    "toast": {
+      "moved": "Movimento movido",
+      "moved-detail": "“{name}” foi para {period}.",
+      "closed": "{name} encerrado",
+      "closed-detail": "Resultado {result} gravado. Faturas vazias fecharam com valor zero.",
+      "reopened": "Período reaberto"
+    }
   },
   "wallet": {
     "title": "Carteiras",
@@ -820,7 +908,8 @@
       "name": "Nome",
       "starting-at": "Início",
       "ending-at": "Fim",
-      "status": "Status"
+      "status": "Status",
+      "result": "Resultado (R$)"
     },
     "status": {
       "open": "Aberto",
@@ -876,13 +965,14 @@
       "goals": "Metas",
       "goals-help": "Valores previstos de receitas e despesas no período.",
       "result": "Resultado provisório",
-      "result-closed": "Resultado",
+      "result-closed": "Resultado gravado",
       "movements": "Movimentos"
     },
     "result": {
       "revenues": "Receitas",
       "expenses": "Despesas",
-      "result": "Resultado"
+      "result": "Resultado",
+      "provisional": "provisório"
     },
     "actions": {
       "view-movements": "Ver movimentos"

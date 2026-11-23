@@ -29,11 +29,12 @@ describe('FinancialHomeView', () => {
       '/financial/statement',
       '/financial/invoices',
       '/financial/periods',
+      '/financial/closing',
     ])
     expect(links[4]!.find('[data-slot="module-card-count"]').text()).toBe('7')
     expect(financialPeriods.count).toHaveBeenCalledWith('ALL')
     const cards = wrapper.findAll('[aria-disabled="true"]')
-    expect(cards).toHaveLength(2)
+    expect(cards).toHaveLength(1)
     expect(cards.every((card) => card.text().includes('Em breve'))).toBe(true)
   })
 })

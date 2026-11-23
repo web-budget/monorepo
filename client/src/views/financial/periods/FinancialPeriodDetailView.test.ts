@@ -3,8 +3,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'vue-sonner'
 import { financialPeriodsApi } from '@/api/financialPeriods'
 import { useConfirmDialog } from '@/composables/useConfirmDialog'
-import { buttonWithText, mountView, problem } from '@/test/crud'
-import type { FinancialPeriodView } from '@/types'
+import { buttonWithText, mountView, pageOf, problem } from '@/test/crud'
+import type { FinancialPeriodListView, FinancialPeriodView } from '@/types'
 import FinancialPeriodDetailView from '@/views/financial/periods/FinancialPeriodDetailView.vue'
 
 vi.mock('@/api/financialPeriods')
@@ -28,11 +28,14 @@ const period: FinancialPeriodView = {
   expensesGoal: null,
 }
 
-const result = { revenues: 3000, expenses: 3500, result: -500 }
+const lastClosed: FinancialPeriodListView[] = []
 
-async function render(view: FinancialPeriodView = period) {
+const result = { revenues: 3000, expenses: 3500, result: -500, recorded: false }
+
+async function render(view: FinancialPeriodView = period, loaded = result) {
   vi.mocked(financialPeriodsApi.findById).mockResolvedValue(view)
-  vi.mocked(financialPeriodsApi.findResult).mockResolvedValue(result)
+  vi.mocked(financialPeriodsApi.findResult).mockResolvedValue(loaded)
+  vi.mocked(financialPeriodsApi.findAll).mockResolvedValue(pageOf(lastClosed))
   return mountView(FinancialPeriodDetailView, 'financial-periods', { id: 'p-1' })
 }
 
@@ -68,12 +71,12 @@ describe('FinancialPeriodDetailView', () => {
   })
 
   it('shows the closed result and offers no edit or removal for a closed period', async () => {
-    const { wrapper } = await render({ ...period, status: 'CLOSED' })
+    const { wrapper } = await render({ ...period, status: 'CLOSED' }, { ...result, recorded: true })
 
     expect(wrapper.find('[data-slot="page-title"]').element.parentElement!.textContent).toContain(
       'Encerrado',
     )
-    expect(wrapper.findAll('h2').map((title) => title.text())).toContain('Resultado')
+    expect(wrapper.findAll('h2').map((title) => title.text())).toContain('Resultado gravado')
     expect(wrapper.find('[data-slot="page-actions"]').exists()).toBe(false)
   })
 
@@ -175,3 +178,79 @@ describe('FinancialPeriodDetailView', () => {
     )
   })
 })
+
+describe('FinancialPeriodDetailView closing and reopening', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+    document.body.replaceChildren()
+  })
+
+  it('takes an open period to the closing screen', async () => {
+    const { wrapper, router } = await mountClosingTest(period)
+
+    await buttonWithText(wrapper, 'Fechar período').trigger('click')
+    await flushPromises()
+
+    expect(router.currentRoute.value.path).toBe('/financial/closing')
+    expect(router.currentRoute.value.query.period).toBe('p-1')
+  })
+
+  it('reopens the last closed period after confirmation and reloads the result', async () => {
+    const closed = { ...period, status: 'CLOSED' as const }
+    const { wrapper } = await mountClosingTest(closed, [{ id: 'p-1' }])
+    vi.mocked(financialPeriodsApi.reopen).mockResolvedValue(undefined)
+    const dialog = useConfirmDialog()
+
+    await buttonWithText(wrapper, 'Reabrir').trigger('click')
+    expect(dialog.state.options.title).toBe('Reabrir January?')
+    dialog.accept()
+    await flushPromises()
+
+    expect(financialPeriodsApi.reopen).toHaveBeenCalledWith('p-1')
+    expect(toast.success).toHaveBeenCalledWith('Período reaberto', {
+      description: undefined,
+      duration: 4000,
+    })
+    expect(financialPeriodsApi.findResult).toHaveBeenCalledTimes(2)
+  })
+
+  it('offers no reopening for a closed period that is not the last one', async () => {
+    const { wrapper } = await mountClosingTest({ ...period, status: 'CLOSED' }, [{ id: 'p-7' }])
+
+    expect(wrapper.find('[data-slot="page-actions"]').exists()).toBe(false)
+  })
+
+  it('shows what the server refuses when reopening', async () => {
+    const closed = { ...period, status: 'CLOSED' as const }
+    const { wrapper } = await mountClosingTest(closed, [{ id: 'p-1' }])
+    vi.mocked(financialPeriodsApi.reopen).mockRejectedValue(
+      problem(400, { error: 'only-the-last-closed-period-can-be-reopened' }),
+    )
+
+    await buttonWithText(wrapper, 'Reabrir').trigger('click')
+    useConfirmDialog().accept()
+    await flushPromises()
+
+    expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
+      'Só o último período encerrado reabre',
+    )
+  })
+
+  it('does not reopen when the confirmation is refused', async () => {
+    const closed = { ...period, status: 'CLOSED' as const }
+    const { wrapper } = await mountClosingTest(closed, [{ id: 'p-1' }])
+
+    await buttonWithText(wrapper, 'Reabrir').trigger('click')
+    useConfirmDialog().cancel()
+    await flushPromises()
+
+    expect(financialPeriodsApi.reopen).not.toHaveBeenCalled()
+  })
+})
+
+async function mountClosingTest(view: FinancialPeriodView, closedPage: { id: string }[] = []) {
+  vi.mocked(financialPeriodsApi.findById).mockResolvedValue(view)
+  vi.mocked(financialPeriodsApi.findResult).mockResolvedValue(result)
+  vi.mocked(financialPeriodsApi.findAll).mockResolvedValue(pageOf(closedPage as never[]))
+  return mountView(FinancialPeriodDetailView, 'financial-periods', { id: 'p-1' })
+}

@@ -96,6 +96,7 @@ function serve(periods = [november, october], content = movements) {
     revenues: 8400,
     expenses: 96.12,
     result: 8303.88,
+    recorded: false,
   })
   vi.mocked(movementsApi.findAll).mockImplementation((query: MovementQuery) =>
     Promise.resolve(
