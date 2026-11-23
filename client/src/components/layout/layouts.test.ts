@@ -84,8 +84,8 @@ describe('layouts', () => {
     expect(
       wrapper.findAll('[data-slot="sidebar-group-label"]').map((label) => label.text()),
     ).toEqual(['Dia a dia', 'Período'])
-    expect(wrapper.findAll('[data-slot="sidebar"] button[disabled]')).toHaveLength(1)
-    expect(wrapper.findAll('[data-slot="sidebar-menu"] a')).toHaveLength(6)
+    expect(wrapper.findAll('[data-slot="sidebar"] button[disabled]')).toHaveLength(0)
+    expect(wrapper.findAll('[data-slot="sidebar-menu"] a')).toHaveLength(7)
   })
 
   it('ConfigurationLayout links the users and still lists the integrations, disabled', async () => {

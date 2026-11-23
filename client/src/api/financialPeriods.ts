@@ -1,6 +1,7 @@
 import { apiClient } from './client'
 import { createdId } from './createdId'
 import type {
+  FinancialPeriodCreation,
   FinancialPeriodListView,
   FinancialPeriodResultView,
   FinancialPeriodView,
@@ -24,8 +25,13 @@ export const financialPeriodsApi = {
     return apiClient.get<FinancialPeriodView>(`${PATH}/${id}`).then((r) => r.data)
   },
 
-  create(form: FinancialPeriodCreateForm): Promise<string> {
-    return apiClient.post(PATH, form).then(createdId)
+  create(form: FinancialPeriodCreateForm): Promise<FinancialPeriodCreation> {
+    return apiClient
+      .post<Pick<FinancialPeriodCreation, 'recurringLaunch'>>(PATH, form)
+      .then((r) => ({
+        id: createdId(r),
+        recurringLaunch: r.data.recurringLaunch,
+      }))
   },
 
   update(id: string, form: FinancialPeriodUpdateForm): Promise<FinancialPeriodView> {

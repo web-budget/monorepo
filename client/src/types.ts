@@ -425,6 +425,7 @@ export interface MovementView {
   description: string | null
   payment: PaymentView | null
   invoice?: { id: string; status: InvoiceStatus; card: { id: string; name: string } } | null
+  recurringMovement?: { id: string; name: string; card: { id: string; name: string } | null } | null
 }
 
 export interface MovementListView {
@@ -624,4 +625,93 @@ export interface CardPurchaseView {
   classification: MovementClassificationView
   costCenter: MovementCostCenterView
   movement: string | null
+}
+
+export type RecurringValueKind = 'FIXED' | 'VARIABLE'
+
+export type RecurringMovementStatusFilter = 'ACTIVE' | 'FINISHED' | 'ALL'
+
+export interface RecurringMovementView {
+  id: string
+  name: string
+  type: MovementType
+  valueKind: RecurringValueKind
+  value: number
+  suggestedValue: number
+  installments: number | null
+  firstInstallment: number
+  launchedInstallments: number | null
+  nextInstallment: number | null
+  finished: boolean
+  autoLaunch: boolean
+  active: boolean
+  classification: MovementClassificationView
+  costCenter: MovementCostCenterView
+  card: { id: string; name: string } | null
+  launchedInPeriod: string | null
+  createdOn: string
+}
+
+export interface RecurringMovementCreateForm {
+  name: string
+  type: MovementType
+  valueKind: RecurringValueKind
+  value: number
+  installments: number | null
+  firstInstallment: number | null
+  autoLaunch: boolean
+  classification: string
+  costCenter: string
+  card: string | null
+}
+
+export interface RecurringMovementUpdateForm {
+  name: string
+  active: boolean
+  installments: number | null
+  autoLaunch: boolean
+  classification: string
+  costCenter: string
+  card: string | null
+}
+
+export interface RecurringValueForm {
+  value: number
+  reason: string | null
+}
+
+export interface RecurringValueView {
+  value: number
+  reason: string | null
+  validFrom: string
+}
+
+export interface RecurringMovementQuery {
+  filter?: string
+  type?: MovementType
+  valueKinds?: RecurringValueKind[]
+  active?: boolean
+  finished?: boolean
+  cards?: string[]
+  financialPeriod?: string
+  page?: number
+  size?: number
+  sort?: string
+}
+
+export interface RecurringLaunchItem {
+  id: string
+  value?: number
+}
+
+export type RecurringSkipReason = 'inactive' | 'finished' | 'already-launched-in-period'
+
+export interface RecurringLaunchReport {
+  launched: { recurringMovement: string; installment: number; movement: MovementListView }[]
+  skipped: { recurringMovement: string; name: string; reason: RecurringSkipReason }[]
+}
+
+export interface FinancialPeriodCreation {
+  id: string
+  recurringLaunch: RecurringLaunchReport
 }

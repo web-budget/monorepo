@@ -126,6 +126,7 @@ describe('MovementListView', () => {
     document.body.replaceChildren()
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date(2026, 10, 21))
+    vi.mocked(movementsApi.findById).mockResolvedValue({ recurringMovement: null } as never)
   })
 
   afterEach(() => {
@@ -444,6 +445,31 @@ describe('MovementListView', () => {
     expect(dialog.props('movement')).toBeNull()
     expect(listing().length).toBe(before + 1)
     expect(financialPeriodsApi.findResult).toHaveBeenCalledTimes(2)
+  })
+
+  it('opens the payment already on the card suggested by the recurring movement', async () => {
+    vi.mocked(movementsApi.findById).mockResolvedValue({
+      recurringMovement: { id: 'r-1', name: 'Celular', card: { id: 'k-1', name: 'Visa' } },
+    } as never)
+    const { wrapper } = await render()
+
+    await chooseRowAction(wrapper, 0, 'Pagar')
+
+    expect(movementsApi.findById).toHaveBeenCalledWith('m-1')
+    expect(wrapper.getComponent(PayMovementDialog).props('movement')).toMatchObject({
+      id: 'm-1',
+      suggestedCard: 'k-1',
+    })
+  })
+
+  it('does not open the payment when the movement cannot be loaded', async () => {
+    vi.mocked(movementsApi.findById).mockRejectedValue(problem(500))
+    const { wrapper } = await render()
+
+    await chooseRowAction(wrapper, 0, 'Pagar')
+
+    expect(wrapper.getComponent(PayMovementDialog).props('movement')).toBeNull()
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
   })
 
   it('closes the payment dialog without paying', async () => {

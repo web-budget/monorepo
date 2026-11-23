@@ -5,17 +5,33 @@ import { periodResultsApi } from '@/api/periodResults'
 import { useCrudResource } from '@/composables/useCrudResource'
 import { createPageRequest } from '@/utils/pageRequest'
 import type {
+  FinancialPeriodCreateForm,
   FinancialPeriodListView,
   FinancialPeriodResultView,
   FinancialPeriodStatusFilter,
   PeriodResultView,
+  RecurringLaunchReport,
 } from '@/types'
 
 const RESULTS_PAGE_SIZE = 100
 
+function emptyReport(): RecurringLaunchReport {
+  return { launched: [], skipped: [] }
+}
+
 export const useFinancialPeriodsStore = defineStore('financialPeriods', () => {
-  const resource = useCrudResource(financialPeriodsApi, () =>
-    createPageRequest<FinancialPeriodStatusFilter>({ status: 'OPEN' }),
+  const recurringLaunch = ref<RecurringLaunchReport>(emptyReport())
+
+  const resource = useCrudResource(
+    {
+      ...financialPeriodsApi,
+      create: async (form: FinancialPeriodCreateForm) => {
+        const creation = await financialPeriodsApi.create(form)
+        recurringLaunch.value = creation.recurringLaunch
+        return creation.id
+      },
+    },
+    () => createPageRequest<FinancialPeriodStatusFilter>({ status: 'OPEN' }),
   )
   const results = ref<Record<string, PeriodResultView>>({})
   const lastClosedId = ref<string | null>(null)
@@ -61,6 +77,7 @@ export const useFinancialPeriodsStore = defineStore('financialPeriods', () => {
   }
 
   function reset() {
+    recurringLaunch.value = emptyReport()
     results.value = {}
     lastClosedId.value = null
     resource.reset()
@@ -68,6 +85,7 @@ export const useFinancialPeriodsStore = defineStore('financialPeriods', () => {
 
   return {
     financialPeriod: resource.current,
+    recurringLaunch,
     results,
     lastClosedId,
     pageRequest: resource.pageRequest,

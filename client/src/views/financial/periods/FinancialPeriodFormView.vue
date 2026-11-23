@@ -30,6 +30,7 @@ const { messages, fields, submitting, loadingRecord, dirty, changeToList, onSubm
   create: (values) => store.create(toFinancialPeriodCreateForm(values)),
   update: (id, values) => store.update(id, toFinancialPeriodUpdateForm(values)),
   redirectToDetail: true,
+  toastParams: () => ({ count: store.recurringLaunch.launched.length }),
 })
 
 const updating = computed(() => props.id !== undefined)

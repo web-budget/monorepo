@@ -11,7 +11,7 @@ function render() {
 }
 
 describe('FinancialHomeView', () => {
-  it('shows the periods with their count and the other items as coming soon', async () => {
+  it('shows the periods with their count and every other item linked', async () => {
     const { financialPeriods, mountView } = render()
     vi.mocked(financialPeriods.count).mockResolvedValue(7)
 
@@ -27,14 +27,14 @@ describe('FinancialHomeView', () => {
       '/financial/movements',
       '/financial/transfers',
       '/financial/statement',
+      '/financial/recurring-movements',
       '/financial/invoices',
       '/financial/periods',
       '/financial/closing',
     ])
-    expect(links[4]!.find('[data-slot="module-card-count"]').text()).toBe('7')
+    expect(links[5]!.find('[data-slot="module-card-count"]').text()).toBe('7')
     expect(financialPeriods.count).toHaveBeenCalledWith('ALL')
     const cards = wrapper.findAll('[aria-disabled="true"]')
-    expect(cards).toHaveLength(1)
-    expect(cards.every((card) => card.text().includes('Em breve'))).toBe(true)
+    expect(cards).toHaveLength(0)
   })
 })

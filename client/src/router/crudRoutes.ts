@@ -10,9 +10,18 @@ interface CrudRouteOptions {
   list: LazyView
   form?: LazyView
   detail: LazyView
+  extra?: RouteRecordRaw[]
 }
 
-export function crudRoutes({ path, name, entity, list, form, detail }: CrudRouteOptions) {
+export function crudRoutes({
+  path,
+  name,
+  entity,
+  list,
+  form,
+  detail,
+  extra = [],
+}: CrudRouteOptions) {
   const formRoutes: RouteRecordRaw[] = form
     ? [
         {
@@ -36,6 +45,7 @@ export function crudRoutes({ path, name, entity, list, form, detail }: CrudRoute
     children: [
       { path: '', name, component: list },
       ...formRoutes,
+      ...extra,
       {
         path: ':id/detail',
         name: `${name}.detail`,
