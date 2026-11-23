@@ -21,11 +21,10 @@ const card: CardView = {
   id: 'k-1',
   name: 'Daily',
   lastFourDigits: '4321',
-  type: 'DEBIT',
   active: true,
   flag: 'Elo',
   wallet: { id: 'w-1', name: 'Main', type: 'BANK_ACCOUNT', bank: 'ACME', active: true },
-  invoicePaymentDay: null,
+  invoicePaymentDay: 10,
 }
 
 async function render(view: CardView = card) {
@@ -39,33 +38,26 @@ describe('CardDetailView', () => {
     document.body.replaceChildren()
   })
 
-  it('shows a debit card with its wallet', async () => {
+  it('shows a card with its invoice day and wallet', async () => {
     const { wrapper } = await render()
 
     expect(cardsApi.findById).toHaveBeenCalledWith('k-1')
     expect(wrapper.find('h1').text()).toBe('Daily')
     expect(wrapper.find('[data-slot="page-description"]').exists()).toBe(false)
     expect(wrapper.text()).toContain('Ativo')
-    expect(wrapper.findAll('h2').map((title) => title.text())).toEqual([
-      'Identificação',
-      'Carteira',
-    ])
-    expect(wrapper.text()).toContain('Débito')
+    expect(wrapper.findAll('h2').map((title) => title.text())).toEqual(['Identificação', 'Fatura'])
     expect(wrapper.text()).toContain('Main')
     expect(wrapper.text()).toContain('4321')
     expect(wrapper.text()).toContain('Elo')
   })
 
-  it('shows the invoice day of a credit card and a placeholder without wallet', async () => {
+  it('shows a placeholder when the card has no wallet', async () => {
     const { wrapper } = await render({
       ...card,
-      type: 'CREDIT',
       wallet: null,
-      invoicePaymentDay: 10,
     })
 
-    expect(wrapper.findAll('h2').map((title) => title.text())).toEqual(['Identificação', 'Fatura'])
-    expect(wrapper.text()).toContain('Crédito')
+    expect(wrapper.text()).toContain('---')
     expect(wrapper.text()).toContain('10')
   })
 

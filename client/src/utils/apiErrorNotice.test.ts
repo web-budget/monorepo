@@ -121,6 +121,24 @@ describe('describeApiError', () => {
     })
   })
 
+  it('explains a domain conflict that has its own message', () => {
+    const notice = describeApiError(
+      apiError(409, { error: 'transfer-already-returned', parameters: { transfer: 't-1' } }),
+    )
+
+    expect(notice?.details).toEqual([{ key: 'error.conflict.transfer-already-returned' }])
+  })
+
+  it('ignores a domain conflict code without message and reads the fields', () => {
+    const notice = describeApiError(
+      apiError(409, { error: 'unknown-code', parameters: { 'wallet.name': 'Main' } }),
+    )
+
+    expect(notice?.details).toEqual([
+      { key: 'error.conflict.wallet.name', params: { value: 'Main' }, field: 'name' },
+    ])
+  })
+
   it('drops conflicting fields that have no message', () => {
     const notice = describeApiError(
       apiError(409, { parameters: { 'wallet.name': 'Main', 'wallet.color': 'blue' } }),

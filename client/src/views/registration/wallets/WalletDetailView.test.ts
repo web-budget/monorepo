@@ -1,13 +1,16 @@
 import { flushPromises } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'vue-sonner'
+import { walletEntriesApi } from '@/api/walletEntries'
 import { walletsApi } from '@/api/wallets'
+import AdjustBalanceDialog from '@/components/wallets/AdjustBalanceDialog.vue'
 import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import { buttonWithText, mountView, problem } from '@/test/crud'
 import type { WalletView } from '@/types'
 import WalletDetailView from '@/views/registration/wallets/WalletDetailView.vue'
 
 vi.mock('@/api/wallets')
+vi.mock('@/api/walletEntries')
 vi.mock('vue-sonner', () => ({
   toast: {
     success: vi.fn<() => void>(),
@@ -77,6 +80,67 @@ describe('WalletDetailView', () => {
     expect(wrapper.find('dl').exists()).toBe(false)
     expect(buttonWithText(wrapper, 'Editar')).toBeDefined()
     expect(buttonWithText(wrapper, 'Remover')).toBeDefined()
+  })
+
+  it('links to a transfer from the wallet', async () => {
+    const { wrapper } = await render()
+
+    expect(wrapper.find('a[href="/financial/transfers/create?from=w-1"]').text()).toBe('Transferir')
+  })
+
+  it('links to the statement of the wallet', async () => {
+    const { wrapper } = await render()
+
+    expect(wrapper.find('a[href="/financial/statement?wallet=w-1"]').text()).toBe('Ver extrato')
+  })
+
+  it('adjusts the balance from the dialog and reloads the wallet', async () => {
+    vi.mocked(walletEntriesApi.adjust).mockResolvedValue({} as never)
+    const { wrapper } = await render()
+
+    await buttonWithText(wrapper, 'Ajustar saldo').trigger('click')
+    const dialog = wrapper.getComponent(AdjustBalanceDialog)
+    expect(dialog.props('wallet')).toEqual({ id: 'w-1', name: 'Main', balance: 10 })
+
+    dialog.vm.$emit('adjust', dialog.props('wallet'), { value: 1, name: 'Arredondamento' })
+    await flushPromises()
+
+    expect(walletEntriesApi.adjust).toHaveBeenCalledWith('w-1', {
+      value: 1,
+      name: 'Arredondamento',
+    })
+    expect(toast.success).toHaveBeenCalledWith('Saldo ajustado', expect.anything())
+    expect(dialog.props('wallet')).toBeNull()
+    expect(walletsApi.findById).toHaveBeenCalledTimes(2)
+  })
+
+  it('keeps the dialog open and shows the error when the adjustment fails', async () => {
+    vi.mocked(walletEntriesApi.adjust).mockRejectedValue(problem(400, { error: 'inactive-wallet' }))
+    const { wrapper } = await render()
+
+    await buttonWithText(wrapper, 'Ajustar saldo').trigger('click')
+    const dialog = wrapper.getComponent(AdjustBalanceDialog)
+    dialog.vm.$emit('adjust', dialog.props('wallet'), { value: 1, name: 'x' })
+    await flushPromises()
+
+    expect(dialog.props('wallet')).not.toBeNull()
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
+  })
+
+  it('closes the dialog without adjusting', async () => {
+    const { wrapper } = await render()
+
+    await buttonWithText(wrapper, 'Ajustar saldo').trigger('click')
+    wrapper.getComponent(AdjustBalanceDialog).vm.$emit('close')
+    await flushPromises()
+
+    expect(wrapper.getComponent(AdjustBalanceDialog).props('wallet')).toBeNull()
+  })
+
+  it('does not offer to adjust an inactive wallet', async () => {
+    const { wrapper } = await render({ ...wallet, active: false })
+
+    expect(buttonWithText(wrapper, 'Ajustar saldo').attributes('disabled')).toBeDefined()
   })
 
   it('goes to the edit form', async () => {

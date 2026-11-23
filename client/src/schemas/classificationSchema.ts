@@ -1,6 +1,6 @@
 import { toTypedSchema } from '@/schemas/typedSchema'
 import { z } from 'zod'
-import { blankToNull, optionalNumberSchema } from '@/schemas/fields'
+import { blankToNull } from '@/schemas/fields'
 import type {
   ClassificationCreateForm,
   ClassificationUpdateForm,
@@ -13,7 +13,6 @@ export const classificationSchema = z.object({
   active: z.boolean(),
   name: z.string().min(3).max(150),
   type: z.enum(CLASSIFICATION_TYPES),
-  budget: optionalNumberSchema(),
   description: z.string().nullish(),
 })
 
@@ -29,7 +28,6 @@ export function toClassificationCreateForm(
   return {
     name: values.name,
     type: values.type,
-    budget: values.budget,
     description: blankToNull(values.description),
   }
 }
@@ -40,7 +38,6 @@ export function toClassificationUpdateForm(
   return {
     name: values.name,
     active: values.active,
-    budget: values.budget,
     description: blankToNull(values.description),
   }
 }
@@ -52,7 +49,6 @@ export function toClassificationFormValues(
     active: classification.active,
     name: classification.name,
     type: classification.type,
-    budget: classification.budget,
     description: classification.description,
   }
 }
