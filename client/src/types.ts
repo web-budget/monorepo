@@ -152,13 +152,10 @@ export interface WalletListView {
   active: boolean
 }
 
-export type CardType = 'CREDIT' | 'DEBIT'
-
 export interface CardCreateForm {
   name: string
   lastFourDigits: string
-  invoicePaymentDay?: number | null
-  type: CardType
+  invoicePaymentDay: number
   wallet?: string | null
   flag?: string | null
 }
@@ -166,7 +163,7 @@ export interface CardCreateForm {
 export interface CardUpdateForm {
   name: string
   lastFourDigits: string
-  invoicePaymentDay?: number | null
+  invoicePaymentDay: number
   wallet?: string | null
   flag?: string | null
   active: boolean
@@ -176,17 +173,15 @@ export interface CardView {
   id: string
   name: string
   lastFourDigits: string
-  type: CardType
   active: boolean
   flag: string | null
   wallet: WalletListView | null
-  invoicePaymentDay: number | null
+  invoicePaymentDay: number
 }
 
 export interface CardListView {
   id: string
   name: string
-  type: CardType
   active: boolean
   flag: string | null
 }

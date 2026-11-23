@@ -20,7 +20,6 @@
         "number": "Account number \"{value}\" is already in use"
       },
       "card": {
-        "type": "Type is already in use",
         "last-four-digits": "Last digits \"{value}\" are already in use"
       },
       "classification": {
@@ -45,7 +44,6 @@
       "budget-limit-exceeded": "The budget available in the cost center for the selected type is R${available-budget}",
       "overlapping-start-end-dates": "There is already a financial period that covers the selected start and end dates",
       "start-date-after-end-date": "The start date must be before the end date",
-      "debit-card-without-wallet": "The debit card must be linked to a wallet",
       "invalid-invoice-payment-day": "{payment-day} is not a valid day of the month, use something between 1 and 30",
       "financial-period-not-open": "The financial period is not open and cannot be modified",
       "accounted-period-movement": "The movement belongs to an accounted period and cannot be changed",
@@ -689,12 +687,7 @@
     },
     "table-columns": {
       "name": "Name",
-      "type": "Type",
       "flag": "Network"
-    },
-    "type": {
-      "debit": "Debit",
-      "credit": "Credit"
     },
     "form": {
       "new": "New card",
@@ -702,22 +695,19 @@
       "detailing": "Card details",
       "deleting": "Deleting card",
       "name": "Name",
-      "type": "Type",
       "flag": "Network",
       "last-four-digits": "Last 4 digits",
-      "wallet": "Wallet",
-      "invoice-payment-day": "Due day",
-      "type-placeholder": "Select a type",
+      "wallet": "Wallet that pays the invoice",
+      "invoice-payment-day": "Invoice payment day",
       "wallet-search-empty": "No wallets found",
       "wallet-search-placeholder": "Type the name",
       "active-label": "Active",
-      "active-hint": "Deactivate to remove from listings",
-      "type-hint": "The type does not change after creation."
+      "active-hint": "Deactivate to remove from listings"
     },
     "list": {
-      "description": "Credit and debit cards used in entries.",
+      "description": "Credit cards.",
       "empty-title": "No cards yet",
-      "empty-description": "Register the cards you use. Debit cards draw from a wallet; credit cards go to the invoice.",
+      "empty-description": "Register the credit cards you use. Purchases go to the invoice.",
       "plural": "cards",
       "found": "{count} card found for “{query}” | {count} cards found for “{query}”"
     },
@@ -736,10 +726,8 @@
     "sections": {
       "identification": "Identification",
       "identification-help": "How the card appears in entries.",
-      "wallet": "Wallet",
-      "wallet-help": "The debit card draws from this wallet.",
       "invoice": "Invoice",
-      "invoice-help": "Day of the month the credit card invoice is due."
+      "invoice-help": "Used as a suggestion when paying the closed invoice. The wallet is suggested when paying and can be changed then."
     }
   },
   "financial-period": {
