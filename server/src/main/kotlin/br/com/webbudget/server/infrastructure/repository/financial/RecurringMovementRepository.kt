@@ -16,6 +16,7 @@ import br.com.webbudget.server.jooq.registration.tables.references.CARDS
 import br.com.webbudget.server.jooq.registration.tables.references.CLASSIFICATIONS
 import br.com.webbudget.server.jooq.registration.tables.references.COST_CENTERS
 import br.com.webbudget.server.jooq.registration.tables.references.FINANCIAL_PERIODS
+import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.Field
 import org.jooq.Record
@@ -80,8 +81,7 @@ class RecurringMovementRepository(
         pageable: Pageable
     ): PagedModel<RecurringMovement> {
 
-        val finished = recurringMovements.INSTALLMENTS.isNotNull
-            .and(DSL.coalesce(launchedInstallments, 0).ge(recurringMovements.INSTALLMENTS))
+        val finished = finishedCondition()
 
         val condition = DSL.and(
             listOfNotNull(
@@ -123,6 +123,14 @@ class RecurringMovementRepository(
 
         return pagedModelOf(content, pageable, total.toLong())
     }
+
+    fun findAutoLaunchable(): List<UUID> = dsl.select(recurringMovements.EXTERNAL_ID)
+        .from(recurringMovements)
+        .where(recurringMovements.ACTIVE.isTrue)
+        .and(recurringMovements.AUTO_LAUNCH.isTrue)
+        .and(DSL.not(finishedCondition()))
+        .orderBy(recurringMovements.ID)
+        .fetch { record -> record.value1()!! }
 
     fun findValues(recurringMovementId: Long, pageable: Pageable): PagedModel<RecurringValue> {
 
@@ -208,6 +216,9 @@ class RecurringMovementRepository(
             .where(RECURRING_MOVEMENTS.ID.eq(recurringMovement.id))
             .execute()
     }
+
+    private fun finishedCondition(): Condition = recurringMovements.INSTALLMENTS.isNotNull
+        .and(DSL.coalesce(launchedInstallments, 0).ge(recurringMovements.INSTALLMENTS))
 
     private fun selectJoined(financialPeriod: UUID?) = dsl
         .select(

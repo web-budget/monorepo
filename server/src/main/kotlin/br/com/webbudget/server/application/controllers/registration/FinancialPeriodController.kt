@@ -1,7 +1,9 @@
 package br.com.webbudget.server.application.controllers.registration
 
+import br.com.webbudget.server.application.mappers.financial.RecurringMovementMapper
 import br.com.webbudget.server.application.mappers.registration.FinancialPeriodMapper
 import br.com.webbudget.server.application.payloads.registration.FinancialPeriodCreateForm
+import br.com.webbudget.server.application.payloads.registration.FinancialPeriodCreatedView
 import br.com.webbudget.server.application.payloads.registration.FinancialPeriodFilter
 import br.com.webbudget.server.application.payloads.registration.FinancialPeriodListView
 import br.com.webbudget.server.application.payloads.registration.FinancialPeriodStatusFilter
@@ -34,6 +36,7 @@ import java.util.UUID
 @RequestMapping("/registration/financial-periods")
 class FinancialPeriodController(
     private val financialPeriodMapper: FinancialPeriodMapper,
+    private val recurringMovementMapper: RecurringMovementMapper,
     private val financialPeriodService: FinancialPeriodService,
     private val financialPeriodRepository: FinancialPeriodRepository
 ) {
@@ -62,16 +65,18 @@ class FinancialPeriodController(
             .let { ResponseEntity.ok(it) }
 
     @PostMapping
-    fun create(@RequestBody @Valid form: FinancialPeriodCreateForm): ResponseEntity<Void> {
+    fun create(@RequestBody @Valid form: FinancialPeriodCreateForm): ResponseEntity<FinancialPeriodCreatedView> {
 
         val created = financialPeriodService.create(financialPeriodMapper.mapToDomain(form))
 
         val location = ServletUriComponentsBuilder.fromCurrentRequest()
             .path("/{id}")
-            .buildAndExpand(created)
+            .buildAndExpand(created.externalId)
             .toUri()
 
-        return ResponseEntity.created(location).build()
+        val view = FinancialPeriodCreatedView(recurringMovementMapper.mapToView(created.recurringLaunch!!))
+
+        return ResponseEntity.created(location).body(view)
     }
 
     @PutMapping("/{id}")
