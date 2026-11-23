@@ -17,8 +17,8 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { useServerErrors } from '@/composables/useServerErrors'
-import { createPaymentSchema, toPaymentForm } from '@/schemas/movementSchema'
-import type { MovementType, PaymentForm, WalletListView } from '@/types'
+import { createPaymentSchema, PAYMENT_METHODS, toPaymentForm } from '@/schemas/movementSchema'
+import type { CardListView, MovementType, PaymentForm, WalletListView } from '@/types'
 import { formatLocalDate } from '@/utils/localDate'
 
 interface PayableMovement {
@@ -26,11 +26,13 @@ interface PayableMovement {
   name: string
   type: MovementType
   value: number
+  invoicePayment?: boolean
 }
 
 const props = defineProps<{
   movement: PayableMovement | null
   wallets: WalletListView[]
+  cards: CardListView[]
   loading: boolean
   balanceOf: (walletId: string) => Promise<number>
 }>()
@@ -40,13 +42,33 @@ const emit = defineEmits<{ close: []; pay: [movement: PayableMovement, form: Pay
 const { t } = useI18n()
 const balanceErrors = useServerErrors()
 
+function initialValues() {
+  return {
+    paidOn: formatLocalDate(new Date()),
+    via: 'WALLET' as const,
+    wallet: '',
+    card: '',
+    discount: null,
+  }
+}
+
 const form = useForm({
   validationSchema: createPaymentSchema(() => props.movement?.value ?? 0),
-  initialValues: { paidOn: formatLocalDate(new Date()), wallet: '', discount: null },
+  initialValues: initialValues(),
 })
 
 const balance = ref<number | null>(null)
 
+const onCard = computed(() => form.values.via === 'CARD')
+const cardAllowed = computed(
+  () => props.movement?.type === 'EXPENSE' && !props.movement.invoicePayment,
+)
+const methodOptions = computed(() =>
+  PAYMENT_METHODS.map((method) => ({ value: method, label: t(`movement.pay.method.${method}`) })),
+)
+const cardOptions = computed(() =>
+  props.cards.map((card) => ({ value: card.id, label: card.name })),
+)
 const receiving = computed(() => props.movement?.type === 'INCOME')
 const walletOptions = computed(() =>
   props.wallets.map((wallet) => ({ value: wallet.id, label: wallet.name })),
@@ -61,7 +83,7 @@ watch(
   () => props.movement,
   () =>
     form.resetForm({
-      values: { paidOn: formatLocalDate(new Date()), wallet: '', discount: null },
+      values: initialValues(),
     }),
 )
 
@@ -98,6 +120,20 @@ const submit = form.handleSubmit((values) => {
         </DialogHeader>
         <InputField name="paidOn" type="date" :label="t('movement.pay.paid-on')" required />
         <SelectField
+          v-if="cardAllowed"
+          name="via"
+          :label="t('movement.pay.method.label')"
+          :options="methodOptions"
+        />
+        <SelectField
+          v-if="onCard"
+          name="card"
+          :label="t('movement.pay.card')"
+          :options="cardOptions"
+          required
+        />
+        <SelectField
+          v-else
           name="wallet"
           :label="t('movement.pay.wallet')"
           :options="walletOptions"
@@ -109,7 +145,7 @@ const submit = form.handleSubmit((values) => {
           class="bg-muted/50 grid gap-1.5 rounded-md border p-3 text-sm"
           data-slot="payment-summary"
         >
-          <div v-if="balance !== null" class="flex justify-between gap-3">
+          <div v-if="!onCard && balance !== null" class="flex justify-between gap-3">
             <dt class="text-muted-foreground">{{ t('movement.pay.wallet-balance') }}</dt>
             <dd><CurrencyDisplay :value="balance" /></dd>
           </div>
@@ -127,10 +163,16 @@ const submit = form.handleSubmit((values) => {
             </dt>
             <dd><CurrencyDisplay :value="amount" /></dd>
           </div>
-          <div v-if="balanceAfter !== null" class="flex justify-between gap-3 font-semibold">
+          <div
+            v-if="!onCard && balanceAfter !== null"
+            class="flex justify-between gap-3 font-semibold"
+          >
             <dt>{{ t('movement.pay.balance-after') }}</dt>
             <dd><CurrencyDisplay :value="balanceAfter" /></dd>
           </div>
+          <p v-if="onCard" class="text-muted-foreground text-xs" data-slot="card-note">
+            {{ t('movement.pay.card-note') }}
+          </p>
         </dl>
         <DialogFooter>
           <Button type="button" variant="outline" @click="emit('close')">

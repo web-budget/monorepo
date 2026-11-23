@@ -3,7 +3,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import MovementStatusBadge from '@/components/movements/MovementStatusBadge.vue'
 import i18n from '@/locales'
 
-function render(props: { status: 'OPEN' | 'PAID'; overdue: boolean; dueDate: string }) {
+function render(props: {
+  status: 'OPEN' | 'PAID'
+  overdue: boolean
+  dueDate: string
+  onCard?: boolean
+}) {
   return mount(MovementStatusBadge, { props, global: { plugins: [i18n] } })
 }
 
@@ -25,5 +30,11 @@ describe('MovementStatusBadge', () => {
     [{ status: 'OPEN', overdue: true, dueDate: '2026-11-21' }, 'Vencido'],
   ] as const)('shows %o as %s', (props, text) => {
     expect(render(props).text()).toBe(text)
+  })
+
+  it('says when the movement was paid on a card', () => {
+    expect(
+      render({ status: 'PAID', overdue: false, dueDate: '2026-11-05', onCard: true }).text(),
+    ).toBe('Pago no cartão')
   })
 })

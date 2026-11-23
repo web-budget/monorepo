@@ -1,6 +1,7 @@
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'vue-sonner'
+import { cardsApi } from '@/api/cards'
 import { movementsApi } from '@/api/movements'
 import { walletsApi } from '@/api/wallets'
 import PayMovementDialog from '@/components/movements/PayMovementDialog.vue'
@@ -9,6 +10,7 @@ import { buttonWithText, mountView, pageOf, problem } from '@/test/crud'
 import type { MovementView } from '@/types'
 import MovementDetailView from '@/views/financial/movements/MovementDetailView.vue'
 
+vi.mock('@/api/cards')
 vi.mock('@/api/movements')
 vi.mock('@/api/wallets')
 vi.mock('vue-sonner', () => ({
@@ -71,6 +73,7 @@ describe('MovementDetailView', () => {
     vi.mocked(walletsApi.findAll).mockResolvedValue(
       pageOf([{ id: 'w-1', name: 'Conta' }] as never[]),
     )
+    vi.mocked(cardsApi.findAll).mockResolvedValue(pageOf([{ id: 'c-1', name: 'Visa' }] as never[]))
   })
 
   afterEach(() => {
@@ -128,6 +131,32 @@ describe('MovementDetailView', () => {
 
     expect(wrapper.text()).toContain('Cartão de crédito')
     expect(wrapper.text()).toContain('Visa')
+    expect(wrapper.text()).toContain('Pago no cartão')
+  })
+
+  it('shows an invoice payment with its invoice instead of the classification, and cannot be edited', async () => {
+    const { wrapper } = await render({
+      ...open,
+      overdue: false,
+      classification: null,
+      costCenter: null,
+      invoice: { id: 'i-1', status: 'CLOSED', card: { id: 'c-1', name: 'Visa' } },
+    })
+
+    expect(wrapper.findAll('h2').map((title) => title.text())).toEqual([
+      'Identificação',
+      'Fatura',
+      'Pagamento',
+    ])
+    expect(wrapper.text()).toContain('Fechada')
+    expect(wrapper.find('a[href="/financial/invoices/i-1/detail"]').text()).toBe('Abrir a fatura')
+    expect(buttons(wrapper)).not.toContain('Editar')
+    expect(buttons(wrapper)).toContain('Remover')
+
+    await buttonWithText(wrapper, 'Pagar').trigger('click')
+    expect(wrapper.getComponent(PayMovementDialog).props('movement')).toMatchObject({
+      invoicePayment: true,
+    })
   })
 
   it('says the period is closed and offers nothing to change', async () => {

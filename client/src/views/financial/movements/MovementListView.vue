@@ -22,6 +22,7 @@ import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { useCrudList } from '@/composables/useCrudList'
+import { useActiveCards } from '@/composables/useActiveCards'
 import { useActiveWallets } from '@/composables/useActiveWallets'
 import { useMovementActions } from '@/composables/useMovementActions'
 import { useMovementFilterOptions } from '@/composables/useMovementFilterOptions'
@@ -108,18 +109,24 @@ const {
       ...values,
       type: values.type === 'INCOME' || values.type === 'EXPENSE' ? values.type : '',
       overdue: values.overdue === 'true' ? 'true' : '',
+      invoices: values.invoices === 'true' ? 'true' : '',
     }),
   },
 })
 
 const activeWallets = useActiveWallets()
+const activeCards = useActiveCards()
 const walletErrors = useServerErrors()
 const actions = useMovementActions(async () => {
   await reload()
   await loadResult()
 })
 
-onMounted(() => walletErrors.run(activeWallets.load))
+onMounted(() =>
+  walletErrors.run(async () => {
+    await Promise.all([activeWallets.load(), activeCards.load()])
+  }),
+)
 
 const selectedPeriod = computed(() =>
   filterOptions.periods.value.find((period) => period.id === filters.value.period),
@@ -165,7 +172,7 @@ const description = computed(() =>
 )
 
 const activeFilters = computed(() => {
-  const narrowed = ['type', 'costCenter', 'classification', 'overdue'].filter(
+  const narrowed = ['type', 'costCenter', 'classification', 'overdue', 'invoices'].filter(
     (key) => filters.value[key],
   ).length
   return narrowed + (filters.value.period === defaultPeriodId.value ? 0 : 1)
@@ -281,7 +288,7 @@ onMounted(async () => {
         @on-filter-reset="search()"
       />
       <div
-        class="grid grid-cols-2 items-end gap-3 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto_auto]"
+        class="grid grid-cols-2 items-end gap-3 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto_auto_auto]"
         data-slot="filters"
       >
         <FilterSelect
@@ -320,6 +327,14 @@ onMounted(async () => {
             @update:model-value="(value: boolean) => changeFilter('overdue', value ? 'true' : '')"
           />
           <Label for="movement-overdue">{{ $t('movement.filters.overdue') }}</Label>
+        </div>
+        <div class="flex h-9 items-center gap-2.5 self-end">
+          <Switch
+            id="movement-invoices"
+            :model-value="filters.invoices === 'true'"
+            @update:model-value="(value: boolean) => changeFilter('invoices', value ? 'true' : '')"
+          />
+          <Label for="movement-invoices">{{ $t('movement.filters.invoices') }}</Label>
         </div>
         <Button
           type="button"
@@ -409,6 +424,7 @@ onMounted(async () => {
     <PayMovementDialog
       :movement="actions.payTarget.value"
       :wallets="activeWallets.wallets.value"
+      :cards="activeCards.cards.value"
       :loading="loading"
       :balance-of="activeWallets.balanceOf"
       @close="actions.closePay()"

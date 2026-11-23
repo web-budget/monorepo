@@ -11,6 +11,7 @@ interface MovementTarget {
   name: string
   type: MovementType
   value: number
+  invoicePayment?: boolean
 }
 
 export function useMovementActions(reload: () => Promise<unknown> | unknown) {

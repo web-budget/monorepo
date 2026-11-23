@@ -1,6 +1,7 @@
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'vue-sonner'
+import { cardsApi } from '@/api/cards'
 import { classificationsApi } from '@/api/classifications'
 import { costCentersApi } from '@/api/costCenters'
 import { financialPeriodsApi } from '@/api/financialPeriods'
@@ -20,6 +21,7 @@ import type {
 } from '@/types'
 import MovementListViewUnderTest from '@/views/financial/movements/MovementListView.vue'
 
+vi.mock('@/api/cards')
 vi.mock('@/api/movements')
 vi.mock('@/api/financialPeriods')
 vi.mock('@/api/costCenters')
@@ -87,6 +89,7 @@ const COUNTS: Record<string, number> = { ALL: 2, OPEN: 1, PAID: 1 }
 function serve(periods = [november, october], content = movements) {
   vi.mocked(financialPeriodsApi.findAll).mockResolvedValue(pageOf(periods))
   vi.mocked(walletsApi.findAll).mockResolvedValue(pageOf([{ id: 'w-1', name: 'Conta' }] as never[]))
+  vi.mocked(cardsApi.findAll).mockResolvedValue(pageOf([{ id: 'c-1', name: 'Visa' }] as never[]))
   vi.mocked(costCentersApi.findAll).mockResolvedValue(pageOf(costCenters))
   vi.mocked(classificationsApi.findAll).mockResolvedValue(pageOf(classifications))
   vi.mocked(financialPeriodsApi.findResult).mockResolvedValue({
@@ -256,6 +259,22 @@ describe('MovementListView', () => {
     wrapper.getComponent(Switch).vm.$emit('update:modelValue', false)
     await flushPromises()
     expect(listing().slice(-1)[0]![0].overdue).toBeUndefined()
+  })
+
+  it('filters the invoice payments and keeps the filter in the URL', async () => {
+    const { wrapper, router } = await render('/movements?period=p-11&invoices=maybe')
+    expect(listing()[0]![0].invoicePayments).toBeUndefined()
+
+    wrapper.findAllComponents(Switch)[1]!.vm.$emit('update:modelValue', true)
+    await flushPromises()
+
+    expect(listing().slice(-1)[0]![0]).toMatchObject({ invoicePayments: true })
+    expect(router.currentRoute.value.query.invoices).toBe('true')
+
+    wrapper.findAllComponents(Switch)[1]!.vm.$emit('update:modelValue', false)
+    await flushPromises()
+
+    expect(listing().slice(-1)[0]![0].invoicePayments).toBeUndefined()
   })
 
   it('drops a classification that does not belong to the chosen type', async () => {

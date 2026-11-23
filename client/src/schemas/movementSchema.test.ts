@@ -113,6 +113,18 @@ describe('movement form conversions', () => {
     })
   })
 
+  it('builds the payment form of a card payment', () => {
+    expect(
+      toPaymentForm({
+        paidOn: '2026-11-21',
+        via: 'CARD',
+        card: 'k-1',
+        wallet: 'w-1',
+        discount: null,
+      }),
+    ).toEqual({ card: 'k-1', paidOn: '2026-11-21', discount: null })
+  })
+
   it('reads a movement back into form values', () => {
     const movement = {
       name: 'Salário',
