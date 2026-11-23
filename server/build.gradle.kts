@@ -52,7 +52,7 @@ repositories {
 
 val kotlinLoggingJvmVersion = "8.0.4"
 val postgresDriverVersion = "42.7.14"
-val greenMailVersion = "2.1.14"
+val greenMailVersion = "2.1.15"
 val totpVersion = "1.7.1"
 val zxingVersion = "3.5.4"
 
