@@ -67,7 +67,11 @@
       "invoice-payment-not-payable-by-card": "O pagamento de fatura não se paga no cartão",
       "invoice-payment-locked": "O pagamento de fatura não pode ser alterado",
       "card-payment-only-for-expenses": "Só despesa se paga no cartão",
-      "payment-requires-wallet-or-card": "Escolha a carteira ou o cartão do pagamento"
+      "payment-requires-wallet-or-card": "Escolha a carteira ou o cartão do pagamento",
+      "recurring-movement-with-launches": "O recorrente já tem lançamentos e não pode ser excluído. Desative-o para parar de lançar.",
+      "card-recurring-must-be-expense": "Só a despesa pode ter cartão sugerido",
+      "inactive-card": "O cartão está inativo",
+      "launch-value-only-for-variable": "Só o recorrente variável aceita um valor no lançamento"
     },
     "not-found": {
       "detail": "Não encontrado",
@@ -612,7 +616,142 @@
   },
   "recurrent-movement": {
     "title": "Recorrentes",
-    "menu": "Recorrentes"
+    "menu": "Recorrentes",
+    "list": {
+      "description": "Modelos que lançam movimentos e compras a cada período.",
+      "create": "Novo recorrente",
+      "empty-title": "Nenhum recorrente ainda",
+      "empty-description": "Cadastre um modelo para lançar o aluguel, a internet ou uma compra parcelada a cada período.",
+      "plural": "os recorrentes",
+      "found": "{count} recorrente encontrado para “{query}” | {count} recorrentes encontrados para “{query}”"
+    },
+    "search": {
+      "placeholder": "Nome, centro de custo ou classificação"
+    },
+    "status-tabs": {
+      "active": "Ativos",
+      "finished": "Encerrados"
+    },
+    "filters": {
+      "type": "Tipo",
+      "all-types": "Todas",
+      "incomes": "Receitas",
+      "expenses": "Despesas",
+      "clear": "Limpar"
+    },
+    "table-columns": {
+      "name": "Nome",
+      "value": "Valor (R$)",
+      "value-kind": "Tipo de valor",
+      "installments": "Parcelas",
+      "launch": "Lançamento",
+      "situation": "Situação"
+    },
+    "last-value": "último",
+    "value-kind": {
+      "FIXED": "Fixo",
+      "VARIABLE": "Variável"
+    },
+    "installments": {
+      "indefinite": "Indeterminado"
+    },
+    "launch": {
+      "auto": "Automático",
+      "manual": "Manual"
+    },
+    "status": {
+      "active": "Ativo",
+      "finished": "Encerrado",
+      "inactive": "Inativo"
+    },
+    "actions": {
+      "details": "Detalhes",
+      "edit": "Editar",
+      "readjust": "Reajustar valor",
+      "remove": "Excluir"
+    },
+    "readjust": {
+      "title": "Reajustar “{name}”",
+      "description": "Vale a partir do próximo lançamento.",
+      "value": "Novo valor",
+      "current": "Valor atual",
+      "reason": "Motivo",
+      "confirm": "Reajustar"
+    },
+    "remove": {
+      "title": "Excluir “{name}”?",
+      "description": "Só dá para excluir um recorrente sem lançamentos. Não dá para desfazer."
+    },
+    "toast": {
+      "created": "Recorrente criado",
+      "created-detail": "“{name}” já pode ser lançado.",
+      "updated": "Alterações salvas",
+      "updated-detail": "“{name}” foi atualizado.",
+      "removed": "Recorrente excluído",
+      "removed-detail": "“{name}” saiu da lista.",
+      "readjusted": "Valor reajustado",
+      "readjusted-detail": "O novo valor de “{name}” vale a partir do próximo lançamento."
+    },
+    "form": {
+      "new": "Criando",
+      "editing": "Editando",
+      "detailing": "Detalhando",
+      "type": "Tipo",
+      "type-hint": "O tipo não muda depois de criado.",
+      "name": "Nome",
+      "value": "Valor",
+      "suggested-value": "Valor sugerido",
+      "value-note": "Para mudar o valor, use Reajustar valor no detalhe.",
+      "cost-center": "Centro de custo",
+      "classification-of-type": {
+        "INCOME": "Classificação de receita",
+        "EXPENSE": "Classificação de despesa"
+      },
+      "value-kind": "Modalidade",
+      "value-kind-hint": "O fixo lança sempre o valor atual; o variável sugere o último valor pago e aceita outro no lançamento.",
+      "repetition-hint": "O recorrente termina sozinho depois da última parcela.",
+      "installments-heading": "Número de parcelas",
+      "indefinite": "Prazo indeterminado",
+      "installments": "Parcelas",
+      "first-installment": "Parcela atual",
+      "card": "Cartão sugerido",
+      "card-hint": "Só sugere o cartão na hora de pagar.",
+      "no-card": "Nenhum",
+      "auto-launch": "Lançar automaticamente ao criar o período",
+      "auto-launch-hint": "Vence no último dia do período.",
+      "active-label": "Ativo",
+      "active-hint": "Inativar para parar de lançar"
+    },
+    "sections": {
+      "type": "Tipo",
+      "identification": "Identificação",
+      "value-kind": "Modalidade",
+      "repetition": "Repetição",
+      "card": "Cartão sugerido",
+      "launch": "Lançamento",
+      "value-and-repetition": "Valor e repetição",
+      "history": "Histórico de valores"
+    },
+    "detail": {
+      "name": "Nome",
+      "type": "Tipo",
+      "cost-center": "Centro de custo",
+      "classification": "Classificação",
+      "card": "Cartão sugerido",
+      "current-value": "Valor atual",
+      "value-kind": "Tipo de valor",
+      "installments": "Parcelas",
+      "launch": "Lançamento",
+      "due": "Vencimento",
+      "due-last-day": "Último dia do período"
+    },
+    "history": {
+      "valid-from": "Vale a partir de",
+      "value": "Valor (R$)",
+      "reason": "Motivo",
+      "current": "vigente",
+      "suggested": "Valor sugerido no próximo lançamento:"
+    }
   },
   "credit-card-invoice": {
     "title": "Fatura do cartão",
@@ -1035,7 +1174,8 @@
     "roles-required": "Escolha pelo menos uma área.",
     "discount-too-high": "O desconto precisa ser menor que o valor.",
     "adjustment-not-zero": "O ajuste não pode ser zero.",
-    "transfer-same-wallet": "Origem e destino precisam ser carteiras diferentes."
+    "transfer-same-wallet": "Origem e destino precisam ser carteiras diferentes.",
+    "first-installment-after-last": "A parcela atual não pode passar do número de parcelas."
   },
   "crud": {
     "required-hint": "Campos com * são obrigatórios.",

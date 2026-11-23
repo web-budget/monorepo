@@ -71,6 +71,7 @@ export const financialSection: ModuleSectionDefinition = {
     {
       label: 'recurrent-movement.menu',
       icon: RefreshCw,
+      to: '/financial/recurring-movements',
       description: 'module-home.items.recurrent-movement',
     },
     {

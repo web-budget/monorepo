@@ -577,3 +577,75 @@ export interface CardPurchaseView {
   costCenter: MovementCostCenterView
   movement: string | null
 }
+
+export type RecurringValueKind = 'FIXED' | 'VARIABLE'
+
+export type RecurringMovementStatusFilter = 'ACTIVE' | 'FINISHED' | 'ALL'
+
+export interface RecurringMovementView {
+  id: string
+  name: string
+  type: MovementType
+  valueKind: RecurringValueKind
+  value: number
+  suggestedValue: number
+  installments: number | null
+  firstInstallment: number
+  launchedInstallments: number | null
+  nextInstallment: number | null
+  finished: boolean
+  autoLaunch: boolean
+  active: boolean
+  classification: MovementClassificationView
+  costCenter: MovementCostCenterView
+  card: { id: string; name: string } | null
+  launchedInPeriod: string | null
+  createdOn: string
+}
+
+export interface RecurringMovementCreateForm {
+  name: string
+  type: MovementType
+  valueKind: RecurringValueKind
+  value: number
+  installments: number | null
+  firstInstallment: number | null
+  autoLaunch: boolean
+  classification: string
+  costCenter: string
+  card: string | null
+}
+
+export interface RecurringMovementUpdateForm {
+  name: string
+  active: boolean
+  installments: number | null
+  autoLaunch: boolean
+  classification: string
+  costCenter: string
+  card: string | null
+}
+
+export interface RecurringValueForm {
+  value: number
+  reason: string | null
+}
+
+export interface RecurringValueView {
+  value: number
+  reason: string | null
+  validFrom: string
+}
+
+export interface RecurringMovementQuery {
+  filter?: string
+  type?: MovementType
+  valueKinds?: RecurringValueKind[]
+  active?: boolean
+  finished?: boolean
+  cards?: string[]
+  financialPeriod?: string
+  page?: number
+  size?: number
+  sort?: string
+}
