@@ -296,24 +296,6 @@
     "financial-daily": "Day to day",
     "financial-period": "Period"
   },
-  "dashboards": {
-    "overview": "Overview",
-    "current-month": "Current month",
-    "previous-months": "Previous months",
-    "by-wallet": "By wallet",
-    "by-classification": "By classification",
-    "description": {
-      "overview": "Balances, income and expenses of the period.",
-      "current-month": "The movement of the month in progress.",
-      "previous-months": "Comparison of the previous months.",
-      "by-wallet": "How much comes in and goes out of each wallet.",
-      "by-classification": "Where the money goes, by classification."
-    },
-    "empty": {
-      "title": "Dashboards arrive with the financial module",
-      "description": "Numbers and charts show up here when the financial module is ready."
-    }
-  },
   "module-home": {
     "description": {
       "financial": "Entries, invoices and period closing.",
@@ -1455,6 +1437,43 @@
     "remove": {
       "title": "Remove the purchase “{name}”?",
       "description": "It leaves the invoice and the spending by cost center. This cannot be undone."
+    }
+  },
+  "financial-flow": {
+    "menu": "Financial flow",
+    "title": "Financial flow",
+    "description": "Paid revenues and expenses of each period.",
+    "year": "Year",
+    "list": {
+      "plural": "the financial flow"
+    },
+    "totals": {
+      "revenues": "Revenues",
+      "expenses": "Expenses",
+      "result": "Result"
+    },
+    "chart": {
+      "title": "Revenues and expenses by period"
+    },
+    "legend": {
+      "revenues": "Revenues",
+      "expenses": "Expenses",
+      "provisional": "Provisional (open period)"
+    },
+    "table": {
+      "period": "Period",
+      "revenues": "Revenues (R$)",
+      "expenses": "Expenses (R$)",
+      "result": "Result (R$)",
+      "status": "Status"
+    },
+    "status": {
+      "recorded": "Recorded",
+      "provisional": "Provisional"
+    },
+    "empty": {
+      "title": "No periods in {year}",
+      "description": "Create a period or choose another year."
     }
   }
 }

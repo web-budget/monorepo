@@ -577,3 +577,17 @@ export interface CardPurchaseView {
   costCenter: MovementCostCenterView
   movement: string | null
 }
+
+export interface FinancialFlowPeriod {
+  financialPeriod: { id: string; name: string; startingAt: string; endingAt: string }
+  revenues: number
+  expenses: number
+  result: number
+  recorded: boolean
+}
+
+export interface FinancialFlowView {
+  year: number
+  totals: { revenues: number; expenses: number; result: number }
+  periods: FinancialFlowPeriod[]
+}
