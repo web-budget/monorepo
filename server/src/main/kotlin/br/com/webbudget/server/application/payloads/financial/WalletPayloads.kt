@@ -83,5 +83,22 @@ data class TransferView(
     val fromWallet: TransferWalletView,
     val toWallet: TransferWalletView,
     val returnedTransfer: UUID?,
-    val returned: Boolean
+    val returned: Boolean,
+    val returnOf: TransferReferenceView?,
+    val returnedBy: TransferReferenceView?,
+    val returnable: Boolean
+)
+
+data class TransferReferenceView(
+    val id: UUID,
+    val createdOn: LocalDateTime
+)
+
+data class TransferFilter(
+    val wallet: UUID? = null,
+    @param:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    val from: LocalDate? = null,
+    @param:DateTimeFormat(iso = DateTimeFormat.ISO.DATE)
+    val to: LocalDate? = null,
+    val filter: String? = null
 )

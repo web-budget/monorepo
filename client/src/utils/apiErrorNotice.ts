@@ -49,11 +49,12 @@ function conflictField(parameter: string): string {
 }
 
 function conflict(error: ApiError): ApiErrorNotice {
-  if (error.error === 'invalid-user-status-transition') {
+  const domainKey = `error.conflict.${error.error}`
+  if (error.error !== null && isKnownMessage(domainKey)) {
     return {
       severity: 'warn',
       title: { key: 'error.conflict.title' },
-      details: [{ key: 'error.conflict.invalid-user-status-transition' }],
+      details: [{ key: domainKey }],
     }
   }
   const details = Object.entries(error.parameters ?? {})

@@ -42,6 +42,7 @@ const {
   entity: 'wallet',
   initialStatus: 'ACTIVE',
   statuses: FEMININE_STATUS_OPTIONS.map((option) => option.value),
+  sortFields: ['name', 'type', 'bank', 'active'],
   pageRequest,
   pageResponse,
   loading,
@@ -96,6 +97,8 @@ const columns = computed(() => [
         :loading="busy"
         :current-page="pageRequest.current"
         :page-size="pageRequest.size"
+        :sorted-field="pageRequest.sortField"
+        :sorted-order="pageRequest.direction"
         detail-route="wallets.detail"
         @page-changed="onPageChange"
         @table-sorted="onTableSorted"

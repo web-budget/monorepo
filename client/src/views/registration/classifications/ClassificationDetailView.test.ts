@@ -22,7 +22,6 @@ const classification: ClassificationView = {
   name: 'Salary',
   type: 'INCOME',
   active: true,
-  budget: 1500,
   description: null,
 }
 
@@ -37,19 +36,15 @@ describe('ClassificationDetailView', () => {
     document.body.replaceChildren()
   })
 
-  it('shows the classification in sections, with the budget', async () => {
+  it('shows the classification in sections', async () => {
     const { wrapper } = await render()
 
     expect(classificationsApi.findById).toHaveBeenCalledWith('c-1')
     expect(wrapper.find('h1').text()).toBe('Salary')
     expect(wrapper.find('[data-slot="page-description"]').exists()).toBe(false)
     expect(wrapper.text()).toContain('Ativa')
-    expect(wrapper.findAll('h2').map((title) => title.text())).toEqual([
-      'Identificação',
-      'Orçamento',
-    ])
+    expect(wrapper.findAll('h2').map((title) => title.text())).toEqual(['Identificação'])
     expect(wrapper.text()).toContain('Receita')
-    expect(wrapper.text()).toContain('1.500,00')
     expect(wrapper.text()).toContain('---')
   })
 

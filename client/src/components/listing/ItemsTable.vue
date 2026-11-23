@@ -9,7 +9,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
 } from 'lucide-vue-next'
-import { computed, ref, useSlots } from 'vue'
+import { computed, ref, useSlots, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { RouterLink } from 'vue-router'
 import StatusBadge from '@/components/listing/StatusBadge.vue'
@@ -67,6 +67,8 @@ const props = withDefaults(
     markedRow?: (item: T) => boolean
     summary?: string
     feminineStatus?: boolean
+    sortedField?: string
+    sortedOrder?: 'asc' | 'desc'
   }>(),
   {
     columns: () => [],
@@ -79,6 +81,8 @@ const props = withDefaults(
     markedRow: undefined,
     summary: undefined,
     feminineStatus: false,
+    sortedField: undefined,
+    sortedOrder: undefined,
   },
 )
 
@@ -99,6 +103,20 @@ const compact = useMediaQuery('(max-width: 767px)')
 
 const sortField = ref<string | null>(null)
 const sortDirection = ref<'asc' | 'desc' | null>(null)
+
+watch(
+  () => [props.sortedField, props.sortedOrder],
+  () => {
+    if (props.sortedField === undefined) {
+      return
+    }
+    const isDefault =
+      props.sortedField === DEFAULT_SORT_FIELD && props.sortedOrder === DEFAULT_SORT_DIRECTION
+    sortField.value = isDefault ? null : props.sortedField
+    sortDirection.value = isDefault ? null : (props.sortedOrder ?? DEFAULT_SORT_DIRECTION)
+  },
+  { immediate: true },
+)
 
 const hasActions = computed(() => slots.actions !== undefined)
 const columnCount = computed(

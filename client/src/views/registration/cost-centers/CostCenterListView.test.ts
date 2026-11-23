@@ -216,4 +216,20 @@ describe('CostCenterListView', () => {
     expect(stateOf(wrapper)).toBeUndefined()
     expect(wrapper.findAll('tbody tr')).toHaveLength(2)
   })
+
+  it('opens with the state of the URL, which stays there', async () => {
+    const location = '/cost-centers?filter=Ab&status=INACTIVE&page=2&size=30&sort=fullName,desc'
+    serveListing(vi.mocked(costCentersApi.findAll), costCenters, 70)
+
+    const { router } = await mountView(CostCenterListView, 'cost-centers', {}, {}, location)
+
+    expect(listingCalls(vi.mocked(costCentersApi.findAll))[0]).toEqual({
+      filter: 'Ab',
+      status: 'INACTIVE',
+      page: 1,
+      size: 30,
+      sort: 'fullName,desc',
+    })
+    expect(router.currentRoute.value.fullPath).toBe(location)
+  })
 })

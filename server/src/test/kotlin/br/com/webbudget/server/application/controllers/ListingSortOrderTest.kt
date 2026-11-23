@@ -139,6 +139,26 @@ class ListingSortOrderTest : BaseIntegrationTest() {
     }
 
     @Test
+    @Sql(
+        "/sql/financial/clear-tables.sql",
+        "/sql/financial/create-registration-data.sql",
+        "/sql/financial/create-movements.sql",
+        "/sql/financial/create-wallet-entries.sql",
+        "/sql/financial/create-transfers.sql"
+    )
+    @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
+    fun `should list the transfers by the transfer date, newest first, and ignore the name sort`() {
+
+        val newest = "0b6e0c4a-6f3e-4c55-8a39-0d3c1c1f9a02"
+        val middle = "0b6e0c4a-6f3e-4c55-8a39-0d3c1c1f9a01"
+        val oldest = "0b6e0c4a-6f3e-4c55-8a39-0d3c1c1f9a03"
+
+        assertIds("/financial/transfers", "", newest, middle, oldest)
+        assertIds("/financial/transfers", "sort=name,asc", newest, middle, oldest)
+        assertIds("/financial/transfers", "sort=createdOn,asc", oldest, middle, newest)
+    }
+
+    @Test
     @Sql("/sql/administration/clear-tables.sql", "/sql/administration/create-user.sql")
     fun `should list the users from the newest to the oldest by default`() {
 
@@ -147,7 +167,13 @@ class ListingSortOrderTest : BaseIntegrationTest() {
         assertNames("/administration/users", "sort=name,desc", "User", "Other User", "Administrador")
     }
 
-    private fun assertNames(path: String, query: String, vararg expected: String) {
+    private fun assertNames(path: String, query: String, vararg expected: String) =
+        assertProperty("name", path, query, *expected)
+
+    private fun assertIds(path: String, query: String, vararg expected: String) =
+        assertProperty("id", path, query, *expected)
+
+    private fun assertProperty(property: String, path: String, query: String, vararg expected: String) {
 
         val names = mutableListOf<String>()
 
@@ -158,7 +184,7 @@ class ListingSortOrderTest : BaseIntegrationTest() {
             .expectBody(Map::class.java)
             .value { body ->
                 @Suppress("UNCHECKED_CAST")
-                (body!!["content"] as List<Map<String, Any?>>).mapTo(names) { it["name"] as String }
+                (body!!["content"] as List<Map<String, Any?>>).mapTo(names) { it[property] as String }
             }
 
         assertThat(names).containsExactly(*expected)

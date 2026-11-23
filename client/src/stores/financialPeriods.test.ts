@@ -11,7 +11,8 @@ const row: FinancialPeriodListView = {
   name: '01/2026',
   startingAt: '2026-01-01',
   endingAt: '2026-01-31',
-  status: 'ACTIVE',
+  status: 'OPEN',
+  expired: false,
 }
 const view: FinancialPeriodView = { ...row, revenuesGoal: 1000, expensesGoal: 800 }
 const page = { content: [row], page: { size: 15, number: 0, totalElements: 1, totalPages: 1 } }
@@ -41,12 +42,12 @@ describe('useFinancialPeriodsStore', () => {
   it('lists accounted periods when the filter asks for them', async () => {
     vi.mocked(financialPeriodsApi.findAll).mockResolvedValue(page)
     const store = useFinancialPeriodsStore()
-    store.pageRequest.status = 'ACCOUNTED'
+    store.pageRequest.status = 'CLOSED'
 
     await store.findAll()
 
     expect(financialPeriodsApi.findAll).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'ACCOUNTED' }),
+      expect.objectContaining({ status: 'CLOSED' }),
     )
   })
 

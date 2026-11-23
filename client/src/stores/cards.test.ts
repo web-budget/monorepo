@@ -6,7 +6,7 @@ import { useCardsStore } from './cards'
 
 vi.mock('@/api/cards')
 
-const row: CardListView = { id: 'c-1', name: 'Gold', type: 'CREDIT', active: true, flag: 'Visa' }
+const row: CardListView = { id: 'c-1', name: 'Gold', active: true, flag: 'Visa' }
 const view: CardView = { ...row, lastFourDigits: '1234', wallet: null, invoicePaymentDay: 10 }
 const page = { content: [row], page: { size: 15, number: 0, totalElements: 1, totalPages: 1 } }
 
@@ -35,11 +35,11 @@ describe('useCardsStore', () => {
     vi.mocked(cardsApi.remove).mockResolvedValue()
     const store = useCardsStore()
 
-    await store.create({ name: 'Gold', lastFourDigits: '1234', type: 'CREDIT' })
+    await store.create({ name: 'Gold', lastFourDigits: '1234', invoicePaymentDay: 10 })
     expect(cardsApi.create).toHaveBeenCalledWith({
       name: 'Gold',
       lastFourDigits: '1234',
-      type: 'CREDIT',
+      invoicePaymentDay: 10,
     })
 
     await store.findOne('c-1')
@@ -48,6 +48,7 @@ describe('useCardsStore', () => {
     await store.update('c-1', {
       name: 'Gold',
       lastFourDigits: '1234',
+      invoicePaymentDay: 10,
       active: true,
       flag: 'Master',
     })

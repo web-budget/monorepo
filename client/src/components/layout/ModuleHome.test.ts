@@ -74,12 +74,12 @@ describe('ModuleHome', () => {
     expect(wrapper.findAll('a[data-slot="module-card"]')).toHaveLength(1)
   })
 
-  it('shows every financial item as coming soon', () => {
+  it('shows the financial items without a screen as coming soon', () => {
     const wrapper = render(financialSection)
 
-    expect(wrapper.findAll('a')).toHaveLength(0)
+    expect(wrapper.findAll('a')).toHaveLength(5)
     const cards = wrapper.findAll('[aria-disabled="true"]')
-    expect(cards).toHaveLength(4)
+    expect(cards).toHaveLength(2)
     expect(cards.every((card) => card.text().includes('Em breve'))).toBe(true)
   })
 
