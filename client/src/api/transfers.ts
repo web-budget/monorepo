@@ -1,10 +1,16 @@
 import { apiClient } from './client'
 import { createdId } from './createdId'
-import type { TransferForm, TransferView } from '@/types'
+import type { PagedResponse, TransferForm, TransferQuery, TransferView } from '@/types'
 
 const PATH = '/financial/transfers'
 
 export const transfersApi = {
+  findAll(query: TransferQuery): Promise<PagedResponse<TransferView>> {
+    return apiClient
+      .get<PagedResponse<TransferView>>(PATH, { params: query })
+      .then((response) => response.data)
+  },
+
   create(form: TransferForm): Promise<string> {
     return apiClient.post(PATH, form).then(createdId)
   },

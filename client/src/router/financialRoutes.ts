@@ -31,7 +31,11 @@ export const financialRoutes: RouteRecordRaw[] = [
         path: 'transfers',
         meta: { breadcrumb: 'transfer.menu' },
         children: [
-          { path: '', redirect: { name: 'transfers.create' } },
+          {
+            path: '',
+            name: 'transfers',
+            component: () => import('@/views/financial/transfers/TransferListView.vue'),
+          },
           {
             path: 'create',
             name: 'transfers.create',

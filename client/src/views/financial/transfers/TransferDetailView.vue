@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { ScrollText, Undo2 } from 'lucide-vue-next'
-import { computed, ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, watch } from 'vue'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
 import DateTimeDisplay from '@/components/common/DateTimeDisplay.vue'
 import DetailCard from '@/components/common/DetailCard.vue'
@@ -10,21 +9,15 @@ import DetailSection from '@/components/common/DetailSection.vue'
 import GiveBackDialog from '@/components/transfers/GiveBackDialog.vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { useActiveWallets } from '@/composables/useActiveWallets'
-import { useNotification } from '@/composables/useNotification'
+import { useGiveBack } from '@/composables/useGiveBack'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { useTransfersStore } from '@/stores/transfers'
-import type { TransferView } from '@/types'
 
 const props = defineProps<{ id: string }>()
 
-const router = useRouter()
 const store = useTransfersStore()
-const { balanceOf } = useActiveWallets()
-const { showSuccess } = useNotification()
 const { messages, run } = useServerErrors()
-
-const givingBack = ref<TransferView | null>(null)
+const giveBack = useGiveBack()
 
 const transfer = computed(() => (store.transfer?.id === props.id ? store.transfer : null))
 
@@ -33,18 +26,6 @@ watch(
   (id) => run(() => store.findOne(id)),
   { immediate: true },
 )
-
-async function giveBack(target: TransferView) {
-  let createdId = ''
-  if (await run(async () => (createdId = await store.giveBack(target.id)))) {
-    givingBack.value = null
-    showSuccess('transfer.toast.returned', 'transfer.toast.returned-detail', true, {
-      from: target.toWallet.name,
-      to: target.fromWallet.name,
-    })
-    await router.push({ name: 'transfers.detail', params: { id: createdId } })
-  }
-}
 </script>
 
 <template>
@@ -54,7 +35,7 @@ async function giveBack(target: TransferView) {
         ? `${transfer.fromWallet.name} → ${transfer.toWallet.name}`
         : $t('transfer.form.detailing')
     "
-    :messages="messages"
+    :messages="[...messages, ...giveBack.messages.value]"
     readonly
   >
     <template #extra-actions>
@@ -65,7 +46,7 @@ async function giveBack(target: TransferView) {
           <ScrollText />{{ $t('transfer.actions.view-statement') }}
         </RouterLink>
       </Button>
-      <Button v-if="transfer?.returnable" type="button" @click="givingBack = transfer">
+      <Button v-if="transfer?.returnable" type="button" @click="giveBack.open(transfer)">
         <Undo2 />{{ $t('transfer.actions.give-back') }}
       </Button>
     </template>
@@ -112,10 +93,10 @@ async function giveBack(target: TransferView) {
     </template>
   </DetailCard>
   <GiveBackDialog
-    :transfer="givingBack"
+    :transfer="giveBack.target.value"
     :loading="store.loading"
-    :balance-of="balanceOf"
-    @close="givingBack = null"
-    @confirm="giveBack"
+    :balance-of="giveBack.balanceOf"
+    @close="giveBack.close()"
+    @confirm="giveBack.confirm"
   />
 </template>

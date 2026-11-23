@@ -500,3 +500,13 @@ export interface TransferView {
   returnedBy: TransferReferenceView | null
   returnable: boolean
 }
+
+export interface TransferQuery {
+  wallet?: string
+  from?: string
+  to?: string
+  filter?: string
+  page?: number
+  size?: number
+  sort?: string
+}

@@ -1,7 +1,8 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { transfersApi } from '@/api/transfers'
-import { useTransfersStore } from '@/stores/transfers'
+import { toTransferQuery, useTransfersStore } from '@/stores/transfers'
+import { createPageRequest } from '@/utils/pageRequest'
 import type { TransferView } from '@/types'
 
 vi.mock('@/api/transfers')
@@ -43,13 +44,45 @@ describe('useTransfersStore', () => {
     expect(store.loading).toBe(false)
   })
 
+  it('loads the page of transfers with the filters of the store', async () => {
+    vi.mocked(transfersApi.findAll).mockResolvedValue({
+      content: [transfer],
+      page: { size: 15, number: 0, totalElements: 1, totalPages: 1 },
+    })
+    const store = useTransfersStore()
+    store.filters = { wallet: 'w-1', from: '2026-11-01' }
+
+    await store.findAll()
+
+    expect(transfersApi.findAll).toHaveBeenCalledWith(
+      expect.objectContaining({ wallet: 'w-1', from: '2026-11-01', page: 0 }),
+    )
+    expect(store.pageResponse.content).toEqual([transfer])
+    expect(store.loading).toBe(false)
+  })
+
+  it('leaves out everything that is not filled', () => {
+    expect(toTransferQuery(createPageRequest({ status: 'ALL' }), {})).toEqual({
+      filter: undefined,
+      wallet: undefined,
+      from: undefined,
+      to: undefined,
+      page: 0,
+      size: 15,
+      sort: 'createdOn,desc',
+    })
+  })
+
   it('forgets the transfer when it is reset', async () => {
     vi.mocked(transfersApi.findById).mockResolvedValue(transfer)
     const store = useTransfersStore()
     await store.findOne('t-1')
 
+    store.filters = { wallet: 'w-1' }
     store.reset()
 
     expect(store.transfer).toBeNull()
+    expect(store.filters).toEqual({})
+    expect(store.pageResponse.content).toEqual([])
   })
 })
