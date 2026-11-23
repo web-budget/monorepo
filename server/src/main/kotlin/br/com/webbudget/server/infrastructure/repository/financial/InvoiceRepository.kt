@@ -127,6 +127,36 @@ class InvoiceRepository(
             .execute()
     }
 
+    fun existsOpenWithPurchases(financialPeriodId: Long): Boolean = dsl.fetchExists(
+        dsl.selectOne().from(INVOICES)
+            .where(INVOICES.ID_FINANCIAL_PERIOD.eq(financialPeriodId))
+            .and(INVOICES.STATUS.eq(Invoice.Status.OPEN.name))
+            .and(DSL.exists(hasPurchases()))
+    )
+
+    fun closeEmptyAutomatically(financialPeriodId: Long): Int = dsl.update(INVOICES)
+        .set(INVOICES.STATUS, Invoice.Status.CLOSED.name)
+        .set(INVOICES.CLOSED_AUTOMATICALLY, true)
+        .set(INVOICES.VERSION, INVOICES.VERSION.plus(1))
+        .set(INVOICES.LAST_UPDATE, LocalDateTime.now())
+        .where(INVOICES.ID_FINANCIAL_PERIOD.eq(financialPeriodId))
+        .and(INVOICES.STATUS.eq(Invoice.Status.OPEN.name))
+        .and(DSL.notExists(hasPurchases()))
+        .execute()
+
+    fun reopenClosedAutomatically(financialPeriodId: Long): Int = dsl.update(INVOICES)
+        .set(INVOICES.STATUS, Invoice.Status.OPEN.name)
+        .set(INVOICES.CLOSED_AUTOMATICALLY, false)
+        .set(INVOICES.VERSION, INVOICES.VERSION.plus(1))
+        .set(INVOICES.LAST_UPDATE, LocalDateTime.now())
+        .where(INVOICES.ID_FINANCIAL_PERIOD.eq(financialPeriodId))
+        .and(INVOICES.CLOSED_AUTOMATICALLY.isTrue)
+        .execute()
+
+    private fun hasPurchases() = DSL.selectOne()
+        .from(CARD_PURCHASES)
+        .where(CARD_PURCHASES.ID_INVOICE.eq(INVOICES.ID))
+
     private fun selectJoined() = dsl
         .select(*invoices.fields(), *cards.fields(), *financialPeriods.fields(), invoiceValue)
         .from(invoices)

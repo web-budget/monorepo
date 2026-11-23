@@ -151,7 +151,8 @@ data class MovementFilter(
 data class FinancialPeriodResultView(
     val revenues: BigDecimal,
     val expenses: BigDecimal,
-    val result: BigDecimal
+    val result: BigDecimal,
+    val recorded: Boolean
 )
 
 data class MovementRecurringView(
