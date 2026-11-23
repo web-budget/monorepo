@@ -25,6 +25,7 @@ export const WALLET_ENTRY_ORIGINS: WalletEntryOrigin[] = [
   'REVERSAL',
   'ADJUSTMENT',
   'TRANSFER',
+  'INVOICE_PAYMENT',
 ]
 
 function amountOf(text: string | undefined): number | undefined {

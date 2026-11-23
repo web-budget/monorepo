@@ -13,7 +13,14 @@ import type {
 import { createPageRequest } from '@/utils/pageRequest'
 import type { ExtraQuery } from '@/utils/listQuery'
 
-export const MOVEMENT_FILTER_KEYS = ['period', 'type', 'costCenter', 'classification', 'overdue']
+export const MOVEMENT_FILTER_KEYS = [
+  'period',
+  'type',
+  'costCenter',
+  'classification',
+  'overdue',
+  'invoices',
+]
 
 export const ALL_PERIODS = 'all'
 
@@ -26,6 +33,7 @@ export function toMovementQuery(query: PageQuery, filters: ExtraQuery): Movement
     costCenter: filters.costCenter || undefined,
     classification: filters.classification || undefined,
     overdue: filters.overdue === 'true' ? true : undefined,
+    invoicePayments: filters.invoices === 'true' ? true : undefined,
     financialPeriods:
       filters.period && filters.period !== ALL_PERIODS ? [filters.period] : undefined,
     page: query.page,

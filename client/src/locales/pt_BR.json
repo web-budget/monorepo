@@ -63,7 +63,11 @@
       "no-open-invoice": "Não há fatura aberta para esse cartão no período escolhido. Nada foi lançado.",
       "invoice-not-open": "A fatura não está aberta e não aceita mudanças",
       "invoice-without-purchases": "A fatura não tem compras; ela só fecha, zerada, no fechamento do período",
-      "purchase-bound-to-movement": "A compra veio de um pagamento no cartão e não pode ser alterada aqui"
+      "purchase-bound-to-movement": "A compra veio de um pagamento no cartão e não pode ser alterada aqui",
+      "invoice-payment-not-payable-by-card": "O pagamento de fatura não se paga no cartão",
+      "invoice-payment-locked": "O pagamento de fatura não pode ser alterado",
+      "card-payment-only-for-expenses": "Só despesa se paga no cartão",
+      "payment-requires-wallet-or-card": "Escolha a carteira ou o cartão do pagamento"
     },
     "not-found": {
       "detail": "Não encontrado",
@@ -1088,7 +1092,8 @@
       "open": "Em aberto",
       "paid": "Pago",
       "overdue": "Vencido",
-      "overdue-days": "Vencido há {days} dia | Vencido há {days} dias"
+      "overdue-days": "Vencido há {days} dia | Vencido há {days} dias",
+      "paid-on-card": "Pago no cartão"
     },
     "options": {
       "all": "Todos",
@@ -1118,7 +1123,8 @@
       "all-classifications": "Todas",
       "overdue": "Só vencidos",
       "clear": "Limpar",
-      "clear-count": "Limpar ({count})"
+      "clear-count": "Limpar ({count})",
+      "invoices": "Pagamentos de fatura"
     },
     "summary": {
       "received": "Recebido",
@@ -1182,7 +1188,8 @@
       "type": "Tipo",
       "classification": "Classificação",
       "classification-help": "Só aparecem classificações do tipo escolhido.",
-      "payment-help": "Opcional."
+      "payment-help": "Opcional.",
+      "invoice": "Fatura"
     },
     "detail": {
       "name": "Nome",
@@ -1202,7 +1209,11 @@
       "wallet": "Carteira",
       "card": "Cartão",
       "method-wallet": "Carteira",
-      "method-card": "Cartão de crédito"
+      "method-card": "Cartão de crédito",
+      "invoice-card": "Cartão",
+      "invoice-status": "Situação da fatura",
+      "invoice": "Fatura",
+      "invoice-link": "Abrir a fatura"
     },
     "notices": {
       "paid": "Pago: não se edita nem se exclui",
@@ -1226,7 +1237,14 @@
       "amount-received": "Valor recebido",
       "balance-after": "Saldo depois",
       "confirm-pay": "Pagar",
-      "confirm-receive": "Receber"
+      "confirm-receive": "Receber",
+      "method": {
+        "label": "Pagar com",
+        "WALLET": "Carteira",
+        "CARD": "Cartão"
+      },
+      "card": "Cartão",
+      "card-note": "A despesa entra como compra na fatura aberta do cartão, no período do movimento."
     },
     "undo": {
       "title": "Desfazer o pagamento de “{name}”?",
@@ -1352,7 +1370,8 @@
       "EXPENSE": "Despesa",
       "REVERSAL": "Estorno",
       "ADJUSTMENT": "Ajuste",
-      "TRANSFER": "Transferência"
+      "TRANSFER": "Transferência",
+      "INVOICE_PAYMENT": "Pagamento de fatura"
     },
     "table-columns": {
       "created-on": "Data e hora",

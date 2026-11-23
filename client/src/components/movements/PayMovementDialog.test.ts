@@ -11,11 +11,13 @@ interface Payable {
   name: string
   type: 'INCOME' | 'EXPENSE'
   value: number
+  invoicePayment?: boolean
 }
 
 const expense: Payable = { id: 'm-1', name: 'Conta de água', type: 'EXPENSE', value: 100 }
 const income: Payable = { id: 'm-2', name: 'Salário', type: 'INCOME', value: 8400 }
 const wallets = [{ id: 'w-1', name: 'Conta corrente' }] as never[]
+const cards = [{ id: 'k-1', name: 'Visa Platinum' }] as never[]
 
 async function render(
   movement: Payable | null,
@@ -24,12 +26,17 @@ async function render(
   installZodErrorMap()
   const { plugins } = createTestPlugins()
   const wrapper = mount(PayMovementDialog, {
-    props: { movement, wallets, loading: false, balanceOf },
+    props: { movement, wallets, cards, loading: false, balanceOf },
     attachTo: document.body,
     global: { plugins },
   })
   await flushPromises()
   return { wrapper, balanceOf }
+}
+
+function lastSelect(wrapper: Awaited<ReturnType<typeof render>>['wrapper']) {
+  const selects = wrapper.findAllComponents(Select)
+  return selects[selects.length - 1]!
 }
 
 function input(name: string) {
@@ -79,7 +86,7 @@ describe('PayMovementDialog', () => {
     const { wrapper, balanceOf } = await render(expense, vi.fn().mockResolvedValue(1000))
 
     expect(input('paidOn').value).toBe('2026-11-21')
-    wrapper.getComponent(Select).vm.$emit('update:modelValue', 'w-1')
+    lastSelect(wrapper).vm.$emit('update:modelValue', 'w-1')
     await flushPromises()
     await type('discount', '1500')
 
@@ -93,7 +100,7 @@ describe('PayMovementDialog', () => {
   it('adds an income to the balance', async () => {
     const { wrapper } = await render(income, vi.fn().mockResolvedValue(1000))
 
-    wrapper.getComponent(Select).vm.$emit('update:modelValue', 'w-1')
+    lastSelect(wrapper).vm.$emit('update:modelValue', 'w-1')
     await flushPromises()
 
     const summary = document.body.querySelector('[data-slot="payment-summary"]')!.textContent!
@@ -107,7 +114,7 @@ describe('PayMovementDialog', () => {
     expect(document.body.querySelector('[data-slot="payment-summary"]')!.textContent).not.toContain(
       'Saldo da carteira',
     )
-    wrapper.getComponent(Select).vm.$emit('update:modelValue', 'w-1')
+    lastSelect(wrapper).vm.$emit('update:modelValue', 'w-1')
     await flushPromises()
 
     expect(document.body.querySelector('[data-slot="payment-summary"]')!.textContent).not.toContain(
@@ -118,10 +125,10 @@ describe('PayMovementDialog', () => {
 
   it('forgets the balance when the wallet is cleared', async () => {
     const { wrapper } = await render(expense, vi.fn().mockResolvedValue(1000))
-    wrapper.getComponent(Select).vm.$emit('update:modelValue', 'w-1')
+    lastSelect(wrapper).vm.$emit('update:modelValue', 'w-1')
     await flushPromises()
 
-    wrapper.getComponent(Select).vm.$emit('update:modelValue', '')
+    lastSelect(wrapper).vm.$emit('update:modelValue', '')
     await flushPromises()
 
     expect(document.body.querySelector('[data-slot="payment-summary"]')!.textContent).not.toContain(
@@ -140,7 +147,7 @@ describe('PayMovementDialog', () => {
 
   it('refuses a discount as big as the value', async () => {
     const { wrapper } = await render(expense, vi.fn().mockResolvedValue(0))
-    wrapper.getComponent(Select).vm.$emit('update:modelValue', 'w-1')
+    lastSelect(wrapper).vm.$emit('update:modelValue', 'w-1')
     await type('discount', '10000')
 
     await submit()
@@ -151,7 +158,7 @@ describe('PayMovementDialog', () => {
 
   it('emits the payment with the date, the wallet and the discount', async () => {
     const { wrapper } = await render(expense, vi.fn().mockResolvedValue(0))
-    wrapper.getComponent(Select).vm.$emit('update:modelValue', 'w-1')
+    lastSelect(wrapper).vm.$emit('update:modelValue', 'w-1')
     await type('discount', '500')
 
     await submit()
@@ -159,6 +166,51 @@ describe('PayMovementDialog', () => {
     expect(wrapper.emitted('pay')).toEqual([
       [expense, { wallet: 'w-1', paidOn: '2026-11-21', discount: 5 }],
     ])
+  })
+
+  it('offers the card only for an expense that is not an invoice payment', async () => {
+    const { wrapper } = await render(expense)
+    expect(wrapper.findAllComponents(Select)).toHaveLength(2)
+
+    wrapper.unmount()
+    document.body.replaceChildren()
+    const income = await render({ ...expense, type: 'INCOME' })
+    expect(income.wrapper.findAllComponents(Select)).toHaveLength(1)
+
+    income.wrapper.unmount()
+    document.body.replaceChildren()
+    const invoice = await render({ ...expense, invoicePayment: true })
+    expect(invoice.wrapper.findAllComponents(Select)).toHaveLength(1)
+  })
+
+  it('pays on the card, with no balance and a note about the invoice', async () => {
+    const { wrapper } = await render(expense, vi.fn().mockResolvedValue(1000))
+    wrapper.findAllComponents(Select)[0]!.vm.$emit('update:modelValue', 'CARD')
+    await flushPromises()
+    lastSelect(wrapper).vm.$emit('update:modelValue', 'k-1')
+    await type('discount', '500')
+
+    expect(document.body.querySelector('[data-slot="card-note"]')).not.toBeNull()
+    expect(document.body.querySelector('[data-slot="payment-summary"]')!.textContent).not.toContain(
+      'Saldo',
+    )
+
+    await submit()
+
+    expect(wrapper.emitted('pay')).toEqual([
+      [expense, { card: 'k-1', paidOn: '2026-11-21', discount: 5 }],
+    ])
+  })
+
+  it('asks for the card before paying on it', async () => {
+    const { wrapper } = await render(expense)
+    wrapper.findAllComponents(Select)[0]!.vm.$emit('update:modelValue', 'CARD')
+    await flushPromises()
+
+    await submit()
+
+    expect(wrapper.emitted('pay')).toBeUndefined()
+    expect(document.body.textContent).toContain('Campo obrigatório')
   })
 
   it('emits close when the dialog is dismissed', async () => {
@@ -184,7 +236,7 @@ describe('PayMovementDialog', () => {
 
   it('starts over when another movement opens it', async () => {
     const { wrapper } = await render(expense, vi.fn().mockResolvedValue(0))
-    wrapper.getComponent(Select).vm.$emit('update:modelValue', 'w-1')
+    lastSelect(wrapper).vm.$emit('update:modelValue', 'w-1')
     await type('discount', '500')
 
     await wrapper.setProps({ movement: income })

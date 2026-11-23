@@ -57,26 +57,43 @@ export function movementFormDefaults() {
   return { type: 'EXPENSE' as MovementType, paid: false, paidOn: formatLocalDate(new Date()) }
 }
 
+export const PAYMENT_METHODS = ['WALLET', 'CARD'] as const
+
+export type PaymentMethod = (typeof PAYMENT_METHODS)[number]
+
 export function createPaymentSchema(movementValue: () => number) {
   return toTypedSchema(
     z
       .object({
         paidOn: z.string().min(1),
-        wallet: z.string().min(1),
+        via: z.enum(PAYMENT_METHODS),
+        wallet: z.string().nullish(),
+        card: z.string().nullish(),
         discount: optionalNumberSchema(z.number().min(0)),
       })
-      .superRefine((values, context) => discountBelowValue(values, movementValue(), context)),
+      .superRefine((values, context) => {
+        const chosen = values.via === 'CARD' ? 'card' : 'wallet'
+        if (!values[chosen]) {
+          context.addIssue({ code: 'custom', path: [chosen], params: { i18n: 'required' } })
+        }
+        discountBelowValue(values, movementValue(), context)
+      }),
   )
 }
 
 export type PaymentFormValues = {
   paidOn: string
-  wallet: string
+  via?: PaymentMethod
+  wallet?: string | null
+  card?: string | null
   discount: number | null
 }
 
 export function toPaymentForm(values: PaymentFormValues): PaymentForm {
-  return { wallet: values.wallet, paidOn: values.paidOn, discount: values.discount }
+  const onCard = values.via === 'CARD'
+  return onCard
+    ? { card: values.card, paidOn: values.paidOn, discount: values.discount }
+    : { wallet: values.wallet, paidOn: values.paidOn, discount: values.discount }
 }
 
 export function toMovementCreateForm(values: MovementFormValues): MovementCreateForm {

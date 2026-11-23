@@ -391,7 +391,8 @@ export interface MovementListView {
 }
 
 export interface PaymentForm {
-  wallet: string
+  wallet?: string | null
+  card?: string | null
   paidOn?: string | null
   discount?: number | null
 }
@@ -433,7 +434,8 @@ export interface MovementQuery {
 
 export type WalletEntryDirection = 'CREDIT' | 'DEBIT'
 
-export type WalletEntryOrigin = 'INCOME' | 'EXPENSE' | 'REVERSAL' | 'ADJUSTMENT' | 'TRANSFER'
+export type WalletEntryOrigin =
+  'INCOME' | 'EXPENSE' | 'REVERSAL' | 'ADJUSTMENT' | 'TRANSFER' | 'INVOICE_PAYMENT'
 
 export type WalletEntryDirectionFilter = WalletEntryDirection | 'ALL'
 

@@ -117,6 +117,12 @@ describe('StatementView', () => {
     expect(wrapper.text()).toContain('Conta Bancária, Banco')
   })
 
+  it('names the invoice payment operation', async () => {
+    const { wrapper } = await render(undefined, [{ ...entries[0]!, origin: 'INVOICE_PAYMENT' }])
+
+    expect(wrapper.find('tbody tr').text()).toContain('Pagamento de fatura')
+  })
+
   it('lists the entries with the direction as sign, the balances and the link to the origin', async () => {
     const { wrapper } = await render()
 

@@ -7,11 +7,13 @@ import DateTimeDisplay from '@/components/common/DateTimeDisplay.vue'
 import DetailCard from '@/components/common/DetailCard.vue'
 import DetailField from '@/components/common/DetailField.vue'
 import DetailSection from '@/components/common/DetailSection.vue'
+import InvoiceStatusBadge from '@/components/invoices/InvoiceStatusBadge.vue'
 import MovementStatusBadge from '@/components/movements/MovementStatusBadge.vue'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import PayMovementDialog from '@/components/movements/PayMovementDialog.vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { useActiveCards } from '@/composables/useActiveCards'
 import { useActiveWallets } from '@/composables/useActiveWallets'
 import { useCrudDetail } from '@/composables/useCrudDetail'
 import { useMovementActions } from '@/composables/useMovementActions'
@@ -35,16 +37,26 @@ const { messages, changeToUpdate, remove } = useCrudDetail({
 })
 
 const activeWallets = useActiveWallets()
+const activeCards = useActiveCards()
 const walletErrors = useServerErrors()
 const actions = useMovementActions(() => store.findOne(props.id))
 
-onMounted(() => walletErrors.run(activeWallets.load))
+onMounted(() =>
+  walletErrors.run(async () => {
+    await Promise.all([activeWallets.load(), activeCards.load()])
+  }),
+)
 
 const periodClosed = computed(() => movement.value?.financialPeriod.status === 'CLOSED')
 const paidInOpenPeriod = computed(() => movement.value?.status === 'PAID' && !periodClosed.value)
 const locked = computed(() => movement.value?.status === 'PAID' || periodClosed.value)
 const canPay = computed(() => movement.value?.status === 'OPEN' && !periodClosed.value)
 const canUndo = computed(() => paidInOpenPeriod.value)
+
+function openPay() {
+  const { id, name, type, value, invoice } = movement.value!
+  actions.openPay({ id, name, type, value, invoicePayment: Boolean(invoice) })
+}
 
 function signedValue(item: MovementView) {
   return item.type === 'INCOME' ? item.value : -item.value
@@ -56,11 +68,12 @@ function signedValue(item: MovementView) {
     :title="movement?.name ?? $t('movement.form.detailing')"
     :messages="[...messages, ...actions.messages.value, ...walletErrors.messages.value]"
     :readonly="locked"
+    :hide-edit="Boolean(movement?.invoice)"
     @edit="changeToUpdate"
     @delete="remove"
   >
     <template #extra-actions>
-      <Button v-if="canPay" type="button" @click="actions.openPay(movement!)">
+      <Button v-if="canPay" type="button" @click="openPay()">
         <Banknote />{{
           $t(movement!.type === 'INCOME' ? 'movement.actions.receive' : 'movement.actions.pay')
         }}
@@ -79,6 +92,7 @@ function signedValue(item: MovementView) {
         :status="movement.status"
         :overdue="movement.overdue"
         :due-date="movement.dueDate"
+        :on-card="Boolean(movement.payment?.card)"
       />
     </template>
     <template v-if="movement">
@@ -129,19 +143,42 @@ function signedValue(item: MovementView) {
           <DateTimeDisplay fix-time :value="movement.dueDate" />
         </DetailField>
         <DetailField :label="$t('movement.detail.period')" :value="movement.financialPeriod.name" />
-        <DetailField
-          :label="$t('movement.detail.cost-center')"
-          :value="movement.costCenter?.fullName"
-        />
-        <DetailField
-          :label="$t('movement.detail.classification')"
-          :value="movement.classification?.name"
-        />
+        <template v-if="!movement.invoice">
+          <DetailField
+            :label="$t('movement.detail.cost-center')"
+            :value="movement.costCenter?.fullName"
+          />
+          <DetailField
+            :label="$t('movement.detail.classification')"
+            :value="movement.classification?.name"
+          />
+        </template>
         <DetailField
           :label="$t('movement.detail.description')"
           :value="movement.description"
           wide
         />
+      </DetailSection>
+      <DetailSection
+        v-if="movement.invoice"
+        :title="$t('movement.sections.invoice')"
+        columns="md:grid-cols-3"
+      >
+        <DetailField
+          :label="$t('movement.detail.invoice-card')"
+          :value="movement.invoice.card.name"
+        />
+        <DetailField :label="$t('movement.detail.invoice-status')">
+          <InvoiceStatusBadge :status="movement.invoice.status" />
+        </DetailField>
+        <DetailField :label="$t('movement.detail.invoice')">
+          <RouterLink
+            :to="`/financial/invoices/${movement.invoice.id}/detail`"
+            class="underline underline-offset-2"
+          >
+            {{ $t('movement.detail.invoice-link') }}
+          </RouterLink>
+        </DetailField>
       </DetailSection>
       <DetailSection :title="$t('movement.sections.payment')" columns="md:grid-cols-3">
         <template v-if="movement.payment">
@@ -181,6 +218,7 @@ function signedValue(item: MovementView) {
   <PayMovementDialog
     :movement="actions.payTarget.value"
     :wallets="activeWallets.wallets.value"
+    :cards="activeCards.cards.value"
     :loading="loading"
     :balance-of="activeWallets.balanceOf"
     @close="actions.closePay()"
