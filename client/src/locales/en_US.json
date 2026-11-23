@@ -59,7 +59,11 @@
       "payment-date-in-future": "The payment date cannot be in the future",
       "wallet-has-entries": "The wallet has statement entries and cannot be deleted",
       "transfer-between-same-wallet": "Origin and destination must be different wallets",
-      "invalid-adjustment-value": "The adjustment value cannot be zero"
+      "invalid-adjustment-value": "The adjustment value cannot be zero",
+      "no-open-invoice": "There is no open invoice for this card in the chosen period. Nothing was posted.",
+      "invoice-not-open": "The invoice is not open and accepts no changes",
+      "invoice-without-purchases": "The invoice has no purchases; it only closes, zeroed, when the period closes",
+      "purchase-bound-to-movement": "The purchase came from a card payment and cannot be changed here"
     },
     "not-found": {
       "detail": "Not found",
@@ -657,7 +661,8 @@
     "actions": {
       "close": "Close invoice",
       "view-payment": "View invoice payment",
-      "delete-payment": "Delete invoice payment"
+      "delete-payment": "Delete invoice payment",
+      "new-purchase": "New purchase"
     },
     "close": {
       "title": "Close the {period} invoice of {card}?",
@@ -1382,6 +1387,55 @@
     "toast": {
       "adjusted": "Balance adjusted",
       "adjusted-detail": "The adjustment of {name} is in the statement and does not count in the result."
+    }
+  },
+  "card-purchase": {
+    "title": "Card purchases",
+    "menu": "Card purchases",
+    "form": {
+      "new": "Posting purchase",
+      "editing": "Editing purchase",
+      "detailing": "Detailing purchase",
+      "submit": "Post purchase",
+      "card": "Card",
+      "period": "Invoice period",
+      "name": "Name",
+      "purchased-on": "Purchase date",
+      "value": "Value",
+      "cost-center": "Cost center",
+      "classification": "Expense classification"
+    },
+    "sections": {
+      "card": "Card and period",
+      "card-help": "Open periods only.",
+      "purchase": "Purchase",
+      "classification": "Classification"
+    },
+    "detail": {
+      "value": "Value",
+      "purchased-on": "Purchase date",
+      "card": "Card",
+      "invoice": "Invoice",
+      "invoice-link": "{period} invoice",
+      "period": "Period",
+      "cost-center": "Cost center",
+      "classification": "Classification"
+    },
+    "notices": {
+      "movement": "This purchase came from a card payment and cannot be changed here.",
+      "movement-link": "View the movement"
+    },
+    "toast": {
+      "created": "Purchase posted",
+      "created-detail": "“{name}” went into the open invoice of the card.",
+      "updated": "Changes saved",
+      "updated-detail": "“{name}” was updated.",
+      "removed": "Purchase removed",
+      "removed-detail": "“{name}” left the invoice."
+    },
+    "remove": {
+      "title": "Remove the purchase “{name}”?",
+      "description": "It leaves the invoice and the spending by cost center. This cannot be undone."
     }
   }
 }

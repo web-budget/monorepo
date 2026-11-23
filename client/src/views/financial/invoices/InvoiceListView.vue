@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CreditCard } from 'lucide-vue-next'
+import { CreditCard, Plus } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -15,6 +15,7 @@ import InvoiceStatusBadge from '@/components/invoices/InvoiceStatusBadge.vue'
 import ItemsTable from '@/components/listing/ItemsTable.vue'
 import ListState, { type ListStateKind } from '@/components/listing/ListState.vue'
 import StatusTabs from '@/components/listing/StatusTabs.vue'
+import { Button } from '@/components/ui/button'
 import { useListFilters } from '@/composables/useListFilters'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { ALL_PERIODS, INVOICE_FILTER_KEYS, useInvoicesStore } from '@/stores/invoices'
@@ -165,6 +166,10 @@ function onTableSorted(event: { sortField: string; sortOrder: 'asc' | 'desc' }) 
   return reload()
 }
 
+function createPurchase() {
+  return router.push('/financial/invoices/purchases/create')
+}
+
 function openDetail(invoice: { id: string }) {
   return router.push({ name: 'invoices.detail', params: { id: invoice.id } })
 }
@@ -175,7 +180,13 @@ function openDetail(invoice: { id: string }) {
     <PageHeader
       :title="$t('credit-card-invoice.title')"
       :description="$t('credit-card-invoice.list.description')"
-    />
+    >
+      <template #actions>
+        <Button type="button" @click="createPurchase()">
+          <Plus />{{ $t('credit-card-invoice.actions.new-purchase') }}
+        </Button>
+      </template>
+    </PageHeader>
     <div class="grid gap-3">
       <div class="flex flex-wrap items-end justify-between gap-3">
         <div

@@ -67,6 +67,27 @@ export const financialRoutes: RouteRecordRaw[] = [
             meta: { breadcrumb: 'credit-card-invoice.detail.breadcrumb' },
             component: () => import('@/views/financial/invoices/InvoiceDetailView.vue'),
           },
+          { path: 'purchases', name: 'purchases', redirect: { name: 'invoices' } },
+          {
+            path: 'purchases/create',
+            name: 'purchases.create',
+            meta: { breadcrumb: 'card-purchase.form.new' },
+            component: () => import('@/views/financial/invoices/CardPurchaseFormView.vue'),
+          },
+          {
+            path: 'purchases/:id/update',
+            name: 'purchases.update',
+            props: true,
+            meta: { breadcrumb: 'card-purchase.form.editing' },
+            component: () => import('@/views/financial/invoices/CardPurchaseFormView.vue'),
+          },
+          {
+            path: 'purchases/:id/detail',
+            name: 'purchases.detail',
+            props: true,
+            meta: { breadcrumb: 'card-purchase.form.detailing' },
+            component: () => import('@/views/financial/invoices/CardPurchaseDetailView.vue'),
+          },
         ],
       },
       crudRoutes({
