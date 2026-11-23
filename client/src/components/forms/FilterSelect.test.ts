@@ -24,6 +24,15 @@ describe('FilterSelect', () => {
     expect(wrapper.getComponent(Select).props('modelValue')).toBe('__none__')
   })
 
+  it('has no none option without a none label', () => {
+    const wrapper = mount(FilterSelect, {
+      props: { label: 'Carteira', options: [{ label: 'A', value: 'a' }], modelValue: 'a' },
+      global: { plugins: [i18n] },
+    })
+
+    expect(wrapper.getComponent(Select).props('modelValue')).toBe('a')
+  })
+
   it('passes a chosen value through', () => {
     expect(render('INCOME').getComponent(Select).props('modelValue')).toBe('INCOME')
   })

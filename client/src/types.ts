@@ -433,3 +433,41 @@ export interface MovementQuery {
   size?: number
   sort?: string
 }
+
+export type WalletEntryDirection = 'CREDIT' | 'DEBIT'
+
+export type WalletEntryOrigin = 'INCOME' | 'EXPENSE' | 'REVERSAL' | 'ADJUSTMENT' | 'TRANSFER'
+
+export type WalletEntryDirectionFilter = WalletEntryDirection | 'ALL'
+
+export interface WalletEntryView {
+  id: string
+  createdOn: string
+  name: string
+  direction: WalletEntryDirection
+  origin: WalletEntryOrigin
+  value: number
+  previousBalance: number
+  resultingBalance: number
+  financialPeriod: { id: string; name: string } | null
+  reference: { type: 'MOVEMENT' | 'TRANSFER'; id: string } | null
+}
+
+export interface StatementQuery {
+  from?: string
+  to?: string
+  financialPeriod?: string
+  origins?: WalletEntryOrigin[]
+  direction?: WalletEntryDirection
+  filter?: string
+  minValue?: number
+  maxValue?: number
+  page?: number
+  size?: number
+  sort?: string
+}
+
+export interface AdjustmentForm {
+  value: number
+  name: string
+}

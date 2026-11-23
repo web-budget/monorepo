@@ -77,9 +77,9 @@ describe('ModuleHome', () => {
   it('shows the financial items without a screen as coming soon', () => {
     const wrapper = render(financialSection)
 
-    expect(wrapper.findAll('a')).toHaveLength(2)
+    expect(wrapper.findAll('a')).toHaveLength(3)
     const cards = wrapper.findAll('[aria-disabled="true"]')
-    expect(cards).toHaveLength(5)
+    expect(cards).toHaveLength(4)
     expect(cards.every((card) => card.text().includes('Em breve'))).toBe(true)
   })
 

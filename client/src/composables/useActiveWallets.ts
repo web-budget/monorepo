@@ -7,9 +7,9 @@ const WALLETS_PAGE_SIZE = 100
 export function useActiveWallets() {
   const wallets = ref<WalletListView[]>([])
 
-  async function load() {
+  async function load(status: 'ACTIVE' | 'ALL' = 'ACTIVE') {
     const page = await walletsApi.findAll({
-      status: 'ACTIVE',
+      status,
       size: WALLETS_PAGE_SIZE,
       sort: 'name,asc',
     })

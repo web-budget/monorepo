@@ -673,6 +673,10 @@
       "bank": "Dados do banco",
       "bank-help": "Aparece para Conta bancária e Investimento.",
       "balance": "Saldo"
+    },
+    "actions": {
+      "view-statement": "Ver extrato",
+      "adjust-balance": "Ajustar saldo"
     }
   },
   "card": {
@@ -959,7 +963,8 @@
     "number-max": "O valor máximo é {maximum}",
     "end-before-start": "A data de fim não pode ser anterior à data de início",
     "roles-required": "Escolha pelo menos uma área.",
-    "discount-too-high": "O desconto precisa ser menor que o valor."
+    "discount-too-high": "O desconto precisa ser menor que o valor.",
+    "adjustment-not-zero": "O ajuste não pode ser zero."
   },
   "crud": {
     "required-hint": "Campos com * são obrigatórios.",
@@ -1168,6 +1173,69 @@
   },
   "statement": {
     "title": "Extrato",
-    "menu": "Extrato"
+    "menu": "Extrato",
+    "description": "Mudanças de saldo de {name}.",
+    "balance": "Saldo atual",
+    "inactive": "inativa",
+    "search": {
+      "placeholder": "Nome do lançamento"
+    },
+    "options": {
+      "all": "Todos",
+      "credit": "Créditos",
+      "debit": "Débitos"
+    },
+    "filters": {
+      "wallet": "Carteira",
+      "from": "De",
+      "to": "Até",
+      "period": "Período financeiro",
+      "all-periods": "Todos",
+      "origin": "Operação",
+      "all-origins": "Todas",
+      "min": "Valor mínimo",
+      "max": "Valor máximo",
+      "clear": "Limpar"
+    },
+    "origin": {
+      "INCOME": "Receita",
+      "EXPENSE": "Despesa",
+      "REVERSAL": "Estorno",
+      "ADJUSTMENT": "Ajuste",
+      "TRANSFER": "Transferência"
+    },
+    "table-columns": {
+      "created-on": "Data e hora",
+      "origin": "Operação",
+      "name": "Lançamento",
+      "value": "Valor (R$)",
+      "previous-balance": "Saldo anterior",
+      "resulting-balance": "Saldo atual",
+      "reference": "Origem"
+    },
+    "open-origin": "Abrir a origem de {name}",
+    "list": {
+      "empty-title": "Sem lançamentos ainda",
+      "empty-description": "Lance uma receita para dar saldo a esta carteira.",
+      "plural": "o extrato"
+    },
+    "actions": {
+      "adjust": "Ajustar saldo"
+    },
+    "adjust": {
+      "title": "Ajustar o saldo de {name}",
+      "description": "Para centavos de arredondamento. Não entra no resultado.",
+      "value": "Valor do ajuste",
+      "value-hint": "Positivo credita, negativo debita.",
+      "reason": "Motivo",
+      "wallet-balance": "Saldo da carteira",
+      "adjustment": "Ajuste",
+      "balance-after": "Saldo depois",
+      "confirm": "Ajustar"
+    },
+    "toast": {
+      "adjusted": "Saldo ajustado",
+      "adjusted-detail": "O ajuste de {name} já está no extrato e não entra no resultado."
+    }
   }
 }
