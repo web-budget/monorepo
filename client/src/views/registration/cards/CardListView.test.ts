@@ -213,4 +213,20 @@ describe('CardListView', () => {
     expect(stateOf(wrapper)).toBeUndefined()
     expect(wrapper.findAll('tbody tr')).toHaveLength(2)
   })
+
+  it('opens with the state of the URL, which stays there', async () => {
+    const location = '/cards?filter=Ab&status=INACTIVE&page=2&size=30&sort=flag,asc'
+    serveListing(vi.mocked(cardsApi.findAll), cards, 70)
+
+    const { router } = await mountView(CardListView, 'cards', {}, {}, location)
+
+    expect(listingCalls(vi.mocked(cardsApi.findAll))[0]).toEqual({
+      filter: 'Ab',
+      status: 'INACTIVE',
+      page: 1,
+      size: 30,
+      sort: 'flag,asc',
+    })
+    expect(router.currentRoute.value.fullPath).toBe(location)
+  })
 })
