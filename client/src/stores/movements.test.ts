@@ -113,6 +113,19 @@ describe('useMovementsStore', () => {
     expect(store.movement).toBeNull()
   })
 
+  it('pays a movement and undoes the payment, keeping the answer as the current one', async () => {
+    vi.mocked(movementsApi.pay).mockResolvedValue({ ...view, status: 'PAID' })
+    vi.mocked(movementsApi.undoPayment).mockResolvedValue({ ...view, status: 'OPEN' })
+    const store = useMovementsStore()
+
+    await store.pay('m-1', { wallet: 'w-1' })
+    expect(movementsApi.pay).toHaveBeenCalledWith('m-1', { wallet: 'w-1' })
+    expect(store.movement?.status).toBe('PAID')
+
+    await store.undoPayment('m-1')
+    expect(store.movement?.status).toBe('OPEN')
+  })
+
   it('forgets the filters and the page when it is reset', async () => {
     vi.mocked(movementsApi.findAll).mockResolvedValue(page)
     const store = useMovementsStore()

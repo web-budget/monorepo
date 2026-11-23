@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Ellipsis, Eye, Trash2 } from 'lucide-vue-next'
+import { Banknote, Ellipsis, Eye, Pencil, Trash2, Undo2 } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -8,11 +8,17 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import type { MovementStatus } from '@/types'
+import type { MovementStatus, MovementType } from '@/types'
 
-defineProps<{ status: MovementStatus }>()
+defineProps<{ status: MovementStatus; type: MovementType; periodOpen: boolean }>()
 
-const emit = defineEmits<{ details: []; remove: [] }>()
+const emit = defineEmits<{
+  details: []
+  pay: []
+  edit: []
+  undo: []
+  remove: []
+}>()
 </script>
 
 <template>
@@ -27,9 +33,23 @@ const emit = defineEmits<{ details: []; remove: [] }>()
         <Eye />{{ $t('movement.actions.details') }}
       </DropdownMenuItem>
       <template v-if="status === 'OPEN'">
+        <DropdownMenuItem @select="emit('pay')">
+          <Banknote />{{
+            $t(type === 'INCOME' ? 'movement.actions.receive' : 'movement.actions.pay')
+          }}
+        </DropdownMenuItem>
+        <DropdownMenuItem @select="emit('edit')">
+          <Pencil />{{ $t('movement.actions.edit') }}
+        </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem variant="destructive" @select="emit('remove')">
           <Trash2 />{{ $t('movement.actions.remove') }}
+        </DropdownMenuItem>
+      </template>
+      <template v-else-if="periodOpen">
+        <DropdownMenuSeparator />
+        <DropdownMenuItem @select="emit('undo')">
+          <Undo2 />{{ $t('movement.actions.undo') }}
         </DropdownMenuItem>
       </template>
     </DropdownMenuContent>

@@ -26,6 +26,7 @@ export const financialRoutes: RouteRecordRaw[] = [
         name: 'movements',
         entity: 'movement',
         list: () => import('@/views/financial/movements/MovementListView.vue'),
+        form: () => import('@/views/financial/movements/MovementFormView.vue'),
         detail: () => import('@/views/financial/movements/MovementDetailView.vue'),
       }),
     ],

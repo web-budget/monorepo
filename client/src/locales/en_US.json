@@ -48,7 +48,19 @@
       "financial-period-not-open": "The financial period is not open and cannot be modified",
       "accounted-period-movement": "The movement belongs to an accounted period and cannot be changed",
       "invalid-token": "Invalid or expired token",
-      "self-action-not-allowed": "This action does not apply to your own account"
+      "self-action-not-allowed": "This action does not apply to your own account",
+      "movement-already-paid": "The movement is already paid and cannot be changed",
+      "movement-not-paid": "The movement has no payment",
+      "classification-type-mismatch": "The classification is not of the same type as the movement",
+      "inactive-classification": "The classification is inactive",
+      "inactive-cost-center": "The cost center is inactive",
+      "inactive-wallet": "The wallet is inactive",
+      "invalid-discount": "The discount must be between zero and the value, never equal to it",
+      "payment-date-in-future": "The payment date cannot be in the future",
+      "wallet-has-entries": "The wallet has statement entries and cannot be deleted",
+      "transfer-between-same-wallet": "Origin and destination must be different wallets",
+      "transfer-is-a-return": "A return cannot be returned",
+      "invalid-adjustment-value": "The adjustment value cannot be zero"
     },
     "not-found": {
       "detail": "Not found",
@@ -946,7 +958,8 @@
     "number-min": "The minimum value is {minimum}",
     "number-max": "The maximum value is {maximum}",
     "end-before-start": "The end date cannot be before the start date",
-    "roles-required": "Choose at least one area."
+    "roles-required": "Choose at least one area.",
+    "discount-too-high": "The discount must be lower than the value."
   },
   "crud": {
     "required-hint": "Fields with * are required.",
@@ -987,7 +1000,11 @@
     },
     "actions": {
       "details": "Details",
-      "remove": "Delete"
+      "remove": "Delete",
+      "pay": "Pay",
+      "receive": "Receive",
+      "edit": "Edit",
+      "undo": "Undo payment"
     },
     "table-columns": {
       "name": "Name",
@@ -1008,7 +1025,9 @@
     },
     "type": {
       "income": "Income",
-      "expense": "Expense"
+      "expense": "Expense",
+      "INCOME": "Income",
+      "EXPENSE": "Expense"
     },
     "filters": {
       "period": "Period",
@@ -1052,16 +1071,46 @@
     },
     "toast": {
       "removed": "Movement deleted",
-      "removed-detail": "“{name}” left the list."
+      "removed-detail": "“{name}” left the list.",
+      "created": "Movement posted",
+      "created-detail": "“{name}” now shows in the period.",
+      "updated": "Changes saved",
+      "updated-detail": "“{name}” was updated.",
+      "paid": "Payment recorded",
+      "paid-detail": "“{name}” was paid, with a new line in the statement.",
+      "payment-undone": "Payment undone",
+      "payment-undone-detail": "“{name}” is open again and the reversal is in the statement."
     },
     "form": {
       "new": "Posting",
       "editing": "Editing",
-      "detailing": "Viewing"
+      "detailing": "Viewing",
+      "name": "Name",
+      "type": "Type",
+      "type-hint": "The type does not change once posted.",
+      "value": "Value",
+      "due-date": "Due date",
+      "due-date-hint": "Optional. Empty means today.",
+      "period": "Period",
+      "period-hint": "Open periods only.",
+      "cost-center": "Cost center",
+      "classification": "Classification",
+      "description": "Description",
+      "paid": "Post as already paid",
+      "paid-on": "Payment date",
+      "wallet": "Wallet",
+      "discount": "Discount",
+      "discount-hint": "Optional.",
+      "submit-post": "Post",
+      "submit-post-paid": "Post and pay"
     },
     "sections": {
       "identification": "Identification",
-      "payment": "Payment"
+      "payment": "Payment",
+      "type": "Type",
+      "classification": "Classification",
+      "classification-help": "Only classifications of the chosen type appear.",
+      "payment-help": "Optional."
     },
     "detail": {
       "name": "Name",
@@ -1091,7 +1140,27 @@
       "overdue": "Was due on {date}",
       "overdue-description": "Open for {days} day. | Open for {days} days."
     },
-    "menu": "Movements"
+    "menu": "Movements",
+    "pay": {
+      "title-pay": "Pay “{name}”",
+      "title-receive": "Receive “{name}”",
+      "paid-on": "Payment date",
+      "wallet": "Wallet",
+      "discount": "Discount",
+      "wallet-balance": "Wallet balance",
+      "movement-value": "Movement value",
+      "discount-value": "Discount",
+      "amount-paid": "Amount paid",
+      "amount-received": "Amount received",
+      "balance-after": "Balance after",
+      "confirm-pay": "Pay",
+      "confirm-receive": "Receive"
+    },
+    "undo": {
+      "title": "Undo the payment of “{name}”?",
+      "description": "The amount goes back to the wallet as a reversal and the movement goes back to “Open”.",
+      "confirm": "Undo"
+    }
   },
   "transfer": {
     "title": "Transfers",

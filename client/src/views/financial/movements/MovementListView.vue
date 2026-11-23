@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowDownLeft, ArrowUpRight, Clock, ReceiptText, X } from 'lucide-vue-next'
+import { ArrowDownLeft, ArrowUpRight, Clock, Plus, ReceiptText, X } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -14,6 +14,7 @@ import ItemsTable from '@/components/listing/ItemsTable.vue'
 import ListState from '@/components/listing/ListState.vue'
 import SearchControls from '@/components/listing/SearchControls.vue'
 import MovementRowActions from '@/components/movements/MovementRowActions.vue'
+import PayMovementDialog from '@/components/movements/PayMovementDialog.vue'
 import MovementStatusBadge from '@/components/movements/MovementStatusBadge.vue'
 import { Alert, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
@@ -21,6 +22,8 @@ import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
 import { Switch } from '@/components/ui/switch'
 import { useCrudList } from '@/composables/useCrudList'
+import { useActiveWallets } from '@/composables/useActiveWallets'
+import { useMovementActions } from '@/composables/useMovementActions'
 import { useMovementFilterOptions } from '@/composables/useMovementFilterOptions'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { useFinancialPeriodsStore } from '@/stores/financialPeriods'
@@ -51,12 +54,13 @@ const defaultPeriodId = computed(() => defaultPeriod(filterOptions.periods.value
 
 const periodsReady = optionErrors.run(filterOptions.load).then(applyDefaultPeriod)
 
-function applyDefaultPeriod() {
+function applyDefaultPeriod(): boolean {
   if (filters.value.period !== undefined || defaultPeriodId.value === undefined) {
-    return
+    return false
   }
   filters.value = { ...filters.value, period: defaultPeriodId.value }
   void router.replace({ query: { ...route.query, period: defaultPeriodId.value } })
+  return true
 }
 
 async function findAll() {
@@ -81,6 +85,8 @@ const {
   reload,
   onPageChange,
   onTableSorted,
+  changeToAdd,
+  changeToUpdate,
   changeToDetail,
   remove,
 } = useCrudList({
@@ -105,6 +111,15 @@ const {
     }),
   },
 })
+
+const activeWallets = useActiveWallets()
+const walletErrors = useServerErrors()
+const actions = useMovementActions(async () => {
+  await reload()
+  await loadResult()
+})
+
+onMounted(() => walletErrors.run(activeWallets.load))
 
 const selectedPeriod = computed(() =>
   filterOptions.periods.value.find((period) => period.id === filters.value.period),
@@ -209,14 +224,20 @@ async function loadResult() {
 watch(() => filters.value.period, loadResult)
 
 onMounted(async () => {
-  await periodsReady
-  await loadResult()
+  const defaulted = await periodsReady
+  if (!defaulted) {
+    await loadResult()
+  }
 })
 </script>
 
 <template>
   <PageContainer class="gap-6">
-    <PageHeader :title="$t('movement.title')" :description="description"> </PageHeader>
+    <PageHeader :title="$t('movement.title')" :description="description">
+      <template #actions>
+        <Button type="button" @click="changeToAdd()"> <Plus />{{ $t('form.create') }} </Button>
+      </template>
+    </PageHeader>
     <div class="grid gap-3">
       <Alert v-if="selectedPeriod?.expired" variant="attention" data-slot="expired-notice">
         <Clock />
@@ -315,16 +336,22 @@ onMounted(async () => {
         </Button>
       </div>
       <ServerErrorAlert
-        :messages="[...messages, ...optionErrors.messages.value, ...resultErrors.messages.value]"
+        :messages="[
+          ...messages,
+          ...optionErrors.messages.value,
+          ...resultErrors.messages.value,
+          ...walletErrors.messages.value,
+          ...actions.messages.value,
+        ]"
       />
       <ListState
         v-if="listState !== 'table'"
         :kind="listState"
         entity="movement"
         :icon="ReceiptText"
-        :creatable="false"
         :query="pageRequest.filterText"
         :message="loadMessages[0]"
+        @create="changeToAdd()"
         @clear="clearSearch()"
         @retry="reload()"
       />
@@ -368,11 +395,24 @@ onMounted(async () => {
         <template #actions="{ item }">
           <MovementRowActions
             :status="item.status"
+            :type="item.type"
+            :period-open="item.financialPeriod.status === 'OPEN'"
             @details="changeToDetail({ data: item, index: 0 })"
+            @pay="actions.openPay(item)"
+            @edit="changeToUpdate(item.id)"
+            @undo="actions.undoPayment(item)"
             @remove="remove(item)"
           />
         </template>
       </ItemsTable>
     </div>
+    <PayMovementDialog
+      :movement="actions.payTarget.value"
+      :wallets="activeWallets.wallets.value"
+      :loading="loading"
+      :balance-of="activeWallets.balanceOf"
+      @close="actions.closePay()"
+      @pay="actions.pay"
+    />
   </PageContainer>
 </template>
