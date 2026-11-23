@@ -11,7 +11,7 @@ class Movement(
     var dueDate: LocalDate,
     var classification: ClassificationReference?,
     var costCenter: CostCenterReference?,
-    val financialPeriod: FinancialPeriodReference,
+    var financialPeriod: FinancialPeriodReference,
     var status: Status = Status.OPEN,
     var description: String? = null,
     var payment: Payment? = null,

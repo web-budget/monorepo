@@ -160,3 +160,35 @@ data class MovementRecurringView(
     val name: String,
     val card: PaymentCardView?
 )
+
+data class MovementMoveForm(
+    val financialPeriod: UUID?
+)
+
+data class ClosingOpenMovementsView(
+    val count: Int,
+    val income: BigDecimal,
+    val expense: BigDecimal
+)
+
+data class ClosingInvoiceView(
+    val id: UUID,
+    val card: PaymentCardView,
+    val value: BigDecimal
+)
+
+data class ClosingPeriodView(
+    val id: UUID,
+    val name: String,
+    val startingAt: LocalDate,
+    val endingAt: LocalDate
+)
+
+data class ClosingSummaryView(
+    val openMovements: ClosingOpenMovementsView,
+    val openInvoices: List<ClosingInvoiceView>,
+    val emptyInvoices: List<ClosingInvoiceView>,
+    val nextOpenPeriod: ClosingPeriodView?,
+    val targetPeriods: List<ClosingPeriodView>,
+    val canClose: Boolean
+)
