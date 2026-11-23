@@ -1,5 +1,6 @@
 package br.com.webbudget.server.application.payloads.registration
 
+import br.com.webbudget.server.application.payloads.financial.RecurringLaunchView
 import br.com.webbudget.server.application.payloads.ErrorCodes.IS_NULL
 import br.com.webbudget.server.application.payloads.ErrorCodes.IS_NULL_OR_BLANK
 import br.com.webbudget.server.domain.entities.registration.FinancialPeriod.Status
@@ -56,4 +57,8 @@ enum class FinancialPeriodStatusFilter(val statuses: List<Status>) {
 data class FinancialPeriodFilter(
     val filter: String?,
     val status: FinancialPeriodStatusFilter?
+)
+
+data class FinancialPeriodCreatedView(
+    val recurringLaunch: RecurringLaunchView?
 )
