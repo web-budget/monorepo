@@ -95,6 +95,7 @@ export interface SessionResponse {
   status: UserStatus
   language: Language
   roles: Role[]
+  dueDateNotices: boolean
 }
 
 export interface ActivateAccountForm {
@@ -293,6 +294,54 @@ export interface FinancialPeriodResultView {
   revenues: number
   expenses: number
   result: number
+  recorded: boolean
+}
+
+export interface ClosingPeriodView {
+  id: string
+  name: string
+  startingAt: string
+  endingAt: string
+}
+
+export interface ClosingInvoiceView {
+  id: string
+  card: { id: string; name: string }
+  value: number
+}
+
+export interface ClosingSummaryView {
+  openMovements: { count: number; income: number; expense: number }
+  openInvoices: ClosingInvoiceView[]
+  emptyInvoices: ClosingInvoiceView[]
+  nextOpenPeriod: ClosingPeriodView | null
+  targetPeriods: ClosingPeriodView[]
+  canClose: boolean
+}
+
+export interface PeriodResultView {
+  id: string
+  name: string
+  financialPeriod: ClosingPeriodView
+  revenues: number
+  expenses: number
+  result: number
+}
+
+export interface PeriodResultQuery {
+  from?: string
+  to?: string
+  filter?: string
+  page?: number
+  size?: number
+  sort?: string
+}
+
+export interface AccumulatedView {
+  recorded: number
+  provisional: number
+  accumulated: number
+  provisionalPeriods: { financialPeriod: ClosingPeriodView; result: number }[]
 }
 
 export type Language = 'PT_BR' | 'EN_US'
@@ -377,6 +426,7 @@ export interface MovementView {
   description: string | null
   payment: PaymentView | null
   invoice?: { id: string; status: InvoiceStatus; card: { id: string; name: string } } | null
+  recurringMovement?: { id: string; name: string; card: { id: string; name: string } | null } | null
 }
 
 export interface MovementListView {
@@ -590,4 +640,93 @@ export interface FinancialFlowView {
   year: number
   totals: { revenues: number; expenses: number; result: number }
   periods: FinancialFlowPeriod[]
+}
+
+export type RecurringValueKind = 'FIXED' | 'VARIABLE'
+
+export type RecurringMovementStatusFilter = 'ACTIVE' | 'FINISHED' | 'ALL'
+
+export interface RecurringMovementView {
+  id: string
+  name: string
+  type: MovementType
+  valueKind: RecurringValueKind
+  value: number
+  suggestedValue: number
+  installments: number | null
+  firstInstallment: number
+  launchedInstallments: number | null
+  nextInstallment: number | null
+  finished: boolean
+  autoLaunch: boolean
+  active: boolean
+  classification: MovementClassificationView
+  costCenter: MovementCostCenterView
+  card: { id: string; name: string } | null
+  launchedInPeriod: string | null
+  createdOn: string
+}
+
+export interface RecurringMovementCreateForm {
+  name: string
+  type: MovementType
+  valueKind: RecurringValueKind
+  value: number
+  installments: number | null
+  firstInstallment: number | null
+  autoLaunch: boolean
+  classification: string
+  costCenter: string
+  card: string | null
+}
+
+export interface RecurringMovementUpdateForm {
+  name: string
+  active: boolean
+  installments: number | null
+  autoLaunch: boolean
+  classification: string
+  costCenter: string
+  card: string | null
+}
+
+export interface RecurringValueForm {
+  value: number
+  reason: string | null
+}
+
+export interface RecurringValueView {
+  value: number
+  reason: string | null
+  validFrom: string
+}
+
+export interface RecurringMovementQuery {
+  filter?: string
+  type?: MovementType
+  valueKinds?: RecurringValueKind[]
+  active?: boolean
+  finished?: boolean
+  cards?: string[]
+  financialPeriod?: string
+  page?: number
+  size?: number
+  sort?: string
+}
+
+export interface RecurringLaunchItem {
+  id: string
+  value?: number
+}
+
+export type RecurringSkipReason = 'inactive' | 'finished' | 'already-launched-in-period'
+
+export interface RecurringLaunchReport {
+  launched: { recurringMovement: string; installment: number; movement: MovementListView }[]
+  skipped: { recurringMovement: string; name: string; reason: RecurringSkipReason }[]
+}
+
+export interface FinancialPeriodCreation {
+  id: string
+  recurringLaunch: RecurringLaunchReport
 }

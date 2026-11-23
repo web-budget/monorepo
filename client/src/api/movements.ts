@@ -46,6 +46,12 @@ export const movementsApi = {
       .then((response) => response.data)
   },
 
+  move(id: string, financialPeriod?: string): Promise<MovementView> {
+    return apiClient
+      .patch<MovementView>(`${PATH}/${id}/move`, financialPeriod ? { financialPeriod } : undefined)
+      .then((response) => response.data)
+  },
+
   undoPayment(id: string): Promise<MovementView> {
     return apiClient
       .patch<MovementView>(`${PATH}/${id}/undo-payment`)

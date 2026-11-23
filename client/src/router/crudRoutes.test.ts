@@ -33,4 +33,21 @@ describe('crudRoutes', () => {
 
     expect(record.children?.map((child) => child.name)).toEqual(['things', 'things.detail'])
   })
+
+  it('adds the extra routes before the detail', () => {
+    const record = crudRoutes({
+      path: 'things',
+      name: 'things',
+      entity: 'thing',
+      list: view,
+      detail: view,
+      extra: [{ path: 'launch', name: 'things.launch', component: view }],
+    })
+
+    expect(record.children?.map((child) => child.name)).toEqual([
+      'things',
+      'things.launch',
+      'things.detail',
+    ])
+  })
 })

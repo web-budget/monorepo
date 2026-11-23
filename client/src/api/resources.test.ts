@@ -173,11 +173,6 @@ describe.each([
     classificationsApi as unknown as CrudResource,
     '/registration/classifications',
   ],
-  [
-    'financialPeriodsApi',
-    financialPeriodsApi as unknown as CrudResource,
-    '/registration/financial-periods',
-  ],
 ])('%s', (_name, resource, path) => {
   it('lists a page with the query as parameters', async () => {
     const query = { filter: 'x', status: 'ACTIVE', page: 1, size: 15, sort: 'name,asc' }
@@ -208,5 +203,42 @@ describe.each([
   it('removes by id', async () => {
     await expect(resource.remove('id-1')).resolves.toBeUndefined()
     expect(lastRequest()).toMatchObject({ method: 'delete', url: `${path}/id-1` })
+  })
+})
+
+describe('financialPeriodsApi', () => {
+  const path = '/registration/financial-periods'
+
+  it('lists, finds, updates and removes like the other resources', async () => {
+    const query = { filter: 'x', status: 'OPEN', page: 1, size: 15, sort: 'name,asc' }
+    const resource = financialPeriodsApi as unknown as CrudResource
+
+    await expect(resource.findAll(query)).resolves.toEqual({ served: true })
+    expect(lastRequest()).toMatchObject({ method: 'get', url: path, params: query })
+    await expect(resource.findById('id-1')).resolves.toEqual({ served: true })
+    expect(lastRequest()).toMatchObject({ method: 'get', url: `${path}/id-1` })
+    await expect(resource.update('id-1', { name: 'Edited' })).resolves.toEqual({ served: true })
+    expect(lastRequest()).toMatchObject({ method: 'put', url: `${path}/id-1` })
+    await expect(resource.remove('id-1')).resolves.toBeUndefined()
+    expect(lastRequest()).toMatchObject({ method: 'delete', url: `${path}/id-1` })
+  })
+
+  it('creates and returns the id from the location header with the recurring launch report', async () => {
+    const recurringLaunch = { launched: [], skipped: [] }
+    apiClient.defaults.adapter = (config) => {
+      requests.push(config)
+      return Promise.resolve({
+        data: { recurringLaunch },
+        status: 201,
+        statusText: 'Created',
+        headers: { location: 'http://localhost/private/v1/resource/new-id' },
+        config,
+      })
+    }
+
+    await expect(
+      financialPeriodsApi.create({ name: 'New', startingAt: '2026-01-01', endingAt: '2026-01-31' }),
+    ).resolves.toEqual({ id: 'new-id', recurringLaunch })
+    expect(lastRequest()).toMatchObject({ method: 'post', url: path, data: { name: 'New' } })
   })
 })

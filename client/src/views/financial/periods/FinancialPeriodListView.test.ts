@@ -2,12 +2,14 @@ import { flushPromises } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'vue-sonner'
 import { financialPeriodsApi } from '@/api/financialPeriods'
+import { periodResultsApi } from '@/api/periodResults'
 import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import {
   buttonWithText,
   chooseRowAction,
   listingCalls,
   mountView,
+  pageOf,
   problem,
   serveListing,
   stateOf,
@@ -16,6 +18,7 @@ import type { FinancialPeriodListView as FinancialPeriodRow } from '@/types'
 import FinancialPeriodListView from '@/views/financial/periods/FinancialPeriodListView.vue'
 
 vi.mock('@/api/financialPeriods')
+vi.mock('@/api/periodResults')
 vi.mock('vue-sonner', () => ({
   toast: {
     success: vi.fn<() => void>(),
@@ -63,6 +66,7 @@ describe('FinancialPeriodListView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     document.body.replaceChildren()
+    vi.mocked(periodResultsApi.findAll).mockResolvedValue(pageOf([]))
   })
 
   it('introduces the page and offers the open periods first, with the counts', async () => {
@@ -88,6 +92,7 @@ describe('FinancialPeriodListView', () => {
       'Nome',
       'Início',
       'Fim',
+      'Resultado (R$)',
       'Status',
       'Ações',
     ])
@@ -102,7 +107,7 @@ describe('FinancialPeriodListView', () => {
     expect(rows[1]!.attributes('data-state')).toBe('selected')
     expect(rows[0]!.attributes('data-state')).toBeUndefined()
     expect(rows[0]!.find('button[aria-label="Mais ações"]').exists()).toBe(true)
-    expect(rows[2]!.find('button[aria-label="Mais ações"]').exists()).toBe(false)
+    expect(rows[2]!.find('button[aria-label="Mais ações"]').exists()).toBe(true)
     expect(wrapper.find('[data-slot="expired-notice"]').text()).toContain(
       '1 período expirado: December. Ainda aceita lançamentos.',
     )
@@ -264,5 +269,105 @@ describe('FinancialPeriodListView', () => {
       sort: 'status,asc',
     })
     expect(router.currentRoute.value.fullPath).toBe(location)
+  })
+
+  it('shows the recorded result of a closed period and provisional for an open one', async () => {
+    vi.mocked(periodResultsApi.findAll).mockResolvedValue(
+      pageOf([
+        {
+          id: 'r-1',
+          name: 'November',
+          financialPeriod: {
+            id: 'p-3',
+            name: 'November',
+            startingAt: '2025-11-01',
+            endingAt: '2025-11-30',
+          },
+          revenues: 3000,
+          expenses: 3500,
+          result: -500,
+        },
+      ]),
+    )
+    const { wrapper } = await render()
+
+    expect(periodResultsApi.findAll).toHaveBeenCalledWith({
+      from: '2025-11-30',
+      to: '2025-11-30',
+      size: 100,
+    })
+    const rows = wrapper.findAll('tbody tr')
+    expect(rows[0]!.text()).toContain('provisório')
+    expect(rows[2]!.text()).toMatch(/−\s*R\$\s*500,00/)
+  })
+
+  it('shows a dash when a closed period has no recorded result and loads nothing without closed ones', async () => {
+    const { wrapper } = await render()
+    expect(wrapper.findAll('tbody tr')[2]!.text()).toContain('—')
+
+    vi.mocked(periodResultsApi.findAll).mockClear()
+    await render([periods[0]!])
+    expect(periodResultsApi.findAll).not.toHaveBeenCalled()
+  })
+
+  it('takes the period to the closing screen from the menu and from the expired notice', async () => {
+    const { wrapper, router } = await render()
+
+    await chooseRowAction(wrapper, 0, 'Fechar período')
+    expect(router.currentRoute.value.path).toBe('/financial/closing')
+    expect(router.currentRoute.value.query.period).toBe('p-1')
+
+    await buttonWithText(wrapper, 'Fechar December').trigger('click')
+    await flushPromises()
+    expect(router.currentRoute.value.query.period).toBe('p-2')
+  })
+
+  it('reopens only the last closed period, after confirmation', async () => {
+    const closedPage = [periods[2]!]
+    vi.mocked(financialPeriodsApi.findAll).mockImplementation((query) =>
+      Promise.resolve(
+        query.size === 1
+          ? pageOf(query.status === 'CLOSED' && query.sort === 'endingAt,desc' ? closedPage : [])
+          : pageOf(periods),
+      ),
+    )
+    vi.mocked(financialPeriodsApi.reopen).mockResolvedValue(undefined)
+    const { wrapper } = await mountView(FinancialPeriodListView, 'financial-periods')
+    const dialog = useConfirmDialog()
+
+    await chooseRowAction(wrapper, 2, 'Reabrir')
+    expect(dialog.state.options.title).toBe('Reabrir November?')
+    dialog.accept()
+    await flushPromises()
+
+    expect(financialPeriodsApi.reopen).toHaveBeenCalledWith('p-3')
+    expect(toast.success).toHaveBeenCalledWith('Período reaberto', expect.anything())
+  })
+
+  it('does not reopen a closed period that is not the last one', async () => {
+    const { wrapper } = await render()
+
+    await chooseRowAction(wrapper, 2, 'Reabrir')
+
+    expect(financialPeriodsApi.reopen).not.toHaveBeenCalled()
+  })
+
+  it('shows what the server refuses when reopening', async () => {
+    const closedPage = [periods[2]!]
+    vi.mocked(financialPeriodsApi.findAll).mockImplementation((query) =>
+      Promise.resolve(query.size === 1 ? pageOf(closedPage) : pageOf(periods)),
+    )
+    vi.mocked(financialPeriodsApi.reopen).mockRejectedValue(
+      problem(400, { error: 'only-the-last-closed-period-can-be-reopened' }),
+    )
+    const { wrapper } = await mountView(FinancialPeriodListView, 'financial-periods')
+
+    await chooseRowAction(wrapper, 2, 'Reabrir')
+    useConfirmDialog().accept()
+    await flushPromises()
+
+    expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
+      'Só o último período encerrado reabre',
+    )
   })
 })

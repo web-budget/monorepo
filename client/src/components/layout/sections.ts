@@ -63,6 +63,7 @@ export const financialSection: ModuleSectionDefinition = {
     {
       label: 'recurrent-movement.menu',
       icon: RefreshCw,
+      to: '/financial/recurring-movements',
       description: 'module-home.items.recurrent-movement',
     },
     {
@@ -81,6 +82,7 @@ export const financialSection: ModuleSectionDefinition = {
     {
       label: 'period-closing.menu',
       icon: Lock,
+      to: '/financial/closing',
       description: 'module-home.items.period-closing',
     },
   ],

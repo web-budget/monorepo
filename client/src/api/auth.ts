@@ -53,6 +53,12 @@ export const authApi = {
     return apiClient.patch<SessionResponse>('/auth/language', { language }).then((r) => r.data)
   },
 
+  updateDueDateNotices(enabled: boolean): Promise<SessionResponse> {
+    return apiClient
+      .patch<SessionResponse>('/auth/due-date-notices', { enabled })
+      .then((r) => r.data)
+  },
+
   fetchConfig(): Promise<AuthConfigResponse> {
     return apiClient.get<AuthConfigResponse>('/auth/config', { silent: true }).then((r) => r.data)
   },
