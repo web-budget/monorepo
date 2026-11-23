@@ -293,6 +293,54 @@ export interface FinancialPeriodResultView {
   revenues: number
   expenses: number
   result: number
+  recorded: boolean
+}
+
+export interface ClosingPeriodView {
+  id: string
+  name: string
+  startingAt: string
+  endingAt: string
+}
+
+export interface ClosingInvoiceView {
+  id: string
+  card: { id: string; name: string }
+  value: number
+}
+
+export interface ClosingSummaryView {
+  openMovements: { count: number; income: number; expense: number }
+  openInvoices: ClosingInvoiceView[]
+  emptyInvoices: ClosingInvoiceView[]
+  nextOpenPeriod: ClosingPeriodView | null
+  targetPeriods: ClosingPeriodView[]
+  canClose: boolean
+}
+
+export interface PeriodResultView {
+  id: string
+  name: string
+  financialPeriod: ClosingPeriodView
+  revenues: number
+  expenses: number
+  result: number
+}
+
+export interface PeriodResultQuery {
+  from?: string
+  to?: string
+  filter?: string
+  page?: number
+  size?: number
+  sort?: string
+}
+
+export interface AccumulatedView {
+  recorded: number
+  provisional: number
+  accumulated: number
+  provisionalPeriods: { financialPeriod: ClosingPeriodView; result: number }[]
 }
 
 export type Language = 'PT_BR' | 'EN_US'

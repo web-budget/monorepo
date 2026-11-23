@@ -67,7 +67,15 @@
       "invoice-payment-not-payable-by-card": "An invoice payment cannot be paid on a card",
       "invoice-payment-locked": "The invoice payment cannot be changed",
       "card-payment-only-for-expenses": "Only expenses can be paid on a card",
-      "payment-requires-wallet-or-card": "Choose the wallet or the card of the payment"
+      "payment-requires-wallet-or-card": "Choose the wallet or the card of the payment",
+      "no-open-period-after": "There is no open period after the period of the movement",
+      "move-target-same-period": "The movement is already in that period",
+      "move-target-not-open": "The target period is not open",
+      "invoice-payment-moved": "An invoice payment outside the period of its invoice cannot be deleted. Move it back or reopen the period",
+      "financial-period-with-open-movements": "The period still has open movements",
+      "financial-period-with-open-invoices": "The period still has an open invoice with purchases",
+      "financial-period-not-closed": "The period is not closed",
+      "only-the-last-closed-period-can-be-reopened": "Only the last closed period can be reopened"
     },
     "not-found": {
       "detail": "Not found",
@@ -692,7 +700,87 @@
   },
   "period-closing": {
     "title": "Closing",
-    "menu": "Closing"
+    "menu": "Closing",
+    "breadcrumb": "Closing",
+    "title-of": "Closing of {name}",
+    "description": "Settle the pending items and record the result.",
+    "period": "Period to close",
+    "none": "None",
+    "summary": {
+      "revenues": "Paid revenues",
+      "revenues-note": "Only what was received",
+      "expenses": "Paid expenses",
+      "expenses-note": "Includes paid invoice payments",
+      "result": "Result",
+      "result-note": "Revenues − expenses",
+      "accumulated": "Accumulated",
+      "accumulated-note": "Closed ones plus the provisional of the open ones"
+    },
+    "pendencies": {
+      "title": "Pending items",
+      "hint": "Pay or move to another open period.",
+      "none": "No pending items",
+      "movement": "Movement",
+      "due-date": "Due date",
+      "value": "Value (R$)",
+      "invoice": "invoice",
+      "overdue": "overdue",
+      "move": "Move",
+      "move-disabled": "Create an open period to be able to move.",
+      "no-next": "There is no open period after {name}",
+      "no-next-hint": "Pay everything or create a period to move to.",
+      "create-period": "Create period"
+    },
+    "invoices": {
+      "title": "Invoices",
+      "hint": "An open invoice with purchases blocks the closing.",
+      "none": "No invoices in this period",
+      "close": "Close invoice",
+      "note": {
+        "blocking": "Blocks the closing",
+        "empty": "Closes by itself with zero value",
+        "payment": "Invoice payment in the pending items",
+        "paid": "Paid"
+      }
+    },
+    "checklist": {
+      "title": "To close",
+      "pendencies": "Pending items settled",
+      "invoices": "Invoices settled",
+      "next-period": "Next period open",
+      "close": "Close {name}"
+    },
+    "move": {
+      "title": "Move “{name}”",
+      "description": "The movement goes to another open period.",
+      "period": "Period",
+      "none": "Choose a period",
+      "expired": "expired",
+      "confirm": "Move"
+    },
+    "close": {
+      "title": "Close {name}?",
+      "description": "Records the result and freezes the period.",
+      "confirm": "Close period"
+    },
+    "reopen": {
+      "title": "Reopen {name}?",
+      "description": "The recorded result is erased and the period accepts entries again. Invoices closed by themselves reopen.",
+      "confirm": "Reopen",
+      "only-last": "Only the last closed period can be reopened"
+    },
+    "actions": {
+      "close": "Close period",
+      "close-named": "Close {name}",
+      "reopen": "Reopen"
+    },
+    "toast": {
+      "moved": "Movement moved",
+      "moved-detail": "“{name}” went to {period}.",
+      "closed": "{name} closed",
+      "closed-detail": "Result {result} recorded. Empty invoices closed with zero value.",
+      "reopened": "Period reopened"
+    }
   },
   "wallet": {
     "title": "Wallets",
@@ -820,7 +908,8 @@
       "name": "Name",
       "starting-at": "Start",
       "ending-at": "End",
-      "status": "Status"
+      "status": "Status",
+      "result": "Result (R$)"
     },
     "status": {
       "open": "Open",
@@ -876,13 +965,14 @@
       "goals": "Goals",
       "goals-help": "Expected income and expense amounts for the period.",
       "result": "Provisional result",
-      "result-closed": "Result",
+      "result-closed": "Recorded result",
       "movements": "Movements"
     },
     "result": {
       "revenues": "Revenues",
       "expenses": "Expenses",
-      "result": "Result"
+      "result": "Result",
+      "provisional": "provisional"
     },
     "actions": {
       "view-movements": "View movements"
