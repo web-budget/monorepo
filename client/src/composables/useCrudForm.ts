@@ -20,6 +20,7 @@ interface CrudFormOptions<Values extends GenericObject, Output extends GenericOb
   update: (id: string, values: Output) => Promise<unknown>
   confirm?: (updating: boolean) => Promise<boolean>
   redirectToDetail?: boolean
+  toastParams?: () => Record<string, unknown>
 }
 
 function focusFirstInvalidControl() {
@@ -87,6 +88,7 @@ export function useCrudForm<Values extends GenericObject, Output extends Generic
     const kind = updating ? 'updated' : 'created'
     showSuccess(`${options.entity}.toast.${kind}`, `${options.entity}.toast.${kind}-detail`, true, {
       name: recordName(),
+      ...options.toastParams?.(),
     })
     await finish(savedId, updating)
   }

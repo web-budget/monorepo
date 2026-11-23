@@ -377,6 +377,7 @@ export interface MovementView {
   description: string | null
   payment: PaymentView | null
   invoice?: { id: string; status: InvoiceStatus; card: { id: string; name: string } } | null
+  recurringMovement?: { id: string; name: string; card: { id: string; name: string } | null } | null
 }
 
 export interface MovementListView {
@@ -648,4 +649,21 @@ export interface RecurringMovementQuery {
   page?: number
   size?: number
   sort?: string
+}
+
+export interface RecurringLaunchItem {
+  id: string
+  value?: number
+}
+
+export type RecurringSkipReason = 'inactive' | 'finished' | 'already-launched-in-period'
+
+export interface RecurringLaunchReport {
+  launched: { recurringMovement: string; installment: number; movement: MovementListView }[]
+  skipped: { recurringMovement: string; name: string; reason: RecurringSkipReason }[]
+}
+
+export interface FinancialPeriodCreation {
+  id: string
+  recurringLaunch: RecurringLaunchReport
 }

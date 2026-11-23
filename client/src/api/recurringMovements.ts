@@ -3,6 +3,8 @@ import { createdId } from './createdId'
 import type {
   PagedResponse,
   PageQuery,
+  RecurringLaunchItem,
+  RecurringLaunchReport,
   RecurringMovementCreateForm,
   RecurringMovementQuery,
   RecurringMovementUpdateForm,
@@ -48,6 +50,15 @@ export const recurringMovementsApi = {
   readjust(id: string, form: RecurringValueForm): Promise<RecurringMovementView> {
     return apiClient
       .patch<RecurringMovementView>(`${PATH}/${encodeURIComponent(id)}/value`, form)
+      .then((response) => response.data)
+  },
+
+  launch(financialPeriod: string, items: RecurringLaunchItem[]): Promise<RecurringLaunchReport> {
+    return apiClient
+      .post<RecurringLaunchReport>(`${PATH}/launch`, {
+        financialPeriod,
+        recurringMovements: items,
+      })
       .then((response) => response.data)
   },
 

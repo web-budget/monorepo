@@ -27,6 +27,7 @@ interface PayableMovement {
   type: MovementType
   value: number
   invoicePayment?: boolean
+  suggestedCard?: string | null
 }
 
 const props = defineProps<{
@@ -43,11 +44,12 @@ const { t } = useI18n()
 const balanceErrors = useServerErrors()
 
 function initialValues() {
+  const suggestedCard = props.movement?.suggestedCard
   return {
     paidOn: formatLocalDate(new Date()),
-    via: 'WALLET' as const,
+    via: suggestedCard ? ('CARD' as const) : ('WALLET' as const),
     wallet: '',
-    card: '',
+    card: suggestedCard ?? '',
     discount: null,
   }
 }

@@ -52,7 +52,7 @@
       "movement-already-paid": "The movement is already paid and cannot be changed",
       "movement-not-paid": "The movement has no payment",
       "classification-type-mismatch": "The classification is not of the same type as the movement",
-      "inactive-classification": "The classification is inactive",
+      "inactive-classification": "The classification is inactive. If it belongs to a recurring movement, fix or deactivate the recurring movement.",
       "inactive-cost-center": "The cost center is inactive",
       "inactive-wallet": "The wallet is inactive",
       "invalid-discount": "The discount must be between zero and the value, never equal to it",
@@ -623,7 +623,8 @@
       "empty-title": "No recurring movements yet",
       "empty-description": "Create a template to launch the rent, the internet bill or an installment purchase every period.",
       "plural": "the recurring movements",
-      "found": "{count} recurring movement found for “{query}” | {count} recurring movements found for “{query}”"
+      "found": "{count} recurring movement found for “{query}” | {count} recurring movements found for “{query}”",
+      "launch": "Launch in batch"
     },
     "search": {
       "placeholder": "Name, cost center or classification"
@@ -657,7 +658,23 @@
     },
     "launch": {
       "auto": "Automatic",
-      "manual": "Manual"
+      "manual": "Manual",
+      "breadcrumb": "Launching",
+      "title": "Launch recurring movements",
+      "description": "Choose the recurring movements and launch them at once.",
+      "period": "Period",
+      "period-none": "None",
+      "due-hint": "Due on {date}.",
+      "no-open-period": "There is no open period",
+      "no-open-period-hint": "Create a period to launch the recurring movements.",
+      "create-period": "Create period",
+      "select": "Select {name}",
+      "value-of": "Value of {name}",
+      "available": "Available",
+      "launched": "Already launched",
+      "selected": "{count} selected | {count} selected",
+      "effect": "effect on the period",
+      "submit": "Launch {count} recurring movement | Launch {count} recurring movements"
     },
     "status": {
       "active": "Active",
@@ -690,7 +707,10 @@
       "removed": "Recurring movement deleted",
       "removed-detail": "“{name}” left the list.",
       "readjusted": "Value readjusted",
-      "readjusted-detail": "The new value of “{name}” is valid from the next launch."
+      "readjusted-detail": "The new value of “{name}” is valid from the next launch.",
+      "launched": "Recurring movements launched",
+      "launched-detail": "{count} entry created in {period}. | {count} entries created in {period}.",
+      "skipped": "Some recurring movements were left out"
     },
     "form": {
       "new": "Creating",
@@ -751,6 +771,11 @@
       "reason": "Reason",
       "current": "current",
       "suggested": "Value suggested on the next launch:"
+    },
+    "skipped": {
+      "inactive": "inactive",
+      "finished": "finished",
+      "already-launched-in-period": "already launched in the period"
     }
   },
   "credit-card-invoice": {
@@ -1001,7 +1026,7 @@
     },
     "toast": {
       "created": "Financial period created",
-      "created-detail": "“{name}” now accepts entries.",
+      "created-detail": "“{name}” now accepts entries. | “{name}” now accepts entries. 1 recurring movement launched. | “{name}” now accepts entries. {count} recurring movements launched.",
       "updated": "Changes saved",
       "updated-detail": "“{name}” was updated.",
       "removed": "Financial period removed",
@@ -1353,7 +1378,8 @@
       "invoice-card": "Card",
       "invoice-status": "Invoice status",
       "invoice": "Invoice",
-      "invoice-link": "Open the invoice"
+      "invoice-link": "Open the invoice",
+      "recurring": "Recurring"
     },
     "notices": {
       "paid": "Paid: it cannot be edited or deleted",
