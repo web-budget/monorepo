@@ -296,24 +296,6 @@
     "financial-daily": "Dia a dia",
     "financial-period": "Período"
   },
-  "dashboards": {
-    "overview": "Visão geral",
-    "current-month": "Mês atual",
-    "previous-months": "Meses anteriores",
-    "by-wallet": "Por carteira",
-    "by-classification": "Por classificação",
-    "description": {
-      "overview": "Saldos, receitas e despesas do período.",
-      "current-month": "O movimento do mês em andamento.",
-      "previous-months": "Comparativo dos meses anteriores.",
-      "by-wallet": "Quanto entra e sai de cada carteira.",
-      "by-classification": "Para onde vai o dinheiro, por classificação."
-    },
-    "empty": {
-      "title": "Os dashboards chegam com o financeiro",
-      "description": "Os números e gráficos aparecem aqui quando o financeiro estiver pronto."
-    }
-  },
   "module-home": {
     "description": {
       "financial": "Lançamentos, faturas e fechamento do período.",
@@ -1455,6 +1437,43 @@
     "remove": {
       "title": "Remover a compra “{name}”?",
       "description": "Ela sai da fatura e do gasto por centro de custo. Não dá para desfazer."
+    }
+  },
+  "financial-flow": {
+    "menu": "Fluxo financeiro",
+    "title": "Fluxo financeiro",
+    "description": "Receitas e despesas pagas de cada período.",
+    "year": "Ano",
+    "list": {
+      "plural": "o fluxo financeiro"
+    },
+    "totals": {
+      "revenues": "Receitas",
+      "expenses": "Despesas",
+      "result": "Resultado"
+    },
+    "chart": {
+      "title": "Receitas e despesas por período"
+    },
+    "legend": {
+      "revenues": "Receitas",
+      "expenses": "Despesas",
+      "provisional": "Provisório (período aberto)"
+    },
+    "table": {
+      "period": "Período",
+      "revenues": "Receitas (R$)",
+      "expenses": "Despesas (R$)",
+      "result": "Resultado (R$)",
+      "status": "Situação"
+    },
+    "status": {
+      "recorded": "Gravado",
+      "provisional": "Provisório"
+    },
+    "empty": {
+      "title": "Nenhum período em {year}",
+      "description": "Crie um período ou escolha outro ano."
     }
   }
 }
