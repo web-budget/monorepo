@@ -93,6 +93,12 @@ class MovementRepository(
         return pagedModelOf(content, pageable, total.toLong())
     }
 
+    fun existsOpenInFinancialPeriod(financialPeriodId: Long): Boolean = dsl.fetchExists(
+        dsl.selectOne().from(MOVEMENTS)
+            .where(MOVEMENTS.ID_FINANCIAL_PERIOD.eq(financialPeriodId))
+            .and(MOVEMENTS.STATUS.eq(Movement.Status.OPEN.name))
+    )
+
     fun sumPaidValueByType(financialPeriodId: Long): Map<Movement.Type, BigDecimal> = dsl
         .select(movements.TYPE, DSL.sum(payments.VALUE_PAID))
         .from(movements)

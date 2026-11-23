@@ -1,3 +1,4 @@
+DELETE FROM financial.period_results;
 DELETE FROM financial.recurring_launches;
 DELETE FROM financial.recurring_values;
 DELETE FROM financial.recurring_movements;
