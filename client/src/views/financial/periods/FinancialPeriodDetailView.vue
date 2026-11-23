@@ -7,6 +7,7 @@ import DetailCard from '@/components/common/DetailCard.vue'
 import DetailField from '@/components/common/DetailField.vue'
 import DetailSection from '@/components/common/DetailSection.vue'
 import PeriodStatusBadge from '@/components/listing/PeriodStatusBadge.vue'
+import { Button } from '@/components/ui/button'
 import { useCrudDetail } from '@/composables/useCrudDetail'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { useFinancialPeriodsStore } from '@/stores/financialPeriods'
@@ -78,6 +79,13 @@ onMounted(async () => {
         <DetailField :label="$t('financial-period.result.result')">
           <CurrencyDisplay :value="periodResult.result" signed />
         </DetailField>
+      </DetailSection>
+      <DetailSection :title="$t('financial-period.sections.movements')">
+        <Button as-child variant="outline" class="w-fit">
+          <RouterLink :to="{ path: '/financial/movements', query: { period: id } }">
+            {{ $t('financial-period.actions.view-movements') }}
+          </RouterLink>
+        </Button>
       </DetailSection>
       <DetailSection :title="$t('financial-period.sections.goals')">
         <DetailField :label="$t('financial-period.form.revenues-goal')">

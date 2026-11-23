@@ -55,9 +55,11 @@ describe('FinancialPeriodDetailView', () => {
       'Identificação',
       'Datas',
       'Resultado provisório',
+      'Movimentos',
       'Metas',
     ])
     expect(wrapper.text()).toContain('3.000,00')
+    expect(wrapper.find('a[href="/financial/movements?period=p-1"]').text()).toBe('Ver movimentos')
     expect(wrapper.text()).toMatch(/−\sR\$\s500,00/)
     expect(wrapper.text()).toContain('01/01/2026')
     expect(wrapper.text()).toContain('31/01/2026')

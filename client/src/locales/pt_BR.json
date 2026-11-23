@@ -790,12 +790,16 @@
       "goals": "Metas",
       "goals-help": "Valores previstos de receitas e despesas no período.",
       "result": "Resultado provisório",
-      "result-closed": "Resultado"
+      "result-closed": "Resultado",
+      "movements": "Movimentos"
     },
     "result": {
       "revenues": "Receitas",
       "expenses": "Despesas",
       "result": "Resultado"
+    },
+    "actions": {
+      "view-movements": "Ver movimentos"
     }
   },
   "classification": {
@@ -978,6 +982,115 @@
   },
   "movement": {
     "title": "Movimentos",
+    "search": {
+      "placeholder": "Nome"
+    },
+    "actions": {
+      "details": "Detalhes",
+      "remove": "Excluir"
+    },
+    "table-columns": {
+      "name": "Nome",
+      "due-date": "Vencimento",
+      "value": "Valor (R$)",
+      "status": "Situação"
+    },
+    "status": {
+      "open": "Em aberto",
+      "paid": "Pago",
+      "overdue": "Vencido",
+      "overdue-days": "Vencido há {days} dia | Vencido há {days} dias"
+    },
+    "options": {
+      "all": "Todos",
+      "open": "Em aberto",
+      "paid": "Pagos"
+    },
+    "type": {
+      "income": "Receita",
+      "expense": "Despesa"
+    },
+    "filters": {
+      "period": "Período",
+      "all-periods": "Todos os períodos",
+      "type": "Tipo",
+      "all-types": "Todos os tipos",
+      "incomes": "Receitas",
+      "expenses": "Despesas",
+      "cost-center": "Centro de custo",
+      "all-cost-centers": "Todos",
+      "classification": "Classificação",
+      "classification-of-type": {
+        "INCOME": "Classificação de receita",
+        "EXPENSE": "Classificação de despesa"
+      },
+      "all-classifications": "Todas",
+      "overdue": "Só vencidos",
+      "clear": "Limpar",
+      "clear-count": "Limpar ({count})"
+    },
+    "summary": {
+      "received": "Recebido",
+      "received-note": "Receitas pagas",
+      "paid": "Pago",
+      "paid-note": "Despesas pagas",
+      "result": "Resultado",
+      "result-note": "Receitas − despesas"
+    },
+    "expired-notice": "{name} expirou em {date} e continua aberto. Ainda aceita lançamentos.",
+    "list": {
+      "description": "Receitas e despesas de {period}.",
+      "description-all": "Receitas e despesas de todos os períodos.",
+      "empty-title": "Nenhum movimento ainda",
+      "empty-description": "Lance a primeira receita ou despesa do período.",
+      "plural": "os movimentos",
+      "found": "{count} movimento encontrado para “{query}” | {count} movimentos encontrados para “{query}”"
+    },
+    "remove": {
+      "title": "Excluir “{name}”?",
+      "description": "Não dá para desfazer."
+    },
+    "toast": {
+      "removed": "Movimento excluído",
+      "removed-detail": "“{name}” saiu da lista."
+    },
+    "form": {
+      "new": "Lançando",
+      "editing": "Editando",
+      "detailing": "Detalhando"
+    },
+    "sections": {
+      "identification": "Identificação",
+      "payment": "Pagamento"
+    },
+    "detail": {
+      "name": "Nome",
+      "type": "Tipo",
+      "value": "Valor",
+      "due-date": "Vencimento",
+      "period": "Período",
+      "cost-center": "Centro de custo",
+      "classification": "Classificação",
+      "description": "Descrição",
+      "no-payment": "Sem pagamento.",
+      "paid-on": "Data",
+      "movement-value": "Valor do movimento",
+      "discount": "Desconto",
+      "value-paid": "Valor pago",
+      "method": "Forma",
+      "wallet": "Carteira",
+      "card": "Cartão",
+      "method-wallet": "Carteira",
+      "method-card": "Cartão de crédito"
+    },
+    "notices": {
+      "paid": "Pago: não se edita nem se exclui",
+      "paid-description": "Desfaça o pagamento para alterar.",
+      "closed": "Período encerrado: {name}",
+      "closed-description": "Congelado. Reabra o período para desfazer.",
+      "overdue": "Venceu em {date}",
+      "overdue-description": "Em aberto há {days} dia. | Em aberto há {days} dias."
+    },
     "menu": "Movimentos"
   },
   "transfer": {

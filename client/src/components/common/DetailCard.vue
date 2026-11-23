@@ -14,6 +14,7 @@ defineProps<{
   feminineStatus?: boolean
   messages: string[]
   readonly?: boolean
+  hideEdit?: boolean
 }>()
 
 const emit = defineEmits<{ edit: []; delete: [] }>()
@@ -36,7 +37,7 @@ const emit = defineEmits<{ edit: []; delete: [] }>()
         >
           <Trash2 />{{ $t('crud.actions.remove') }}
         </Button>
-        <Button type="button" @click="emit('edit')">
+        <Button v-if="!hideEdit" type="button" @click="emit('edit')">
           <Pencil />{{ $t('crud.actions.edit') }}
         </Button>
       </template>

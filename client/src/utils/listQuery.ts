@@ -17,6 +17,19 @@ export interface ListQuerySettings<S extends string> {
   sortFields: readonly string[]
 }
 
+export type ExtraQuery = Record<string, string>
+
+export function parseExtraQuery(query: LocationQuery, keys: readonly string[]): ExtraQuery {
+  const extra: ExtraQuery = {}
+  for (const key of keys) {
+    const value = queryValue(query[key])
+    if (value !== '') {
+      extra[key] = value
+    }
+  }
+  return extra
+}
+
 export type ListQueryState<S extends string> = Pick<
   PageRequest<S>,
   'filterText' | 'status' | 'current' | 'size' | 'sortField' | 'direction'
@@ -69,10 +82,17 @@ export function buildListQuery<S extends string>(
   baseQuery: LocationQuery,
   state: ListQueryState<S>,
   initialStatus: S,
+  extra: ExtraQuery = {},
+  extraKeys: readonly string[] = [],
 ): LocationQuery {
   const query: LocationQuery = { ...baseQuery }
-  for (const key of LIST_QUERY_KEYS) {
+  for (const key of [...LIST_QUERY_KEYS, ...extraKeys]) {
     delete query[key]
+  }
+  for (const [key, value] of Object.entries(extra)) {
+    if (value !== '') {
+      query[key] = value
+    }
   }
   if (state.filterText !== '') {
     query.filter = state.filterText
@@ -92,8 +112,12 @@ export function buildListQuery<S extends string>(
   return query
 }
 
-export function sameListQuery(first: LocationQuery, second: LocationQuery): boolean {
-  return LIST_QUERY_KEYS.every((key) => queryValue(first[key]) === queryValue(second[key]))
+export function sameListQuery(
+  first: LocationQuery,
+  second: LocationQuery,
+  extraKeys: readonly string[] = [],
+): boolean {
+  return [...LIST_QUERY_KEYS, ...extraKeys].every((key) => queryValue(first[key]) === queryValue(second[key]))
 }
 
 export function sameListState<S extends string>(
