@@ -11,7 +11,6 @@ const row: ClassificationListView = {
   name: 'Salary',
   type: 'INCOME',
   active: true,
-  budget: null,
 }
 const view: ClassificationView = { ...row, description: 'Monthly salary' }
 const page = { content: [row], page: { size: 15, number: 0, totalElements: 1, totalPages: 1 } }
@@ -37,7 +36,7 @@ describe('useClassificationsStore', () => {
   it('creates, loads, edits and removes a classification', async () => {
     vi.mocked(classificationsApi.create).mockResolvedValue('new-id')
     vi.mocked(classificationsApi.findById).mockResolvedValue(view)
-    vi.mocked(classificationsApi.update).mockResolvedValue({ ...view, budget: 500 })
+    vi.mocked(classificationsApi.update).mockResolvedValue({ ...view, description: 'Monthly pay' })
     vi.mocked(classificationsApi.remove).mockResolvedValue()
     const store = useClassificationsStore()
 
@@ -47,8 +46,8 @@ describe('useClassificationsStore', () => {
     await store.findOne('cl-1')
     expect(store.classification).toEqual(view)
 
-    await store.update('cl-1', { name: 'Salary', budget: 500, active: true })
-    expect(store.classification?.budget).toBe(500)
+    await store.update('cl-1', { name: 'Salary', description: 'Monthly pay', active: true })
+    expect(store.classification?.description).toBe('Monthly pay')
 
     await store.remove('cl-1')
     expect(store.classification).toBeNull()

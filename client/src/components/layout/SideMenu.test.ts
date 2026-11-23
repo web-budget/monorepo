@@ -73,7 +73,7 @@ describe('SideMenu', () => {
     const wrapper = await render('/')
 
     const disabled = wrapper.findAll('button[disabled]')
-    expect(disabled.map((button) => button.text())).toEqual(['Usuários', 'Encerramento do período'])
+    expect(disabled.map((button) => button.text())).toEqual(['Usuários', 'Fechamento'])
     expect(disabled[0]!.attributes('title')).toBe('Em breve')
     expect(wrapper.findAll('[data-active="true"]')).toHaveLength(0)
   })

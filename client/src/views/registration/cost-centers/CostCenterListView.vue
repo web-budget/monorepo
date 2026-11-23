@@ -42,6 +42,7 @@ const {
   entity: 'cost-center',
   initialStatus: 'ACTIVE',
   statuses: MASCULINE_STATUS_OPTIONS.map((option) => option.value),
+  sortFields: ['fullName', 'active'],
   pageRequest,
   pageResponse,
   loading,
@@ -103,6 +104,8 @@ const columns = computed(() => [
         :loading="busy"
         :current-page="pageRequest.current"
         :page-size="pageRequest.size"
+        :sorted-field="pageRequest.sortField"
+        :sorted-order="pageRequest.direction"
         detail-route="cost-centers.detail"
         @page-changed="onPageChange"
         @table-sorted="onTableSorted"

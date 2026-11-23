@@ -4,11 +4,13 @@ import br.com.webbudget.server.application.payloads.financial.AdjustmentForm
 import br.com.webbudget.server.application.payloads.financial.StatementEntryPeriodView
 import br.com.webbudget.server.application.payloads.financial.StatementEntryReferenceView
 import br.com.webbudget.server.application.payloads.financial.TransferForm
+import br.com.webbudget.server.application.payloads.financial.TransferReferenceView
 import br.com.webbudget.server.application.payloads.financial.TransferView
 import br.com.webbudget.server.application.payloads.financial.TransferWalletView
 import br.com.webbudget.server.application.payloads.financial.WalletEntryView
 import br.com.webbudget.server.domain.entities.financial.StatementLine
 import br.com.webbudget.server.domain.entities.financial.Transfer
+import br.com.webbudget.server.domain.entities.financial.TransferLink
 import br.com.webbudget.server.domain.entities.financial.WalletAdjustment
 import br.com.webbudget.server.domain.entities.financial.WalletEntry
 import br.com.webbudget.server.domain.entities.financial.WalletReference
@@ -65,8 +67,13 @@ class WalletEntryMapper(
         fromWallet = TransferWalletView(transfer.fromWallet.externalId, transfer.fromWallet.name),
         toWallet = TransferWalletView(transfer.toWallet.externalId, transfer.toWallet.name),
         returnedTransfer = transfer.returnedTransferExternalId,
-        returned = transfer.returned
+        returned = transfer.returned,
+        returnOf = transfer.returnedTransferExternalId?.let { TransferReferenceView(it, transfer.returnedTransferCreatedOn!!) },
+        returnedBy = transfer.returnedBy?.toView(),
+        returnable = transfer.returnable
     )
+
+    private fun TransferLink.toView() = TransferReferenceView(externalId, createdOn)
 
     private fun mapToReference(line: StatementLine): StatementEntryReferenceView? = when {
         line.movementExternalId != null -> StatementEntryReferenceView("MOVEMENT", line.movementExternalId)
