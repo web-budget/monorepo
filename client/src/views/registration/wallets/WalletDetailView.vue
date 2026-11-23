@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Scale, ScrollText } from 'lucide-vue-next'
+import { ArrowLeftRight, Scale, ScrollText } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { ref } from 'vue'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
@@ -58,6 +58,11 @@ async function adjust(target: { id: string }, form: { value: number; name: strin
       <Button v-if="wallet" as-child variant="outline">
         <RouterLink :to="{ path: '/financial/statement', query: { wallet: wallet.id } }">
           <ScrollText />{{ $t('wallet.actions.view-statement') }}
+        </RouterLink>
+      </Button>
+      <Button v-if="wallet" as-child variant="outline">
+        <RouterLink :to="{ path: '/financial/transfers/create', query: { from: wallet.id } }">
+          <ArrowLeftRight />{{ $t('wallet.actions.transfer') }}
         </RouterLink>
       </Button>
       <Button

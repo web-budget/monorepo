@@ -133,8 +133,14 @@ describe('StatementView', () => {
     expect(rows[1]!.text()).toMatch(/\+\sR\$\s129,90/)
     expect(rows[1]!.attributes('data-state')).toBe('selected')
     expect(rows[0]!.attributes('data-state')).toBeUndefined()
-    expect(rows[2]!.find('a[href*="/financial/transfers"]').exists()).toBe(false)
-    expect(rows[2]!.text()).toContain('—')
+    expect(rows[2]!.find('a[href="/financial/transfers/t-1/detail"]').exists()).toBe(true)
+    expect(rows[1]!.text()).toContain('—')
+  })
+
+  it('links to a transfer starting from the wallet of the statement', async () => {
+    const { wrapper } = await render()
+
+    expect(wrapper.find('a[href="/financial/transfers/create?from=w-1"]').exists()).toBe(true)
   })
 
   it('opens with the state of the URL, which stays there', async () => {

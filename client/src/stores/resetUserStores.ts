@@ -5,6 +5,7 @@ import { useCostCentersStore } from '@/stores/costCenters'
 import { useFinancialPeriodsStore } from '@/stores/financialPeriods'
 import { useMovementsStore } from '@/stores/movements'
 import { useStatementStore } from '@/stores/statement'
+import { useTransfersStore } from '@/stores/transfers'
 import { useTrustedDevicesStore } from '@/stores/trustedDevices'
 import { useUsersAdminStore } from '@/stores/usersAdmin'
 import { useWalletsStore } from '@/stores/wallets'
@@ -18,6 +19,7 @@ export function resetUserStores() {
   useFinancialPeriodsStore().reset()
   useMovementsStore().reset()
   useStatementStore().reset()
+  useTransfersStore().reset()
   useUsersAdminStore().reset()
   useTrustedDevicesStore().reset()
 }

@@ -27,6 +27,26 @@ export const financialRoutes: RouteRecordRaw[] = [
         meta: { breadcrumb: 'statement.menu' },
         component: () => import('@/views/financial/statement/StatementView.vue'),
       },
+      {
+        path: 'transfers',
+        meta: { breadcrumb: 'transfer.menu' },
+        children: [
+          { path: '', redirect: { name: 'transfers.create' } },
+          {
+            path: 'create',
+            name: 'transfers.create',
+            meta: { breadcrumb: 'transfer.form.new' },
+            component: () => import('@/views/financial/transfers/TransferFormView.vue'),
+          },
+          {
+            path: ':id/detail',
+            name: 'transfers.detail',
+            props: true,
+            meta: { breadcrumb: 'transfer.form.detailing' },
+            component: () => import('@/views/financial/transfers/TransferDetailView.vue'),
+          },
+        ],
+      },
       crudRoutes({
         path: 'movements',
         name: 'movements',

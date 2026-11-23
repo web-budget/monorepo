@@ -82,6 +82,12 @@ describe('WalletDetailView', () => {
     expect(buttonWithText(wrapper, 'Remover')).toBeDefined()
   })
 
+  it('links to a transfer from the wallet', async () => {
+    const { wrapper } = await render()
+
+    expect(wrapper.find('a[href="/financial/transfers/create?from=w-1"]').text()).toBe('Transferir')
+  })
+
   it('links to the statement of the wallet', async () => {
     const { wrapper } = await render()
 

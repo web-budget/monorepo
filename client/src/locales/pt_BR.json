@@ -29,7 +29,9 @@
       "user": {
         "email": "Email \"{value}\" já esta em uso"
       },
-      "invalid-user-status-transition": "A conta mudou de status enquanto a tela estava aberta. Atualize a lista."
+      "invalid-user-status-transition": "A conta mudou de status enquanto a tela estava aberta. Atualize a lista.",
+      "transfer-already-returned": "A transferência já foi devolvida.",
+      "transfer-is-a-return": "Uma devolução não se devolve."
     },
     "unprocessable-entity": {
       "title": "Falha na requisição",
@@ -59,7 +61,6 @@
       "payment-date-in-future": "A data do pagamento não pode ser futura",
       "wallet-has-entries": "A carteira tem lançamentos no extrato e não pode ser excluída",
       "transfer-between-same-wallet": "Origem e destino precisam ser carteiras diferentes",
-      "transfer-is-a-return": "Uma devolução não se devolve",
       "invalid-adjustment-value": "O valor do ajuste não pode ser zero"
     },
     "not-found": {
@@ -676,7 +677,8 @@
     },
     "actions": {
       "view-statement": "Ver extrato",
-      "adjust-balance": "Ajustar saldo"
+      "adjust-balance": "Ajustar saldo",
+      "transfer": "Transferir"
     }
   },
   "card": {
@@ -964,7 +966,8 @@
     "end-before-start": "A data de fim não pode ser anterior à data de início",
     "roles-required": "Escolha pelo menos uma área.",
     "discount-too-high": "O desconto precisa ser menor que o valor.",
-    "adjustment-not-zero": "O ajuste não pode ser zero."
+    "adjustment-not-zero": "O ajuste não pode ser zero.",
+    "transfer-same-wallet": "Origem e destino precisam ser carteiras diferentes."
   },
   "crud": {
     "required-hint": "Campos com * são obrigatórios.",
@@ -1169,7 +1172,64 @@
   },
   "transfer": {
     "title": "Transferências",
-    "menu": "Transferências"
+    "menu": "Transferências",
+    "form": {
+      "new": "Transferindo",
+      "detailing": "Detalhando",
+      "description": "Mova dinheiro de uma carteira para outra. Não muda o resultado do período.",
+      "from": "De",
+      "to": "Para",
+      "value": "Valor",
+      "note": "Observação",
+      "submit": "Transferir"
+    },
+    "sections": {
+      "wallets": "Carteiras",
+      "wallets-help": "Só carteiras ativas, e as duas precisam ser diferentes.",
+      "value": "Valor",
+      "identification": "Identificação",
+      "return": "Devolução"
+    },
+    "statement": {
+      "title": "Extrato da transferência",
+      "from": "Origem",
+      "to": "Destino",
+      "before": "Saldo anterior",
+      "debit": "Débito",
+      "credit": "Crédito",
+      "after": "Saldo depois"
+    },
+    "toast": {
+      "created": "Transferência feita",
+      "created-detail": "De {from} para {to}.",
+      "returned": "Transferência devolvida",
+      "returned-detail": "O dinheiro voltou de {from} para {to}."
+    },
+    "detail": {
+      "created-on": "Data e hora",
+      "value": "Valor",
+      "from": "De",
+      "to": "Para",
+      "note": "Observação",
+      "return-of": "Devolução da transferência de",
+      "returned-by": "Devolvida em",
+      "return-state": "Situação",
+      "not-returned": "Ainda não devolvida"
+    },
+    "status": {
+      "returned": "Devolvida",
+      "is-return": "Devolução"
+    },
+    "actions": {
+      "view-statement": "Ver no extrato",
+      "give-back": "Devolver"
+    },
+    "give-back": {
+      "title": "Devolver a transferência de {from} para {to}?",
+      "description": "O dinheiro volta para a carteira de origem em uma nova transferência.",
+      "value": "Valor devolvido",
+      "confirm": "Devolver"
+    }
   },
   "statement": {
     "title": "Extrato",
@@ -1220,7 +1280,8 @@
       "plural": "o extrato"
     },
     "actions": {
-      "adjust": "Ajustar saldo"
+      "adjust": "Ajustar saldo",
+      "transfer": "Transferir"
     },
     "adjust": {
       "title": "Ajustar o saldo de {name}",
