@@ -5,7 +5,12 @@ import br.com.webbudget.server.application.payloads.financial.MovementCostCenter
 import br.com.webbudget.server.application.payloads.financial.MovementCreateForm
 import br.com.webbudget.server.application.payloads.financial.MovementFinancialPeriodView
 import br.com.webbudget.server.application.payloads.financial.MovementInvoiceView
+import br.com.webbudget.server.application.payloads.financial.ClosingInvoiceView
+import br.com.webbudget.server.application.payloads.financial.ClosingOpenMovementsView
+import br.com.webbudget.server.application.payloads.financial.ClosingPeriodView
+import br.com.webbudget.server.application.payloads.financial.ClosingSummaryView
 import br.com.webbudget.server.application.payloads.financial.MovementListView
+import br.com.webbudget.server.application.payloads.financial.MovementMoveForm
 import br.com.webbudget.server.application.payloads.financial.MovementRecurringView
 import br.com.webbudget.server.application.payloads.financial.MovementUpdateForm
 import br.com.webbudget.server.application.payloads.financial.MovementView
@@ -13,9 +18,13 @@ import br.com.webbudget.server.application.payloads.financial.PaymentCardView
 import br.com.webbudget.server.application.payloads.financial.PaymentForm
 import br.com.webbudget.server.application.payloads.financial.PaymentView
 import br.com.webbudget.server.application.payloads.financial.PaymentWalletView
+import br.com.webbudget.server.domain.entities.financial.ClosingSummary
 import br.com.webbudget.server.domain.entities.financial.FinancialPeriodReference
+import br.com.webbudget.server.domain.entities.financial.Invoice
 import br.com.webbudget.server.domain.entities.financial.Movement
 import br.com.webbudget.server.domain.entities.financial.Payment
+import br.com.webbudget.server.domain.exceptions.DomainException
+import br.com.webbudget.server.domain.exceptions.ErrorCodes.NO_OPEN_PERIOD_AFTER
 import br.com.webbudget.server.domain.exceptions.ResourceNotFoundException
 import br.com.webbudget.server.infrastructure.repository.financial.MovementReferenceRepository
 import org.springframework.stereotype.Component
@@ -102,6 +111,43 @@ class MovementMapper(
         discount = form.discount ?: BigDecimal.ZERO,
         card = form.card?.let { movementReferenceRepository.findCard(it) ?: throw ResourceNotFoundException() }
     )
+
+    fun mapToTarget(form: MovementMoveForm?, movement: Movement): FinancialPeriodReference {
+
+        val requested = form?.financialPeriod
+
+        if (requested != null) {
+            return movementReferenceRepository.findFinancialPeriod(requested) ?: throw ResourceNotFoundException()
+        }
+
+        return movementReferenceRepository.findNextOpenFinancialPeriod(movement.financialPeriod.endingAt)
+            ?: throw DomainException("There is no open financial period after the one of the movement", NO_OPEN_PERIOD_AFTER)
+    }
+
+    fun mapToView(summary: ClosingSummary): ClosingSummaryView {
+
+        val income = summary.openMovements[Movement.Type.INCOME]
+        val expense = summary.openMovements[Movement.Type.EXPENSE]
+
+        return ClosingSummaryView(
+            openMovements = ClosingOpenMovementsView(
+                count = (income?.count ?: 0) + (expense?.count ?: 0),
+                income = income?.value ?: BigDecimal.ZERO,
+                expense = expense?.value ?: BigDecimal.ZERO
+            ),
+            openInvoices = summary.openInvoices.map { mapToInvoiceView(it) },
+            emptyInvoices = summary.emptyInvoices.map { mapToInvoiceView(it) },
+            nextOpenPeriod = summary.nextOpenPeriod?.let { mapToClosingPeriodView(it) },
+            targetPeriods = summary.targetPeriods.map { mapToClosingPeriodView(it) },
+            canClose = summary.canClose
+        )
+    }
+
+    private fun mapToInvoiceView(invoice: Invoice) =
+        ClosingInvoiceView(invoice.externalId!!, PaymentCardView(invoice.card.externalId, invoice.card.name), invoice.value)
+
+    private fun mapToClosingPeriodView(period: FinancialPeriodReference) =
+        ClosingPeriodView(period.externalId, period.name, period.startingAt, period.endingAt)
 
     private fun mapToPeriodView(period: FinancialPeriodReference, today: LocalDate) = MovementFinancialPeriodView(
         id = period.externalId,

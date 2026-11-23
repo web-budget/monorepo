@@ -127,6 +127,12 @@ class InvoiceRepository(
             .execute()
     }
 
+    fun findOpenByFinancialPeriod(financialPeriodId: Long): List<Invoice> = selectJoined()
+        .where(invoices.ID_FINANCIAL_PERIOD.eq(financialPeriodId))
+        .and(invoices.STATUS.eq(Invoice.Status.OPEN.name))
+        .orderBy(cards.NAME, invoices.ID)
+        .fetch { record -> record.toInvoice() }
+
     fun existsOpenWithPurchases(financialPeriodId: Long): Boolean = dsl.fetchExists(
         dsl.selectOne().from(INVOICES)
             .where(INVOICES.ID_FINANCIAL_PERIOD.eq(financialPeriodId))
