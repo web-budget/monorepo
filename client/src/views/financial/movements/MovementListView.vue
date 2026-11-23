@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowDownLeft, ArrowUpRight, Clock, Plus, ReceiptText, X } from 'lucide-vue-next'
+import { ArrowDownLeft, ArrowUpRight, Clock, ReceiptText, X } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -81,7 +81,6 @@ const {
   reload,
   onPageChange,
   onTableSorted,
-  changeToAdd,
   changeToDetail,
   remove,
 } = useCrudList({
@@ -217,11 +216,7 @@ onMounted(async () => {
 
 <template>
   <PageContainer class="gap-6">
-    <PageHeader :title="$t('movement.title')" :description="description">
-      <template #actions>
-        <Button type="button" @click="changeToAdd()"> <Plus />{{ $t('form.create') }} </Button>
-      </template>
-    </PageHeader>
+    <PageHeader :title="$t('movement.title')" :description="description"> </PageHeader>
     <div class="grid gap-3">
       <Alert v-if="selectedPeriod?.expired" variant="attention" data-slot="expired-notice">
         <Clock />
@@ -250,7 +245,9 @@ onMounted(async () => {
         <Card class="gap-1 p-4">
           <span class="text-muted-foreground text-xs">{{ $t('movement.summary.result') }}</span>
           <CurrencyDisplay :value="periodResult.result" signed class="text-xl font-semibold" />
-          <span class="text-muted-foreground text-xs">{{ $t('movement.summary.result-note') }}</span>
+          <span class="text-muted-foreground text-xs">{{
+            $t('movement.summary.result-note')
+          }}</span>
         </Card>
       </div>
       <SearchControls
@@ -303,7 +300,12 @@ onMounted(async () => {
           />
           <Label for="movement-overdue">{{ $t('movement.filters.overdue') }}</Label>
         </div>
-        <Button type="button" variant="ghost" :disabled="activeFilters === 0" @click="clearFilters()">
+        <Button
+          type="button"
+          variant="ghost"
+          :disabled="activeFilters === 0"
+          @click="clearFilters()"
+        >
           <X />
           {{
             activeFilters > 0
@@ -320,9 +322,9 @@ onMounted(async () => {
         :kind="listState"
         entity="movement"
         :icon="ReceiptText"
+        :creatable="false"
         :query="pageRequest.filterText"
         :message="loadMessages[0]"
-        @create="changeToAdd()"
         @clear="clearSearch()"
         @retry="reload()"
       />

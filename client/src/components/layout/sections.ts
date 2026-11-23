@@ -52,6 +52,7 @@ export const financialSection: ModuleSectionDefinition = {
     {
       label: 'movement.menu',
       icon: ReceiptText,
+      to: '/financial/movements',
       description: 'module-home.items.movement',
       group: 'menu.financial-daily',
     },

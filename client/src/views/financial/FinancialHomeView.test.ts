@@ -23,11 +23,14 @@ describe('FinancialHomeView', () => {
       'Lançamentos, faturas e fechamento do período.',
     )
     const links = wrapper.findAll('a[data-slot="module-card"]')
-    expect(links.map((link) => link.attributes('href'))).toEqual(['/financial/periods'])
-    expect(links[0]!.find('[data-slot="module-card-count"]').text()).toBe('7')
+    expect(links.map((link) => link.attributes('href'))).toEqual([
+      '/financial/movements',
+      '/financial/periods',
+    ])
+    expect(links[1]!.find('[data-slot="module-card-count"]').text()).toBe('7')
     expect(financialPeriods.count).toHaveBeenCalledWith('ALL')
     const cards = wrapper.findAll('[aria-disabled="true"]')
-    expect(cards).toHaveLength(6)
+    expect(cards).toHaveLength(5)
     expect(cards.every((card) => card.text().includes('Em breve'))).toBe(true)
   })
 })

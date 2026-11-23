@@ -21,6 +21,13 @@ export const financialRoutes: RouteRecordRaw[] = [
         form: () => import('@/views/financial/periods/FinancialPeriodFormView.vue'),
         detail: () => import('@/views/financial/periods/FinancialPeriodDetailView.vue'),
       }),
+      crudRoutes({
+        path: 'movements',
+        name: 'movements',
+        entity: 'movement',
+        list: () => import('@/views/financial/movements/MovementListView.vue'),
+        detail: () => import('@/views/financial/movements/MovementDetailView.vue'),
+      }),
     ],
   },
 ]

@@ -14,8 +14,9 @@ const props = withDefaults(
     icon: Component
     query?: string
     message?: string
+    creatable?: boolean
   }>(),
-  { query: '', message: undefined },
+  { query: '', message: undefined, creatable: true },
 )
 
 const emit = defineEmits<{ create: []; clear: []; retry: [] }>()
@@ -77,6 +78,7 @@ function act() {
     <p :class="kind === 'empty' ? 'text-base font-semibold' : 'font-medium'">{{ texts.title }}</p>
     <p class="text-muted-foreground max-w-sm text-sm">{{ texts.description }}</p>
     <Button
+      v-if="kind !== 'empty' || creatable"
       type="button"
       :variant="kind === 'empty' ? 'default' : 'outline'"
       :size="kind === 'empty' ? 'default' : 'sm'"

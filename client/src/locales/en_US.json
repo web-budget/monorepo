@@ -790,12 +790,16 @@
       "goals": "Goals",
       "goals-help": "Expected income and expense amounts for the period.",
       "result": "Provisional result",
-      "result-closed": "Result"
+      "result-closed": "Result",
+      "movements": "Movements"
     },
     "result": {
       "revenues": "Revenues",
       "expenses": "Expenses",
       "result": "Result"
+    },
+    "actions": {
+      "view-movements": "View movements"
     }
   },
   "classification": {
@@ -978,8 +982,14 @@
   },
   "movement": {
     "title": "Movements",
-    "search": "Name",
-    "columns": {
+    "search": {
+      "placeholder": "Name"
+    },
+    "actions": {
+      "details": "Details",
+      "remove": "Delete"
+    },
+    "table-columns": {
       "name": "Name",
       "due-date": "Due date",
       "value": "Value (R$)",

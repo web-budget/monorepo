@@ -790,12 +790,16 @@
       "goals": "Metas",
       "goals-help": "Valores previstos de receitas e despesas no período.",
       "result": "Resultado provisório",
-      "result-closed": "Resultado"
+      "result-closed": "Resultado",
+      "movements": "Movimentos"
     },
     "result": {
       "revenues": "Receitas",
       "expenses": "Despesas",
       "result": "Resultado"
+    },
+    "actions": {
+      "view-movements": "Ver movimentos"
     }
   },
   "classification": {
@@ -978,8 +982,14 @@
   },
   "movement": {
     "title": "Movimentos",
-    "search": "Nome",
-    "columns": {
+    "search": {
+      "placeholder": "Nome"
+    },
+    "actions": {
+      "details": "Detalhes",
+      "remove": "Excluir"
+    },
+    "table-columns": {
       "name": "Nome",
       "due-date": "Vencimento",
       "value": "Valor (R$)",

@@ -38,6 +38,12 @@ describe('defaultPeriod', () => {
     expect(defaultPeriod([september, october], today)).toBe(october)
   })
 
+  it('picks the most recent of several open periods when none contains today', () => {
+    const august = period('august', '2026-08-01', '2026-08-31', 'OPEN')
+
+    expect(defaultPeriod([august, october, september], today)).toBe(october)
+  })
+
   it('falls back to the first period when none is open', () => {
     expect(defaultPeriod([september], today)).toBe(september)
   })
