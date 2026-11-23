@@ -59,7 +59,11 @@
       "payment-date-in-future": "A data do pagamento não pode ser futura",
       "wallet-has-entries": "A carteira tem lançamentos no extrato e não pode ser excluída",
       "transfer-between-same-wallet": "Origem e destino precisam ser carteiras diferentes",
-      "invalid-adjustment-value": "O valor do ajuste não pode ser zero"
+      "invalid-adjustment-value": "O valor do ajuste não pode ser zero",
+      "no-open-invoice": "Não há fatura aberta para esse cartão no período escolhido. Nada foi lançado.",
+      "invoice-not-open": "A fatura não está aberta e não aceita mudanças",
+      "invoice-without-purchases": "A fatura não tem compras; ela só fecha, zerada, no fechamento do período",
+      "purchase-bound-to-movement": "A compra veio de um pagamento no cartão e não pode ser alterada aqui"
     },
     "not-found": {
       "detail": "Não encontrado",
@@ -657,7 +661,8 @@
     "actions": {
       "close": "Fechar fatura",
       "view-payment": "Ver pagamento de fatura",
-      "delete-payment": "Excluir pagamento de fatura"
+      "delete-payment": "Excluir pagamento de fatura",
+      "new-purchase": "Nova compra"
     },
     "close": {
       "title": "Fechar a fatura de {period}, {card}?",
@@ -1382,6 +1387,55 @@
     "toast": {
       "adjusted": "Saldo ajustado",
       "adjusted-detail": "O ajuste de {name} já está no extrato e não entra no resultado."
+    }
+  },
+  "card-purchase": {
+    "title": "Compras no cartão",
+    "menu": "Compras no cartão",
+    "form": {
+      "new": "Lançando compra",
+      "editing": "Editando compra",
+      "detailing": "Detalhando compra",
+      "submit": "Lançar compra",
+      "card": "Cartão",
+      "period": "Período da fatura",
+      "name": "Nome",
+      "purchased-on": "Data da compra",
+      "value": "Valor",
+      "cost-center": "Centro de custo",
+      "classification": "Classificação de despesa"
+    },
+    "sections": {
+      "card": "Cartão e período",
+      "card-help": "Só períodos abertos.",
+      "purchase": "Compra",
+      "classification": "Classificação"
+    },
+    "detail": {
+      "value": "Valor",
+      "purchased-on": "Data da compra",
+      "card": "Cartão",
+      "invoice": "Fatura",
+      "invoice-link": "Fatura de {period}",
+      "period": "Período",
+      "cost-center": "Centro de custo",
+      "classification": "Classificação"
+    },
+    "notices": {
+      "movement": "Esta compra veio de um pagamento no cartão e não se altera aqui.",
+      "movement-link": "Ver o movimento"
+    },
+    "toast": {
+      "created": "Compra lançada",
+      "created-detail": "“{name}” entrou na fatura aberta do cartão.",
+      "updated": "Alterações salvas",
+      "updated-detail": "“{name}” foi atualizada.",
+      "removed": "Compra removida",
+      "removed-detail": "“{name}” saiu da fatura."
+    },
+    "remove": {
+      "title": "Remover a compra “{name}”?",
+      "description": "Ela sai da fatura e do gasto por centro de custo. Não dá para desfazer."
     }
   }
 }

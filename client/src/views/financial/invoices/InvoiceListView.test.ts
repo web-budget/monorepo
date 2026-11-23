@@ -202,6 +202,15 @@ describe('InvoiceListView', () => {
     expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
   })
 
+  it('goes to the purchase form from the header button', async () => {
+    const { wrapper, router } = await render()
+
+    await buttonWithText(wrapper, 'Nova compra').trigger('click')
+    await flushPromises()
+
+    expect(router.currentRoute.value.fullPath).toBe('/financial/invoices/purchases/create')
+  })
+
   it('leaves the count out when it cannot be read and opens the detail from the row', async () => {
     serve()
     vi.mocked(invoicesApi.findAll).mockImplementation((query) =>

@@ -1,4 +1,5 @@
 import { useAccountStore } from '@/stores/account'
+import { useCardPurchasesStore } from '@/stores/cardPurchases'
 import { useCardsStore } from '@/stores/cards'
 import { useClassificationsStore } from '@/stores/classifications'
 import { useCostCentersStore } from '@/stores/costCenters'
@@ -15,6 +16,7 @@ export function resetUserStores() {
   useAccountStore().reset()
   useWalletsStore().reset()
   useCardsStore().reset()
+  useCardPurchasesStore().reset()
   useCostCentersStore().reset()
   useClassificationsStore().reset()
   useFinancialPeriodsStore().reset()

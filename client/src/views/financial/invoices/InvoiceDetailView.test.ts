@@ -97,6 +97,26 @@ describe('InvoiceDetailView', () => {
     expect(movementsApi.findAll).not.toHaveBeenCalled()
   })
 
+  it('offers a new purchase for the card and the period, and opens a purchase from its row', async () => {
+    const { wrapper, router } = await render()
+
+    const link = wrapper.findAll('a').find((candidate) => candidate.text() === 'Nova compra')!
+    expect(link.attributes('href')).toBe(
+      '/financial/invoices/purchases/create?card=c-1&period=p-11',
+    )
+
+    await wrapper.find('tbody tr').trigger('click')
+    await flushPromises()
+
+    expect(router.currentRoute.value.fullPath).toBe('/financial/invoices/purchases/cp-1/detail')
+  })
+
+  it('offers no new purchase once the invoice is closed', async () => {
+    const { wrapper } = await render({ status: 'CLOSED' })
+
+    expect(wrapper.findAll('a').some((candidate) => candidate.text() === 'Nova compra')).toBe(false)
+  })
+
   it('says when there are no purchases', async () => {
     const { wrapper } = await render({ value: 0 }, [])
 

@@ -544,3 +544,34 @@ export interface CardPurchaseQuery {
   size?: number
   sort?: string
 }
+
+export interface CardPurchaseCreateForm {
+  name: string
+  purchasedOn: string | null
+  value: number
+  card: string
+  financialPeriod: string
+  classification: string
+  costCenter: string
+}
+
+export interface CardPurchaseUpdateForm {
+  name: string
+  purchasedOn: string | null
+  value: number
+  classification: string
+  costCenter: string
+}
+
+export interface CardPurchaseView {
+  id: string
+  name: string
+  purchasedOn: string
+  value: number
+  card: { id: string; name: string }
+  invoice: { id: string; status: InvoiceStatus }
+  financialPeriod: MovementFinancialPeriodView
+  classification: MovementClassificationView
+  costCenter: MovementCostCenterView
+  movement: string | null
+}

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { Lock, LockOpen, ReceiptText } from 'lucide-vue-next'
+import { Lock, LockOpen, Plus, ReceiptText } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
 import { cardsApi } from '@/api/cards'
 import { financialPeriodsApi } from '@/api/financialPeriods'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
@@ -24,6 +25,7 @@ import i18n from '@/locales'
 
 const props = defineProps<{ id: string }>()
 
+const router = useRouter()
 const store = useInvoicesStore()
 const movements = useMovementsStore()
 const { confirm } = useConfirmDialog()
@@ -77,6 +79,10 @@ watch(
   { immediate: true },
 )
 
+function openPurchase(purchase: { id: string }) {
+  return router.push(`/financial/invoices/purchases/${purchase.id}/detail`)
+}
+
 async function closeInvoice() {
   if (await run(() => store.close(props.id))) {
     closing.value = false
@@ -114,6 +120,16 @@ async function deletePayment() {
   <DetailCard :title="title" :description="period?.name" :messages="messages" readonly>
     <template v-if="invoice" #badge><InvoiceStatusBadge :status="invoice.status" /></template>
     <template #extra-actions>
+      <Button v-if="invoice?.status === 'OPEN'" as-child>
+        <RouterLink
+          :to="{
+            path: '/financial/invoices/purchases/create',
+            query: { card: invoice.card.id, period: invoice.financialPeriod.id },
+          }"
+        >
+          <Plus />{{ $t('credit-card-invoice.actions.new-purchase') }}
+        </RouterLink>
+      </Button>
       <Button
         v-if="invoice?.status === 'OPEN'"
         type="button"
@@ -177,6 +193,7 @@ async function deletePayment() {
           :loading="store.loading"
           :current-page="0"
           :page-size="50"
+          @row-selected="({ data }) => openPurchase(data)"
         >
           <template #cell-purchasedOn="{ item }">
             <DateTimeDisplay fix-time :value="item.purchasedOn" class="font-mono" />
