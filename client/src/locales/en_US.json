@@ -978,6 +978,109 @@
   },
   "movement": {
     "title": "Movements",
+    "search": "Name",
+    "columns": {
+      "name": "Name",
+      "due-date": "Due date",
+      "value": "Value (R$)",
+      "status": "Status"
+    },
+    "status": {
+      "open": "Open",
+      "paid": "Paid",
+      "overdue": "Overdue",
+      "overdue-days": "Overdue for {days} day | Overdue for {days} days"
+    },
+    "options": {
+      "all": "All",
+      "open": "Open",
+      "paid": "Paid"
+    },
+    "type": {
+      "income": "Income",
+      "expense": "Expense"
+    },
+    "filters": {
+      "period": "Period",
+      "all-periods": "All periods",
+      "type": "Type",
+      "all-types": "All types",
+      "incomes": "Income",
+      "expenses": "Expenses",
+      "cost-center": "Cost center",
+      "all-cost-centers": "All",
+      "classification": "Classification",
+      "classification-of-type": {
+        "INCOME": "Income classification",
+        "EXPENSE": "Expense classification"
+      },
+      "all-classifications": "All",
+      "overdue": "Overdue only",
+      "clear": "Clear",
+      "clear-count": "Clear ({count})"
+    },
+    "summary": {
+      "received": "Received",
+      "received-note": "Paid income",
+      "paid": "Paid",
+      "paid-note": "Paid expenses",
+      "result": "Result",
+      "result-note": "Income − expenses"
+    },
+    "expired-notice": "{name} expired on {date} and is still open. It still accepts postings.",
+    "list": {
+      "description": "Income and expenses of {period}.",
+      "description-all": "Income and expenses of all periods.",
+      "empty-title": "No movements yet",
+      "empty-description": "Post the first income or expense of the period.",
+      "plural": "the movements",
+      "found": "{count} movement found for “{query}” | {count} movements found for “{query}”"
+    },
+    "remove": {
+      "title": "Delete “{name}”?",
+      "description": "This cannot be undone."
+    },
+    "toast": {
+      "removed": "Movement deleted",
+      "removed-detail": "“{name}” left the list."
+    },
+    "form": {
+      "new": "Posting",
+      "editing": "Editing",
+      "detailing": "Viewing"
+    },
+    "sections": {
+      "identification": "Identification",
+      "payment": "Payment"
+    },
+    "detail": {
+      "name": "Name",
+      "type": "Type",
+      "value": "Value",
+      "due-date": "Due date",
+      "period": "Period",
+      "cost-center": "Cost center",
+      "classification": "Classification",
+      "description": "Description",
+      "no-payment": "No payment.",
+      "paid-on": "Date",
+      "movement-value": "Movement value",
+      "discount": "Discount",
+      "value-paid": "Amount paid",
+      "method": "Method",
+      "wallet": "Wallet",
+      "card": "Card",
+      "method-wallet": "Wallet",
+      "method-card": "Credit card"
+    },
+    "notices": {
+      "paid": "Paid: it cannot be edited or deleted",
+      "paid-description": "Undo the payment to change it.",
+      "closed": "Closed period: {name}",
+      "closed-description": "Frozen. Reopen the period to undo.",
+      "overdue": "Was due on {date}",
+      "overdue-description": "Open for {days} day. | Open for {days} days."
+    },
     "menu": "Movements"
   },
   "transfer": {

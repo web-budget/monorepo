@@ -333,3 +333,103 @@ export interface UserView {
   status: UserStatus
   totpEnabled: boolean
 }
+
+export type MovementType = 'INCOME' | 'EXPENSE'
+
+export type MovementStatus = 'OPEN' | 'PAID'
+
+export type MovementStatusFilter = MovementStatus | 'ALL'
+
+export interface MovementClassificationView {
+  id: string
+  name: string
+  type: ClassificationType
+}
+
+export interface MovementCostCenterView {
+  id: string
+  name: string
+  fullName: string
+}
+
+export interface MovementFinancialPeriodView {
+  id: string
+  name: string
+  status: FinancialPeriodStatus
+  expired: boolean
+}
+
+export interface PaymentView {
+  paidOn: string
+  value: number
+  discount: number
+  valuePaid: number
+  wallet: { id: string; name: string } | null
+  card: { id: string; name: string } | null
+}
+
+export interface MovementView {
+  id: string
+  name: string
+  type: MovementType
+  value: number
+  dueDate: string
+  status: MovementStatus
+  overdue: boolean
+  classification: MovementClassificationView | null
+  costCenter: MovementCostCenterView | null
+  financialPeriod: MovementFinancialPeriodView
+  description: string | null
+  payment: PaymentView | null
+}
+
+export interface MovementListView {
+  id: string
+  name: string
+  type: MovementType
+  value: number
+  dueDate: string
+  status: MovementStatus
+  overdue: boolean
+  financialPeriod: MovementFinancialPeriodView
+}
+
+export interface PaymentForm {
+  wallet: string
+  paidOn?: string | null
+  discount?: number | null
+}
+
+export interface MovementCreateForm {
+  name: string
+  type: MovementType
+  value: number
+  dueDate?: string | null
+  financialPeriod: string
+  classification: string
+  costCenter: string
+  description?: string | null
+  payment?: PaymentForm | null
+}
+
+export interface MovementUpdateForm {
+  name: string
+  value: number
+  dueDate?: string | null
+  classification: string
+  costCenter: string
+  description?: string | null
+}
+
+export interface MovementQuery {
+  filter?: string
+  type?: MovementType
+  statuses?: MovementStatus[]
+  overdue?: boolean
+  classification?: string
+  costCenter?: string
+  financialPeriods?: string[]
+  page?: number
+  size?: number
+  sort?: string
+}
