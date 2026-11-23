@@ -376,6 +376,7 @@ export interface MovementView {
   financialPeriod: MovementFinancialPeriodView
   description: string | null
   payment: PaymentView | null
+  invoice?: { id: string; status: InvoiceStatus; card: { id: string; name: string } } | null
 }
 
 export interface MovementListView {
@@ -424,6 +425,7 @@ export interface MovementQuery {
   classification?: string
   costCenter?: string
   financialPeriods?: string[]
+  invoicePayments?: boolean
   page?: number
   size?: number
   sort?: string
@@ -501,6 +503,43 @@ export interface TransferQuery {
   from?: string
   to?: string
   filter?: string
+  page?: number
+  size?: number
+  sort?: string
+}
+
+export type InvoiceStatus = 'OPEN' | 'CLOSED' | 'PAID'
+
+export type InvoiceStatusFilter = InvoiceStatus | 'ALL'
+
+export interface InvoiceView {
+  id: string
+  status: InvoiceStatus
+  value: number
+  card: { id: string; name: string }
+  financialPeriod: MovementFinancialPeriodView
+}
+
+export interface InvoiceQuery {
+  card?: string
+  financialPeriod?: string
+  statuses?: InvoiceStatus[]
+  page?: number
+  size?: number
+  sort?: string
+}
+
+export interface CardPurchaseListView {
+  id: string
+  name: string
+  purchasedOn: string
+  value: number
+  card: { id: string; name: string }
+  invoice: { id: string; status: InvoiceStatus }
+}
+
+export interface CardPurchaseQuery {
+  invoice?: string
   page?: number
   size?: number
   sort?: string

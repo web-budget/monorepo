@@ -608,7 +608,78 @@
   },
   "credit-card-invoice": {
     "title": "Card invoice",
-    "menu": "Card invoice"
+    "menu": "Card invoice",
+    "detail": {
+      "title": "Detailing invoice",
+      "breadcrumb": "Detailing",
+      "total": "Invoice total",
+      "purchases": "Purchases",
+      "due-date": "Due date",
+      "no-purchases": "No purchases on this invoice"
+    },
+    "list": {
+      "description": "Purchases of each card by period.",
+      "empty-title": "No invoices in this period",
+      "empty-description": "Create a period to generate the invoices.",
+      "plural": "the invoices"
+    },
+    "options": {
+      "all": "All",
+      "open": "Open",
+      "closed": "Closed",
+      "paid": "Paid"
+    },
+    "filters": {
+      "period": "Period",
+      "all-periods": "All",
+      "card": "Card",
+      "all-cards": "All"
+    },
+    "table-columns": {
+      "card": "Card",
+      "period": "Period",
+      "value": "Total (R$)",
+      "status": "Status"
+    },
+    "status": {
+      "OPEN": "Open",
+      "CLOSED": "Closed",
+      "PAID": "Paid"
+    },
+    "sections": {
+      "purchases": "Purchases"
+    },
+    "purchases": {
+      "date": "Date",
+      "name": "Purchase",
+      "value": "Value (R$)"
+    },
+    "actions": {
+      "close": "Close invoice",
+      "view-payment": "View invoice payment",
+      "delete-payment": "Delete invoice payment"
+    },
+    "close": {
+      "title": "Close the {period} invoice of {card}?",
+      "description": "Generates the invoice payment and closes the invoice to new purchases.",
+      "description-empty": "An invoice without purchases closes with a zero value.",
+      "purchases": "Purchases",
+      "payment": "Invoice payment",
+      "due-date": "Due date",
+      "wallet": "Wallet suggested when paying",
+      "confirm": "Close invoice"
+    },
+    "delete-payment": {
+      "title": "Delete the invoice payment?",
+      "description": "Deleting the payment reopens the invoice of {card}.",
+      "confirm": "Delete and reopen"
+    },
+    "toast": {
+      "closed": "Invoice closed",
+      "closed-detail": "Invoice payment of {value} generated, open.",
+      "reopened": "Invoice reopened",
+      "reopened-detail": "The invoice payment was deleted."
+    }
   },
   "period-closing": {
     "title": "Closing",
