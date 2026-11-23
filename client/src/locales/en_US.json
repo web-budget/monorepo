@@ -673,6 +673,10 @@
       "bank": "Bank details",
       "bank-help": "Shown for Bank account and Investment.",
       "balance": "Balance"
+    },
+    "actions": {
+      "view-statement": "View statement",
+      "adjust-balance": "Adjust balance"
     }
   },
   "card": {
@@ -959,7 +963,8 @@
     "number-max": "The maximum value is {maximum}",
     "end-before-start": "The end date cannot be before the start date",
     "roles-required": "Choose at least one area.",
-    "discount-too-high": "The discount must be lower than the value."
+    "discount-too-high": "The discount must be lower than the value.",
+    "adjustment-not-zero": "The adjustment cannot be zero."
   },
   "crud": {
     "required-hint": "Fields with * are required.",
@@ -1168,6 +1173,69 @@
   },
   "statement": {
     "title": "Statement",
-    "menu": "Statement"
+    "menu": "Statement",
+    "description": "Balance changes of {name}.",
+    "balance": "Current balance",
+    "inactive": "inactive",
+    "search": {
+      "placeholder": "Entry name"
+    },
+    "options": {
+      "all": "All",
+      "credit": "Credits",
+      "debit": "Debits"
+    },
+    "filters": {
+      "wallet": "Wallet",
+      "from": "From",
+      "to": "To",
+      "period": "Financial period",
+      "all-periods": "All",
+      "origin": "Operation",
+      "all-origins": "All",
+      "min": "Minimum value",
+      "max": "Maximum value",
+      "clear": "Clear"
+    },
+    "origin": {
+      "INCOME": "Income",
+      "EXPENSE": "Expense",
+      "REVERSAL": "Reversal",
+      "ADJUSTMENT": "Adjustment",
+      "TRANSFER": "Transfer"
+    },
+    "table-columns": {
+      "created-on": "Date and time",
+      "origin": "Operation",
+      "name": "Entry",
+      "value": "Value (R$)",
+      "previous-balance": "Previous balance",
+      "resulting-balance": "Current balance",
+      "reference": "Origin"
+    },
+    "open-origin": "Open the origin of {name}",
+    "list": {
+      "empty-title": "No entries yet",
+      "empty-description": "Post an income to give this wallet a balance.",
+      "plural": "the statement"
+    },
+    "actions": {
+      "adjust": "Adjust balance"
+    },
+    "adjust": {
+      "title": "Adjust the balance of {name}",
+      "description": "For rounding cents. It does not count in the result.",
+      "value": "Adjustment value",
+      "value-hint": "Positive credits, negative debits.",
+      "reason": "Reason",
+      "wallet-balance": "Wallet balance",
+      "adjustment": "Adjustment",
+      "balance-after": "Balance after",
+      "confirm": "Adjust"
+    },
+    "toast": {
+      "adjusted": "Balance adjusted",
+      "adjusted-detail": "The adjustment of {name} is in the statement and does not count in the result."
+    }
   }
 }

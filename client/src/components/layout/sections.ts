@@ -64,6 +64,7 @@ export const financialSection: ModuleSectionDefinition = {
     {
       label: 'statement.menu',
       icon: ScrollText,
+      to: '/financial/statement',
       description: 'module-home.items.statement',
     },
     {

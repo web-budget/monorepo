@@ -19,6 +19,14 @@ describe('useActiveWallets', () => {
     )
   })
 
+  it('can load the wallets of every status', async () => {
+    vi.mocked(walletsApi.findAll).mockResolvedValue(pageOf([] as never[]))
+
+    await useActiveWallets().load('ALL')
+
+    expect(walletsApi.findAll).toHaveBeenCalledWith(expect.objectContaining({ status: 'ALL' }))
+  })
+
   it('reads the balance of a wallet', async () => {
     vi.mocked(walletsApi.findById).mockResolvedValue({ currentBalance: 1234.5 } as WalletView)
 

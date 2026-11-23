@@ -13,7 +13,7 @@ const NONE = '__none__'
 
 const props = defineProps<{
   label: string
-  noneLabel: string
+  noneLabel?: string
   options: { label: string; value: string }[]
   class?: string
 }>()
@@ -36,7 +36,7 @@ const selected = computed({
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
-        <SelectItem :value="NONE">{{ noneLabel }}</SelectItem>
+        <SelectItem v-if="noneLabel !== undefined" :value="NONE">{{ noneLabel }}</SelectItem>
         <SelectItem v-for="option in options" :key="option.value" :value="option.value">
           {{ option.label }}
         </SelectItem>
