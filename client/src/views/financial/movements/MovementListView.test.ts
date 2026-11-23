@@ -5,7 +5,9 @@ import { classificationsApi } from '@/api/classifications'
 import { costCentersApi } from '@/api/costCenters'
 import { financialPeriodsApi } from '@/api/financialPeriods'
 import { movementsApi } from '@/api/movements'
+import { walletsApi } from '@/api/wallets'
 import FilterSelect from '@/components/forms/FilterSelect.vue'
+import PayMovementDialog from '@/components/movements/PayMovementDialog.vue'
 import { Switch } from '@/components/ui/switch'
 import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import { buttonWithText, chooseRowAction, mountView, pageOf, problem } from '@/test/crud'
@@ -22,6 +24,7 @@ vi.mock('@/api/movements')
 vi.mock('@/api/financialPeriods')
 vi.mock('@/api/costCenters')
 vi.mock('@/api/classifications')
+vi.mock('@/api/wallets')
 vi.mock('vue-sonner', () => ({
   toast: {
     success: vi.fn<() => void>(),
@@ -83,6 +86,7 @@ const COUNTS: Record<string, number> = { ALL: 2, OPEN: 1, PAID: 1 }
 
 function serve(periods = [november, october], content = movements) {
   vi.mocked(financialPeriodsApi.findAll).mockResolvedValue(pageOf(periods))
+  vi.mocked(walletsApi.findAll).mockResolvedValue(pageOf([{ id: 'w-1', name: 'Conta' }] as never[]))
   vi.mocked(costCentersApi.findAll).mockResolvedValue(pageOf(costCenters))
   vi.mocked(classificationsApi.findAll).mockResolvedValue(pageOf(classifications))
   vi.mocked(financialPeriodsApi.findResult).mockResolvedValue({
@@ -331,7 +335,36 @@ describe('MovementListView', () => {
     expect(router.currentRoute.value.params.id).toBe('m-1')
   })
 
-  it('offers to delete only the open movements', async () => {
+  it('offers an open movement to pay, edit and delete', async () => {
+    const { wrapper } = await render()
+
+    await wrapper
+      .findAll('button[aria-label="Mais ações"]')[0]!
+      .trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+
+    const items = [...document.body.querySelectorAll('[role="menuitem"]')].map((item) =>
+      item.textContent?.trim(),
+    )
+    expect(items).toEqual(['Detalhes', 'Pagar', 'Editar', 'Excluir'])
+  })
+
+  it('offers an open income to receive', async () => {
+    const income = { ...movements[0]!, type: 'INCOME' as const, overdue: false }
+    const { wrapper } = await render(undefined, [november, october], [income])
+
+    await wrapper
+      .findAll('button[aria-label="Mais ações"]')[0]!
+      .trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+
+    const items = [...document.body.querySelectorAll('[role="menuitem"]')].map((item) =>
+      item.textContent?.trim(),
+    )
+    expect(items).toContain('Receber')
+  })
+
+  it('offers a paid movement of an open period to undo the payment', async () => {
     const { wrapper } = await render()
 
     await wrapper
@@ -342,7 +375,112 @@ describe('MovementListView', () => {
     const items = [...document.body.querySelectorAll('[role="menuitem"]')].map((item) =>
       item.textContent?.trim(),
     )
+    expect(items).toEqual(['Detalhes', 'Desfazer pagamento'])
+  })
+
+  it('offers no undo for a paid movement of a closed period', async () => {
+    const closed = { ...movements[1]!, financialPeriod: { ...period, status: 'CLOSED' as const } }
+    const { wrapper } = await render(undefined, [november, october], [closed])
+
+    await wrapper
+      .findAll('button[aria-label="Mais ações"]')[0]!
+      .trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+
+    const items = [...document.body.querySelectorAll('[role="menuitem"]')].map((item) =>
+      item.textContent?.trim(),
+    )
     expect(items).toEqual(['Detalhes'])
+  })
+
+  it('goes to the form to create and to edit', async () => {
+    const { wrapper, router } = await render()
+
+    await buttonWithText(wrapper, 'Criar').trigger('click')
+    await flushPromises()
+    expect(router.currentRoute.value.name).toBe('movements.create')
+
+    await router.push('/movements?period=p-11')
+    await flushPromises()
+    await chooseRowAction(wrapper, 0, 'Editar')
+    expect(router.currentRoute.value.name).toBe('movements.update')
+    expect(router.currentRoute.value.params.id).toBe('m-1')
+  })
+
+  it('pays an open movement from the dialog and reloads the list and the totals', async () => {
+    vi.mocked(movementsApi.pay).mockResolvedValue({} as never)
+    const { wrapper } = await render()
+
+    await chooseRowAction(wrapper, 0, 'Pagar')
+    const dialog = wrapper.getComponent(PayMovementDialog)
+    expect(dialog.props('movement')).toMatchObject({ id: 'm-1', type: 'EXPENSE' })
+
+    const before = listing().length
+    dialog.vm.$emit('pay', dialog.props('movement'), { wallet: 'w-1', paidOn: '2026-11-21' })
+    await flushPromises()
+
+    expect(movementsApi.pay).toHaveBeenCalledWith('m-1', { wallet: 'w-1', paidOn: '2026-11-21' })
+    expect(toast.success).toHaveBeenCalledWith('Pagamento registrado', expect.anything())
+    expect(dialog.props('movement')).toBeNull()
+    expect(listing().length).toBe(before + 1)
+    expect(financialPeriodsApi.findResult).toHaveBeenCalledTimes(2)
+  })
+
+  it('closes the payment dialog without paying', async () => {
+    const { wrapper } = await render()
+
+    await chooseRowAction(wrapper, 0, 'Pagar')
+    wrapper.getComponent(PayMovementDialog).vm.$emit('close')
+    await flushPromises()
+
+    expect(wrapper.getComponent(PayMovementDialog).props('movement')).toBeNull()
+    expect(movementsApi.pay).not.toHaveBeenCalled()
+  })
+
+  it('keeps the dialog open and shows the error when the payment fails', async () => {
+    vi.mocked(movementsApi.pay).mockRejectedValue(problem(400, { error: 'invalid-discount' }))
+    const { wrapper } = await render()
+
+    await chooseRowAction(wrapper, 0, 'Pagar')
+    const dialog = wrapper.getComponent(PayMovementDialog)
+    dialog.vm.$emit('pay', dialog.props('movement'), { wallet: 'w-1' })
+    await flushPromises()
+
+    expect(dialog.props('movement')).not.toBeNull()
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
+  })
+
+  it('undoes the payment of a paid movement after confirmation', async () => {
+    vi.mocked(movementsApi.undoPayment).mockResolvedValue({} as never)
+    const { wrapper } = await render()
+    const dialog = useConfirmDialog()
+
+    await chooseRowAction(wrapper, 1, 'Desfazer pagamento')
+    expect(dialog.state.options.title).toBe('Desfazer o pagamento de “Salário de novembro”?')
+    dialog.accept()
+    await flushPromises()
+
+    expect(movementsApi.undoPayment).toHaveBeenCalledWith('m-2')
+    expect(toast.success).toHaveBeenCalledWith('Pagamento desfeito', expect.anything())
+  })
+
+  it('keeps the payment when the undo is not confirmed', async () => {
+    const { wrapper } = await render()
+
+    await chooseRowAction(wrapper, 1, 'Desfazer pagamento')
+    useConfirmDialog().cancel()
+    await flushPromises()
+
+    expect(movementsApi.undoPayment).not.toHaveBeenCalled()
+  })
+
+  it('shows the server error when the wallets cannot be loaded', async () => {
+    serve()
+    vi.mocked(walletsApi.findAll).mockRejectedValue(problem(500))
+
+    const { wrapper } = await mountView(MovementListViewUnderTest, 'movements')
+
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
   })
 
   it('deletes an open movement after confirmation, naming it', async () => {
@@ -363,14 +501,16 @@ describe('MovementListView', () => {
     })
   })
 
-  it('shows the empty state without offering to create', async () => {
+  it('shows the empty state and offers to create the first movement', async () => {
     serve([november], [])
     vi.mocked(movementsApi.findAll).mockImplementation(() => Promise.resolve(pageOf([], 0)))
 
-    const { wrapper } = await mountView(MovementListViewUnderTest, 'movements')
+    const { wrapper, router } = await mountView(MovementListViewUnderTest, 'movements')
 
     expect(wrapper.find('[data-state="empty"]').text()).toContain('Nenhum movimento ainda')
-    expect(wrapper.find('[data-state="empty"] button').exists()).toBe(false)
+    await wrapper.find('[data-state="empty"] button').trigger('click')
+    await flushPromises()
+    expect(router.currentRoute.value.name).toBe('movements.create')
   })
 
   it('says nothing matched the search and clears it', async () => {

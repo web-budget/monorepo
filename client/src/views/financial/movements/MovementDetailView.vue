@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Clock, Lock } from 'lucide-vue-next'
+import { Banknote, Clock, Lock, Undo2 } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
-import { computed } from 'vue'
+import { computed, onMounted } from 'vue'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
 import DateTimeDisplay from '@/components/common/DateTimeDisplay.vue'
 import DetailCard from '@/components/common/DetailCard.vue'
@@ -9,8 +9,13 @@ import DetailField from '@/components/common/DetailField.vue'
 import DetailSection from '@/components/common/DetailSection.vue'
 import MovementStatusBadge from '@/components/movements/MovementStatusBadge.vue'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import PayMovementDialog from '@/components/movements/PayMovementDialog.vue'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
+import { useActiveWallets } from '@/composables/useActiveWallets'
 import { useCrudDetail } from '@/composables/useCrudDetail'
+import { useMovementActions } from '@/composables/useMovementActions'
+import { useServerErrors } from '@/composables/useServerErrors'
 import { useMovementsStore } from '@/stores/movements'
 import type { MovementView } from '@/types'
 import { daysOverdue } from '@/utils/movements'
@@ -18,7 +23,7 @@ import { daysOverdue } from '@/utils/movements'
 const props = defineProps<{ id: string }>()
 
 const store = useMovementsStore()
-const { movement } = storeToRefs(store)
+const { movement, loading } = storeToRefs(store)
 
 const { messages, changeToUpdate, remove } = useCrudDetail({
   routeName: 'movements',
@@ -29,9 +34,18 @@ const { messages, changeToUpdate, remove } = useCrudDetail({
   remove: store.remove,
 })
 
+const activeWallets = useActiveWallets()
+const walletErrors = useServerErrors()
+const actions = useMovementActions(() => store.findOne(props.id))
+
+onMounted(() => walletErrors.run(activeWallets.load))
+
 const periodClosed = computed(() => movement.value?.financialPeriod.status === 'CLOSED')
 const paidInOpenPeriod = computed(() => movement.value?.status === 'PAID' && !periodClosed.value)
 const locked = computed(() => movement.value?.status === 'PAID' || periodClosed.value)
+const canPay = computed(() => movement.value?.status === 'OPEN' && !periodClosed.value)
+const canUndo = computed(() => paidInOpenPeriod.value)
+
 function signedValue(item: MovementView) {
   return item.type === 'INCOME' ? item.value : -item.value
 }
@@ -40,12 +54,26 @@ function signedValue(item: MovementView) {
 <template>
   <DetailCard
     :title="movement?.name ?? $t('movement.form.detailing')"
-    :messages="messages"
+    :messages="[...messages, ...actions.messages.value, ...walletErrors.messages.value]"
     :readonly="locked"
-    hide-edit
     @edit="changeToUpdate"
     @delete="remove"
   >
+    <template #extra-actions>
+      <Button v-if="canPay" type="button" @click="actions.openPay(movement!)">
+        <Banknote />{{
+          $t(movement!.type === 'INCOME' ? 'movement.actions.receive' : 'movement.actions.pay')
+        }}
+      </Button>
+      <Button
+        v-if="canUndo"
+        type="button"
+        variant="outline"
+        @click="actions.undoPayment(movement!)"
+      >
+        <Undo2 />{{ $t('movement.actions.undo') }}
+      </Button>
+    </template>
     <template v-if="movement" #badge>
       <MovementStatusBadge
         :status="movement.status"
@@ -150,4 +178,12 @@ function signedValue(item: MovementView) {
       </DetailSection>
     </template>
   </DetailCard>
+  <PayMovementDialog
+    :movement="actions.payTarget.value"
+    :wallets="activeWallets.wallets.value"
+    :loading="loading"
+    :balance-of="activeWallets.balanceOf"
+    @close="actions.closePay()"
+    @pay="actions.pay"
+  />
 </template>

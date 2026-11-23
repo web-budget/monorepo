@@ -2,12 +2,15 @@ import { flushPromises } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'vue-sonner'
 import { movementsApi } from '@/api/movements'
+import { walletsApi } from '@/api/wallets'
+import PayMovementDialog from '@/components/movements/PayMovementDialog.vue'
 import { useConfirmDialog } from '@/composables/useConfirmDialog'
-import { buttonWithText, mountView, problem } from '@/test/crud'
+import { buttonWithText, mountView, pageOf, problem } from '@/test/crud'
 import type { MovementView } from '@/types'
 import MovementDetailView from '@/views/financial/movements/MovementDetailView.vue'
 
 vi.mock('@/api/movements')
+vi.mock('@/api/wallets')
 vi.mock('vue-sonner', () => ({
   toast: {
     success: vi.fn<() => void>(),
@@ -51,6 +54,9 @@ const paid: MovementView = {
   },
 }
 
+const buttons = (wrapper: Awaited<ReturnType<typeof render>>['wrapper']) =>
+  wrapper.findAll('button').map((button) => button.text())
+
 async function render(movement: MovementView) {
   vi.mocked(movementsApi.findById).mockResolvedValue(movement)
   return mountView(MovementDetailView, 'movements', { id: movement.id })
@@ -62,13 +68,16 @@ describe('MovementDetailView', () => {
     document.body.replaceChildren()
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date(2026, 10, 21))
+    vi.mocked(walletsApi.findAll).mockResolvedValue(
+      pageOf([{ id: 'w-1', name: 'Conta' }] as never[]),
+    )
   })
 
   afterEach(() => {
     vi.useRealTimers()
   })
 
-  it('shows an open overdue movement with its notice and no payment', async () => {
+  it('shows an open overdue movement with its notice, no payment and its actions', async () => {
     const { wrapper } = await render(open)
 
     expect(movementsApi.findById).toHaveBeenCalledWith('m-1')
@@ -88,11 +97,16 @@ describe('MovementDetailView', () => {
     expect(wrapper.find('[data-slot="overdue-notice"]').text()).toContain('Venceu em 20/11/2026')
     expect(wrapper.find('[data-slot="overdue-notice"]').text()).toContain('Em aberto há 1 dia.')
     expect(wrapper.find('[data-slot="paid-notice"]').exists()).toBe(false)
-    expect(buttonWithText(wrapper, 'Remover')).toBeDefined()
-    expect(wrapper.findAll('button').some((button) => button.text() === 'Editar')).toBe(false)
+    expect(buttons(wrapper)).toEqual(['Remover', 'Editar', 'Pagar'])
   })
 
-  it('shows the payment of a paid movement and offers nothing to change', async () => {
+  it('offers to receive an income', async () => {
+    const { wrapper } = await render({ ...open, type: 'INCOME' })
+
+    expect(buttons(wrapper)).toContain('Receber')
+  })
+
+  it('shows the payment of a paid movement and only offers to undo it', async () => {
     const { wrapper } = await render(paid)
 
     expect(wrapper.text()).toContain('Receita')
@@ -103,7 +117,7 @@ describe('MovementDetailView', () => {
     expect(wrapper.text()).toMatch(/R\$\s8\.300,00/)
     expect(wrapper.find('[data-slot="paid-notice"]').text()).toContain('Pago: não se edita')
     expect(wrapper.find('[data-slot="overdue-notice"]').exists()).toBe(false)
-    expect(wrapper.find('[data-slot="page-actions"]').exists()).toBe(false)
+    expect(buttons(wrapper)).toEqual(['Desfazer pagamento'])
   })
 
   it('shows a card payment', async () => {
@@ -129,7 +143,7 @@ describe('MovementDetailView', () => {
       'Período encerrado: Setembro',
     )
     expect(wrapper.find('[data-slot="paid-notice"]').exists()).toBe(false)
-    expect(wrapper.find('[data-slot="page-actions"]').exists()).toBe(false)
+    expect(buttons(wrapper)).toEqual([])
     expect(wrapper.text()).toContain('---')
   })
 
@@ -139,6 +153,16 @@ describe('MovementDetailView', () => {
     const { wrapper } = await mountView(MovementDetailView, 'movements', { id: 'm-1' })
 
     expect(wrapper.find('h1').text()).toBe('Detalhando')
+  })
+
+  it('goes to the edit form', async () => {
+    const { wrapper, router } = await render(open)
+
+    await buttonWithText(wrapper, 'Editar').trigger('click')
+    await flushPromises()
+
+    expect(router.currentRoute.value.name).toBe('movements.update')
+    expect(router.currentRoute.value.params.id).toBe('m-1')
   })
 
   it('asks first, naming the movement, then deletes it and goes to the list', async () => {
@@ -154,6 +178,97 @@ describe('MovementDetailView', () => {
     expect(movementsApi.remove).toHaveBeenCalledWith('m-1')
     expect(toast.success).toHaveBeenCalled()
     expect(router.currentRoute.value.name).toBe('movements')
+  })
+
+  it('pays the movement from the dialog and reloads it', async () => {
+    vi.mocked(movementsApi.pay).mockResolvedValue({ ...open, status: 'PAID', overdue: false })
+    const { wrapper } = await render(open)
+
+    await buttonWithText(wrapper, 'Pagar').trigger('click')
+    const dialog = wrapper.getComponent(PayMovementDialog)
+    expect(dialog.props('movement')).toMatchObject({ id: 'm-1' })
+
+    dialog.vm.$emit('pay', dialog.props('movement'), { wallet: 'w-1', paidOn: '2026-11-21' })
+    await flushPromises()
+
+    expect(movementsApi.pay).toHaveBeenCalledWith('m-1', { wallet: 'w-1', paidOn: '2026-11-21' })
+    expect(toast.success).toHaveBeenCalledWith('Pagamento registrado', expect.anything())
+    expect(dialog.props('movement')).toBeNull()
+    expect(movementsApi.findById).toHaveBeenCalledTimes(2)
+  })
+
+  it('keeps the dialog open and shows the error when the payment fails', async () => {
+    vi.mocked(movementsApi.pay).mockRejectedValue(problem(400, { error: 'invalid-discount' }))
+    const { wrapper } = await render(open)
+
+    await buttonWithText(wrapper, 'Pagar').trigger('click')
+    const dialog = wrapper.getComponent(PayMovementDialog)
+    dialog.vm.$emit('pay', dialog.props('movement'), { wallet: 'w-1' })
+    await flushPromises()
+
+    expect(dialog.props('movement')).not.toBeNull()
+    expect(wrapper.find('[data-slot="server-error"]').text()).toContain('desconto')
+  })
+
+  it('closes the dialog without paying', async () => {
+    const { wrapper } = await render(open)
+
+    await buttonWithText(wrapper, 'Pagar').trigger('click')
+    wrapper.getComponent(PayMovementDialog).vm.$emit('close')
+    await flushPromises()
+
+    expect(wrapper.getComponent(PayMovementDialog).props('movement')).toBeNull()
+  })
+
+  it('undoes the payment after confirmation and reloads it', async () => {
+    vi.mocked(movementsApi.undoPayment).mockResolvedValue({
+      ...paid,
+      status: 'OPEN',
+      payment: null,
+    })
+    const { wrapper } = await render(paid)
+    const dialog = useConfirmDialog()
+
+    await buttonWithText(wrapper, 'Desfazer pagamento').trigger('click')
+    expect(dialog.state.options.title).toBe('Desfazer o pagamento de “Salário”?')
+    dialog.accept()
+    await flushPromises()
+
+    expect(movementsApi.undoPayment).toHaveBeenCalledWith('m-2')
+    expect(toast.success).toHaveBeenCalledWith('Pagamento desfeito', expect.anything())
+    expect(movementsApi.findById).toHaveBeenCalledTimes(2)
+  })
+
+  it('does nothing when the undo is not confirmed', async () => {
+    const { wrapper } = await render(paid)
+
+    await buttonWithText(wrapper, 'Desfazer pagamento').trigger('click')
+    useConfirmDialog().cancel()
+    await flushPromises()
+
+    expect(movementsApi.undoPayment).not.toHaveBeenCalled()
+  })
+
+  it('does not reload after an undo that fails', async () => {
+    vi.mocked(movementsApi.undoPayment).mockRejectedValue(
+      problem(400, { error: 'movement-not-paid' }),
+    )
+    const { wrapper } = await render(paid)
+
+    await buttonWithText(wrapper, 'Desfazer pagamento').trigger('click')
+    useConfirmDialog().accept()
+    await flushPromises()
+
+    expect(movementsApi.findById).toHaveBeenCalledTimes(1)
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
+  })
+
+  it('shows the server error when the wallets cannot be loaded', async () => {
+    vi.mocked(walletsApi.findAll).mockRejectedValue(problem(500))
+
+    const { wrapper } = await render(open)
+
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
   })
 
   it('shows the server error when the movement cannot be loaded', async () => {

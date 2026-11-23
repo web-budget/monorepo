@@ -48,7 +48,19 @@
       "financial-period-not-open": "O período financeiro não esta aberto e não pode receber modificações",
       "accounted-period-movement": "O movimento pertence a um período contabilizado e não pode ser alterado",
       "invalid-token": "Token inválido ou expirado",
-      "self-action-not-allowed": "Esta ação não vale para a sua própria conta"
+      "self-action-not-allowed": "Esta ação não vale para a sua própria conta",
+      "movement-already-paid": "O movimento já foi pago e não pode ser alterado",
+      "movement-not-paid": "O movimento não tem pagamento",
+      "classification-type-mismatch": "A classificação não é do mesmo tipo do movimento",
+      "inactive-classification": "A classificação está inativa",
+      "inactive-cost-center": "O centro de custo está inativo",
+      "inactive-wallet": "A carteira está inativa",
+      "invalid-discount": "O desconto precisa estar entre zero e o valor, sem chegar nele",
+      "payment-date-in-future": "A data do pagamento não pode ser futura",
+      "wallet-has-entries": "A carteira tem lançamentos no extrato e não pode ser excluída",
+      "transfer-between-same-wallet": "Origem e destino precisam ser carteiras diferentes",
+      "transfer-is-a-return": "Uma devolução não se devolve",
+      "invalid-adjustment-value": "O valor do ajuste não pode ser zero"
     },
     "not-found": {
       "detail": "Não encontrado",
@@ -946,7 +958,8 @@
     "number-min": "O valor mínimo é {minimum}",
     "number-max": "O valor máximo é {maximum}",
     "end-before-start": "A data de fim não pode ser anterior à data de início",
-    "roles-required": "Escolha pelo menos uma área."
+    "roles-required": "Escolha pelo menos uma área.",
+    "discount-too-high": "O desconto precisa ser menor que o valor."
   },
   "crud": {
     "required-hint": "Campos com * são obrigatórios.",
@@ -987,7 +1000,11 @@
     },
     "actions": {
       "details": "Detalhes",
-      "remove": "Excluir"
+      "remove": "Excluir",
+      "pay": "Pagar",
+      "receive": "Receber",
+      "edit": "Editar",
+      "undo": "Desfazer pagamento"
     },
     "table-columns": {
       "name": "Nome",
@@ -1008,7 +1025,9 @@
     },
     "type": {
       "income": "Receita",
-      "expense": "Despesa"
+      "expense": "Despesa",
+      "INCOME": "Receita",
+      "EXPENSE": "Despesa"
     },
     "filters": {
       "period": "Período",
@@ -1052,16 +1071,46 @@
     },
     "toast": {
       "removed": "Movimento excluído",
-      "removed-detail": "“{name}” saiu da lista."
+      "removed-detail": "“{name}” saiu da lista.",
+      "created": "Movimento lançado",
+      "created-detail": "“{name}” já aparece no período.",
+      "updated": "Alterações salvas",
+      "updated-detail": "“{name}” foi atualizado.",
+      "paid": "Pagamento registrado",
+      "paid-detail": "“{name}” foi pago, com linha nova no extrato.",
+      "payment-undone": "Pagamento desfeito",
+      "payment-undone-detail": "“{name}” voltou para em aberto e o estorno está no extrato."
     },
     "form": {
       "new": "Lançando",
       "editing": "Editando",
-      "detailing": "Detalhando"
+      "detailing": "Detalhando",
+      "name": "Nome",
+      "type": "Tipo",
+      "type-hint": "O tipo não muda depois de lançado.",
+      "value": "Valor",
+      "due-date": "Vencimento",
+      "due-date-hint": "Opcional. Vazio vale hoje.",
+      "period": "Período",
+      "period-hint": "Só períodos abertos.",
+      "cost-center": "Centro de custo",
+      "classification": "Classificação",
+      "description": "Descrição",
+      "paid": "Lançar já pago",
+      "paid-on": "Data do pagamento",
+      "wallet": "Carteira",
+      "discount": "Desconto",
+      "discount-hint": "Opcional.",
+      "submit-post": "Lançar",
+      "submit-post-paid": "Lançar e pagar"
     },
     "sections": {
       "identification": "Identificação",
-      "payment": "Pagamento"
+      "payment": "Pagamento",
+      "type": "Tipo",
+      "classification": "Classificação",
+      "classification-help": "Só aparecem classificações do tipo escolhido.",
+      "payment-help": "Opcional."
     },
     "detail": {
       "name": "Nome",
@@ -1091,7 +1140,27 @@
       "overdue": "Venceu em {date}",
       "overdue-description": "Em aberto há {days} dia. | Em aberto há {days} dias."
     },
-    "menu": "Movimentos"
+    "menu": "Movimentos",
+    "pay": {
+      "title-pay": "Pagar “{name}”",
+      "title-receive": "Receber “{name}”",
+      "paid-on": "Data do pagamento",
+      "wallet": "Carteira",
+      "discount": "Desconto",
+      "wallet-balance": "Saldo da carteira",
+      "movement-value": "Valor do movimento",
+      "discount-value": "Desconto",
+      "amount-paid": "Valor pago",
+      "amount-received": "Valor recebido",
+      "balance-after": "Saldo depois",
+      "confirm-pay": "Pagar",
+      "confirm-receive": "Receber"
+    },
+    "undo": {
+      "title": "Desfazer o pagamento de “{name}”?",
+      "description": "O valor volta para a carteira como estorno e o movimento volta para “Em aberto”.",
+      "confirm": "Desfazer"
+    }
   },
   "transfer": {
     "title": "Transferências",

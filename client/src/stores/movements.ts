@@ -2,7 +2,14 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { movementsApi } from '@/api/movements'
 import { useCrudResource } from '@/composables/useCrudResource'
-import type { MovementQuery, MovementStatus, MovementStatusFilter, MovementType, PageQuery } from '@/types'
+import type {
+  MovementQuery,
+  PaymentForm,
+  MovementStatus,
+  MovementStatusFilter,
+  MovementType,
+  PageQuery,
+} from '@/types'
 import { createPageRequest } from '@/utils/pageRequest'
 import type { ExtraQuery } from '@/utils/listQuery'
 
@@ -58,6 +65,16 @@ export const useMovementsStore = defineStore('movements', () => {
     create: resource.create,
     update: resource.update,
     remove: resource.remove,
+    pay: (id: string, form: PaymentForm) =>
+      resource.track(async () => {
+        resource.current.value = await movementsApi.pay(id, form)
+        return resource.current.value
+      }),
+    undoPayment: (id: string) =>
+      resource.track(async () => {
+        resource.current.value = await movementsApi.undoPayment(id)
+        return resource.current.value
+      }),
     reset,
   }
 })

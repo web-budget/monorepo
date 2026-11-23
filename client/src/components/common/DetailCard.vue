@@ -28,8 +28,9 @@ const emit = defineEmits<{ edit: []; delete: [] }>()
           <StatusBadge v-if="active !== undefined" :active="active" :feminine="feminineStatus" />
         </slot>
       </template>
-      <template v-if="!readonly" #actions>
+      <template v-if="!readonly || $slots['extra-actions']" #actions>
         <Button
+          v-if="!readonly"
           type="button"
           variant="outline"
           class="text-destructive hover:text-destructive"
@@ -37,9 +38,10 @@ const emit = defineEmits<{ edit: []; delete: [] }>()
         >
           <Trash2 />{{ $t('crud.actions.remove') }}
         </Button>
-        <Button v-if="!hideEdit" type="button" @click="emit('edit')">
+        <Button v-if="!readonly && !hideEdit" type="button" @click="emit('edit')">
           <Pencil />{{ $t('crud.actions.edit') }}
         </Button>
+        <slot name="extra-actions" />
       </template>
     </PageHeader>
     <ServerErrorAlert :messages="messages" />
