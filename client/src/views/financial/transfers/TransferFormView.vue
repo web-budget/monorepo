@@ -61,6 +61,10 @@ watch(() => form.values.fromWallet, loadBalance)
 watch(() => form.values.toWallet, loadBalance)
 watch(() => form.values, clearFields, { deep: true })
 
+function cancel() {
+  return router.push('/financial')
+}
+
 const onSubmit = form.handleSubmit(async (values) => {
   submitting.value = true
   try {
@@ -98,7 +102,7 @@ onMounted(async () => {
     :fields="fields"
     :submit-label="$t('transfer.form.submit')"
     @submit="onSubmit"
-    @back="router.push({ name: 'financial' })"
+    @back="cancel"
   >
     <FormSection
       :title="$t('transfer.sections.wallets')"

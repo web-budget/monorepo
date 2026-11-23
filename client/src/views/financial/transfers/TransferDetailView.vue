@@ -28,7 +28,11 @@ const givingBack = ref<TransferView | null>(null)
 
 const transfer = computed(() => (store.transfer?.id === props.id ? store.transfer : null))
 
-watch(() => props.id, (id) => run(() => store.findOne(id)), { immediate: true })
+watch(
+  () => props.id,
+  (id) => run(() => store.findOne(id)),
+  { immediate: true },
+)
 
 async function giveBack(target: TransferView) {
   let createdId = ''
@@ -55,7 +59,9 @@ async function giveBack(target: TransferView) {
   >
     <template #extra-actions>
       <Button v-if="transfer" as-child variant="outline">
-        <RouterLink :to="{ path: '/financial/statement', query: { wallet: transfer.fromWallet.id } }">
+        <RouterLink
+          :to="{ path: '/financial/statement', query: { wallet: transfer.fromWallet.id } }"
+        >
           <ScrollText />{{ $t('transfer.actions.view-statement') }}
         </RouterLink>
       </Button>
