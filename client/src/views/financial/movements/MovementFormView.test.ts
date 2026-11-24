@@ -206,7 +206,7 @@ describe('MovementFormView', () => {
     const { wrapper } = await render()
 
     expect(field(wrapper, 'name').attributes('placeholder')).toBe('Ex.: Conta de água')
-    expect(wrapper.text()).toContain('Zero ou mais.')
+    expect(wrapper.text()).toContain('Maior que zero.')
     expect(wrapper.text()).toContain('Opcional. Vazio vale hoje.')
     expect(wrapper.text()).toContain('Só períodos abertos.')
     expect(wrapper.text()).toContain('Só aparecem classificações de despesa.')

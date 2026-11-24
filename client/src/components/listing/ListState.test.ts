@@ -21,8 +21,8 @@ describe('ListState', () => {
     const wrapper = render({ kind: 'empty' })
 
     expect(wrapper.attributes('role')).toBe('status')
-    expect(wrapper.text()).toContain('Nenhuma carteira ainda')
-    expect(wrapper.text()).toContain('Os lançamentos sempre saem de uma carteira.')
+    expect(wrapper.text()).toContain('Nenhuma carteira cadastrada')
+    expect(wrapper.text()).toContain('Cadastre a primeira carteira.')
 
     await wrapper.find('button').trigger('click')
 
@@ -35,7 +35,7 @@ describe('ListState', () => {
   it('hides the create action of an empty list that cannot create', () => {
     const wrapper = render({ kind: 'empty', creatable: false })
 
-    expect(wrapper.text()).toContain('Nenhuma carteira ainda')
+    expect(wrapper.text()).toContain('Nenhuma carteira cadastrada')
     expect(wrapper.find('button').exists()).toBe(false)
   })
 

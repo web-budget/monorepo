@@ -198,6 +198,17 @@ describe('ItemsTable', () => {
       ).toBe('descending')
     })
 
+    it('shows the creation order too when the table only marks the sorted column', () => {
+      const wrapper = render({
+        activeSortIconOnly: true,
+        sortedField: 'createdOn',
+        sortedOrder: 'desc',
+        columns: [{ field: 'createdOn', header: 'Data', sortable: true }],
+      })
+
+      expect(wrapper.find('th').attributes('aria-sort')).toBe('descending')
+    })
+
     it('shows no sort for the default order', () => {
       const wrapper = render({ sortedField: 'createdOn', sortedOrder: 'desc' })
 
@@ -627,5 +638,48 @@ describe('ItemsTable compact cards driven by the mobile columns', () => {
     const wrapper = renderCards({ data: [], totalElements: 0 })
 
     expect(wrapper.findAll(cardSelector)).toHaveLength(0)
+  })
+})
+
+describe('ItemsTable header options', () => {
+  it('hides the title of a column that is only for screen readers', () => {
+    const wrapper = render({
+      columns: [
+        { field: 'name', header: 'Nome' },
+        { field: 'reference', header: 'Abrir origem', srOnly: true },
+      ],
+    })
+
+    expect(wrapper.find('th .sr-only').text()).toBe('Abrir origem')
+  })
+
+  it('sorts by the status column unless told otherwise', () => {
+    expect(
+      render()
+        .findAll('th')
+        .some((header) => header.find('button').exists() && header.text() === 'Situação'),
+    ).toBe(true)
+
+    const plain = render({ statusSortable: false })
+    const status = plain.findAll('th').find((header) => header.text() === 'Situação')!
+    expect(status.find('button').exists()).toBe(false)
+  })
+
+  it('tells the title slot of the compact card that it is compact', () => {
+    useCompactViewport(true)
+    const titles: boolean[] = []
+
+    render(
+      { columns: [{ field: 'name', header: 'Nome', mobile: 'title' }] },
+      {
+        'cell-name': ({ compact }: { compact?: boolean }) => {
+          titles.push(compact === true)
+          return h('span')
+        },
+      },
+    )
+
+    expect(titles).toEqual([true, true])
+    useCompactViewport(false)
   })
 })

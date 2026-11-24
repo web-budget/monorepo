@@ -7,13 +7,12 @@ export const adjustmentSchema = z.object({
     (value) => (value === '' || value === null || value === undefined ? undefined : Number(value)),
     z.number().refine((value) => value !== 0, { params: { i18n: 'adjustment-not-zero' } }),
   ),
-  name: z.string().min(1).max(150),
 })
 
 export const adjustmentFormSchema = toTypedSchema(adjustmentSchema)
 
-export type AdjustmentFormValues = { value: number; name: string }
+export type AdjustmentFormValues = { value: number }
 
 export function toAdjustmentForm(values: AdjustmentFormValues): AdjustmentForm {
-  return { value: values.value, name: values.name }
+  return { value: values.value }
 }
