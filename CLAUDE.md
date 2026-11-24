@@ -163,6 +163,17 @@ Trabalho que traz telas novas ou interface pesada de layout recebe a label **`de
 
 As subtarefas são **abertas depois da rodada de design**, não junto com a issue, para que a seção `Design` de cada subtarefa de client aponte para o mockup da sua tela em vez de inventar a interface.
 
+**A tela segue o design aprovado exatamente.** O design é o mock aprovado **mais os comentários do usuário nele**; quando os dois divergem, vale o comentário. A tela reproduz tudo o que o design mostra:
+- layout, textos e rótulos;
+- botões, cartões de resumo, colunas, filtros e onde eles ficam, abas e menus;
+- diálogos, toasts e estados (vazio, carregando, erro);
+- período e ordenação padrão;
+- a versão de celular.
+
+Só o código fica em inglês: identificadores, caminhos de URL e nomes de parâmetro. As exceções já decididas pelo usuário estão no `client/CLAUDE.md`. Uma tarefa com telas só está pronta quando cada tela foi comparada com o design no navegador, lado a lado; passar nos testes não basta.
+
+**Falta de dado no server não corta a tela.** Se o server não entrega o que o design mostra, a tarefa ganha uma subtarefa de server que passa a entregar o dado. A especificação nunca diz "o mock diverge, vale X", nem "fica de fora porque o server não traz", nem troca um elemento do design por outro. Quando o design contradiz uma regra já decidida, pergunte ao usuário antes de escrever a especificação e registre a resposta na issue de design.
+
 ### Mantendo o corpo estável
 
 O corpo é a declaração estável do trabalho. Contexto novo encontrado durante a implementação, abordagens revistas e achados de revisão entram como **comentários na issue** (`gh issue comment <N> --body-file <scratchpad>`), não reescrevendo o corpo: o corpo é a especificação, e os comentários são o histórico dela. Reescreva o corpo só quando a própria especificação mudou de verdade.
