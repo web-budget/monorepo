@@ -39,12 +39,14 @@ class CardRepository(
     fun findAll(filter: String?, active: Boolean?, pageable: Pageable): PagedModel<Card> {
 
         val cards = CARDS.`as`("cards")
+        val wallets = WALLETS.`as`("wallets")
 
         val textCondition = filter?.let { text ->
             DSL.or(
                 cards.NAME.containsIgnoreCase(text),
                 cards.LAST_FOUR_DIGITS.containsIgnoreCase(text),
-                cards.FLAG.containsIgnoreCase(text)
+                cards.FLAG.containsIgnoreCase(text),
+                wallets.NAME.containsIgnoreCase(text)
             )
         }
 
@@ -59,14 +61,21 @@ class CardRepository(
             "createdOn" to cards.CREATED_ON
         )
 
-        val content = dsl.selectFrom(cards)
+        val content = dsl.select()
+            .from(cards)
+            .leftJoin(wallets).on(wallets.ID.eq(cards.ID_WALLET))
             .where(condition)
             .orderBy(pageable.toOrderBy(sortable, cards.CREATED_ON, cards.ID))
             .limit(pageable.pageSize)
             .offset(pageable.offset)
-            .fetch { record -> record.toCard() }
+            .fetch { record ->
+                val wallet = record.get(wallets.ID)?.let { record.into(wallets).toWallet() }
+                record.into(cards).toCard(wallet)
+            }
 
-        val total = dsl.fetchCount(cards, condition)
+        val total = dsl.fetchCount(
+            dsl.selectOne().from(cards).leftJoin(wallets).on(wallets.ID.eq(cards.ID_WALLET)).where(condition)
+        )
 
         return pagedModelOf(content, pageable, total.toLong())
     }

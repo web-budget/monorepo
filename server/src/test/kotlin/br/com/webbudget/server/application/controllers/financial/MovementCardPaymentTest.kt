@@ -41,6 +41,9 @@ class MovementCardPaymentTest : BaseIntegrationTest() {
             .jsonPath("$.payment.card.name").isEqualTo("Financial test card")
             .jsonPath("$.payment.wallet").doesNotExist()
             .jsonPath("$.payment.valuePaid").isEqualTo(300.0)
+            .jsonPath("$.payment.invoice.id").isEqualTo(OPEN_INVOICE)
+            .jsonPath("$.payment.invoice.status").isEqualTo("OPEN")
+            .jsonPath("$.payment.card.lastFourDigits").isEqualTo("9101")
 
         val purchase = dsl.selectFrom(CARD_PURCHASES).fetchSingle()
         val movement = dsl.selectFrom(MOVEMENTS).where(MOVEMENTS.NAME.eq("Gym")).fetchSingle()

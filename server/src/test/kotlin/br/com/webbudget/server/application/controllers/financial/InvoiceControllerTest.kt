@@ -46,11 +46,16 @@ class InvoiceControllerTest : BaseIntegrationTest() {
             .jsonPath("$.content[0].value").isEqualTo(125.5)
             .jsonPath("$.content[0].status").isEqualTo("OPEN")
             .jsonPath("$.content[0].card.name").isEqualTo("Financial test card")
+            .jsonPath("$.content[0].card.lastFourDigits").isEqualTo("9101")
+            .jsonPath("$.content[0].purchaseCount").isEqualTo(2)
+            .jsonPath("$.content[0].dueDate").doesNotExist()
+            .jsonPath("$.content[0].payment").doesNotExist()
             .jsonPath("$.content[0].financialPeriod.id").isEqualTo(OPEN_PERIOD)
             .jsonPath("$.content[0].financialPeriod.expired").isEqualTo(true)
             .jsonPath("$.content[1].value").isEqualTo(120.0)
             .jsonPath("$.content[1].status").isEqualTo("CLOSED")
             .jsonPath("$.content[3].value").isEqualTo(0)
+            .jsonPath("$.content[3].purchaseCount").isEqualTo(0)
     }
 
     @Test
@@ -86,6 +91,8 @@ class InvoiceControllerTest : BaseIntegrationTest() {
             .expectBody()
             .jsonPath("$.id").isEqualTo(OPEN_INVOICE)
             .jsonPath("$.value").isEqualTo(125.5)
+            .jsonPath("$.purchaseCount").isEqualTo(2)
+            .jsonPath("$.card.lastFourDigits").isEqualTo("9101")
 
         restTestClient.get()
             .uri("$ENDPOINT_URL/${UUID.randomUUID()}")

@@ -87,7 +87,8 @@ data class PaymentWalletView(
 
 data class PaymentCardView(
     val id: UUID,
-    val name: String
+    val name: String,
+    val lastFourDigits: String
 )
 
 data class PaymentView(
@@ -96,7 +97,8 @@ data class PaymentView(
     val discount: BigDecimal,
     val valuePaid: BigDecimal,
     val wallet: PaymentWalletView?,
-    val card: PaymentCardView?
+    val card: PaymentCardView?,
+    val invoice: InvoiceSummaryView? = null
 )
 
 data class MovementInvoiceView(
@@ -132,7 +134,8 @@ data class MovementListView(
     val paymentMethod: String?,
     val classification: MovementClassificationView?,
     val costCenter: MovementCostCenterView?,
-    val financialPeriod: MovementFinancialPeriodView
+    val financialPeriod: MovementFinancialPeriodView,
+    val invoicePayment: Boolean
 )
 
 data class MovementFilter(

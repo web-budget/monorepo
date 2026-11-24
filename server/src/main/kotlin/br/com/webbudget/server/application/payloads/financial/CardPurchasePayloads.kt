@@ -70,7 +70,9 @@ data class CardPurchaseListView(
     val purchasedOn: LocalDate,
     val value: BigDecimal,
     val card: PaymentCardView,
-    val invoice: InvoiceSummaryView
+    val invoice: InvoiceSummaryView,
+    val classification: MovementClassificationView,
+    val costCenter: MovementCostCenterView
 )
 
 data class CardPurchaseFilter(
@@ -86,12 +88,21 @@ data class CardPurchaseFilter(
     val to: LocalDate? = null
 )
 
+data class InvoicePaymentView(
+    val id: UUID,
+    val name: String,
+    val value: BigDecimal
+)
+
 data class InvoiceView(
     val id: UUID,
     val status: String,
     val value: BigDecimal,
+    val purchaseCount: Int,
+    val dueDate: LocalDate?,
     val card: PaymentCardView,
-    val financialPeriod: MovementFinancialPeriodView
+    val financialPeriod: MovementFinancialPeriodView,
+    val payment: InvoicePaymentView?
 )
 
 data class InvoiceFilter(

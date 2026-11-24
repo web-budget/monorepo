@@ -46,6 +46,7 @@ internal fun CardsRecord.toCardReference(): CardReference = CardReference(
     id = id!!,
     externalId = externalId!!,
     name = name!!,
+    lastFourDigits = lastFourDigits!!,
     active = active!!,
     invoicePaymentDay = invoicePaymentDay!!
 )
