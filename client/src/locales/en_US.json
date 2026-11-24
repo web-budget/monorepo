@@ -130,7 +130,7 @@
     "invalid-code": "Invalid code. Check that your phone's clock is right and try again.",
     "trust": {
       "label": "Trust this device",
-      "hint": "The code is not asked for again in this browser. You can revoke it in Trusted devices."
+      "hint": "The code is not asked for again in this browser. You can revoke it in My account, on the Security tab."
     },
     "submit": "Sign in",
     "submitting": "Verifying…",
@@ -157,12 +157,69 @@
       "description": "The password or the code do not match, or the request expired. For security, sign in with Google again to start over."
     }
   },
+  "account": {
+    "title": "My account",
+    "close": "Close",
+    "back": "Back",
+    "tabs": {
+      "profile": "Profile",
+      "preferences": "Preferences",
+      "password": "Password",
+      "security": "Security"
+    },
+    "profile": {
+      "description": "The e-mail cannot be changed.",
+      "name": "Name",
+      "email": "E-mail",
+      "save": "Save",
+      "saved": "Profile saved"
+    },
+    "preferences": {
+      "language": "Language",
+      "help": "Applies to the interface and to the e-mails.",
+      "saved": "Saved to your profile."
+    },
+    "password": {
+      "title": "Change password",
+      "description": "For the account {email}.",
+      "notice": "Changing the password signs out the other sessions.",
+      "current": "Current password",
+      "new": "New password",
+      "confirmation": "Confirm the new password",
+      "save": "Save new password",
+      "saving": "Saving…",
+      "saved": "Password changed",
+      "saved-detail": "The other sessions were signed out.",
+      "bytes": "{count}. Accents and emojis count as more than one.",
+      "bytes-count": "{count} of {maximum} bytes",
+      "failure": {
+        "wrong": {
+          "title": "The password could not be changed",
+          "description": "The current password does not match. Check it and try again."
+        },
+        "limit": {
+          "title": "Too many attempts in a row",
+          "description": "Try again in a few seconds."
+        }
+      }
+    },
+    "google": {
+      "title": "You sign in with Google",
+      "description": "This account has no webBudget password: access is through the Google account {email}. The password and the two-step verification are Google’s."
+    },
+    "security": {
+      "two-factor": "Two-step verification",
+      "active": "Active",
+      "inactive": "Disabled",
+      "help": "Asked at sign-in with a password, through the authenticator app. Changed phones? Ask an administrator to reset it.",
+      "help-google": "Asked at sign-in with a password; signing in with Google does not ask for the code. Changed phones? Ask an administrator to reset it.",
+      "not-required": "This installation does not ask for the authenticator code.",
+      "devices-help": "Signing in on these devices does not ask for the code."
+    }
+  },
   "devices": {
     "title": "Trusted devices",
-    "description": "On these devices, signing in does not ask for the authenticator code.",
-    "description-with-devices": "On these devices, signing in does not ask for the authenticator code. Revoke the ones you do not recognize.",
     "dates": "Last used on {lastUsed} · trusted on {created}",
-    "close": "Close",
     "empty": {
       "title": "No trusted devices",
       "description": "Check “Trust this device” when entering the authenticator code at sign-in."
@@ -904,7 +961,7 @@
     "dark-theme": "Dark theme",
     "light-theme": "Light theme",
     "logout": "Sign out",
-    "trusted-devices": "Trusted devices",
+    "account": "My account",
     "breadcrumb": "Breadcrumb",
     "coming-soon": "Coming soon",
     "loading": "Loading...",
@@ -915,9 +972,7 @@
     "theme-light": "Light",
     "theme-dark": "Dark",
     "theme-system": "System",
-    "language": "Language",
-    "language-pt-BR": "Portuguese (Brazil)",
-    "language-en-US": "English (United States)"
+    "language": "Language"
   },
   "confirm": {
     "title": "Confirmation"

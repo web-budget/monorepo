@@ -9,6 +9,7 @@ import type {
   Language,
   LoginOutcome,
   LoginRequest,
+  PasswordChangeRequest,
   RegisterRequest,
   Role,
   SessionResponse,
@@ -85,6 +86,14 @@ export const useAuthStore = defineStore('auth', () => {
     session.value = await authApi.changeLanguage(language)
   }
 
+  async function changeName(name: string): Promise<void> {
+    session.value = await authApi.changeName(name)
+  }
+
+  function changePassword(request: PasswordChangeRequest): Promise<void> {
+    return authApi.changePassword(request)
+  }
+
   async function restoreSession(): Promise<boolean> {
     loading.value = true
     try {
@@ -151,6 +160,8 @@ export const useAuthStore = defineStore('auth', () => {
     enrollTotp,
     verifyTotp,
     changeLanguage,
+    changeName,
+    changePassword,
     restoreSession,
     clearSession,
     logout,

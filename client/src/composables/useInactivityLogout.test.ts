@@ -55,6 +55,9 @@ describe('useInactivityLogout', () => {
       email: 'ana@example.com',
       status: 'APPROVED',
       language: 'PT_BR',
+      hasPassword: true,
+      googleLinked: false,
+      totpEnabled: false,
       roles: [],
     }
     start()
@@ -72,6 +75,9 @@ describe('useInactivityLogout', () => {
       email: 'ana@example.com',
       status: 'APPROVED',
       language: 'PT_BR',
+      hasPassword: true,
+      googleLinked: false,
+      totpEnabled: false,
       roles: [],
     }
     start()
@@ -89,6 +95,9 @@ describe('useInactivityLogout', () => {
       email: 'ana@example.com',
       status: 'APPROVED',
       language: 'PT_BR',
+      hasPassword: true,
+      googleLinked: false,
+      totpEnabled: false,
       roles: [],
     }
     start()
@@ -108,6 +117,9 @@ describe('useInactivityLogout', () => {
       email: 'ana@example.com',
       status: 'APPROVED',
       language: 'PT_BR',
+      hasPassword: true,
+      googleLinked: false,
+      totpEnabled: false,
       roles: [],
     }
     await nextTick()
@@ -116,6 +128,9 @@ describe('useInactivityLogout', () => {
       email: 'ana@example.com',
       status: 'APPROVED',
       language: 'PT_BR',
+      hasPassword: true,
+      googleLinked: false,
+      totpEnabled: false,
       roles: ['FINANCIAL'],
     }
     await nextTick()
@@ -138,6 +153,9 @@ describe('useInactivityLogout', () => {
       email: 'ana@example.com',
       status: 'APPROVED',
       language: 'PT_BR',
+      hasPassword: true,
+      googleLinked: false,
+      totpEnabled: false,
       roles: [],
     }
     start()
