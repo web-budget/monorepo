@@ -16,36 +16,27 @@ describe('toRecurringMovementQuery', () => {
     expect(toRecurringMovementQuery(base, {})).toEqual({
       filter: undefined,
       type: undefined,
-      active: undefined,
-      finished: undefined,
+      ended: undefined,
       page: 0,
       size: 15,
       sort: 'createdOn,desc',
     })
   })
 
-  it('asks for the active and unfinished ones on the active tab', () => {
+  it('asks for the ones not ended on the active tab', () => {
     expect(
       toRecurringMovementQuery({ ...base, status: 'ACTIVE' }, { type: 'INCOME' }),
-    ).toMatchObject({
-      type: 'INCOME',
-      active: true,
-      finished: false,
-    })
+    ).toMatchObject({ type: 'INCOME', ended: false })
   })
 
-  it('asks for the finished ones on the finished tab and keeps the text', () => {
+  it('asks for the ended ones, inactive or finished, on the ended tab and keeps the text', () => {
     expect(
       toRecurringMovementQuery({ ...base, status: 'FINISHED', filter: 'rent' }, {}),
-    ).toMatchObject({ filter: 'rent', active: undefined, finished: true })
+    ).toMatchObject({ filter: 'rent', ended: true })
   })
 
   it('works without a status', () => {
-    expect(toRecurringMovementQuery({ page: 1 }, {})).toMatchObject({
-      active: undefined,
-      finished: undefined,
-      page: 1,
-    })
+    expect(toRecurringMovementQuery({ page: 1 }, {})).toMatchObject({ ended: undefined, page: 1 })
   })
 })
 
@@ -55,7 +46,7 @@ describe('useRecurringMovementsStore', () => {
     vi.clearAllMocks()
   })
 
-  it('opens on the active tab and loads the page with the filters of the store', async () => {
+  it('opens on the active tab, by name, and loads the page with the filters of the store', async () => {
     vi.mocked(recurringMovementsApi.findAll).mockResolvedValue(page)
     const store = useRecurringMovementsStore()
     store.filters = { type: 'EXPENSE' }
@@ -64,7 +55,7 @@ describe('useRecurringMovementsStore', () => {
 
     expect(store.pageRequest.status).toBe('ACTIVE')
     expect(recurringMovementsApi.findAll).toHaveBeenCalledWith(
-      expect.objectContaining({ type: 'EXPENSE', active: true, finished: false }),
+      expect.objectContaining({ type: 'EXPENSE', ended: false, sort: 'name,asc' }),
     )
     expect(store.pageResponse.content).toEqual([view])
   })
@@ -112,6 +103,29 @@ describe('useRecurringMovementsStore', () => {
       totalElements: 20,
       totalPages: 2,
     })
+  })
+
+  it('loads the launches of the recurring movement by period', async () => {
+    const launch = {
+      financialPeriod: { id: 'p-1', name: 'Novembro de 2026', startingAt: '2026-11-01' },
+      installment: 1,
+      movement: 'm-1',
+      value: 100,
+      status: 'PAID',
+      valuePaid: 90,
+    }
+    vi.mocked(recurringMovementsApi.findLaunches).mockResolvedValue({
+      content: [launch],
+      page: { size: 12, number: 0, totalElements: 1, totalPages: 1 },
+    })
+    const store = useRecurringMovementsStore()
+
+    await store.findLaunches('r-1')
+
+    expect(recurringMovementsApi.findLaunches).toHaveBeenCalledWith('r-1', { page: 0, size: 12 })
+    expect(store.launches).toEqual([launch])
+    store.reset()
+    expect(store.launches).toEqual([])
   })
 
   it('goes back to the start on reset', async () => {

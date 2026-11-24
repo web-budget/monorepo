@@ -4,7 +4,8 @@ import { formatLocalDate, parseLocalDate } from '@/utils/localDate'
 const MILLISECONDS_PER_DAY = 86_400_000
 
 export function daysOverdue(dueDate: string, today: Date = new Date()): number {
-  const difference = parseLocalDate(formatLocalDate(today)).getTime() - parseLocalDate(dueDate).getTime()
+  const difference =
+    parseLocalDate(formatLocalDate(today)).getTime() - parseLocalDate(dueDate).getTime()
   return Math.max(0, Math.round(difference / MILLISECONDS_PER_DAY))
 }
 
@@ -24,4 +25,17 @@ export function defaultPeriod(
     second.startingAt.localeCompare(first.startingAt),
   )[0]
   return latestOpen ?? periods[0]
+}
+
+export function nextOpenPeriod(
+  periods: FinancialPeriodListView[],
+  today: Date = new Date(),
+): FinancialPeriodListView | undefined {
+  const current = defaultPeriod(periods, today)
+  const following = periods
+    .filter(
+      (period) => period.status === 'OPEN' && current && period.startingAt > current.startingAt,
+    )
+    .sort((first, second) => first.startingAt.localeCompare(second.startingAt))[0]
+  return following ?? current
 }

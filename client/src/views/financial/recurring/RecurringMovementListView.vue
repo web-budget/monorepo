@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowDownLeft, ArrowUpRight, ListChecks, Plus, RefreshCw, X, Zap } from 'lucide-vue-next'
+import { ListChecks, Plus, RefreshCw, X, Zap } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -17,6 +17,7 @@ import RecurringRowActions from '@/components/recurring/RecurringRowActions.vue'
 import RecurringStatusBadge from '@/components/recurring/RecurringStatusBadge.vue'
 import RecurringValueKindBadge from '@/components/recurring/RecurringValueKindBadge.vue'
 import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import { useCrudList } from '@/composables/useCrudList'
 import { useReadjustValue } from '@/composables/useReadjustValue'
 import { RECURRING_FILTER_KEYS, useRecurringMovementsStore } from '@/stores/recurringMovements'
@@ -42,7 +43,6 @@ const {
   busy,
   counts,
   search,
-  clearSearch,
   reload,
   onPageChange,
   onTableSorted,
@@ -55,7 +55,8 @@ const {
   entity: 'recurrent-movement',
   initialStatus: 'ACTIVE',
   statuses: ['ACTIVE', 'FINISHED', 'ALL'],
-  sortFields: ['name', 'value'],
+  sortFields: ['name', 'value', 'valueKind'],
+  defaultSort: { sortField: 'name', direction: 'asc' },
   pageRequest,
   pageResponse,
   loading,
@@ -80,18 +81,54 @@ const typeChoices = computed(() => [
 ])
 
 const columns = computed(() => [
-  { field: 'name', header: t('recurrent-movement.table-columns.name'), sortable: true },
+  {
+    field: 'name',
+    header: t('recurrent-movement.table-columns.name'),
+    sortable: true,
+    mobile: 'title' as const,
+  },
   {
     field: 'value',
     header: t('recurrent-movement.table-columns.value'),
     sortable: true,
     align: 'end' as const,
+    mobile: 'value' as const,
   },
-  { field: 'valueKind', header: t('recurrent-movement.table-columns.value-kind') },
-  { field: 'installments', header: t('recurrent-movement.table-columns.installments') },
-  { field: 'launch', header: t('recurrent-movement.table-columns.launch') },
-  { field: 'situation', header: t('recurrent-movement.table-columns.situation') },
+  {
+    field: 'valueKind',
+    header: t('recurrent-movement.table-columns.value-kind'),
+    sortable: true,
+    mobile: 'line' as const,
+    mobileLabel: false,
+  },
+  {
+    field: 'installments',
+    header: t('recurrent-movement.table-columns.installments'),
+    mobile: 'line' as const,
+  },
+  {
+    field: 'launch',
+    header: t('recurrent-movement.table-columns.launch'),
+    mobile: 'line' as const,
+    mobileLabel: false,
+  },
+  {
+    field: 'situation',
+    header: t('recurrent-movement.table-columns.situation'),
+    mobile: 'line' as const,
+    mobileLabel: false,
+  },
 ])
+
+const listCopy = computed(() => ({
+  emptyTitle: t('recurrent-movement.list.empty-title'),
+  emptyDescription: t('recurrent-movement.list.empty-description'),
+  errorDescription: t('recurrent-movement.list.error-description'),
+  noResultQuery: t('recurrent-movement.list.no-result'),
+  noResultFilter: t('recurrent-movement.list.no-result'),
+  noResultHint: t('recurrent-movement.list.no-result-hint'),
+  noResultAction: t('recurrent-movement.list.no-result-action'),
+}))
 
 function changeType(value: string) {
   filters.value = { ...filters.value, type: value }
@@ -101,6 +138,12 @@ function changeType(value: string) {
 function clearFilters() {
   filters.value = {}
   return search()
+}
+
+function clearListFilters() {
+  pageRequest.value.filterText = ''
+  pageRequest.value.status = 'ACTIVE'
+  return clearFilters()
 }
 
 function openDetail(recurringMovement: RecurringMovementView) {
@@ -120,36 +163,34 @@ function openDetail(recurringMovement: RecurringMovementView) {
             <ListChecks />{{ $t('recurrent-movement.list.launch') }}
           </RouterLink>
         </Button>
-        <Button type="button" @click="changeToAdd()">
-          <Plus />{{ $t('recurrent-movement.list.create') }}
-        </Button>
+        <Button type="button" @click="changeToAdd()"> <Plus />{{ $t('form.create') }} </Button>
       </template>
     </PageHeader>
-    <div class="grid gap-3">
-      <SearchControls
-        v-model:status="pageRequest.status"
-        v-model:filter="pageRequest.filterText"
-        :placeholder="$t('recurrent-movement.search.placeholder')"
-        :status-options="statusOptions"
-        :counts="counts"
-        @on-filter-change="search()"
-        @on-filter-reset="search()"
-      />
-      <div
-        class="grid grid-cols-2 items-end gap-3 lg:grid-cols-[minmax(0,16rem)_auto]"
-        data-slot="filters"
-      >
-        <FilterSelect
-          :label="$t('recurrent-movement.filters.type')"
-          :none-label="$t('recurrent-movement.filters.all-types')"
-          :options="typeChoices"
-          :model-value="filters.type ?? ''"
-          @update:model-value="changeType"
-        />
-        <Button type="button" variant="ghost" :disabled="!filters.type" @click="clearFilters()">
-          <X />{{ $t('recurrent-movement.filters.clear') }}
-        </Button>
-      </div>
+    <div class="grid gap-4">
+      <Card class="p-4" data-slot="filter-card">
+        <SearchControls
+          v-model:status="pageRequest.status"
+          v-model:filter="pageRequest.filterText"
+          :placeholder="$t('recurrent-movement.search.placeholder')"
+          :status-options="statusOptions"
+          :counts="counts"
+          @on-filter-change="search()"
+          @on-filter-reset="search()"
+        >
+          <FilterSelect
+            class="w-44"
+            hide-label
+            :label="$t('recurrent-movement.filters.type')"
+            :none-label="$t('recurrent-movement.filters.all-types')"
+            :options="typeChoices"
+            :model-value="filters.type ?? ''"
+            @update:model-value="changeType"
+          />
+          <Button v-if="filters.type" type="button" variant="ghost" @click="clearFilters()">
+            <X />{{ $t('recurrent-movement.filters.clear') }}
+          </Button>
+        </SearchControls>
+      </Card>
       <ServerErrorAlert :messages="[...messages, ...readjust.messages.value]" />
       <ListState
         v-if="listState !== 'table'"
@@ -158,15 +199,19 @@ function openDetail(recurringMovement: RecurringMovementView) {
         :icon="RefreshCw"
         :query="pageRequest.filterText"
         :message="loadMessages[0]"
+        :copy="listCopy"
         @create="changeToAdd()"
-        @clear="clearSearch()"
+        @clear="clearListFilters()"
         @retry="reload()"
       />
       <ItemsTable
         v-else
+        active-sort-icon-only
+        default-sort-field="name"
         :data="pageResponse.content"
         :total-elements="pageResponse.totalElements"
         :summary="searchSummary"
+        :noun="$t('recurrent-movement.list.noun', pageResponse.totalElements)"
         :columns="columns"
         :show-status="false"
         :loading="busy"
@@ -188,11 +233,7 @@ function openDetail(recurringMovement: RecurringMovementView) {
             >
               {{ $t('recurrent-movement.last-value') }}
             </span>
-            <component
-              :is="item.type === 'INCOME' ? ArrowDownLeft : ArrowUpRight"
-              :class="['size-3.5', item.type === 'INCOME' ? 'text-income' : 'text-expense']"
-            />
-            <CurrencyDisplay :value="signedValue(item)" signed />
+            <CurrencyDisplay :value="signedValue(item)" signed glued bare />
           </span>
         </template>
         <template #cell-valueKind="{ item }">
@@ -203,14 +244,12 @@ function openDetail(recurringMovement: RecurringMovementView) {
         </template>
         <template #cell-launch="{ item }">
           <span v-if="item.autoLaunch" class="inline-flex items-center gap-1">
-            <Zap class="size-3.5" />{{ $t('recurrent-movement.launch.auto') }}
+            <Zap class="text-muted-foreground size-3.5" />{{ $t('recurrent-movement.launch.auto') }}
           </span>
-          <span v-else class="text-muted-foreground">{{
-            $t('recurrent-movement.launch.manual')
-          }}</span>
+          <template v-else>{{ $t('recurrent-movement.launch.manual') }}</template>
         </template>
         <template #cell-situation="{ item }">
-          <RecurringStatusBadge :active="item.active" :finished="item.finished" />
+          <RecurringStatusBadge :ended="item.ended" />
         </template>
         <template #actions="{ item }">
           <RecurringRowActions

@@ -7,6 +7,7 @@ import { createPageRequest } from '@/utils/pageRequest'
 import { nextPeriodDates } from '@/utils/periodDates'
 import type {
   FinancialPeriodCreateForm,
+  FinancialPeriodCreationPreview,
   FinancialPeriodStatusFilter,
   MovementStatus,
   RecurringLaunchReport,
@@ -18,23 +19,42 @@ function emptyReport(): RecurringLaunchReport {
   return { launched: [], skipped: [] }
 }
 
+function emptyPreview(): FinancialPeriodCreationPreview {
+  return { recurringMovements: [], invoices: [] }
+}
+
 export const useFinancialPeriodsStore = defineStore('financialPeriods', () => {
   const recurringLaunch = ref<RecurringLaunchReport>(emptyReport())
+  const creationPreview = ref<FinancialPeriodCreationPreview>(emptyPreview())
+  const openedInvoices = ref(0)
 
   const resource = useCrudResource(
     {
       ...financialPeriodsApi,
       create: async (form: FinancialPeriodCreateForm) => {
+        const invoices = creationPreview.value.invoices.length
         const creation = await financialPeriodsApi.create(form)
         recurringLaunch.value = creation.recurringLaunch
+        openedInvoices.value = invoices
+        void findCreationPreview()
         return creation.id
       },
     },
     () => createPageRequest<FinancialPeriodStatusFilter>({ status: 'OPEN' }),
   )
 
+  async function findCreationPreview() {
+    try {
+      creationPreview.value = await financialPeriodsApi.findCreationPreview()
+    } catch {
+      creationPreview.value = emptyPreview()
+    }
+  }
+
   function reset() {
     recurringLaunch.value = emptyReport()
+    creationPreview.value = emptyPreview()
+    openedInvoices.value = 0
     resource.reset()
   }
 
@@ -63,6 +83,8 @@ export const useFinancialPeriodsStore = defineStore('financialPeriods', () => {
   return {
     financialPeriod: resource.current,
     recurringLaunch,
+    creationPreview,
+    openedInvoices,
     pageRequest: resource.pageRequest,
     pageResponse: resource.pageResponse,
     loading: resource.loading,
@@ -73,6 +95,7 @@ export const useFinancialPeriodsStore = defineStore('financialPeriods', () => {
     update: resource.update,
     remove: resource.remove,
     findResult: financialPeriodsApi.findResult,
+    findCreationPreview,
     findExpired,
     findNextDates,
     findMovementCounts,

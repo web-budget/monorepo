@@ -1,7 +1,8 @@
 <script setup lang="ts">
+import { Check } from 'lucide-vue-next'
 import { useForm } from 'vee-validate'
-import { watch } from 'vue'
-import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
+import { computed, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import InputField from '@/components/forms/InputField.vue'
 import MoneyField from '@/components/forms/MoneyField.vue'
 import { Button } from '@/components/ui/button'
@@ -36,7 +37,12 @@ const emit = defineEmits<{
   confirm: [recurringMovement: ReadjustableRecurringMovement, form: RecurringValueForm]
 }>()
 
+const { n } = useI18n()
+
 const form = useForm({ validationSchema: readjustFormSchema })
+
+const currentValue = computed(() => props.recurringMovement?.value ?? 0)
+const placeholder = computed(() => n(currentValue.value, 'currency').replace(/^R\$\s*/, ''))
 
 watch(
   () => props.recurringMovement,
@@ -54,7 +60,7 @@ const submit = form.handleSubmit((values) => {
 
 <template>
   <Dialog :open="recurringMovement !== null" @update:open="emit('close')">
-    <DialogContent class="sm:max-w-md">
+    <DialogContent class="sm:max-w-lg">
       <form class="flex flex-col gap-4" novalidate @submit.prevent="submit">
         <DialogHeader>
           <DialogTitle>
@@ -62,14 +68,17 @@ const submit = form.handleSubmit((values) => {
           </DialogTitle>
           <DialogDescription>{{ $t('recurrent-movement.readjust.description') }}</DialogDescription>
         </DialogHeader>
-        <MoneyField name="value" :label="$t('recurrent-movement.readjust.value')" required />
-        <p class="text-muted-foreground -mt-2 text-xs" data-slot="readjust-current">
-          {{ $t('recurrent-movement.readjust.current') }}
-          <CurrencyDisplay :value="recurringMovement?.value ?? 0" />
-        </p>
+        <MoneyField
+          name="value"
+          :label="$t('recurrent-movement.readjust.value')"
+          :placeholder="placeholder"
+          :hint="$t('recurrent-movement.readjust.current', { value: $n(currentValue, 'currency') })"
+          required
+        />
         <InputField
           name="reason"
           :label="$t('recurrent-movement.readjust.reason')"
+          :placeholder="$t('recurrent-movement.readjust.reason-example')"
           :maxlength="150"
         />
         <DialogFooter>
@@ -77,7 +86,7 @@ const submit = form.handleSubmit((values) => {
             {{ $t('form.cancel') }}
           </Button>
           <Button type="submit" :disabled="loading">
-            {{ $t('recurrent-movement.readjust.confirm') }}
+            <Check />{{ $t('recurrent-movement.readjust.confirm') }}
           </Button>
         </DialogFooter>
       </form>

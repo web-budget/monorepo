@@ -2,6 +2,7 @@ import { apiClient } from './client'
 import { createdId } from './createdId'
 import type {
   FinancialPeriodCreation,
+  FinancialPeriodCreationPreview,
   FinancialPeriodListView,
   FinancialPeriodResultView,
   FinancialPeriodView,
@@ -39,6 +40,12 @@ export const financialPeriodsApi = {
 
   remove(id: string): Promise<void> {
     return apiClient.delete(`${PATH}/${id}`).then(() => undefined)
+  },
+
+  findCreationPreview(): Promise<FinancialPeriodCreationPreview> {
+    return apiClient
+      .get<FinancialPeriodCreationPreview>(`${PATH}/creation-preview`, { silent: true })
+      .then((r) => r.data)
   },
 
   findResult(id: string): Promise<FinancialPeriodResultView> {
