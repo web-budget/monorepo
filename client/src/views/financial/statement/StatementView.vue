@@ -33,6 +33,7 @@ import { useServerErrors } from '@/composables/useServerErrors'
 import { STATEMENT_FILTER_KEYS, useStatementStore, WALLET_ENTRY_ORIGINS } from '@/stores/statement'
 import type { WalletEntryDirectionFilter, WalletEntryView } from '@/types'
 import { typeKey } from '@/utils/typeLabels'
+import { defaultWallet } from '@/utils/wallets'
 import type { ListStateKind } from '@/components/listing/ListState.vue'
 
 const { t, d, locale } = useI18n()
@@ -85,7 +86,7 @@ function applyDefaultWallet() {
   if (filters.value.wallet !== undefined) {
     return
   }
-  const wallet = activeWallets.wallets.value.find((candidate) => candidate.active)
+  const wallet = defaultWallet(activeWallets.wallets.value)
   if (wallet) {
     filters.value = { ...filters.value, wallet: wallet.id }
   }

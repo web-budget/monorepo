@@ -4,20 +4,28 @@ import PageHeader from '@/components/common/PageHeader.vue'
 import type { ModuleSectionDefinition } from '@/components/layout/sections'
 import { Badge } from '@/components/ui/badge'
 
-const props = defineProps<{
-  section: ModuleSectionDefinition
-  description: string
-  counts: Record<string, number | null>
-}>()
+const props = withDefaults(
+  defineProps<{
+    section: ModuleSectionDefinition
+    description: string
+    counts: Record<string, number | string | null>
+    attentions?: Record<string, string | null>
+  }>(),
+  { attentions: () => ({}) },
+)
 
-function countOf(destination: string): number | null {
+function countOf(destination: string): number | string | null {
   return props.counts[destination] ?? null
+}
+
+function attentionOf(destination: string): string | null {
+  return props.attentions[destination] ?? null
 }
 </script>
 
 <template>
   <PageHeader :title="$t(section.label)" :description="$t(description)" />
-  <div class="mt-6 grid grid-cols-[repeat(auto-fill,minmax(320px,1fr))] gap-4">
+  <div class="mt-11 grid grid-cols-[repeat(auto-fill,minmax(min(100%,320px),1fr))] gap-4">
     <template v-for="item in section.items" :key="item.label">
       <RouterLink
         v-if="item.to"
@@ -29,7 +37,16 @@ function countOf(destination: string): number | null {
           <component :is="item.icon" class="size-5" />
         </span>
         <span class="grid min-w-0 flex-1 gap-1">
-          <span class="text-base font-semibold">{{ $t(item.label) }}</span>
+          <span class="flex flex-wrap items-center gap-2 text-base font-semibold">
+            {{ $t(item.label) }}
+            <Badge
+              v-if="attentionOf(item.to)"
+              variant="highlight"
+              data-slot="module-card-attention"
+            >
+              {{ attentionOf(item.to) }}
+            </Badge>
+          </span>
           <span class="text-muted-foreground text-sm">{{ $t(item.description) }}</span>
         </span>
         <span

@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { Menu, PanelLeft } from 'lucide-vue-next'
+import { PanelLeft } from 'lucide-vue-next'
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
-import BrandMark from '@/components/brand/BrandMark.vue'
-import BrandWordmark from '@/components/brand/BrandWordmark.vue'
 import UserMenu from '@/components/layout/UserMenu.vue'
 import { sections } from '@/components/layout/sections'
 import { Button } from '@/components/ui/button'
@@ -32,16 +30,11 @@ const currentSection = computed(() =>
         :aria-label="$t('layout.toggle-menu')"
         @click="toggleSidebar"
       >
-        <PanelLeft class="max-md:hidden" />
-        <Menu class="md:hidden" />
+        <PanelLeft />
       </Button>
       <Separator orientation="vertical" class="mx-2 h-5 max-md:hidden" />
     </div>
 
-    <RouterLink to="/" class="flex items-center gap-2.5 text-base md:hidden">
-      <BrandMark :size="24" />
-      <BrandWordmark class="max-md:hidden" />
-    </RouterLink>
     <span v-if="currentSection" class="flex items-center font-medium md:hidden">
       {{ $t(currentSection.label) }}
     </span>

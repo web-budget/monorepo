@@ -312,7 +312,7 @@
   },
   "module-home": {
     "description": {
-      "financial": "Lançamentos, faturas e fechamento do período.",
+      "financial": "Lançamentos, cartões, recorrentes e fechamento de cada período.",
       "registration": "Escolha o que cadastrar ou consultar.",
       "configuration": "Contas de usuários, áreas de acesso e integrações."
     },
@@ -324,12 +324,18 @@
       "card": "Cartões de crédito e débito ligados às carteiras.",
       "classification": "Categorias de receita e despesa dos lançamentos.",
       "cost-center": "Hierarquia para agrupar onde o dinheiro é gasto.",
-      "financial-period": "Criar, editar e acompanhar os períodos.",
+      "financial-period": "Criar, encerrar e reabrir períodos.",
       "users": "Contas, áreas de acesso e aprovações.",
       "integrations": "Conexões com bancos e serviços externos.",
       "movement": "Receitas e despesas do período.",
       "transfer": "Dinheiro que muda de carteira.",
       "statement": "Mudanças de saldo de cada carteira."
+    },
+    "attention": {
+      "overdue": "{count} vencido | {count} vencidos",
+      "closed-invoice": "{count} fechada a pagar | {count} fechadas a pagar",
+      "expired": "{count} expirado | {count} expirados",
+      "pending": "{period} pendente"
     }
   },
   "action-button": {

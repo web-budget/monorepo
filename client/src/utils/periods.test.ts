@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { FinancialPeriodListView } from '@/types'
-import { defaultClosingPeriod, oldestExpired } from '@/utils/periods'
+import { defaultClosingPeriod, oldestExpired, periodMonthName } from '@/utils/periods'
 
 function period(
   id: string,
@@ -39,5 +39,12 @@ describe('oldestExpired', () => {
 
   it('ignores closed and unexpired periods', () => {
     expect(oldestExpired([november, august])).toBeUndefined()
+  })
+})
+
+describe('periodMonthName', () => {
+  it('names the month the period ends in, capitalised, in the locale', () => {
+    expect(periodMonthName('2026-10-31', 'pt-BR')).toBe('Outubro')
+    expect(periodMonthName('2026-10-31', 'en-US')).toBe('October')
   })
 })

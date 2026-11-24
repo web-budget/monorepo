@@ -1,16 +1,24 @@
 <script setup lang="ts">
-import { ChartColumn } from 'lucide-vue-next'
+import { CalendarDays, ChartColumn } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed, ref, watch } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { useRoute, useRouter } from 'vue-router'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
 import PageContainer from '@/components/common/PageContainer.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import FinancialFlowChart from '@/components/dashboards/FinancialFlowChart.vue'
-import FilterSelect from '@/components/forms/FilterSelect.vue'
 import ListState from '@/components/listing/ListState.vue'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   Table,
   TableBody,
@@ -19,10 +27,10 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
-import { Skeleton } from '@/components/ui/skeleton'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { useFinancialFlowStore } from '@/stores/financialFlow'
 import type { FinancialFlowPeriod } from '@/types'
+import { hasMovement, periodLabel } from '@/utils/financialFlow'
 import { queryValue } from '@/utils/queryValue'
 
 const FIRST_YEAR = 2020
@@ -32,6 +40,7 @@ const router = useRouter()
 const store = useFinancialFlowStore()
 const { flow, loading } = storeToRefs(store)
 const { messages, run } = useServerErrors()
+const { locale } = useI18n()
 
 const currentYear = new Date().getFullYear()
 const loadFailed = ref(false)
@@ -49,7 +58,8 @@ function yearOf(value: unknown): number {
 }
 
 const year = computed(() => yearOf(route.query.year))
-const newestFirst = computed(() => [...flow.value!.periods].reverse())
+const withMovement = computed(() => flow.value!.periods.filter(hasMovement))
+const newestFirst = computed(() => [...withMovement.value].reverse())
 
 async function load() {
   loadFailed.value = !(await run(() => store.find(year.value)))
@@ -57,9 +67,13 @@ async function load() {
 
 watch(year, load, { immediate: true })
 
-function changeYear(value: string) {
-  const next = value === String(currentYear) ? undefined : value
+function changeYear(value: unknown) {
+  const next = String(value) === String(currentYear) ? undefined : String(value)
   return router.replace({ query: { ...route.query, year: next } })
+}
+
+function outflow(expenses: number): number {
+  return expenses === 0 ? 0 : -expenses
 }
 
 function openMovements(period: FinancialFlowPeriod) {
@@ -71,17 +85,20 @@ function openMovements(period: FinancialFlowPeriod) {
 </script>
 
 <template>
-  <PageContainer class="gap-6">
+  <PageContainer>
     <PageHeader :title="$t('financial-flow.title')" :description="$t('financial-flow.description')">
       <template #actions>
-        <FilterSelect
-          class="w-36"
-          :label="$t('financial-flow.year')"
-          :none-label="String(currentYear)"
-          :options="yearChoices"
-          :model-value="String(year)"
-          @update:model-value="changeYear"
-        />
+        <Select :model-value="String(year)" @update:model-value="changeYear">
+          <SelectTrigger :aria-label="$t('financial-flow.year')" class="w-auto">
+            <CalendarDays />
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem v-for="choice in yearChoices" :key="choice.value" :value="choice.value">
+              {{ choice.label }}
+            </SelectItem>
+          </SelectContent>
+        </Select>
       </template>
     </PageHeader>
     <ListState
@@ -96,29 +113,38 @@ function openMovements(period: FinancialFlowPeriod) {
       <Skeleton class="h-24 w-full" />
       <Skeleton class="h-72 w-full" />
     </div>
-    <template v-else-if="flow">
-      <div class="grid grid-cols-1 gap-3 sm:grid-cols-3" data-slot="totals">
-        <Card class="gap-1 p-4">
+    <div v-else-if="flow" class="grid gap-4 *:min-w-0">
+      <div class="grid grid-cols-2 gap-3 xl:grid-cols-3" data-slot="totals">
+        <Card class="gap-1 p-4 pb-5">
           <span class="text-muted-foreground text-xs">{{
             $t('financial-flow.totals.revenues')
           }}</span>
-          <CurrencyDisplay :value="flow.totals.revenues" signed class="text-xl font-semibold" />
+          <CurrencyDisplay
+            :value="flow.totals.revenues"
+            class="text-income text-xl font-semibold tracking-tight md:text-2xl"
+          />
         </Card>
-        <Card class="gap-1 p-4">
+        <Card class="gap-1 p-4 pb-5">
           <span class="text-muted-foreground text-xs">{{
             $t('financial-flow.totals.expenses')
           }}</span>
-          <CurrencyDisplay :value="-flow.totals.expenses" signed class="text-xl font-semibold" />
+          <CurrencyDisplay
+            :value="flow.totals.expenses"
+            class="text-expense text-xl font-semibold tracking-tight md:text-2xl"
+          />
         </Card>
-        <Card class="gap-1 p-4">
+        <Card class="gap-1 p-4 pb-5">
           <span class="text-muted-foreground text-xs">{{
             $t('financial-flow.totals.result')
           }}</span>
-          <CurrencyDisplay :value="flow.totals.result" signed class="text-xl font-semibold" />
+          <CurrencyDisplay
+            :value="flow.totals.result"
+            class="text-xl font-semibold tracking-tight md:text-2xl"
+          />
         </Card>
       </div>
       <Card
-        v-if="flow.periods.length === 0"
+        v-if="withMovement.length === 0"
         class="grid justify-items-center gap-2 px-6 py-14 text-center"
         role="status"
         data-state="empty"
@@ -134,8 +160,7 @@ function openMovements(period: FinancialFlowPeriod) {
         </p>
       </Card>
       <template v-else>
-        <Card class="gap-3 p-5">
-          <h2 class="text-base font-semibold">{{ $t('financial-flow.chart.title') }}</h2>
+        <Card class="p-5">
           <FinancialFlowChart :periods="flow.periods" />
         </Card>
         <Card class="gap-0 py-0">
@@ -154,31 +179,22 @@ function openMovements(period: FinancialFlowPeriod) {
                 v-for="period in newestFirst"
                 :key="period.financialPeriod.id"
                 class="cursor-pointer"
+                tabindex="0"
                 @click="openMovements(period)"
+                @keydown.enter="openMovements(period)"
               >
-                <TableCell>
-                  <RouterLink
-                    :to="{
-                      path: '/financial/movements',
-                      query: { period: period.financialPeriod.id },
-                    }"
-                    class="font-medium underline-offset-2 hover:underline"
-                    @click.stop
-                  >
-                    {{ period.financialPeriod.name }}
-                  </RouterLink>
-                </TableCell>
-                <TableCell class="text-right"
-                  ><CurrencyDisplay :value="period.revenues"
-                /></TableCell>
-                <TableCell class="text-right"
-                  ><CurrencyDisplay :value="period.expenses"
-                /></TableCell>
+                <TableCell>{{ periodLabel(period.financialPeriod.endingAt, locale) }}</TableCell>
                 <TableCell class="text-right">
-                  <CurrencyDisplay :value="period.result" signed />
+                  <CurrencyDisplay :value="period.revenues" signed bare glued />
+                </TableCell>
+                <TableCell class="text-right">
+                  <CurrencyDisplay :value="outflow(period.expenses)" signed bare glued />
+                </TableCell>
+                <TableCell class="text-right font-medium">
+                  <CurrencyDisplay :value="period.result" signed bare glued />
                 </TableCell>
                 <TableCell>
-                  <Badge :variant="period.recorded ? 'neutral' : 'pending'">
+                  <Badge :variant="period.recorded ? 'neutral' : 'highlight'">
                     {{
                       $t(
                         period.recorded
@@ -193,6 +209,6 @@ function openMovements(period: FinancialFlowPeriod) {
           </Table>
         </Card>
       </template>
-    </template>
+    </div>
   </PageContainer>
 </template>

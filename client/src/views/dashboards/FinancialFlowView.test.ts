@@ -5,6 +5,7 @@ import { dashboardsApi } from '@/api/dashboards'
 import { buttonWithText, crudTestRoutes, problem, settle, stateOf } from '@/test/crud'
 import { createTestPlugins } from '@/test/mounting'
 import type { FinancialFlowView as FlowResponse } from '@/types'
+import { Select } from '@/components/ui/select'
 import FinancialFlowView from '@/views/dashboards/FinancialFlowView.vue'
 
 vi.mock('@/api/dashboards')
@@ -93,24 +94,46 @@ describe('FinancialFlowView', () => {
     expect(dashboardsApi.findFinancialFlow).toHaveBeenCalledWith(2026)
   })
 
-  it('sums the year in the revenues, expenses and result cards', async () => {
+  it('shows the year in the revenues, expenses and result cards, without signs', async () => {
     const { wrapper } = await render()
 
-    const totals = wrapper.find('[data-slot="totals"]').text()
-    expect(totals).toMatch(/Receitas\s*\+\s*R\$\s*1\.800,00/)
-    expect(totals).toMatch(/Despesas\s*−\s*R\$\s*700,00/)
-    expect(totals).toMatch(/Resultado\s*\+\s*R\$\s*1\.100,00/)
+    const totals = wrapper.find('[data-slot="totals"]')
+    expect(totals.text()).toMatch(/Receitas\s*R\$\s*1\.800,00/)
+    expect(totals.text()).toMatch(/Despesas\s*R\$\s*700,00/)
+    expect(totals.text()).toMatch(/Resultado\s*R\$\s*1\.100,00/)
+    expect(totals.text()).not.toMatch(/[+−]/)
+    const [revenues, expenses, result] = totals.findAll('[data-slot="currency"]')
+    expect(revenues!.classes()).toContain('text-income')
+    expect(expenses!.classes()).toContain('text-expense')
+    expect(result!.classes()).not.toContain('text-income')
+    expect(result!.classes()).not.toContain('text-expense')
   })
 
-  it('gives the chart the periods in chronological order', async () => {
+  it('gives the chart the periods of the year', async () => {
     const { wrapper } = await render()
 
     const chart = wrapper.findComponent({ name: 'BarChartStub' })
-    expect(chart.props('data').datasets[0].data).toEqual([1000, 800])
+    expect(chart.props('data').datasets[0].data.slice(8, 10)).toEqual([1000, 800])
     expect(wrapper.find('h2').text()).toBe('Receitas e despesas por período')
   })
 
-  it('lists the periods from the newest to the oldest, with result and situation', async () => {
+  it('lists the periods with movement from the newest to the oldest, without the empty ones', async () => {
+    const empty = {
+      financialPeriod: {
+        id: 'p-12',
+        name: 'Dezembro',
+        startingAt: '2026-12-01',
+        endingAt: '2026-12-31',
+      },
+      revenues: 0,
+      expenses: 0,
+      result: 0,
+      recorded: false,
+    }
+    vi.mocked(dashboardsApi.findFinancialFlow).mockResolvedValue({
+      ...flow,
+      periods: [...flow.periods, empty],
+    })
     const { wrapper } = await render()
 
     expect(wrapper.findAll('th').map((header) => header.text())).toEqual([
@@ -122,14 +145,34 @@ describe('FinancialFlowView', () => {
     ])
     const rows = wrapper.findAll('tbody tr')
     expect(rows).toHaveLength(2)
-    expect(rows[0]!.text()).toContain('Outubro')
-    expect(rows[0]!.text()).toContain('Provisório')
-    expect(rows[0]!.text()).toMatch(/\+\s*R\$\s*500,00/)
-    expect(rows[1]!.text()).toContain('Setembro')
-    expect(rows[1]!.text()).toContain('Gravado')
+    expect(rows[0]!.findAll('td').map((cell) => cell.text())).toEqual([
+      'Out/2026',
+      '+800,00',
+      '−300,00',
+      '+500,00',
+      'Provisório',
+    ])
+    expect(rows[1]!.findAll('td').map((cell) => cell.text())).toEqual([
+      'Set/2026',
+      '+1.000,00',
+      '−400,00',
+      '+600,00',
+      'Gravado',
+    ])
+    expect(rows[0]!.find('[data-slot="badge"]').classes()).not.toContain('before:size-1.5')
   })
 
-  it('opens the movements of the period from the row and from the link', async () => {
+  it('shows a period without expenses as a plain zero', async () => {
+    vi.mocked(dashboardsApi.findFinancialFlow).mockResolvedValue({
+      ...flow,
+      periods: [{ ...flow.periods[0]!, expenses: 0, result: 1000 }],
+    })
+    const { wrapper } = await render()
+
+    expect(wrapper.findAll('tbody tr')[0]!.findAll('td')[2]!.text()).toBe('0,00')
+  })
+
+  it('opens the movements of the period from the row, by click and by Enter', async () => {
     const { wrapper, router } = await render()
 
     await wrapper.findAll('tbody tr')[1]!.trigger('click')
@@ -138,20 +181,24 @@ describe('FinancialFlowView', () => {
     expect(router.currentRoute.value.query.period).toBe('p-9')
 
     await router.push('/dashboards/financial-flow')
-    await wrapper.findAll('tbody tr')[0]!.find('a').trigger('click')
+    await wrapper.findAll('tbody tr')[0]!.trigger('keydown', { key: 'Enter' })
     await flushPromises()
     expect(router.currentRoute.value.query.period).toBe('p-10')
   })
 
   it('offers the current year back to 2020 and changes the year in the URL', async () => {
     const { wrapper, router } = await render()
-    const select = wrapper.findComponent({ name: 'FilterSelect' })
 
-    const years = (select.props('options') as { value: string }[]).map((option) => option.value)
-    expect(years[0]).toBe('2026')
-    expect(years[years.length - 1]).toBe('2020')
-    expect(years).toHaveLength(7)
+    const trigger = wrapper.find('button[aria-label="Ano"]')
+    expect(trigger.text()).toBe('2026')
+    await trigger.trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+    const years = [...document.body.querySelectorAll('[role="option"]')].map((option) =>
+      option.textContent?.trim(),
+    )
+    expect(years).toEqual(['2026', '2025', '2024', '2023', '2022', '2021', '2020'])
 
+    const select = wrapper.findComponent(Select)
     select.vm.$emit('update:modelValue', '2024')
     await settle()
     expect(router.currentRoute.value.query.year).toBe('2024')
@@ -188,6 +235,18 @@ describe('FinancialFlowView', () => {
     expect(wrapper.find('[data-state="empty"]').text()).toContain('Nenhum período em 2024')
     expect(wrapper.find('[data-slot="totals"]').exists()).toBe(true)
     expect(wrapper.findComponent({ name: 'BarChartStub' }).exists()).toBe(false)
+    expect(wrapper.find('table').exists()).toBe(false)
+  })
+
+  it('says there are no periods when the ones of the year have no movement', async () => {
+    vi.mocked(dashboardsApi.findFinancialFlow).mockResolvedValue({
+      year: 2026,
+      totals: { revenues: 0, expenses: 0, result: 0 },
+      periods: [{ ...flow.periods[1]!, revenues: 0, expenses: 0, result: 0 }],
+    })
+    const { wrapper } = await render()
+
+    expect(wrapper.find('[data-state="empty"]').exists()).toBe(true)
     expect(wrapper.find('table').exists()).toBe(false)
   })
 
