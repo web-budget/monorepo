@@ -6,6 +6,7 @@ import br.com.webbudget.server.application.payloads.ErrorCodes.IS_NULL
 import br.com.webbudget.server.application.payloads.ErrorCodes.IS_NULL_OR_BLANK
 import br.com.webbudget.server.application.payloads.ErrorCodes.MAX_CHARS
 import br.com.webbudget.server.domain.entities.financial.Movement
+import com.fasterxml.jackson.annotation.JsonInclude
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
@@ -87,7 +88,8 @@ data class PaymentWalletView(
 
 data class PaymentCardView(
     val id: UUID,
-    val name: String
+    val name: String,
+    val lastFourDigits: String
 )
 
 data class PaymentView(
@@ -130,7 +132,8 @@ data class MovementListView(
     val dueDate: LocalDate,
     val status: String,
     val overdue: Boolean,
-    val financialPeriod: MovementFinancialPeriodView
+    val financialPeriod: MovementFinancialPeriodView,
+    val invoicePayment: Boolean
 )
 
 data class MovementFilter(
@@ -174,7 +177,9 @@ data class ClosingOpenMovementsView(
 data class ClosingInvoiceView(
     val id: UUID,
     val card: PaymentCardView,
-    val value: BigDecimal
+    val value: BigDecimal,
+    val purchaseCount: Int,
+    val status: String
 )
 
 data class ClosingPeriodView(
@@ -186,8 +191,10 @@ data class ClosingPeriodView(
 
 data class ClosingSummaryView(
     val openMovements: ClosingOpenMovementsView,
+    val invoices: List<ClosingInvoiceView>,
     val openInvoices: List<ClosingInvoiceView>,
     val emptyInvoices: List<ClosingInvoiceView>,
+    @field:JsonInclude(JsonInclude.Include.ALWAYS)
     val nextOpenPeriod: ClosingPeriodView?,
     val targetPeriods: List<ClosingPeriodView>,
     val canClose: Boolean

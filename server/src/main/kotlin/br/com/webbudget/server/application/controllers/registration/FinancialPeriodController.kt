@@ -46,22 +46,24 @@ class FinancialPeriodController(
 
         val statuses = (filter.status ?: FinancialPeriodStatusFilter.CLOSED).statuses
 
+        val lastClosed = financialPeriodRepository.findLastClosedExternalId()
+
         return financialPeriodRepository.findAll(filter.filter, statuses, pageable)
-            .map { financialPeriodMapper.mapToListView(it) }
+            .map { financialPeriodMapper.mapToListView(it, lastClosed) }
             .let { ResponseEntity.ok(it) }
     }
 
     @GetMapping("/{id}")
     fun getById(@PathVariable id: UUID): ResponseEntity<FinancialPeriodView> =
         financialPeriodRepository.findByExternalId(id)
-            ?.let { financialPeriodMapper.mapToView(it) }
+            ?.let { financialPeriodMapper.mapToView(it, financialPeriodRepository.findLastClosedExternalId()) }
             ?.let { ResponseEntity.ok(it) }
             ?: throw ResourceNotFoundException()
 
     @GetMapping("/active")
     fun getActive(pageable: Pageable): ResponseEntity<PagedModel<FinancialPeriodView>> =
         financialPeriodRepository.findByStatus(FinancialPeriod.Status.OPEN, pageable)
-            .map { financialPeriodMapper.mapToView(it) }
+            .map { financialPeriodMapper.mapToView(it, null) }
             .let { ResponseEntity.ok(it) }
 
     @PostMapping
@@ -90,7 +92,11 @@ class FinancialPeriodController(
 
         financialPeriodMapper.mapToDomain(form, financialPeriod)
 
-        return ResponseEntity.ok(financialPeriodMapper.mapToView(financialPeriodService.update(financialPeriod)))
+        val updated = financialPeriodService.update(financialPeriod)
+
+        return ResponseEntity.ok(
+            financialPeriodMapper.mapToView(updated, financialPeriodRepository.findLastClosedExternalId())
+        )
     }
 
     @DeleteMapping("/{id}")

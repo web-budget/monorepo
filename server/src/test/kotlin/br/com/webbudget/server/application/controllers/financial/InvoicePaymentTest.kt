@@ -47,7 +47,7 @@ class InvoicePaymentTest : BaseIntegrationTest() {
 
         val payment = dsl.selectFrom(MOVEMENTS).fetchSingle()
 
-        assertThat(payment.name).isEqualTo("Financial test card - Financial test 12/2024")
+        assertThat(payment.name).isEqualTo("Pagamento de fatura, Financial test card")
         assertThat(payment.type).isEqualTo("EXPENSE")
         assertThat(payment.value).isEqualByComparingTo("125.50")
         assertThat(payment.status).isEqualTo("OPEN")
@@ -237,6 +237,15 @@ class InvoicePaymentTest : BaseIntegrationTest() {
         assertTotal("invoicePayments=true", 1)
         assertTotal("invoicePayments=false", 1)
         assertTotal("", 2)
+
+        restTestClient.get()
+            .uri("$MOVEMENTS_URL?sort=name,asc")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.content[0].name").isEqualTo("Common")
+            .jsonPath("$.content[0].invoicePayment").isEqualTo(false)
+            .jsonPath("$.content[1].invoicePayment").isEqualTo(true)
     }
 
     private fun assertTotal(query: String, expected: Int) {

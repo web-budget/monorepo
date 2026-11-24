@@ -63,6 +63,14 @@ class FinancialPeriodRepository(
             .and(FINANCIAL_PERIODS.STATUS.`in`(statuses.map { it.name }))
     )
 
+    fun findLastClosedExternalId(): UUID? = dsl.select(FINANCIAL_PERIODS.EXTERNAL_ID)
+        .from(FINANCIAL_PERIODS)
+        .where(FINANCIAL_PERIODS.STATUS.eq(Status.CLOSED.name))
+        .orderBy(FINANCIAL_PERIODS.ENDING_AT.desc(), FINANCIAL_PERIODS.ID.desc())
+        .limit(1)
+        .fetchOne()
+        ?.value1()
+
     fun existsClosedEndingAfter(endingAt: LocalDate): Boolean = dsl.fetchExists(
         dsl.selectOne().from(FINANCIAL_PERIODS)
             .where(FINANCIAL_PERIODS.STATUS.eq(Status.CLOSED.name))

@@ -35,6 +35,7 @@ data class FinancialPeriodView(
     val endingAt: LocalDate,
     val status: String,
     val expired: Boolean,
+    val reopenable: Boolean,
     val revenuesGoal: BigDecimal?,
     val expensesGoal: BigDecimal?
 )
@@ -45,7 +46,8 @@ data class FinancialPeriodListView(
     val startingAt: LocalDate,
     val endingAt: LocalDate,
     val status: String,
-    val expired: Boolean
+    val expired: Boolean,
+    val reopenable: Boolean
 )
 
 enum class FinancialPeriodStatusFilter(val statuses: List<Status>) {

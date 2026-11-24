@@ -85,7 +85,7 @@ class CardPurchaseMapper(
             ?: throw ResourceNotFoundException()
     }
 
-    private fun mapToCardView(card: CardReference) = PaymentCardView(card.externalId, card.name)
+    private fun mapToCardView(card: CardReference) = PaymentCardView(card.externalId, card.name, card.lastFourDigits)
 
     private fun mapToSummary(invoice: Invoice) = InvoiceSummaryView(invoice.externalId!!, invoice.status.name)
 

@@ -56,10 +56,10 @@ class MovementMapper(
             description = movement.description,
             payment = movement.payment?.let { mapToPaymentView(it) },
             invoice = movement.invoice?.let {
-                MovementInvoiceView(it.externalId!!, it.status.name, PaymentCardView(it.card.externalId, it.card.name))
+                MovementInvoiceView(it.externalId!!, it.status.name, PaymentCardView(it.card.externalId, it.card.name, it.card.lastFourDigits))
             },
             recurringMovement = movement.recurringMovement?.let {
-                MovementRecurringView(it.externalId, it.name, it.card?.let { card -> PaymentCardView(card.externalId, card.name) })
+                MovementRecurringView(it.externalId, it.name, it.card?.let { card -> PaymentCardView(card.externalId, card.name, card.lastFourDigits) })
             }
         )
     }
@@ -76,7 +76,8 @@ class MovementMapper(
             dueDate = movement.dueDate,
             status = movement.status.name,
             overdue = movement.isOverdue(today),
-            financialPeriod = mapToPeriodView(movement.financialPeriod, today)
+            financialPeriod = mapToPeriodView(movement.financialPeriod, today),
+            invoicePayment = movement.isInvoicePayment()
         )
     }
 
@@ -135,6 +136,7 @@ class MovementMapper(
                 income = income?.value ?: BigDecimal.ZERO,
                 expense = expense?.value ?: BigDecimal.ZERO
             ),
+            invoices = summary.invoices.map { mapToInvoiceView(it) },
             openInvoices = summary.openInvoices.map { mapToInvoiceView(it) },
             emptyInvoices = summary.emptyInvoices.map { mapToInvoiceView(it) },
             nextOpenPeriod = summary.nextOpenPeriod?.let { mapToClosingPeriodView(it) },
@@ -143,8 +145,13 @@ class MovementMapper(
         )
     }
 
-    private fun mapToInvoiceView(invoice: Invoice) =
-        ClosingInvoiceView(invoice.externalId!!, PaymentCardView(invoice.card.externalId, invoice.card.name), invoice.value)
+    private fun mapToInvoiceView(invoice: Invoice) = ClosingInvoiceView(
+        id = invoice.externalId!!,
+        card = PaymentCardView(invoice.card.externalId, invoice.card.name, invoice.card.lastFourDigits),
+        value = invoice.value,
+        purchaseCount = invoice.purchaseCount,
+        status = invoice.status.name
+    )
 
     private fun mapToClosingPeriodView(period: FinancialPeriodReference) =
         ClosingPeriodView(period.externalId, period.name, period.startingAt, period.endingAt)
@@ -162,6 +169,6 @@ class MovementMapper(
         discount = payment.discount,
         valuePaid = payment.valuePaid,
         wallet = payment.wallet?.let { PaymentWalletView(it.externalId, it.name) },
-        card = payment.card?.let { PaymentCardView(it.externalId, it.name) }
+        card = payment.card?.let { PaymentCardView(it.externalId, it.name, it.lastFourDigits) }
     )
 }
