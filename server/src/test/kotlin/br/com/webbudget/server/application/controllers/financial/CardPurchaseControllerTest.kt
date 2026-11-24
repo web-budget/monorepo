@@ -286,7 +286,7 @@ class CardPurchaseControllerTest : BaseIntegrationTest() {
     fun `should not delete a period that has purchases`() {
 
         restTestClient.delete()
-            .uri("/private/v1/registration/financial-periods/$OPEN_PERIOD")
+            .uri("/private/v1/financial/financial-periods/$OPEN_PERIOD")
             .exchange()
             .expectStatus().isBadRequest
             .expectBody()

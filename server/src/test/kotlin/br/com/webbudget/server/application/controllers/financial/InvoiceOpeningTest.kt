@@ -114,7 +114,7 @@ class InvoiceOpeningTest : BaseIntegrationTest() {
         val externalId = dsl.select(FINANCIAL_PERIODS.EXTERNAL_ID).from(FINANCIAL_PERIODS).fetchSingle().value1()!!
 
         restTestClient.delete()
-            .uri("/private/v1/registration/financial-periods/$externalId")
+            .uri("/private/v1/financial/financial-periods/$externalId")
             .exchange()
             .expectStatus().isOk
 
@@ -132,7 +132,7 @@ class InvoiceOpeningTest : BaseIntegrationTest() {
             .where(FINANCIAL_PERIODS.NAME.eq("01/2099")).fetchSingle().value1() as UUID
 
         restTestClient.delete()
-            .uri("/private/v1/registration/financial-periods/$externalId")
+            .uri("/private/v1/financial/financial-periods/$externalId")
             .exchange()
             .expectStatus().isOk
 
@@ -141,7 +141,7 @@ class InvoiceOpeningTest : BaseIntegrationTest() {
 
     private fun createPeriod(name: String, startingAt: String, endingAt: String) {
         restTestClient.post()
-            .uri("/private/v1/registration/financial-periods")
+            .uri("/private/v1/financial/financial-periods")
             .contentType(MediaType.APPLICATION_JSON)
             .body("""{"name": "$name", "startingAt": "$startingAt", "endingAt": "$endingAt"}""")
             .exchange()

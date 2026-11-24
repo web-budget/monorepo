@@ -75,9 +75,48 @@ class MovementControllerTest : BaseIntegrationTest() {
     }
 
     @Test
+    fun `should list the cost center, the classification and the payment method of each movement`() {
+
+        pay(GYM_ID).expectStatus().isOk
+
+        restTestClient.get()
+            .uri("$ENDPOINT_URL?sort=name,asc")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.content[0].name").isEqualTo("Groceries")
+            .jsonPath("$.content[0].paymentMethod").doesNotExist()
+            .jsonPath("$.content[0].costCenter.id").isEqualTo(HOME_COST_CENTER)
+            .jsonPath("$.content[0].costCenter.name").isEqualTo("Financial test home")
+            .jsonPath("$.content[0].classification.id").isEqualTo(EXPENSE_CLASSIFICATION)
+            .jsonPath("$.content[0].classification.name").isEqualTo("Financial test gym")
+            .jsonPath("$.content[1].name").isEqualTo("Gym")
+            .jsonPath("$.content[1].paymentMethod").isEqualTo("WALLET")
+            .jsonPath("$.content[1].costCenter.name").isEqualTo("Financial test health")
+    }
+
+    @Test
+    fun `should filter the movements by the name, the cost center and the classification names`() {
+
+        assertTotal("filter=health", 1)
+        assertTotal("filter=TEST HOME", 2)
+        assertTotal("filter=test gym", 2)
+        assertTotal("filter=test salary", 1)
+        assertTotal("filter=gym", 2)
+        assertTotal("filter=nothing", 0)
+    }
+
+    @Test
+    fun `should sort the movements by the cost center name`() {
+
+        assertNames("sort=costCenter,asc", "Gym", "Groceries", "Salary")
+        assertNames("sort=costCenter,desc", "Groceries", "Salary", "Gym")
+    }
+
+    @Test
     fun `should filter the movements`() {
 
-        assertTotal("filter=GYM", 1)
+        assertTotal("filter=GYM", 2)
         assertTotal("type=INCOME", 1)
         assertTotal("statuses=OPEN", 3)
         assertTotal("statuses=PAID", 0)
@@ -660,6 +699,38 @@ class MovementControllerTest : BaseIntegrationTest() {
             .uri("/private/v1/financial/financial-periods/${UUID.randomUUID()}/result")
             .exchange()
             .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `should report the open expenses to pay and how many of them are overdue`() {
+
+        assertToPay(OPEN_PERIOD, "409.90", 1)
+        assertToPay(CLOSED_PERIOD, "0", 0)
+
+        pay(GYM_ID).expectStatus().isOk
+
+        assertToPay(OPEN_PERIOD, "89.90", 0)
+    }
+
+    private fun assertToPay(period: String, toPay: String, overdueExpenses: Int) {
+        restTestClient.get()
+            .uri("/private/v1/financial/financial-periods/$period/result")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody(Map::class.java)
+            .value { body ->
+                assertThat(BigDecimal(body!!["toPay"].toString())).isEqualByComparingTo(toPay)
+                assertThat(body["overdueExpenses"]).isEqualTo(overdueExpenses)
+            }
+    }
+
+    private fun assertNames(query: String, vararg expected: String) {
+        restTestClient.get()
+            .uri("$ENDPOINT_URL?$query")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.content[*].name").isEqualTo(expected.toList())
     }
 
     private fun assertResult(period: String, revenues: String, expenses: String, result: String) {

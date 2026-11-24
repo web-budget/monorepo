@@ -131,6 +131,9 @@ data class MovementListView(
     val dueDate: LocalDate,
     val status: String,
     val overdue: Boolean,
+    val paymentMethod: String?,
+    val classification: MovementClassificationView?,
+    val costCenter: MovementCostCenterView?,
     val financialPeriod: MovementFinancialPeriodView,
     val invoicePayment: Boolean
 )
@@ -153,5 +156,7 @@ data class MovementFilter(
 data class FinancialPeriodResultView(
     val revenues: BigDecimal,
     val expenses: BigDecimal,
-    val result: BigDecimal
+    val result: BigDecimal,
+    val toPay: BigDecimal,
+    val overdueExpenses: Int
 )

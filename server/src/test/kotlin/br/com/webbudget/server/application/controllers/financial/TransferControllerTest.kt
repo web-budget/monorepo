@@ -15,7 +15,9 @@ import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
@@ -189,6 +191,9 @@ class TransferControllerTest : BaseIntegrationTest() {
             .jsonPath("$.fromWallet.id").isEqualTo(OTHER_WALLET)
             .jsonPath("$.toWallet.id").isEqualTo(WALLET)
             .jsonPath("$.value").isEqualTo(50.0)
+            .jsonPath("$.description").isEqualTo(
+                "Devolução da transferência de ${LocalDate.now().format(DateTimeFormatter.ofPattern("dd/MM/yyyy"))}"
+            )
             .jsonPath("$.returnedTransfer").isEqualTo(original)
             .jsonPath("$.returned").isEqualTo(false)
 
@@ -213,6 +218,34 @@ class TransferControllerTest : BaseIntegrationTest() {
         assertThat(balanceOf(9103L)).isEqualByComparingTo("0")
         assertThat(dsl.fetchCount(TRANSFERS)).isEqualTo(2)
         assertThat(dsl.fetchCount(WALLET_ENTRIES)).isEqualTo(4)
+    }
+
+    @Test
+    fun `should tell on the statement lines whether the transfer is a return and can still be returned`() {
+
+        transfer(WALLET, OTHER_WALLET, "50.00").expectStatus().isCreated
+        val common = lastTransferId()
+
+        transfer(WALLET, OTHER_WALLET, "20.00").expectStatus().isCreated
+        val original = lastTransferId()
+
+        returnTransfer(original).expectStatus().isCreated
+        val returning = lastTransferId()
+
+        restTestClient.get()
+            .uri("/private/v1/financial/wallets/$WALLET/statement?origins=TRANSFER&sort=createdOn,asc")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.content[0].reference.id").isEqualTo(common)
+            .jsonPath("$.content[0].reference.returnTransfer").isEqualTo(false)
+            .jsonPath("$.content[0].reference.returnable").isEqualTo(true)
+            .jsonPath("$.content[1].reference.id").isEqualTo(original)
+            .jsonPath("$.content[1].reference.returnTransfer").isEqualTo(false)
+            .jsonPath("$.content[1].reference.returnable").isEqualTo(false)
+            .jsonPath("$.content[2].reference.id").isEqualTo(returning)
+            .jsonPath("$.content[2].reference.returnTransfer").isEqualTo(true)
+            .jsonPath("$.content[2].reference.returnable").isEqualTo(false)
     }
 
     @Test
