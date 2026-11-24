@@ -119,7 +119,7 @@ describe('CardFormView', () => {
     expect(wrapper.text()).toContain('Carteira')
   })
 
-  it('creates a credit card and goes to its detail', async () => {
+  it('creates a credit card and stays on the cleared form', async () => {
     vi.mocked(cardsApi.create).mockResolvedValue('k-9')
     const { wrapper, router } = await mountView(CardFormView, 'cards')
 
@@ -142,8 +142,9 @@ describe('CardFormView', () => {
       description: '“Travel” já aparece nos lançamentos.',
       duration: 4000,
     })
-    expect(router.currentRoute.value.name).toBe('cards.detail')
-    expect(router.currentRoute.value.params.id).toBe('k-9')
+    expect(router.currentRoute.value.name).not.toBe('cards.detail')
+    expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('')
+    expect(document.activeElement).toBe(field(wrapper, 'name').element)
   })
 
   it('creates a debit card linked to a wallet found by name', async () => {
