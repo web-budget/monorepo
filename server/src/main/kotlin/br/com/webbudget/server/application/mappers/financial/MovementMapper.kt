@@ -47,10 +47,10 @@ class MovementMapper(
             description = movement.description,
             payment = movement.payment?.let { mapToPaymentView(it) },
             invoice = movement.invoice?.let {
-                MovementInvoiceView(it.externalId!!, it.status.name, PaymentCardView(it.card.externalId, it.card.name))
+                MovementInvoiceView(it.externalId!!, it.status.name, PaymentCardView(it.card.externalId, it.card.name, it.card.lastFourDigits))
             },
             recurringMovement = movement.recurringMovement?.let {
-                MovementRecurringView(it.externalId, it.name, it.card?.let { card -> PaymentCardView(card.externalId, card.name) })
+                MovementRecurringView(it.externalId, it.name, it.card?.let { card -> PaymentCardView(card.externalId, card.name, card.lastFourDigits) })
             }
         )
     }
@@ -116,6 +116,6 @@ class MovementMapper(
         discount = payment.discount,
         valuePaid = payment.valuePaid,
         wallet = payment.wallet?.let { PaymentWalletView(it.externalId, it.name) },
-        card = payment.card?.let { PaymentCardView(it.externalId, it.name) }
+        card = payment.card?.let { PaymentCardView(it.externalId, it.name, it.lastFourDigits) }
     )
 }

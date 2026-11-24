@@ -153,6 +153,10 @@ class RecurringMovementControllerTest : BaseIntegrationTest() {
             .jsonPath("$.content[0].value").isEqualTo(45.9)
             .jsonPath("$.content[0].reason").isEqualTo("Annual adjustment")
             .jsonPath("$.content[1].value").isEqualTo(39.9)
+            .jsonPath("$.content[1].reason").isEqualTo("Valor inicial")
+            .jsonPath("$.content[0].current").isEqualTo(true)
+            .jsonPath("$.content[1].current").isEqualTo(false)
+            .jsonPath("$.content[0].validFromPeriod").doesNotExist()
 
         restTestClient.patch()
             .uri("$ENDPOINT_URL/$id/value")
@@ -161,6 +165,75 @@ class RecurringMovementControllerTest : BaseIntegrationTest() {
             .exchange()
             .expectStatus().isEqualTo(422)
             .expectBody().jsonPath("$.parameters.value").isEqualTo("is-not-positive")
+    }
+
+    @Test
+    fun `should tell the period each value started to apply`() {
+
+        create("Streaming", "FIXED", "39.90").expectStatus().isCreated
+        val id = lastRecurringId()
+
+        changeValue(id, "45.90")
+        launch(OPEN_PERIOD, id).expectStatus().isOk
+        changeValue(id, "50.00")
+        launch(OTHER_OPEN_PERIOD, id).expectStatus().isOk
+        changeValue(id, "55.00")
+
+        restTestClient.get().uri("$ENDPOINT_URL/$id/values").exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.content[0].value").isEqualTo(55.0)
+            .jsonPath("$.content[0].current").isEqualTo(true)
+            .jsonPath("$.content[0].validFromPeriod").doesNotExist()
+            .jsonPath("$.content[1].value").isEqualTo(50.0)
+            .jsonPath("$.content[1].validFromPeriod.id").isEqualTo(OTHER_OPEN_PERIOD)
+            .jsonPath("$.content[1].validFromPeriod.name").isEqualTo("Financial test 08/2024")
+            .jsonPath("$.content[1].validFromPeriod.startingAt").isEqualTo("2024-08-01")
+            .jsonPath("$.content[2].value").isEqualTo(45.9)
+            .jsonPath("$.content[2].validFromPeriod.id").isEqualTo(OPEN_PERIOD)
+            .jsonPath("$.content[2].validFromPeriod.startingAt").isEqualTo("2024-12-01")
+            .jsonPath("$.content[3].value").isEqualTo(39.9)
+            .jsonPath("$.content[3].reason").isEqualTo("Valor inicial")
+            .jsonPath("$.content[3].validFromPeriod").doesNotExist()
+    }
+
+    @Test
+    fun `should list the values launched in each period of a recurring movement`() {
+
+        create("Electricity", "VARIABLE", "150.00").expectStatus().isCreated
+        val id = lastRecurringId()
+
+        launch(OTHER_OPEN_PERIOD, id, value = "98.40").expectStatus().isOk
+        launch(OPEN_PERIOD, id, value = "120.10").expectStatus().isOk
+
+        val paid = dsl.select(MOVEMENTS.EXTERNAL_ID).from(MOVEMENTS).where(MOVEMENTS.VALUE.eq(java.math.BigDecimal("120.10"))).fetchSingle().value1()
+
+        restTestClient.patch()
+            .uri("/private/v1/financial/movements/$paid/pay")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"wallet": "$WALLET", "discount": 20.10}""")
+            .exchange()
+            .expectStatus().isOk
+
+        restTestClient.get().uri("$ENDPOINT_URL/$id/launches").exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.page.totalElements").isEqualTo(2)
+            .jsonPath("$.content[0].financialPeriod.id").isEqualTo(OPEN_PERIOD)
+            .jsonPath("$.content[0].financialPeriod.name").isEqualTo("Financial test 12/2024")
+            .jsonPath("$.content[0].installment").isEqualTo(2)
+            .jsonPath("$.content[0].movement").isEqualTo(paid.toString())
+            .jsonPath("$.content[0].value").isEqualTo(120.1)
+            .jsonPath("$.content[0].status").isEqualTo("PAID")
+            .jsonPath("$.content[0].valuePaid").isEqualTo(100.0)
+            .jsonPath("$.content[1].financialPeriod.id").isEqualTo(OTHER_OPEN_PERIOD)
+            .jsonPath("$.content[1].installment").isEqualTo(1)
+            .jsonPath("$.content[1].value").isEqualTo(98.4)
+            .jsonPath("$.content[1].status").isEqualTo("OPEN")
+            .jsonPath("$.content[1].valuePaid").doesNotExist()
+
+        restTestClient.get().uri("$ENDPOINT_URL/${UUID.randomUUID()}/launches").exchange()
+            .expectStatus().isNotFound
     }
 
     @Test
@@ -441,6 +514,10 @@ class RecurringMovementControllerTest : BaseIntegrationTest() {
         assertNames("active=false", "Salary")
         assertNames("active=true&finished=false", "Phone", "Electricity", "Streaming")
         assertNames("finished=true")
+        assertNames("ended=true", "Salary")
+        assertNames("ended=false", "Phone", "Electricity", "Streaming")
+        assertNames("sort=valueKind,asc", "Salary", "Phone", "Streaming", "Electricity")
+        assertNames("sort=valueKind,desc", "Electricity", "Salary", "Phone", "Streaming")
         assertNames("sort=name,asc", "Electricity", "Phone", "Salary", "Streaming")
         assertNames("sort=value,desc", "Salary", "Phone", "Electricity", "Streaming")
     }
@@ -462,7 +539,9 @@ class RecurringMovementControllerTest : BaseIntegrationTest() {
             .expectStatus().isOk
             .expectBody()
             .jsonPath("$.content[?(@.name == 'Phone')].launchedInPeriod").isNotEmpty
-            .jsonPath("$.content[?(@.name == 'Streaming')].launchedInPeriod").isEmpty
+            .jsonPath("$.content[?(@.name == 'Streaming')].launchedInPeriod").value<List<Any?>> { assertThat(it).containsExactly(null) }
+            .jsonPath("$.content[?(@.name == 'Salary')].ended").isEqualTo(true)
+            .jsonPath("$.content[?(@.name == 'Streaming')].ended").isEqualTo(false)
 
         dsl.update(RECURRING_MOVEMENTS)
             .set(RECURRING_MOVEMENTS.INSTALLMENTS, 1)
@@ -470,6 +549,8 @@ class RecurringMovementControllerTest : BaseIntegrationTest() {
             .execute()
 
         assertNames("finished=true", "Phone")
+        assertNames("ended=true", "Salary", "Phone")
+        assertNames("ended=false", "Electricity", "Streaming")
         assertNames("finished=false", "Salary", "Electricity", "Streaming")
     }
 
@@ -637,6 +718,19 @@ class RecurringMovementControllerTest : BaseIntegrationTest() {
 
         assertThat(purchase.value).isEqualByComparingTo("249.90")
         assertThat(purchase.idInvoice).isEqualTo(9101L)
+
+        restTestClient.get().uri("/private/v1/financial/card-purchases").exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.content[?(@.name == 'Phone 1/3')].recurringMovement.id").isEqualTo(listOf(id))
+            .jsonPath("$.content[?(@.name == 'Phone 1/3')].recurringMovement.installment").isEqualTo(listOf(1))
+            .jsonPath("$.content[?(@.name == 'Phone 1/3')].recurringMovement.installments").isEqualTo(listOf(3))
+
+        restTestClient.get().uri("/private/v1/financial/card-purchases/${purchase.externalId}").exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.recurringMovement.name").isEqualTo("Phone")
+            .jsonPath("$.recurringMovement.installment").isEqualTo(1)
     }
 
     @Test
@@ -701,6 +795,15 @@ class RecurringMovementControllerTest : BaseIntegrationTest() {
             .contentType(MediaType.APPLICATION_JSON)
             .body("""{"financialPeriod": "$period", "recurringMovements": [$items]}""")
             .exchange()
+    }
+
+    private fun changeValue(id: String, value: String) {
+        restTestClient.patch()
+            .uri("$ENDPOINT_URL/$id/value")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"value": $value}""")
+            .exchange()
+            .expectStatus().isOk
     }
 
     private fun lastRecurringId(): String = dsl.select(RECURRING_MOVEMENTS.EXTERNAL_ID)

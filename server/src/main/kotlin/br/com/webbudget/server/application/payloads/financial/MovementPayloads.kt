@@ -87,7 +87,8 @@ data class PaymentWalletView(
 
 data class PaymentCardView(
     val id: UUID,
-    val name: String
+    val name: String,
+    val lastFourDigits: String
 )
 
 data class PaymentView(
