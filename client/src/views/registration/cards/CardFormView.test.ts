@@ -206,7 +206,7 @@ describe('CardFormView', () => {
 
     const { wrapper } = await mountView(CardFormView, 'cards', { id: 'k-1' })
 
-    expect(wrapper.find('h1').text()).toBe('Editando cartão')
+    expect(wrapper.find('h1').text()).toBe('Editar cartão')
     expect(wrapper.find('[data-slot="page-description"]').text()).toBe('Travel')
     expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('Travel')
     expect((field(wrapper, 'lastFourDigits').element as HTMLInputElement).value).toBe('4321')

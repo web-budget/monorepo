@@ -182,7 +182,7 @@ describe('CostCenterFormView', () => {
 
     const { wrapper } = await mountView(CostCenterFormView, 'cost-centers', { id: 'cc-2' })
 
-    expect(wrapper.find('h1').text()).toBe('Editando centro de custo')
+    expect(wrapper.find('h1').text()).toBe('Editar centro de custo')
     expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('Kitchen')
     expect((field(wrapper, 'expenseBudget').element as HTMLInputElement).value).toBe('250,50')
     expect(wrapper.find('button[role="combobox"]').text()).toContain('Home')

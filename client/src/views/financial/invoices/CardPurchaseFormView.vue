@@ -100,7 +100,7 @@ onMounted(async () => {
 
 <template>
   <FormCard
-    :title="updating ? $t('card-purchase.form.editing') : $t('card-purchase.form.new')"
+    :title="updating ? $t('card-purchase.form.title-editing') : $t('card-purchase.form.title-new')"
     :description="updating ? form.values.name : undefined"
     :loading="loadingRecord"
     :submitting="submitting"
