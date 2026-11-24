@@ -48,7 +48,7 @@ const { messages, fields, submitting, loadingRecord, dirty, changeToList, onSubm
     toFormValues: toCardPurchaseFormValues,
     create: (values) => store.create(toCardPurchaseCreateForm(values)),
     update: (id, values) => store.update(id, toCardPurchaseUpdateForm(values)),
-    redirectToDetail: true,
+    detailAfterUpdate: true,
   })
 
 const updating = computed(() => props.id !== undefined)

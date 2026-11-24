@@ -94,7 +94,7 @@ describe('CostCenterFormView', () => {
     expect(document.activeElement).toBe(field(wrapper, 'name').element)
   })
 
-  it('creates a cost center under a parent found by name and goes to its detail', async () => {
+  it('creates a cost center under a parent found by name and stays on the cleared form', async () => {
     vi.mocked(costCentersApi.findAll).mockResolvedValue(pageOf([home]))
     vi.mocked(costCentersApi.create).mockResolvedValue('cc-9')
     const { wrapper, router } = await mountView(CostCenterFormView, 'cost-centers')
@@ -117,8 +117,9 @@ describe('CostCenterFormView', () => {
       description: '“Kitchen” já aparece nos lançamentos.',
       duration: 4000,
     })
-    expect(router.currentRoute.value.name).toBe('cost-centers.detail')
-    expect(router.currentRoute.value.params.id).toBe('cc-9')
+    expect(router.currentRoute.value.name).not.toBe('cost-centers.detail')
+    expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('')
+    expect(document.activeElement).toBe(field(wrapper, 'name').element)
   })
 
   it('creates a top level cost center without a parent', async () => {

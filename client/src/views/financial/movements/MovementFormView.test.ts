@@ -144,7 +144,7 @@ describe('MovementFormView', () => {
     expect(movementsApi.create).not.toHaveBeenCalled()
   })
 
-  it('posts a movement in the period that contains today and goes to its detail', async () => {
+  it('posts a movement in the period that contains today and stays on the cleared form', async () => {
     vi.mocked(movementsApi.create).mockResolvedValue('m-9')
     const { wrapper, router } = await render()
 
@@ -168,8 +168,8 @@ describe('MovementFormView', () => {
       description: '“Conta de água” já aparece no período.',
       duration: 4000,
     })
-    expect(router.currentRoute.value.name).toBe('movements.detail')
-    expect(router.currentRoute.value.params.id).toBe('m-9')
+    expect(router.currentRoute.value.name).not.toBe('movements.detail')
+    expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('')
   })
 
   it('posts an income of the chosen period', async () => {

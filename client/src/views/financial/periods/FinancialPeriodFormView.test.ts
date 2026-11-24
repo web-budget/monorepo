@@ -68,7 +68,7 @@ describe('FinancialPeriodFormView', () => {
     expect(document.activeElement).toBe(field(wrapper, 'name').element)
   })
 
-  it('creates a period with its dates and goals and goes to its detail', async () => {
+  it('creates a period with its dates and goals and stays on the cleared form', async () => {
     vi.mocked(financialPeriodsApi.create).mockResolvedValue('p-9')
     const { wrapper, router } = await mountView(FinancialPeriodFormView, 'financial-periods')
 
@@ -87,8 +87,9 @@ describe('FinancialPeriodFormView', () => {
       description: '“January” já aceita lançamentos.',
       duration: 4000,
     })
-    expect(router.currentRoute.value.name).toBe('financial-periods.detail')
-    expect(router.currentRoute.value.params.id).toBe('p-9')
+    expect(router.currentRoute.value.name).not.toBe('financial-periods.detail')
+    expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('')
+    expect(document.activeElement).toBe(field(wrapper, 'name').element)
   })
 
   it('accepts a one day period', async () => {
