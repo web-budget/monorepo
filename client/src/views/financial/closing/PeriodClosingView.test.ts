@@ -145,7 +145,6 @@ function serve(
   options: {
     pendencies?: MovementListView[]
     list?: typeof periods
-    wallets?: { id: string; name: string }[]
     totals?: { revenues: number; expenses: number; result: number; accumulated: number }
   } = {},
 ) {
@@ -169,9 +168,7 @@ function serve(
     provisionalPeriods: [],
   })
   vi.mocked(movementsApi.findAll).mockResolvedValue(pageOf(options.pendencies ?? movements))
-  vi.mocked(walletsApi.findAll).mockResolvedValue(
-    pageOf((options.wallets ?? [{ id: 'w-1', name: 'Conta' }]) as never[]),
-  )
+  vi.mocked(walletsApi.findAll).mockResolvedValue(pageOf([{ id: 'w-1', name: 'Conta' }] as never[]))
   vi.mocked(cardsApi.findAll).mockResolvedValue(pageOf([]))
   vi.mocked(cardsApi.findById).mockResolvedValue({
     id: 'k-1',
@@ -633,61 +630,26 @@ describe('PeriodClosingView', () => {
     expect(router.currentRoute.value.name).toBe('financial-periods.create')
   })
 
+  it('offers only creating a period in the alert, never paying everything', async () => {
+    const { wrapper } = await render('/financial/closing', {
+      ...blocked,
+      nextOpenPeriod: null,
+      targetPeriods: [],
+    })
+
+    const buttons = wrapper
+      .find('[data-slot="no-next-period"]')
+      .findAll('button')
+      .map((button) => button.text())
+    expect(buttons).toEqual(['Criar período'])
+  })
+
   it('reads a missing next period the same as a null one', async () => {
     const withoutNext: Partial<ClosingSummaryView> = { ...blocked }
     delete withoutNext.nextOpenPeriod
     const { wrapper } = await render('/financial/closing', withoutNext as ClosingSummaryView)
 
     expect(wrapper.find('[data-slot="no-next-period"]').exists()).toBe(true)
-  })
-
-  it('pays every pending item with the first active wallet from the alert', async () => {
-    const { wrapper } = await render('/financial/closing', {
-      ...blocked,
-      nextOpenPeriod: null,
-      targetPeriods: [],
-    })
-    vi.mocked(movementsApi.pay).mockResolvedValue({} as never)
-
-    await buttonWithText(wrapper, 'Pagar tudo').trigger('click')
-    await settle()
-
-    expect(vi.mocked(movementsApi.pay).mock.calls).toEqual([
-      ['m-1', { wallet: 'w-1' }],
-      ['m-2', { wallet: 'w-1' }],
-      ['m-3', { wallet: 'w-1' }],
-    ])
-    expect(toast.success).toHaveBeenCalledWith('Pendências pagas', {
-      description: 'Saíram de Conta.',
-      duration: 4000,
-    })
-    expect(financialPeriodsApi.findClosing).toHaveBeenCalledTimes(2)
-  })
-
-  it('shows what the server refuses when paying everything and still reloads', async () => {
-    const { wrapper } = await render('/financial/closing', {
-      ...blocked,
-      nextOpenPeriod: null,
-      targetPeriods: [],
-    })
-    vi.mocked(movementsApi.pay).mockRejectedValue(problem(400, { error: 'movement-already-paid' }))
-
-    await buttonWithText(wrapper, 'Pagar tudo').trigger('click')
-    await settle()
-
-    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
-    expect(toast.success).not.toHaveBeenCalled()
-    expect(financialPeriodsApi.findClosing).toHaveBeenCalledTimes(2)
-  })
-
-  it('cannot pay everything without an active wallet', async () => {
-    const { wrapper } = await render(
-      '/financial/closing',
-      { ...blocked, nextOpenPeriod: null, targetPeriods: [] },
-      { wallets: [] },
-    )
-
-    expect(buttonWithText(wrapper, 'Pagar tudo').attributes('disabled')).toBeDefined()
   })
 
   it('says there is nothing pending and nothing in the invoices', async () => {

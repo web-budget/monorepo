@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import router from '@/router'
 import { isPublicRoute } from '@/router/publicRoutes'
+import enUS from '@/locales/en_US.json'
+import ptBR from '@/locales/pt_BR.json'
 
 describe('router', () => {
   it('uses HTML5 history rooted at the app base URL', () => {
@@ -213,5 +215,31 @@ describe('dashboards routes', () => {
       'financial-flow.menu',
     ])
     expect(resolved.matched.map((record) => record.meta.role)).toContain('DASHBOARDS')
+  })
+})
+
+describe('action breadcrumbs', () => {
+  const verbs = {
+    pt_BR: ['Criando', 'Editando', 'Detalhando', 'Lançando', 'Transferindo'],
+    en_US: ['Creating', 'Editing', 'Viewing', 'Posting', 'Transferring'],
+  }
+
+  function lookup(messages: Record<string, unknown>, key: string) {
+    return key
+      .split('.')
+      .reduce<unknown>((node, part) => (node as Record<string, unknown>)[part], messages) as string
+  }
+
+  it('labels every create, update and detail route with a bare verb in both languages', () => {
+    const keys = router
+      .getRoutes()
+      .map((record) => String(record.meta.breadcrumb ?? ''))
+      .filter((key) => /\.(form\.(new|editing|detailing)|detail\.breadcrumb)$/.test(key))
+
+    expect(keys.length).toBeGreaterThan(15)
+    for (const key of keys) {
+      expect(verbs.pt_BR).toContain(lookup(ptBR, key))
+      expect(verbs.en_US).toContain(lookup(enUS, key))
+    }
   })
 })

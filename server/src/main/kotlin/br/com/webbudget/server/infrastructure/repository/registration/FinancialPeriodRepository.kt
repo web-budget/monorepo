@@ -3,6 +3,7 @@ package br.com.webbudget.server.infrastructure.repository.registration
 import br.com.webbudget.server.domain.entities.registration.FinancialPeriod
 import br.com.webbudget.server.domain.entities.registration.FinancialPeriod.Status
 import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
+import br.com.webbudget.server.infrastructure.repository.containsIgnoringAccents
 import br.com.webbudget.server.infrastructure.repository.excluding
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
@@ -34,7 +35,7 @@ class FinancialPeriodRepository(
         page(pageable) { financialPeriods ->
             DSL.and(
                 listOfNotNull(
-                    filter?.let { text -> financialPeriods.NAME.containsIgnoreCase(text) },
+                    filter?.let { text -> financialPeriods.NAME.containsIgnoringAccents(text) },
                     financialPeriods.STATUS.`in`(statuses.map { it.name })
                 )
             )

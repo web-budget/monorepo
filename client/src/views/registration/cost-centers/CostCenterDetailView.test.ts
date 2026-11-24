@@ -121,7 +121,7 @@ describe('CostCenterDetailView', () => {
 
     const { wrapper } = await mountView(CostCenterDetailView, 'cost-centers', { id: 'cc-9' })
 
-    expect(wrapper.find('h1').text()).toBe('Detalhando centro de custo')
+    expect(wrapper.find('h1').text()).toBe('Detalhando')
     expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
       'O recurso solicitado não existe',
     )

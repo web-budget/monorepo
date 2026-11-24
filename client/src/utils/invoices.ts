@@ -1,3 +1,4 @@
+import type { PurchaseRecurringView } from '@/types'
 import { formatLocalDate, parseLocalDate } from '@/utils/localDate'
 
 export function invoicePaymentDueDate(periodEnd: string, paymentDay: number): string {
@@ -18,4 +19,16 @@ export function cardLabel(card: { name: string; lastFourDigits: string }): strin
 export function dayAndMonth(isoDate: string): string {
   const [, month, day] = isoDate.split('-')
   return `${day}/${month}`
+}
+
+export function purchaseDisplayName(purchase: {
+  name: string
+  recurringMovement?: Pick<PurchaseRecurringView, 'installment' | 'installments'> | null
+}): string {
+  const { name, recurringMovement } = purchase
+  if (!recurringMovement || recurringMovement.installments === null) {
+    return name
+  }
+  const suffix = ` ${recurringMovement.installment}/${recurringMovement.installments}`
+  return name.endsWith(suffix) ? name.slice(0, -suffix.length) : name
 }
