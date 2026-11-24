@@ -349,6 +349,6 @@ describe('PayMovementDialog', () => {
     await flushPromises()
 
     expect(document.body.textContent).toContain('Receber “Salário”')
-    expect(input('discount').value).toBe('')
+    expect(input('discount').value).toBe('0,00')
   })
 })
