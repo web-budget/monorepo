@@ -527,8 +527,10 @@
       "en-us": "English (United States)"
     },
     "form": {
-      "new": "New user",
-      "editing": "Editing user",
+      "new": "Creating",
+      "editing": "Editing",
+      "title-new": "New user",
+      "title-editing": "Edit user",
       "name": "Name",
       "email": "Email",
       "password": "Password",
@@ -565,16 +567,16 @@
       "found": "{count} user found for “{query}” | {count} users found for “{query}”"
     },
     "remove": {
-      "title": "Remove the user “{name}”?",
+      "title": "Delete the user “{name}”?",
       "description": "This cannot be undone. The person's access is ended.",
-      "action": "Remove user"
+      "action": "Delete user"
     },
     "toast": {
       "created": "User created",
       "created-detail": "“{name}” was registered.",
       "updated": "Changes saved",
       "updated-detail": "The data of “{name}” was saved.",
-      "removed": "User removed",
+      "removed": "User deleted",
       "removed-detail": "“{name}” left the list.",
       "password-reset": "Password reset",
       "password-reset-detail": "The new password of “{name}” is now valid.",
@@ -620,7 +622,7 @@
     "menu": "Card invoice",
     "detail": {
       "title": "Detailing invoice",
-      "breadcrumb": "Detailing",
+      "breadcrumb": "Viewing",
       "total": "Invoice total",
       "purchases": "Purchases",
       "due-date": "Due date",
@@ -707,9 +709,11 @@
       "bank": "Bank"
     },
     "form": {
-      "new": "New wallet",
-      "editing": "Editing wallet",
-      "detailing": "Wallet details",
+      "new": "Creating",
+      "editing": "Editing",
+      "detailing": "Viewing",
+      "title-new": "New wallet",
+      "title-editing": "Edit wallet",
       "deleting": "Deleting wallet",
       "name": "Name",
       "description": "Description",
@@ -771,9 +775,11 @@
       "flag": "Network"
     },
     "form": {
-      "new": "New card",
-      "editing": "Editing card",
-      "detailing": "Card details",
+      "new": "Creating",
+      "editing": "Editing",
+      "detailing": "Viewing",
+      "title-new": "New card",
+      "title-editing": "Edit card",
       "deleting": "Deleting card",
       "name": "Name",
       "flag": "Network",
@@ -923,9 +929,11 @@
       "expense": "Expense"
     },
     "form": {
-      "new": "New classification",
-      "editing": "Editing classification",
-      "detailing": "Classification details",
+      "new": "Creating",
+      "editing": "Editing",
+      "detailing": "Viewing",
+      "title-new": "New classification",
+      "title-editing": "Edit classification",
       "deleting": "Deleting classification",
       "name": "Name",
       "description": "Description",
@@ -966,9 +974,11 @@
       "placeholder": "Name"
     },
     "form": {
-      "new": "New cost center",
-      "editing": "Editing cost center",
-      "detailing": "Cost center details",
+      "new": "Creating",
+      "editing": "Editing",
+      "detailing": "Viewing",
+      "title-new": "New cost center",
+      "title-editing": "Edit cost center",
       "deleting": "Deleting cost center",
       "name": "Name",
       "description": "Description",
@@ -1318,7 +1328,7 @@
     "menu": "Transfers",
     "form": {
       "new": "Transferring",
-      "detailing": "Detailing",
+      "detailing": "Viewing",
       "description": "Move money from one wallet to another. It does not change the period result.",
       "from": "From",
       "to": "To",
@@ -1473,9 +1483,11 @@
     "title": "Card purchases",
     "menu": "Card purchases",
     "form": {
-      "new": "Posting purchase",
-      "editing": "Editing purchase",
-      "detailing": "Detailing purchase",
+      "new": "Posting",
+      "editing": "Editing",
+      "detailing": "Viewing",
+      "title-new": "Posting purchase",
+      "title-editing": "Editing purchase",
       "submit": "Post purchase",
       "card": "Card",
       "period": "Invoice period",

@@ -107,7 +107,7 @@ describe('ClassificationDetailView', () => {
 
     const { wrapper } = await mountView(ClassificationDetailView, 'classifications', { id: 'c-9' })
 
-    expect(wrapper.find('h1').text()).toBe('Detalhando classificação')
+    expect(wrapper.find('h1').text()).toBe('Detalhando')
     expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
       'O recurso solicitado não existe',
     )

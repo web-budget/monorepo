@@ -117,7 +117,9 @@ onMounted(() => run(store.findRoles))
 
 <template>
   <FormCard
-    :title="updating ? (loadedUser?.name ?? $t('users.form.editing')) : $t('users.form.new')"
+    :title="
+      updating ? (loadedUser?.name ?? $t('users.form.title-editing')) : $t('users.form.title-new')
+    "
     :description="updating ? loadedUser?.email : undefined"
     :loading="loadingRecord"
     :submitting="submitting"

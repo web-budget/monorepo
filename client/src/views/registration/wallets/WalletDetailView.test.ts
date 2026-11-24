@@ -76,7 +76,7 @@ describe('WalletDetailView', () => {
 
     const { wrapper } = await mountView(WalletDetailView, 'wallets', { id: 'w-1' })
 
-    expect(wrapper.find('h1').text()).toBe('Detalhando carteira')
+    expect(wrapper.find('h1').text()).toBe('Detalhando')
     expect(wrapper.find('dl').exists()).toBe(false)
     expect(buttonWithText(wrapper, 'Editar')).toBeDefined()
     expect(buttonWithText(wrapper, 'Excluir')).toBeDefined()

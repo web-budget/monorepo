@@ -103,6 +103,6 @@ describe('CardPurchaseDetailView', () => {
     const { wrapper } = await mountView(CardPurchaseDetailView, 'purchases', { id: 'cp-1' })
 
     expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
-    expect(wrapper.find('h1').text()).toBe('Detalhando compra')
+    expect(wrapper.find('h1').text()).toBe('Detalhando')
   })
 })
