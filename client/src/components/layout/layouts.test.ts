@@ -105,8 +105,8 @@ describe('layouts', () => {
   it('AuthLayout offers the language selector to whoever has not signed in', async () => {
     const wrapper = await render(AuthLayout)
 
-    const radios = wrapper.find('main').findAll('[role="radio"]')
+    const trigger = wrapper.find('main').get('button[aria-label="Idioma"]')
 
-    expect(radios.map((radio) => radio.text())).toEqual(['pt-BR', 'en-US'])
+    expect(trigger.text()).toBe('Português (Brasil)')
   })
 })
