@@ -51,5 +51,6 @@ describe('TransferStatement', () => {
 
     expect(wrapper.find('[data-side="from"]').text()).not.toMatch(/Saldo anterior\s*R\$/)
     expect(wrapper.find('[data-side="to"]').text()).toContain('---')
+    expect(wrapper.find('[data-side="from"]').text()).toMatch(/Débito\s*R\$\s0,00/)
   })
 })

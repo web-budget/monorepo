@@ -30,7 +30,7 @@ function describe(key: 'from' | 'to', wallet: StatementWallet | null, amount: nu
 }
 
 const sides = computed(() => [
-  describe('from', props.from, -props.value),
+  describe('from', props.from, -props.value || 0),
   describe('to', props.to, props.value),
 ])
 </script>
