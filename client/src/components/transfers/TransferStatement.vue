@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
+import DateTimeDisplay from '@/components/common/DateTimeDisplay.vue'
 
 interface StatementWallet {
   name: string
@@ -8,10 +9,14 @@ interface StatementWallet {
 }
 
 const props = defineProps<{
+  title: string
   from: StatementWallet | null
   to: StatementWallet | null
   value: number
 }>()
+
+const now = new Date()
+const today = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 19)
 
 function describe(key: 'from' | 'to', wallet: StatementWallet | null, amount: number) {
   const before = wallet?.balance ?? null
@@ -25,28 +30,50 @@ function describe(key: 'from' | 'to', wallet: StatementWallet | null, amount: nu
 }
 
 const sides = computed(() => [
-  describe('from', props.from, -props.value),
+  describe('from', props.from, -props.value || 0),
   describe('to', props.to, props.value),
 ])
 </script>
 
 <template>
-  <div class="grid gap-4" data-slot="transfer-statement">
-    <section v-for="side in sides" :key="side.key" :data-side="side.key" class="grid gap-2">
-      <h3 class="text-muted-foreground text-[11px] font-medium tracking-wider uppercase">
-        {{ $t(`transfer.statement.${side.key}`) }}
-      </h3>
-      <p class="text-sm font-medium">{{ side.name ?? '---' }}</p>
-      <dl class="grid grid-cols-[auto_1fr] items-baseline gap-x-3 gap-y-1.5 text-sm">
-        <dt class="text-muted-foreground">{{ $t('transfer.statement.before') }}</dt>
-        <dd class="text-right"><CurrencyDisplay :value="side.before" /></dd>
-        <dt class="text-muted-foreground">
-          {{ $t(side.key === 'from' ? 'transfer.statement.debit' : 'transfer.statement.credit') }}
-        </dt>
-        <dd class="text-right"><CurrencyDisplay :value="side.amount" signed /></dd>
-        <dt class="font-semibold">{{ $t('transfer.statement.after') }}</dt>
-        <dd class="text-right font-semibold"><CurrencyDisplay :value="side.after" /></dd>
-      </dl>
-    </section>
-  </div>
+  <aside
+    class="border-border bg-muted/40 grid content-start gap-4 rounded-md border p-4"
+    :aria-label="title"
+    data-slot="transfer-statement"
+  >
+    <p
+      class="text-muted-foreground flex items-center justify-between text-[11px] font-medium tracking-wider uppercase"
+    >
+      <span>{{ title }}</span>
+      <DateTimeDisplay class="font-mono" :value="today" />
+    </p>
+    <template v-for="(side, index) in sides" :key="side.key">
+      <hr v-if="index > 0" class="border-border border-t border-dashed" />
+      <div :data-side="side.key" class="grid gap-1.5 font-mono text-[13px] tabular-nums">
+        <p class="font-sans text-sm font-semibold">{{ side.name ?? '---' }}</p>
+        <div class="flex items-baseline gap-2">
+          <span class="text-muted-foreground">{{ $t('transfer.statement.before') }}</span>
+          <span class="border-border flex-1 border-b border-dotted" />
+          <CurrencyDisplay :value="side.before" neutral />
+        </div>
+        <div
+          :class="[
+            'flex items-baseline gap-2',
+            side.key === 'from' ? 'text-expense' : 'text-income',
+          ]"
+        >
+          <span class="text-muted-foreground">
+            {{ $t(side.key === 'from' ? 'transfer.statement.debit' : 'transfer.statement.credit') }}
+          </span>
+          <span class="border-border flex-1 border-b border-dotted" />
+          <CurrencyDisplay :value="side.amount" signed glued />
+        </div>
+        <div class="border-border flex items-baseline gap-2 border-t pt-1.5 font-semibold">
+          <span class="text-foreground">{{ $t('transfer.statement.after') }}</span>
+          <span class="border-border flex-1 border-b border-dotted" />
+          <CurrencyDisplay :value="side.after" neutral />
+        </div>
+      </div>
+    </template>
+  </aside>
 </template>

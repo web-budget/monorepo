@@ -7,6 +7,7 @@ const props = withDefaults(
     value: number | null
     zeroIfNull?: boolean
     signed?: boolean
+    sign?: 'income' | 'expense'
     bare?: boolean
     glued?: boolean
     neutral?: boolean
@@ -19,6 +20,7 @@ const { n } = useI18n()
 const amount = computed(() => props.value ?? (props.zeroIfNull ? 0 : null))
 
 const direction = computed(() => {
+  if (props.sign) return props.sign
   if (!props.signed || !amount.value) return null
   return amount.value > 0 ? 'income' : 'expense'
 })

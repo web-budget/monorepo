@@ -9,6 +9,8 @@ function render(props: {
   query?: string
   message?: string
   creatable?: boolean
+  outlineAction?: boolean
+  copy?: { emptyAction?: string }
 }) {
   return mount(ListState, {
     props: { entity: 'wallet', icon: Wallet, ...props },
@@ -21,8 +23,8 @@ describe('ListState', () => {
     const wrapper = render({ kind: 'empty' })
 
     expect(wrapper.attributes('role')).toBe('status')
-    expect(wrapper.text()).toContain('Nenhuma carteira ainda')
-    expect(wrapper.text()).toContain('Os lançamentos sempre saem de uma carteira.')
+    expect(wrapper.text()).toContain('Nenhuma carteira cadastrada')
+    expect(wrapper.text()).toContain('Cadastre a primeira carteira.')
 
     await wrapper.find('button').trigger('click')
 
@@ -35,7 +37,7 @@ describe('ListState', () => {
   it('hides the create action of an empty list that cannot create', () => {
     const wrapper = render({ kind: 'empty', creatable: false })
 
-    expect(wrapper.text()).toContain('Nenhuma carteira ainda')
+    expect(wrapper.text()).toContain('Nenhuma carteira cadastrada')
     expect(wrapper.find('button').exists()).toBe(false)
   })
 
@@ -81,5 +83,14 @@ describe('ListState', () => {
     const wrapper = render({ kind: 'error' })
 
     expect(wrapper.text()).toContain('Confira sua conexão e tente de novo.')
+  })
+  it('can name the action of an empty list and show it as a small outline button without the plus', () => {
+    const wrapper = render({ kind: 'empty', outlineAction: true, copy: { emptyAction: 'Novo' } })
+
+    const button = wrapper.find('button')
+    expect(button.text()).toBe('Novo')
+    expect(button.attributes('data-variant')).toBe('outline')
+    expect(button.attributes('data-size')).toBe('sm')
+    expect(button.find('svg').exists()).toBe(false)
   })
 })

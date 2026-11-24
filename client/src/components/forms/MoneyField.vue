@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import {
   FormControl,
@@ -18,12 +19,22 @@ withDefaults(
     disabled?: boolean
     required?: boolean
     hint?: string
+    placeholder?: string
+    signed?: boolean
     class?: string
   }>(),
-  { disabled: false, required: false, hint: undefined, class: undefined },
+  {
+    disabled: false,
+    required: false,
+    hint: undefined,
+    placeholder: undefined,
+    signed: false,
+    class: undefined,
+  },
 )
 
 const CURRENCY_SYMBOL = /^R\$\s*/
+const SIGNS = /[+\-−]/g
 
 const { n } = useI18n()
 
@@ -33,13 +44,41 @@ function format(value: number | null | undefined) {
     : n(value, 'currency').replace(CURRENCY_SYMBOL, '')
 }
 
+const pendingMinus = ref(false)
+
+function show(value: number | null | undefined) {
+  if (value === null || value === undefined) {
+    return pendingMinus.value ? '−' : ''
+  }
+  return `${value < 0 ? '−' : '+'}${format(Math.abs(value))}`
+}
+
+function readSigned(input: HTMLInputElement, value: number | null | undefined) {
+  const signs = input.value.match(SIGNS) ?? []
+  const sign = signs[signs.length - 1]
+  const negative = sign === '-' || sign === '−'
+  const magnitude = parseMoneyInput(
+    input.value.replace(SIGNS, ''),
+    value === null || value === undefined ? '' : format(Math.abs(value)),
+  )
+  const amount = magnitude === null ? null : negative ? -magnitude : magnitude
+  pendingMinus.value = amount === null && negative
+  input.value = show(amount)
+  return amount
+}
+
 function readInput(
   event: Event,
   value: number | null | undefined,
   handleChange: (value: number | null, shouldValidate: boolean) => void,
   shouldValidate: boolean,
+  signed: boolean,
 ) {
   const input = event.target as HTMLInputElement
+  if (signed) {
+    handleChange(readSigned(input, value), shouldValidate)
+    return
+  }
   const amount = parseMoneyInput(input.value, format(value))
   input.value = format(amount)
   handleChange(amount, shouldValidate)
@@ -77,10 +116,11 @@ function readInput(
             inputmode="numeric"
             autocomplete="off"
             data-slot="input"
-            :value="format(value)"
+            :value="signed ? show(value) : format(value)"
+            :placeholder="placeholder"
             :disabled="disabled"
-            class="h-full min-w-0 flex-1 bg-transparent px-3 text-right font-mono tabular-nums outline-none disabled:cursor-not-allowed"
-            @input="readInput($event, value, handleChange, errors.length > 0)"
+            class="h-full min-w-0 flex-1 bg-transparent px-3 placeholder:text-muted-foreground text-right font-mono tabular-nums outline-none disabled:cursor-not-allowed"
+            @input="readInput($event, value, handleChange, errors.length > 0, signed)"
             @blur="handleBlur"
           />
         </FormControl>

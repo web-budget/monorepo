@@ -10,6 +10,7 @@ export type ListStateKind = 'empty' | 'no-result' | 'error'
 export interface ListStateCopy {
   emptyTitle?: string
   emptyDescription?: string
+  emptyAction?: string
   errorDescription?: string
   noResultQuery?: string
   noResultFilter?: string
@@ -25,9 +26,10 @@ const props = withDefaults(
     query?: string
     message?: string
     creatable?: boolean
+    outlineAction?: boolean
     copy?: ListStateCopy
   }>(),
-  { query: '', message: undefined, creatable: true, copy: () => ({}) },
+  { query: '', message: undefined, creatable: true, outlineAction: false, copy: () => ({}) },
 )
 
 const emit = defineEmits<{ create: []; clear: []; retry: [] }>()
@@ -39,7 +41,7 @@ const texts = computed(() => {
     return {
       title: props.copy.emptyTitle ?? t(`${props.entity}.list.empty-title`),
       description: props.copy.emptyDescription ?? t(`${props.entity}.list.empty-description`),
-      action: t('form.create'),
+      action: props.copy.emptyAction ?? t('form.create'),
     }
   }
   if (props.kind === 'error') {
@@ -93,12 +95,12 @@ function act() {
     <Button
       v-if="kind !== 'empty' || creatable"
       type="button"
-      :variant="kind === 'empty' ? 'default' : 'outline'"
-      :size="kind === 'empty' ? 'default' : 'sm'"
+      :variant="kind === 'empty' && !outlineAction ? 'default' : 'outline'"
+      :size="kind === 'empty' && !outlineAction ? 'default' : 'sm'"
       class="mt-1"
       @click="act()"
     >
-      <Plus v-if="kind === 'empty'" />
+      <Plus v-if="kind === 'empty' && !outlineAction" />
       <RotateCw v-else-if="kind === 'error'" />
       {{ texts.action }}
     </Button>

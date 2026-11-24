@@ -25,3 +25,7 @@ export function periodMonthName(endingAt: string, locale: string): string {
   const month = new Intl.DateTimeFormat(locale, { month: 'long' }).format(parseLocalDate(endingAt))
   return `${month.charAt(0).toUpperCase()}${month.slice(1)}`
 }
+
+export function monthOf(name: string | undefined): string {
+  return (name ?? '').split(' de ')[0]!
+}

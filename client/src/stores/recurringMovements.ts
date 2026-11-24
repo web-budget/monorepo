@@ -5,6 +5,7 @@ import { useCrudResource } from '@/composables/useCrudResource'
 import type {
   MovementType,
   PageQuery,
+  RecurringLaunchEntryView,
   RecurringMovementQuery,
   RecurringMovementStatusFilter,
   RecurringValueForm,
@@ -15,6 +16,8 @@ import { createPageRequest, createPageResponse, type PageResponse } from '@/util
 
 export const RECURRING_FILTER_KEYS = ['type']
 
+const LAUNCHES_SIZE = 12
+
 export function toRecurringMovementQuery(
   query: PageQuery,
   filters: ExtraQuery,
@@ -23,8 +26,7 @@ export function toRecurringMovementQuery(
   return {
     filter: query.filter || undefined,
     type: (filters.type as MovementType | undefined) || undefined,
-    active: status === 'ACTIVE' ? true : undefined,
-    finished: status === 'FINISHED' ? true : status === 'ACTIVE' ? false : undefined,
+    ended: status === 'FINISHED' ? true : status === 'ACTIVE' ? false : undefined,
     page: query.page,
     size: query.size,
     sort: query.sort,
@@ -34,6 +36,7 @@ export function toRecurringMovementQuery(
 export const useRecurringMovementsStore = defineStore('recurringMovements', () => {
   const filters = ref<ExtraQuery>({})
   const values = ref<PageResponse<RecurringValueView>>(createPageResponse())
+  const launches = ref<RecurringLaunchEntryView[]>([])
 
   const resource = useCrudResource(
     {
@@ -44,13 +47,28 @@ export const useRecurringMovementsStore = defineStore('recurringMovements', () =
       update: recurringMovementsApi.update,
       remove: recurringMovementsApi.remove,
     },
-    () => createPageRequest<RecurringMovementStatusFilter>({ status: 'ACTIVE' }),
+    () =>
+      createPageRequest<RecurringMovementStatusFilter>({
+        status: 'ACTIVE',
+        sortField: 'name',
+        direction: 'asc',
+      }),
   )
 
   function findValues(id: string, page: number, size: number) {
     return resource.track(async () => {
       const response = await recurringMovementsApi.findValues(id, { page, size })
       values.value = { content: response.content, ...response.page }
+    })
+  }
+
+  function findLaunches(id: string) {
+    return resource.track(async () => {
+      const response = await recurringMovementsApi.findLaunches(id, {
+        page: 0,
+        size: LAUNCHES_SIZE,
+      })
+      launches.value = response.content
     })
   }
 
@@ -64,6 +82,7 @@ export const useRecurringMovementsStore = defineStore('recurringMovements', () =
   function reset() {
     filters.value = {}
     values.value = createPageResponse()
+    launches.value = []
     resource.reset()
   }
 
@@ -71,16 +90,18 @@ export const useRecurringMovementsStore = defineStore('recurringMovements', () =
     recurringMovement: resource.current,
     filters,
     values,
+    launches,
     pageRequest: resource.pageRequest,
     pageResponse: resource.pageResponse,
     loading: resource.loading,
     findAll: resource.findAll,
-    count: resource.count,
+    count: (status: RecurringMovementStatusFilter) => resource.count(status, true),
     findOne: resource.findOne,
     create: resource.create,
     update: resource.update,
     remove: resource.remove,
     findValues,
+    findLaunches,
     readjust,
     reset,
   }

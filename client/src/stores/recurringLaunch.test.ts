@@ -48,7 +48,7 @@ describe('useRecurringLaunchStore', () => {
     vi.clearAllMocks()
   })
 
-  it('lists the active and unfinished ones of the chosen period', async () => {
+  it('lists the ones that did not end, by name, of the chosen period', async () => {
     vi.mocked(recurringMovementsApi.findAll).mockResolvedValue({
       content: [rent],
       page: { size: 15, number: 0, totalElements: 1, totalPages: 1 },
@@ -59,12 +59,11 @@ describe('useRecurringLaunchStore', () => {
     await store.findAll()
 
     expect(recurringMovementsApi.findAll).toHaveBeenCalledWith({
-      active: true,
-      finished: false,
+      ended: false,
       financialPeriod: 'p-1',
       page: 0,
       size: 15,
-      sort: 'createdOn,desc',
+      sort: 'name,asc',
     })
     expect(store.pageResponse.content).toEqual([rent])
     expect(store.loading).toBe(false)

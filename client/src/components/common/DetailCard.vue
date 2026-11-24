@@ -18,7 +18,7 @@ const props = withDefaults(
     hideEdit?: boolean
     editVariant?: 'default' | 'outline'
   }>(),
-  { editVariant: 'default' },
+  { active: undefined, editVariant: 'default' },
 )
 
 const emit = defineEmits<{ edit: []; delete: [] }>()
@@ -42,6 +42,7 @@ const emit = defineEmits<{ edit: []; delete: [] }>()
         >
           <Trash2 />{{ $t('crud.actions.remove') }}
         </Button>
+        <slot name="middle-actions" />
         <Button
           v-if="!readonly && !hideEdit"
           type="button"
@@ -54,6 +55,7 @@ const emit = defineEmits<{ edit: []; delete: [] }>()
       </template>
     </PageHeader>
     <ServerErrorAlert :messages="messages" />
+    <slot name="notice" />
     <Card class="gap-0 py-0">
       <slot />
       <div

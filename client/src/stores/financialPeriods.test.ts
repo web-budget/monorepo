@@ -17,6 +17,7 @@ const row: FinancialPeriodListView = {
   endingAt: '2026-01-31',
   status: 'OPEN',
   expired: false,
+  reopenable: false,
 }
 const view: FinancialPeriodView = { ...row, revenuesGoal: 1000, expensesGoal: 800 }
 const report = { launched: [{ recurringMovement: 'r-1' }], skipped: [] } as never

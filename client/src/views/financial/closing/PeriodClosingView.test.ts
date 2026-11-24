@@ -1,7 +1,6 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'vue-sonner'
-import { cardPurchasesApi } from '@/api/cardPurchases'
 import { cardsApi } from '@/api/cards'
 import { classificationsApi } from '@/api/classifications'
 import { costCentersApi } from '@/api/costCenters'
@@ -15,13 +14,12 @@ import { buttonWithText, crudTestRoutes, pageOf, problem, settle } from '@/test/
 import { createTestPlugins } from '@/test/mounting'
 import type {
   ClosingSummaryView,
+  ClosingInvoiceView,
   FinancialPeriodListView,
-  InvoiceView,
   MovementListView,
 } from '@/types'
 import PeriodClosingView from '@/views/financial/closing/PeriodClosingView.vue'
 
-vi.mock('@/api/cardPurchases')
 vi.mock('@/api/cards')
 vi.mock('@/api/classifications')
 vi.mock('@/api/costCenters')
@@ -47,6 +45,7 @@ const periods = [
     endingAt: '2026-11-30',
     status: 'OPEN',
     expired: false,
+    reopenable: false,
   },
   {
     id: 'p-10',
@@ -55,6 +54,7 @@ const periods = [
     endingAt: '2026-10-31',
     status: 'OPEN',
     expired: true,
+    reopenable: false,
   },
   {
     id: 'p-09',
@@ -63,15 +63,38 @@ const periods = [
     endingAt: '2026-09-30',
     status: 'CLOSED',
     expired: false,
+    reopenable: false,
   },
 ] as FinancialPeriodListView[]
 
 const november = { id: 'p-11', name: 'Novembro', startingAt: '2026-11-01', endingAt: '2026-11-30' }
 
+function invoiceOf(
+  id: string,
+  name: string,
+  status: ClosingInvoiceView['status'],
+  value: number,
+  purchaseCount: number,
+): ClosingInvoiceView {
+  return {
+    id,
+    card: { id: `k-${id}`, name, lastFourDigits: `000${id.slice(-1)}` },
+    status,
+    value,
+    purchaseCount,
+  }
+}
+
+const blocking = invoiceOf('i-1', 'Visa', 'OPEN', 300, 2)
+const empty = invoiceOf('i-2', 'Elo', 'OPEN', 0, 0)
+const payment = invoiceOf('i-3', 'Master', 'CLOSED', 50, 1)
+const paid = invoiceOf('i-4', 'Nubank', 'PAID', 80, 1)
+
 const blocked: ClosingSummaryView = {
   openMovements: { count: 2, income: 0, expense: 150 },
-  openInvoices: [{ id: 'i-1', card: { id: 'k-1', name: 'Visa' }, value: 300 }],
-  emptyInvoices: [{ id: 'i-2', card: { id: 'k-2', name: 'Elo' }, value: 0 }],
+  invoices: [blocking, empty, payment, paid],
+  openInvoices: [blocking],
+  emptyInvoices: [empty],
   nextOpenPeriod: november,
   targetPeriods: [november],
   canClose: false,
@@ -79,6 +102,7 @@ const blocked: ClosingSummaryView = {
 
 const ready: ClosingSummaryView = {
   openMovements: { count: 0, income: 0, expense: 0 },
+  invoices: [],
   openInvoices: [],
   emptyInvoices: [],
   nextOpenPeriod: november,
@@ -94,6 +118,7 @@ const movements = [
     value: 100,
     dueDate: '2026-10-20',
     overdue: true,
+    invoicePayment: false,
   },
   {
     id: 'm-2',
@@ -102,6 +127,7 @@ const movements = [
     value: 50,
     dueDate: '2026-10-31',
     overdue: false,
+    invoicePayment: true,
   },
   {
     id: 'm-3',
@@ -110,32 +136,28 @@ const movements = [
     value: 200,
     dueDate: '2026-10-25',
     overdue: false,
+    invoicePayment: false,
   },
 ] as MovementListView[]
-
-const invoices = [
-  { id: 'i-1', status: 'OPEN', value: 300, card: { id: 'k-1', name: 'Visa' } },
-  { id: 'i-2', status: 'OPEN', value: 0, card: { id: 'k-2', name: 'Elo' } },
-  { id: 'i-3', status: 'CLOSED', value: 50, card: { id: 'k-3', name: 'Master' } },
-  { id: 'i-4', status: 'PAID', value: 80, card: { id: 'k-4', name: 'Nubank' } },
-] as InvoiceView[]
 
 function serve(
   summary: ClosingSummaryView = blocked,
   options: {
     pendencies?: MovementListView[]
-    invoices?: InvoiceView[]
     list?: typeof periods
+    wallets?: { id: string; name: string }[]
+    totals?: { revenues: number; expenses: number; result: number; accumulated: number }
   } = {},
 ) {
+  const totals = options.totals ?? { revenues: 1000, expenses: 400, result: 600, accumulated: 2000 }
   vi.mocked(financialPeriodsApi.findAll).mockResolvedValue(pageOf(options.list ?? periods))
   vi.mocked(costCentersApi.findAll).mockResolvedValue(pageOf([]))
   vi.mocked(classificationsApi.findAll).mockResolvedValue(pageOf([]))
   vi.mocked(financialPeriodsApi.findClosing).mockResolvedValue(summary)
   vi.mocked(financialPeriodsApi.findResult).mockResolvedValue({
-    revenues: 1000,
-    expenses: 400,
-    result: 600,
+    revenues: totals.revenues,
+    expenses: totals.expenses,
+    result: totals.result,
     recorded: false,
     toPay: 0,
     overdueExpenses: 0,
@@ -143,23 +165,19 @@ function serve(
   vi.mocked(periodResultsApi.findAccumulated).mockResolvedValue({
     recorded: 1400,
     provisional: 600,
-    accumulated: 2000,
+    accumulated: totals.accumulated,
     provisionalPeriods: [],
   })
-  vi.mocked(movementsApi.findAll).mockImplementation((query) =>
-    Promise.resolve(
-      pageOf(query.invoicePayments ? [movements[1]!] : (options.pendencies ?? movements)),
-    ),
+  vi.mocked(movementsApi.findAll).mockResolvedValue(pageOf(options.pendencies ?? movements))
+  vi.mocked(walletsApi.findAll).mockResolvedValue(
+    pageOf((options.wallets ?? [{ id: 'w-1', name: 'Conta' }]) as never[]),
   )
-  vi.mocked(invoicesApi.findAll).mockResolvedValue(pageOf(options.invoices ?? invoices))
-  vi.mocked(walletsApi.findAll).mockResolvedValue(pageOf([{ id: 'w-1', name: 'Conta' }] as never[]))
   vi.mocked(cardsApi.findAll).mockResolvedValue(pageOf([]))
   vi.mocked(cardsApi.findById).mockResolvedValue({
     id: 'k-1',
     invoicePaymentDay: 10,
     wallet: { id: 'w-1', name: 'Conta' },
   } as never)
-  vi.mocked(cardPurchasesApi.findAll).mockResolvedValue(pageOf([], 3))
 }
 
 async function render(
@@ -172,6 +190,11 @@ async function render(
     routes: [
       ...crudTestRoutes('financial-periods'),
       { path: '/financial/closing', name: 'closing', component: PeriodClosingView },
+      {
+        path: '/financial/movements/:id/detail',
+        name: 'movements.detail',
+        component: PeriodClosingView,
+      },
     ],
     stubActions: false,
     initialState: {},
@@ -245,12 +268,32 @@ describe('PeriodClosingView', () => {
     const { wrapper } = await render()
 
     const summary = wrapper.find('[data-slot="summary"]').text()
+    expect(summary).toContain('Resumo do período')
     expect(summary).toContain('Receitas pagas')
-    expect(summary).toMatch(/\+\s*R\$\s*1\.000,00/)
-    expect(summary).toMatch(/−\s*R\$\s*400,00/)
-    expect(summary).toMatch(/\+\s*R\$\s*600,00/)
-    expect(summary).toMatch(/\+\s*R\$\s*2\.000,00/)
+    expect(summary).toMatch(/\+R\$\s1\.000,00/)
+    expect(summary).toMatch(/−R\$\s400,00/)
+    expect(summary).toMatch(/\+R\$\s600,00/)
+    expect(summary).toMatch(/\+R\$\s2\.000,00/)
     expect(summary).toContain('Fechados mais provisório dos abertos')
+  })
+
+  it('keeps the sign on zero and on negative values, painting only revenues and expenses', async () => {
+    const { wrapper } = await render('/financial/closing', blocked, {
+      totals: { revenues: 0, expenses: 0, result: -400, accumulated: -400 },
+    })
+
+    const cards = wrapper.find('[data-slot="summary"]').findAll('[data-slot="currency"]')
+    expect(cards.map((card) => card.text().split(String.fromCharCode(160)).join(' '))).toEqual([
+      '+R$ 0,00',
+      '−R$ 0,00',
+      '−R$ 400,00',
+      '−R$ 400,00',
+    ])
+    expect(
+      cards.map((card) =>
+        card.classes().filter((name) => name.startsWith('text-income') || name === 'text-expense'),
+      ),
+    ).toEqual([['text-income'], ['text-expense'], [], []])
   })
 
   it('lists the pending items, marking the overdue and the invoice payment', async () => {
@@ -258,18 +301,77 @@ describe('PeriodClosingView', () => {
 
     const rows = wrapper.find('[data-slot="pendencies"]').findAll('tbody tr')
     expect(rows).toHaveLength(3)
-    expect(rows[0]!.attributes('data-state')).toBe('selected')
+    expect(rows.map((row) => row.attributes('data-state'))).toEqual([
+      'selected',
+      'selected',
+      'selected',
+    ])
     expect(rows[0]!.text()).toContain('vencido')
     expect(rows[0]!.text()).toContain('20/10/2026')
-    expect(rows[0]!.text()).toMatch(/−\s*R\$\s*100,00/)
+    expect(rows[0]!.text()).toContain('−100,00')
+    expect(rows[0]!.text()).not.toContain('R$')
     expect(rows[0]!.text()).not.toContain('fatura')
     expect(rows[1]!.text()).toContain('fatura')
-    expect(rows[1]!.attributes('data-state')).toBeUndefined()
+    expect(rows[1]!.text()).not.toContain('vencido')
     expect(rows[2]!.text()).toContain('Receber')
-    expect(rows[2]!.text()).toMatch(/\+\s*R\$\s*200,00/)
+    expect(rows[2]!.text()).toContain('+200,00')
     expect(movementsApi.findAll).toHaveBeenCalledWith(
       expect.objectContaining({ statuses: ['OPEN'], financialPeriods: ['p-10'] }),
     )
+  })
+
+  it('counts the pending items and says whether there are some left', async () => {
+    const { wrapper } = await render()
+    expect(wrapper.find('[data-slot="remaining"]').text()).toBe('3 restantes')
+    expect(wrapper.find('[data-slot="resolved"]').exists()).toBe(false)
+
+    const single = await render('/financial/closing', blocked, { pendencies: [movements[0]!] })
+    expect(single.wrapper.find('[data-slot="remaining"]').text()).toBe('1 restante')
+
+    const none = await render('/financial/closing', ready, { pendencies: [] })
+    expect(none.wrapper.find('[data-slot="remaining"]').exists()).toBe(false)
+    expect(none.wrapper.find('[data-slot="resolved"]').text()).toBe('Resolvidas')
+  })
+
+  it('opens the movement from the row and from the name, without opening it from the buttons', async () => {
+    const { wrapper, router } = await render()
+
+    await wrapper.find('[data-slot="pendencies"] tbody tr a').trigger('click')
+    await flushPromises()
+    expect(router.currentRoute.value.fullPath).toBe('/financial/movements/m-1/detail')
+
+    await router.push('/financial/closing')
+    await rowOf(wrapper, 'Fatura Master').trigger('click')
+    await flushPromises()
+    expect(router.currentRoute.value.fullPath).toBe('/financial/movements/m-2/detail')
+
+    await router.push('/financial/closing')
+    await buttonWithText(wrapper, 'Pagar').trigger('click')
+    await flushPromises()
+    expect(router.currentRoute.value.name).toBe('closing')
+  })
+
+  it('shows each pending item as a card for small screens', async () => {
+    const { wrapper, router } = await render()
+
+    const cards = wrapper.findAll('[data-slot="pendency-card"]')
+    expect(cards).toHaveLength(3)
+    expect(cards[0]!.text()).toContain('Vence em 20/10/2026 · vencido')
+    expect(cards[0]!.text()).toContain('−100,00')
+    expect(cards[1]!.text()).toContain('fatura')
+    expect(cards[1]!.text()).not.toContain('vencido')
+    expect(cards[2]!.text()).toContain('Receber')
+
+    const buttons = cards[0]!.findAll('button')
+    await buttons[0]!.trigger('click')
+    expect(wrapper.getComponent(PayMovementDialog).props('movement')).toMatchObject({ id: 'm-1' })
+    await buttons[1]!.trigger('click')
+    await flushPromises()
+    expect(document.body.textContent).toContain('Mover “Conta de luz”')
+
+    await cards[2]!.trigger('click')
+    await flushPromises()
+    expect(router.currentRoute.value.fullPath).toBe('/financial/movements/m-3/detail')
   })
 
   it('says what blocks the closing and keeps the button off', async () => {
@@ -281,10 +383,41 @@ describe('PeriodClosingView', () => {
       'false',
       'true',
     ])
+    expect(checklist.text()).toContain('Para fechar')
     expect(checklist.text()).toContain('Pendências resolvidas')
+    expect(checklist.text()).toContain('3 faltam pagar ou mover')
     expect(checklist.text()).toContain('Faturas resolvidas')
+    expect(checklist.text()).toContain('1 fatura com lançamento ainda aberta')
     expect(checklist.text()).toContain('Período seguinte aberto')
+    expect(checklist.text()).toContain('Novembro')
+    expect(checklist.text()).toContain('Resolva os itens acima.')
     expect(buttonWithText(wrapper, 'Fechar Outubro').attributes('disabled')).toBeDefined()
+  })
+
+  it('uses the plural for several blocking invoices and for a single pending item', async () => {
+    const second = invoiceOf('i-5', 'Outro', 'OPEN', 10, 1)
+    const { wrapper } = await render(
+      '/financial/closing',
+      { ...blocked, invoices: [blocking, second], openInvoices: [blocking, second] },
+      { pendencies: [movements[0]!] },
+    )
+
+    const checklist = wrapper.find('[data-slot="checklist"]').text()
+    expect(checklist).toContain('1 falta pagar ou mover')
+    expect(checklist).toContain('2 faturas com lançamento ainda abertas')
+  })
+
+  it('names only the month on the closing button', async () => {
+    const { wrapper } = await render('/financial/closing', ready, {
+      pendencies: [],
+      list: periods.map((period) => ({ ...period, name: `${period.name} de 2026` })),
+    })
+
+    expect(buttonWithText(wrapper, 'Fechar Outubro').attributes('disabled')).toBeUndefined()
+    expect(wrapper.find('h1').text()).toBe('Fechamento de Outubro de 2026')
+    expect(wrapper.find('[data-slot="checklist"]').text()).toContain('Tudo certo.')
+    expect(wrapper.find('[data-slot="checklist"]').text()).toContain('Nada em aberto')
+    expect(wrapper.find('[data-slot="checklist"]').text()).toContain('Nenhuma fatura bloqueia')
   })
 
   it('describes each invoice and offers closing only the one that blocks', async () => {
@@ -296,33 +429,30 @@ describe('PeriodClosingView', () => {
         (item) => item.attributes('data-note') ?? item.find('[data-note]').attributes('data-note'),
       ),
     ).toEqual(['blocking', 'empty', 'payment', 'paid'])
+    expect(items[0]!.text()).toContain('Visa ••0001')
+    expect(items[0]!.text()).toContain('2 compras · Aberta')
     expect(items[0]!.text()).toContain('Bloqueia o fechamento')
+    expect(items[0]!.text()).toContain('300,00')
+    expect(items[0]!.text()).not.toContain('R$')
+    expect(items[1]!.text()).toContain('0 compras · Aberta')
     expect(items[1]!.text()).toContain('Fecha sozinha com valor zero')
+    expect(items[2]!.text()).toContain('1 compra · Fechada')
     expect(items[2]!.text()).toContain('Pagamento de fatura nas pendências')
+    expect(items[3]!.text()).toContain('1 compra · Paga')
     expect(items[3]!.text()).toContain('Paga')
     expect(
       wrapper.findAll('button').filter((button) => button.text() === 'Fechar fatura'),
     ).toHaveLength(1)
   })
 
-  it('shows an invoice with no note when it is open but neither blocks nor closes by itself', async () => {
-    const { wrapper } = await render('/financial/closing', blocked, {
-      invoices: [
-        { id: 'i-9', status: 'OPEN', value: 10, card: { id: 'k-9', name: 'Outro' } },
-      ] as InvoiceView[],
-    })
-
-    expect(wrapper.find('[data-slot="invoices"] li [data-note]').exists()).toBe(false)
-  })
-
   it('closes the blocking invoice from a dialog and reloads', async () => {
     const { wrapper } = await render()
-    vi.mocked(invoicesApi.close).mockResolvedValue({ ...invoices[0]!, status: 'CLOSED' })
+    vi.mocked(invoicesApi.close).mockResolvedValue({ id: 'i-1', status: 'CLOSED' } as never)
 
     await buttonWithText(wrapper, 'Fechar fatura').trigger('click')
     await settle()
     expect(document.body.textContent).toContain('Fechar Outubro')
-    expect(cardPurchasesApi.findAll).toHaveBeenCalledWith({ invoice: 'i-1', size: 1 })
+    expect(cardsApi.findById).toHaveBeenCalledWith('k-i-1')
     expect(document.body.textContent).toContain('Conta')
     dialogButton('Fechar fatura').click()
     await settle()
@@ -374,7 +504,7 @@ describe('PeriodClosingView', () => {
   })
 
   it('closes the closing dialog with Escape', async () => {
-    const { wrapper } = await render('/financial/closing', ready, { pendencies: [], invoices: [] })
+    const { wrapper } = await render('/financial/closing', ready, { pendencies: [] })
 
     await buttonWithText(wrapper, 'Fechar Outubro').trigger('click')
     await flushPromises()
@@ -484,6 +614,12 @@ describe('PeriodClosingView', () => {
     expect(wrapper.find('[data-slot="no-next-period"]').text()).toContain(
       'Pague tudo ou crie um período para mover.',
     )
+    expect(wrapper.find('[data-slot="checklist"]').text()).toContain(
+      'Não há: pague tudo ou crie um',
+    )
+    expect(wrapper.find('[data-slot="checklist"]').findAll('li')[2]!.attributes('data-done')).toBe(
+      'false',
+    )
     expect(
       wrapper
         .find('[data-slot="pendencies"]')
@@ -497,20 +633,80 @@ describe('PeriodClosingView', () => {
     expect(router.currentRoute.value.name).toBe('financial-periods.create')
   })
 
+  it('reads a missing next period the same as a null one', async () => {
+    const withoutNext: Partial<ClosingSummaryView> = { ...blocked }
+    delete withoutNext.nextOpenPeriod
+    const { wrapper } = await render('/financial/closing', withoutNext as ClosingSummaryView)
+
+    expect(wrapper.find('[data-slot="no-next-period"]').exists()).toBe(true)
+  })
+
+  it('pays every pending item with the first active wallet from the alert', async () => {
+    const { wrapper } = await render('/financial/closing', {
+      ...blocked,
+      nextOpenPeriod: null,
+      targetPeriods: [],
+    })
+    vi.mocked(movementsApi.pay).mockResolvedValue({} as never)
+
+    await buttonWithText(wrapper, 'Pagar tudo').trigger('click')
+    await settle()
+
+    expect(vi.mocked(movementsApi.pay).mock.calls).toEqual([
+      ['m-1', { wallet: 'w-1' }],
+      ['m-2', { wallet: 'w-1' }],
+      ['m-3', { wallet: 'w-1' }],
+    ])
+    expect(toast.success).toHaveBeenCalledWith('Pendências pagas', {
+      description: 'Saíram de Conta.',
+      duration: 4000,
+    })
+    expect(financialPeriodsApi.findClosing).toHaveBeenCalledTimes(2)
+  })
+
+  it('shows what the server refuses when paying everything and still reloads', async () => {
+    const { wrapper } = await render('/financial/closing', {
+      ...blocked,
+      nextOpenPeriod: null,
+      targetPeriods: [],
+    })
+    vi.mocked(movementsApi.pay).mockRejectedValue(problem(400, { error: 'movement-already-paid' }))
+
+    await buttonWithText(wrapper, 'Pagar tudo').trigger('click')
+    await settle()
+
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
+    expect(toast.success).not.toHaveBeenCalled()
+    expect(financialPeriodsApi.findClosing).toHaveBeenCalledTimes(2)
+  })
+
+  it('cannot pay everything without an active wallet', async () => {
+    const { wrapper } = await render(
+      '/financial/closing',
+      { ...blocked, nextOpenPeriod: null, targetPeriods: [] },
+      { wallets: [] },
+    )
+
+    expect(buttonWithText(wrapper, 'Pagar tudo').attributes('disabled')).toBeDefined()
+  })
+
   it('says there is nothing pending and nothing in the invoices', async () => {
     const { wrapper } = await render('/financial/closing', ready, {
       pendencies: [],
-      invoices: [],
     })
 
-    expect(wrapper.find('[data-slot="no-pendencies"]').text()).toBe('Nenhuma pendência')
-    expect(wrapper.find('[data-slot="no-invoices"]').text()).toBe('Nenhuma fatura neste período')
+    expect(wrapper.find('[data-slot="no-pendencies"]').text()).toContain('Nenhuma pendência')
+    expect(wrapper.find('[data-slot="no-pendencies"]').text()).toContain(
+      'Tudo o que estava em aberto foi pago ou movido.',
+    )
+    expect(wrapper.find('[data-slot="no-invoices"]').text()).toBe(
+      'Nenhum cartão ativo neste período.',
+    )
   })
 
   it('closes the period after confirming, tells the result and goes to the periods', async () => {
     const { wrapper, router } = await render('/financial/closing', ready, {
       pendencies: [],
-      invoices: [],
     })
     vi.mocked(financialPeriodsApi.close).mockResolvedValue({
       revenues: 1000,
@@ -526,7 +722,7 @@ describe('PeriodClosingView', () => {
     expect(document.body.textContent).toContain('Fechar Outubro?')
     expect(document.body.textContent).toContain('Grava o resultado e congela o período.')
     expect(document.body.querySelector('[data-slot="close-summary"]')!.textContent).toMatch(
-      /Resultado\s*\+\s*R\$\s*600,00/,
+      /Resultado.*600,00/,
     )
     dialogButton('Fechar período').click()
     await settle()
@@ -544,7 +740,7 @@ describe('PeriodClosingView', () => {
   })
 
   it('signs a negative result in the toast', async () => {
-    const { wrapper } = await render('/financial/closing', ready, { pendencies: [], invoices: [] })
+    const { wrapper } = await render('/financial/closing', ready, { pendencies: [] })
     vi.mocked(financialPeriodsApi.close).mockResolvedValue({
       revenues: 100,
       expenses: 400,
@@ -566,7 +762,7 @@ describe('PeriodClosingView', () => {
   })
 
   it('keeps the dialog open when the server refuses to close and lets the user back out', async () => {
-    const { wrapper } = await render('/financial/closing', ready, { pendencies: [], invoices: [] })
+    const { wrapper } = await render('/financial/closing', ready, { pendencies: [] })
     vi.mocked(financialPeriodsApi.close).mockRejectedValue(
       problem(400, { error: 'financial-period-with-open-movements' }),
     )
@@ -628,6 +824,11 @@ describe('PeriodClosingView', () => {
       routes: [
         ...crudTestRoutes('financial-periods'),
         { path: '/financial/closing', name: 'closing', component: PeriodClosingView },
+        {
+          path: '/financial/movements/:id/detail',
+          name: 'movements.detail',
+          component: PeriodClosingView,
+        },
       ],
       stubActions: false,
       initialState: {},

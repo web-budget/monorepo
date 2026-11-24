@@ -79,3 +79,34 @@ describe('CurrencyDisplay layout', () => {
     expect(wrapper.text()).toContain('50,00')
   })
 })
+
+describe('CurrencyDisplay sign', () => {
+  function renderForced(value: number, sign: 'income' | 'expense', neutral = false) {
+    return mount(CurrencyDisplay, {
+      props: { value, sign, glued: true, bare: true, neutral },
+      global: { plugins: [i18n] },
+    })
+  }
+
+  it('forces the sign and the color of a revenue, even at zero', () => {
+    const wrapper = renderForced(0, 'income')
+
+    expect(wrapper.text()).toBe('+0,00')
+    expect(wrapper.classes()).toContain('text-income')
+    expect(wrapper.attributes('data-direction')).toBe('income')
+  })
+
+  it('forces the sign and the color of an expense, always with the proper minus', () => {
+    const wrapper = renderForced(0, 'expense')
+
+    expect(wrapper.text()).toBe('−0,00')
+    expect(wrapper.classes()).toContain('text-expense')
+  })
+
+  it('shows the absolute value after the forced sign, and keeps it uncolored when neutral', () => {
+    const wrapper = renderForced(-400, 'expense', true)
+
+    expect(wrapper.text()).toBe('−400,00')
+    expect(wrapper.classes()).not.toContain('text-expense')
+  })
+})

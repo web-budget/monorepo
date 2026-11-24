@@ -6,11 +6,12 @@ export interface InstallmentProgress {
   percentage: number
 }
 
+// The server leaves null fields out, so a missing deadline arrives as undefined, not as null.
 export function installmentProgress(
   recurringMovement: Pick<RecurringMovementView, 'installments' | 'launchedInstallments'>,
 ): InstallmentProgress | null {
   const { installments, launchedInstallments } = recurringMovement
-  if (installments === null) {
+  if (installments == null) {
     return null
   }
   const current = launchedInstallments ?? 0
@@ -30,4 +31,14 @@ export function signedValue(
 ): number {
   const value = displayedValue(recurringMovement)
   return recurringMovement.type === 'INCOME' ? value : -value
+}
+
+export function monthAndYear(isoDate: string): string {
+  return `${isoDate.slice(5, 7)}/${isoDate.slice(0, 4)}`
+}
+
+export function isLaunchedIn(
+  recurringMovement: Pick<RecurringMovementView, 'launchedInPeriod'>,
+): boolean {
+  return recurringMovement.launchedInPeriod != null
 }

@@ -1,16 +1,15 @@
 <script setup lang="ts">
-import { Ellipsis, Eye, Undo2 } from 'lucide-vue-next'
+import { CreditCard, Ellipsis, Pencil, Trash2 } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-defineProps<{ returnable: boolean }>()
-
-const emit = defineEmits<{ details: []; 'give-back': [] }>()
+const emit = defineEmits<{ edit: []; invoices: []; remove: [] }>()
 </script>
 
 <template>
@@ -21,11 +20,15 @@ const emit = defineEmits<{ details: []; 'give-back': [] }>()
       </Button>
     </DropdownMenuTrigger>
     <DropdownMenuContent align="end" class="min-w-44">
-      <DropdownMenuItem @select="emit('details')">
-        <Eye />{{ $t('transfer.actions.details') }}
+      <DropdownMenuItem @select="emit('edit')">
+        <Pencil />{{ $t('crud.actions.edit') }}
       </DropdownMenuItem>
-      <DropdownMenuItem v-if="returnable" @select="emit('give-back')">
-        <Undo2 />{{ $t('transfer.actions.give-back') }}
+      <DropdownMenuItem @select="emit('invoices')">
+        <CreditCard />{{ $t('card.actions.view-invoices') }}
+      </DropdownMenuItem>
+      <DropdownMenuSeparator />
+      <DropdownMenuItem variant="destructive" @select="emit('remove')">
+        <Trash2 />{{ $t('crud.actions.remove') }}
       </DropdownMenuItem>
     </DropdownMenuContent>
   </DropdownMenu>

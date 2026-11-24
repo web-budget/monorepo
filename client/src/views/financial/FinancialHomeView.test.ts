@@ -135,11 +135,7 @@ describe('FinancialHomeView', () => {
 
     expect(movementsApi.findAll).toHaveBeenCalledWith({ financialPeriods: ['nov'], size: 1 })
     expect(invoicesApi.findAll).toHaveBeenCalledWith({ financialPeriod: 'nov', size: 1 })
-    expect(recurringMovementsApi.findAll).toHaveBeenCalledWith({
-      active: true,
-      finished: false,
-      size: 1,
-    })
+    expect(recurringMovementsApi.findAll).toHaveBeenCalledWith({ ended: false, size: 1 })
   })
 
   it('uses the singular and shows no badge when nothing asks for attention', async () => {

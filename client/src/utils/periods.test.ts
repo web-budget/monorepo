@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { FinancialPeriodListView } from '@/types'
-import { defaultClosingPeriod, oldestExpired, periodMonthName } from '@/utils/periods'
+import { defaultClosingPeriod, monthOf, oldestExpired, periodMonthName } from '@/utils/periods'
 
 function period(
   id: string,
@@ -9,7 +9,7 @@ function period(
   status: 'OPEN' | 'CLOSED',
   expired: boolean,
 ): FinancialPeriodListView {
-  return { id, name: id, startingAt, endingAt, status, expired }
+  return { id, name: id, startingAt, endingAt, status, expired, reopenable: false }
 }
 
 const october = period('october', '2026-10-01', '2026-10-31', 'OPEN', true)
@@ -46,5 +46,16 @@ describe('periodMonthName', () => {
   it('names the month the period ends in, capitalised, in the locale', () => {
     expect(periodMonthName('2026-10-31', 'pt-BR')).toBe('Outubro')
     expect(periodMonthName('2026-10-31', 'en-US')).toBe('October')
+  })
+})
+
+describe('monthOf', () => {
+  it('keeps only the month of a period name', () => {
+    expect(monthOf('Outubro de 2026')).toBe('Outubro')
+  })
+
+  it('keeps a name that has no year, and an empty one', () => {
+    expect(monthOf('Outubro')).toBe('Outubro')
+    expect(monthOf(undefined)).toBe('')
   })
 })

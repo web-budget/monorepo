@@ -1,10 +1,10 @@
 import { flushPromises } from '@vue/test-utils'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { transfersApi } from '@/api/transfers'
 import { walletsApi } from '@/api/wallets'
 import FilterSelect from '@/components/forms/FilterSelect.vue'
 import GiveBackDialog from '@/components/transfers/GiveBackDialog.vue'
-import { buttonWithText, chooseRowAction, mountView, pageOf, problem } from '@/test/crud'
+import { buttonWithText, mountView, useCompactViewport, pageOf, problem } from '@/test/crud'
 import type { TransferQuery, TransferView, WalletView } from '@/types'
 import TransferListView from '@/views/financial/transfers/TransferListView.vue'
 
@@ -78,6 +78,20 @@ describe('TransferListView', () => {
     document.body.replaceChildren()
   })
 
+  afterEach(() => {
+    useCompactViewport(false)
+  })
+
+  it('shows both wallets in the title of the compact card on a small screen', async () => {
+    useCompactViewport(true)
+
+    const { wrapper } = await render()
+
+    const card = wrapper.find('[data-layout="compact"]')
+    expect(card.text()).toContain('Conta corrente → Poupança')
+    expect(card.text()).toContain('Aluguel')
+  })
+
   it('lists the transfers with the wallets, the value, the note and the situation', async () => {
     const { wrapper } = await render()
 
@@ -97,11 +111,14 @@ describe('TransferListView', () => {
     expect(rows[0]!.text()).toContain('14:02')
     expect(rows[0]!.text()).toContain('Conta corrente')
     expect(rows[0]!.text()).toContain('Poupança')
-    expect(rows[0]!.text()).toMatch(/R\$\s500,00/)
+    expect(rows[0]!.text()).toContain('500,00')
+    expect(rows[0]!.text()).not.toContain('R$')
     expect(rows[0]!.text()).toContain('Aluguel')
     expect(rows[1]!.text()).toContain('Devolvida')
     expect(rows[1]!.text()).toContain('—')
-    expect(rows[2]!.text()).toContain('Devolução de 19/11/2026')
+    expect(rows[0]!.text()).toContain('Devolver')
+    expect(rows[1]!.text()).not.toContain('Devolver')
+    expect(rows[2]!.text()).toContain('Devolução de 19/11')
   })
 
   it('opens with the state of the URL, which stays there', async () => {
@@ -219,15 +236,6 @@ describe('TransferListView', () => {
     expect(router.currentRoute.value.name).toBe('transfers.create')
   })
 
-  it('opens the detail of a transfer from the row menu', async () => {
-    const { wrapper, router } = await render()
-
-    await chooseRowAction(wrapper, 0, 'Ver detalhes')
-
-    expect(router.currentRoute.value.name).toBe('transfers.detail')
-    expect(router.currentRoute.value.params.id).toBe('t-1')
-  })
-
   it('opens the detail of a transfer from the row', async () => {
     const { wrapper, router } = await render()
 
@@ -240,7 +248,7 @@ describe('TransferListView', () => {
   it('closes the give back dialog without giving back', async () => {
     const { wrapper } = await render()
 
-    await chooseRowAction(wrapper, 0, 'Devolver')
+    await buttonWithText(wrapper, 'Devolver').trigger('click')
     wrapper.getComponent(GiveBackDialog).vm.$emit('close')
     await flushPromises()
 
@@ -248,11 +256,11 @@ describe('TransferListView', () => {
     expect(transfersApi.giveBack).not.toHaveBeenCalled()
   })
 
-  it('gives a transfer back from the row menu', async () => {
+  it('gives a transfer back from the row', async () => {
     vi.mocked(transfersApi.giveBack).mockResolvedValue('t-9')
     const { wrapper, router } = await render()
 
-    await chooseRowAction(wrapper, 0, 'Devolver')
+    await buttonWithText(wrapper, 'Devolver').trigger('click')
     const dialog = wrapper.getComponent(GiveBackDialog)
     expect(dialog.props('transfer')).toMatchObject({ id: 't-1' })
     dialog.vm.$emit('confirm', dialog.props('transfer'))

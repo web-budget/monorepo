@@ -23,9 +23,21 @@ export const financialRoutes: RouteRecordRaw[] = [
       }),
       {
         path: 'statement',
-        name: 'statement',
         meta: { breadcrumb: 'statement.menu' },
-        component: () => import('@/views/financial/statement/StatementView.vue'),
+        children: [
+          {
+            path: '',
+            name: 'statement',
+            component: () => import('@/views/financial/statement/StatementView.vue'),
+          },
+          {
+            path: ':wallet/:id/detail',
+            name: 'statement.detail',
+            props: true,
+            meta: { breadcrumb: 'statement.detailing' },
+            component: () => import('@/views/financial/statement/StatementEntryView.vue'),
+          },
+        ],
       },
       {
         path: 'transfers',
@@ -67,6 +79,12 @@ export const financialRoutes: RouteRecordRaw[] = [
             meta: { breadcrumb: 'credit-card-invoice.detail.breadcrumb' },
             component: () => import('@/views/financial/invoices/InvoiceDetailView.vue'),
           },
+          {
+            path: 'import',
+            name: 'invoices.import',
+            meta: { breadcrumb: 'credit-card-invoice.import.breadcrumb' },
+            component: () => import('@/views/financial/invoices/InvoiceImportView.vue'),
+          },
           { path: 'purchases', name: 'purchases', redirect: { name: 'invoices' } },
           {
             path: 'purchases/create',
@@ -92,9 +110,15 @@ export const financialRoutes: RouteRecordRaw[] = [
       },
       {
         path: 'closing',
-        name: 'closing',
-        meta: { breadcrumb: 'period-closing.breadcrumb' },
-        component: () => import('@/views/financial/closing/PeriodClosingView.vue'),
+        meta: { breadcrumb: 'period-closing.menu' },
+        children: [
+          {
+            path: '',
+            name: 'closing',
+            meta: { breadcrumb: 'period-closing.breadcrumb' },
+            component: () => import('@/views/financial/closing/PeriodClosingView.vue'),
+          },
+        ],
       },
       crudRoutes({
         path: 'recurring-movements',

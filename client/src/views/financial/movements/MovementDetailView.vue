@@ -15,7 +15,6 @@ import DateTimeDisplay from '@/components/common/DateTimeDisplay.vue'
 import DetailCard from '@/components/common/DetailCard.vue'
 import DetailField from '@/components/common/DetailField.vue'
 import DetailSection from '@/components/common/DetailSection.vue'
-import InvoiceStatusBadge from '@/components/invoices/InvoiceStatusBadge.vue'
 import MovementStatusBadge from '@/components/movements/MovementStatusBadge.vue'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import PayMovementDialog from '@/components/movements/PayMovementDialog.vue'
@@ -80,10 +79,12 @@ const viewTarget = computed(() => {
     return {
       label: 'movement.actions.view-invoice',
       icon: CreditCard,
-      to: {
-        name: 'invoices',
-        query: { card: payment.card.id, period: movement.value?.financialPeriod.id },
-      },
+      to: payment.invoice
+        ? { name: 'invoices.detail', params: { id: payment.invoice.id } }
+        : {
+            name: 'invoices',
+            query: { card: payment.card.id, period: movement.value?.financialPeriod.id },
+          },
     }
   }
   if (payment?.wallet) {
@@ -108,6 +109,11 @@ const viewTarget = computed(() => {
     @delete="remove"
   >
     <template #extra-actions>
+      <Button v-if="movement?.invoice && !locked" as-child type="button" variant="outline">
+        <RouterLink :to="{ name: 'invoices.detail', params: { id: movement.invoice.id } }">
+          <CreditCard />{{ $t('movement.actions.view-the-invoice') }}
+        </RouterLink>
+      </Button>
       <Button v-if="canPay" type="button" @click="openPay()">
         <Banknote />{{
           $t(movement!.type === 'INCOME' ? 'movement.actions.receive' : 'movement.actions.pay')
@@ -199,36 +205,13 @@ const viewTarget = computed(() => {
             {{ movement.recurringMovement.name }}
           </RouterLink>
         </DetailField>
-        <template v-if="!movement.invoice">
-          <DetailField
-            :label="$t('movement.detail.cost-center')"
-            :value="movement.costCenter?.fullName"
-          />
-          <DetailField
-            :label="$t('movement.detail.classification')"
-            :value="movement.classification?.name"
-          />
-        </template>
-      </DetailSection>
-      <DetailSection
-        v-if="movement.invoice"
-        :title="$t('movement.sections.invoice')"
-        columns="md:grid-cols-3"
-      >
-        <DetailField
-          :label="$t('movement.detail.invoice-card')"
-          :value="movement.invoice.card.name"
-        />
-        <DetailField :label="$t('movement.detail.invoice-status')">
-          <InvoiceStatusBadge :status="movement.invoice.status" />
+        <DetailField :label="$t('movement.detail.cost-center')">
+          <template v-if="movement.costCenter">{{ movement.costCenter.fullName }}</template>
+          <span v-else class="text-muted-foreground">—</span>
         </DetailField>
-        <DetailField :label="$t('movement.detail.invoice')">
-          <RouterLink
-            :to="`/financial/invoices/${movement.invoice.id}/detail`"
-            class="underline underline-offset-2"
-          >
-            {{ $t('movement.detail.invoice-link') }}
-          </RouterLink>
+        <DetailField :label="$t('movement.detail.classification')">
+          <template v-if="movement.classification">{{ movement.classification.name }}</template>
+          <span v-else class="text-muted-foreground">—</span>
         </DetailField>
       </DetailSection>
       <DetailSection :title="$t('movement.sections.payment')" columns="md:grid-cols-3">

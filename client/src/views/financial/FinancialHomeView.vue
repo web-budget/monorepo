@@ -58,9 +58,7 @@ const { counts } = useModuleCounts<number | string>({
       return defaultWallet(wallets.wallets.value)?.name ?? null
     }),
   '/financial/recurring-movements': () =>
-    safely(() =>
-      totalOf(recurringMovementsApi.findAll({ active: true, finished: false, size: 1 })),
-    ),
+    safely(() => totalOf(recurringMovementsApi.findAll({ ended: false, size: 1 }))),
   '/financial/invoices': () =>
     inDefaultPeriod((period) =>
       totalOf(invoicesApi.findAll({ financialPeriod: period.id, size: 1 })),

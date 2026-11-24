@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ArrowRight } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import FilterSelect from '@/components/forms/FilterSelect.vue'
@@ -38,7 +39,7 @@ const chosen = ref('')
 watch(
   () => props.movement,
   () => {
-    chosen.value = props.suggested?.id ?? ''
+    chosen.value = props.suggested?.id ?? props.targets[0]?.id ?? ''
   },
 )
 
@@ -64,11 +65,10 @@ function confirm() {
       <div class="flex flex-col gap-4">
         <DialogHeader>
           <DialogTitle>{{ $t('period-closing.move.title', { name: movement?.name }) }}</DialogTitle>
-          <DialogDescription>{{ $t('period-closing.move.description') }}</DialogDescription>
+          <DialogDescription class="sr-only">{{ movement?.name }}</DialogDescription>
         </DialogHeader>
         <FilterSelect
           :label="$t('period-closing.move.period')"
-          :none-label="$t('period-closing.move.none')"
           :options="choices"
           :model-value="chosen"
           @update:model-value="(value: string) => (chosen = value)"
@@ -78,7 +78,7 @@ function confirm() {
             {{ $t('form.cancel') }}
           </Button>
           <Button type="button" :disabled="loading || chosen === ''" @click="confirm()">
-            {{ $t('period-closing.move.confirm') }}
+            <ArrowRight />{{ $t('period-closing.move.confirm') }}
           </Button>
         </DialogFooter>
       </div>

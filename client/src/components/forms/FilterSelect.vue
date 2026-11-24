@@ -16,6 +16,7 @@ const props = defineProps<{
   noneLabel?: string
   options: { label: string; value: string }[]
   class?: string
+  hideLabel?: boolean
 }>()
 
 const model = defineModel<string>({ required: true })
@@ -30,9 +31,9 @@ const selected = computed({
 
 <template>
   <div :class="['grid min-w-0 content-start gap-2', props.class]">
-    <Label>{{ label }}</Label>
+    <Label v-if="!hideLabel">{{ label }}</Label>
     <Select v-model="selected">
-      <SelectTrigger class="w-full" :aria-label="label">
+      <SelectTrigger class="w-full min-w-0" :aria-label="label">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>

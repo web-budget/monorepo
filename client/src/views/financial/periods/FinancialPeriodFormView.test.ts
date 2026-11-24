@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'vue-sonner'
 import { financialPeriodsApi } from '@/api/financialPeriods'
 import { buttonWithText, mountView, problem, settle } from '@/test/crud'
-import type { FinancialPeriodView } from '@/types'
+import type { FinancialPeriodCreationPreview, FinancialPeriodView } from '@/types'
 import FinancialPeriodFormView from '@/views/financial/periods/FinancialPeriodFormView.vue'
 
 vi.mock('@/api/financialPeriods')
@@ -24,8 +24,28 @@ const existing: FinancialPeriodView = {
   endingAt: '2026-01-31',
   status: 'OPEN',
   expired: false,
+  reopenable: false,
   revenuesGoal: 5000,
   expensesGoal: null,
+}
+
+const preview: FinancialPeriodCreationPreview = {
+  recurringMovements: [
+    { id: 'r-1', name: 'Salário', type: 'INCOME', value: 8400 },
+    { id: 'r-2', name: 'Aluguel', type: 'EXPENSE', value: 1850 },
+    {
+      id: 'r-3',
+      name: 'Celular novo',
+      type: 'EXPENSE',
+      value: 249.9,
+      installment: 11,
+      installments: 12,
+    },
+  ],
+  invoices: [
+    { id: 'k-1', name: 'Visa Platinum', lastFourDigits: '4821' },
+    { id: 'k-2', name: 'Mastercard Gold', lastFourDigits: '1177' },
+  ],
 }
 
 function field(wrapper: Wrapper, name: string) {
@@ -47,6 +67,7 @@ describe('FinancialPeriodFormView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     document.body.replaceChildren()
+    vi.mocked(financialPeriodsApi.findCreationPreview).mockResolvedValue(preview)
   })
 
   it('shows the title, the sections and no status toggle, and asks for the required fields', async () => {
@@ -87,7 +108,7 @@ describe('FinancialPeriodFormView', () => {
       expensesGoal: null,
     })
     expect(toast.success).toHaveBeenCalledWith('Período criado', {
-      description: '“January” já aceita lançamentos.',
+      description: '0 recorrentes lançados e 2 faturas abertas.',
       duration: 4000,
     })
     expect(router.currentRoute.value.name).not.toBe('financial-periods.detail')
@@ -140,7 +161,7 @@ describe('FinancialPeriodFormView', () => {
     await submit(wrapper)
 
     expect(toast.success).toHaveBeenCalledWith('Período criado', {
-      description: '“January” já aceita lançamentos. 2 recorrentes lançados.',
+      description: '2 recorrentes lançados e 2 faturas abertas.',
       duration: 4000,
     })
   })
@@ -156,9 +177,90 @@ describe('FinancialPeriodFormView', () => {
     await submit(wrapper)
 
     expect(toast.success).toHaveBeenCalledWith('Período criado', {
-      description: '“January” já aceita lançamentos. 1 recorrente lançado.',
+      description: '1 recorrente lançado e 2 faturas abertas.',
       duration: 4000,
     })
+  })
+
+  it('says one invoice was opened in the singular', async () => {
+    vi.mocked(financialPeriodsApi.findCreationPreview).mockResolvedValue({
+      ...preview,
+      invoices: preview.invoices.slice(0, 1),
+    })
+    vi.mocked(financialPeriodsApi.create).mockResolvedValue({
+      id: 'p-9',
+      recurringLaunch: { launched: [], skipped: [] },
+    })
+    const { wrapper } = await mountView(FinancialPeriodFormView, 'financial-periods')
+
+    await fillCreation(wrapper)
+    await submit(wrapper)
+
+    expect(toast.success).toHaveBeenCalledWith('Período criado', {
+      description: '0 recorrentes lançados e 1 fatura aberta.',
+      duration: 4000,
+    })
+  })
+
+  it('shows what entering the period will do, beside the form', async () => {
+    const { wrapper } = await mountView(FinancialPeriodFormView, 'financial-periods')
+
+    const aside = wrapper.find('[data-slot="creation-preview"]')
+    expect(aside.text()).toContain('Ao criar este período')
+    expect(aside.text()).toContain('Recorrentes automáticos lançados:')
+    const recurring = aside.findAll('li').slice(0, 3)
+    expect(recurring.map((item) => item.text())).toEqual([
+      'Salário +8.400,00',
+      'Aluguel −1.850,00',
+      'Celular novo 11/12−249,90',
+    ])
+    expect(aside.text()).toContain('Faturas abertas criadas:')
+    expect(
+      aside
+        .findAll('li')
+        .slice(3)
+        .map((item) => item.text()),
+    ).toEqual(['Visa Platinum ••4821', 'Mastercard Gold ••1177'])
+  })
+
+  it('shows no aside when the server says nothing will be created', async () => {
+    vi.mocked(financialPeriodsApi.findCreationPreview).mockResolvedValue({
+      recurringMovements: [],
+      invoices: [],
+    })
+    const { wrapper } = await mountView(FinancialPeriodFormView, 'financial-periods')
+
+    expect(wrapper.find('[data-slot="creation-preview"]').exists()).toBe(false)
+  })
+
+  it('shows no aside when the preview cannot be loaded and still creates the period', async () => {
+    vi.mocked(financialPeriodsApi.findCreationPreview).mockRejectedValue(problem(500))
+    vi.mocked(financialPeriodsApi.create).mockResolvedValue({
+      id: 'p-9',
+      recurringLaunch: { launched: [], skipped: [] },
+    })
+    const { wrapper } = await mountView(FinancialPeriodFormView, 'financial-periods')
+    expect(wrapper.find('[data-slot="creation-preview"]').exists()).toBe(false)
+
+    await fillCreation(wrapper)
+    await submit(wrapper)
+
+    expect(toast.success).toHaveBeenCalled()
+    expect(toast.error).not.toHaveBeenCalled()
+  })
+
+  it('loads the preview again after creating, because the installments moved', async () => {
+    vi.mocked(financialPeriodsApi.create).mockResolvedValue({
+      id: 'p-9',
+      recurringLaunch: { launched: [], skipped: [] },
+    })
+    const { wrapper } = await mountView(FinancialPeriodFormView, 'financial-periods')
+    expect(financialPeriodsApi.findCreationPreview).toHaveBeenCalledTimes(1)
+
+    await fillCreation(wrapper)
+    await submit(wrapper)
+
+    expect(financialPeriodsApi.findCreationPreview).toHaveBeenCalledTimes(2)
   })
 
   it('shows the error that undoes the creation when a launch fails', async () => {
@@ -230,6 +332,8 @@ describe('FinancialPeriodFormView', () => {
     expect(field(wrapper, 'endingAt').attributes('disabled')).toBeDefined()
     expect((field(wrapper, 'revenuesGoal').element as HTMLInputElement).value).toBe('5.000,00')
     expect(wrapper.text()).toContain('Sem sobreposição com outro período.')
+    expect(wrapper.find('[data-slot="creation-preview"]').exists()).toBe(false)
+    expect(financialPeriodsApi.findCreationPreview).not.toHaveBeenCalled()
   })
 
   it('saves the new name and goals only, and goes to the detail', async () => {
