@@ -38,7 +38,7 @@ const { messages, fields, submitting, loadingRecord, dirty, changeToList, onSubm
     toFormValues: toCostCenterFormValues,
     create: (values) => store.create(toCostCenterCreateForm(values)),
     update: (id, values) => store.update(id, toCostCenterUpdateForm(values)),
-    redirectToDetail: true,
+    detailAfterUpdate: true,
   })
 
 const updating = computed(() => props.id !== undefined)

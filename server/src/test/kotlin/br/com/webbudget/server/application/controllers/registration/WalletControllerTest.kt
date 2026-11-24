@@ -108,20 +108,59 @@ class WalletControllerTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `should filter by name, description and bank ignoring case`() {
+    fun `should filter by name and bank ignoring case and not by the description`() {
 
         assertThat(namesFilteredBy("PERSONAL")).containsExactlyInAnyOrder("Personal")
-        assertThat(namesFilteredBy("not used")).containsExactlyInAnyOrder("Old wallet")
         assertThat(namesFilteredBy("brok")).containsExactlyInAnyOrder("Investments")
-        assertThat(namesFilteredBy("wallet")).containsExactlyInAnyOrder("Personal", "Old wallet", "Bank account", "Investments")
+        assertThat(namesFilteredBy("wallet")).containsExactlyInAnyOrder("Old wallet")
+        assertThat(namesFilteredBy("not used")).isEmpty()
     }
 
     @Test
-    fun `should filter by the exact agency and number`() {
+    fun `should filter by part of the agency and number`() {
 
         assertThat(namesFilteredBy("321")).containsExactly("Investments")
         assertThat(namesFilteredBy("456789")).containsExactly("Bank account")
-        assertThat(namesFilteredBy("32")).isEmpty()
+        assertThat(namesFilteredBy("4567")).containsExactly("Bank account")
+        assertThat(namesFilteredBy("32")).containsExactly("Investments")
+        assertThat(namesFilteredBy("99999")).isEmpty()
+    }
+
+    @Test
+    fun `should list the balance, agency and number of each wallet`() {
+
+        restTestClient.get()
+            .uri("$ENDPOINT_URL?sort=currentBalance,desc&size=1")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.content[0].name").isEqualTo("Bank account")
+            .jsonPath("$.content[0].currentBalance").isEqualTo(150.5)
+            .jsonPath("$.content[0].agency").isEqualTo("123")
+            .jsonPath("$.content[0].number").isEqualTo("456789")
+            .jsonPath("$.content[0].bank").isEqualTo("Bank")
+    }
+
+    @Test
+    fun `should sort the wallets by type and balance`() {
+
+        restTestClient.get()
+            .uri("$ENDPOINT_URL?sort=type,asc&sort=name,asc&size=1")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.content[0].name").isEqualTo("Bank account")
+    }
+
+    @Test
+    fun `should not tell the last entry of a wallet without entries`() {
+
+        restTestClient.get()
+            .uri("$ENDPOINT_URL/$PERSONAL_ID")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.lastEntryOn").doesNotExist()
     }
 
     @Test

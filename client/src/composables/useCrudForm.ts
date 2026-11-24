@@ -19,11 +19,17 @@ interface CrudFormOptions<Values extends GenericObject, Output extends GenericOb
   create: (values: Output) => Promise<string>
   update: (id: string, values: Output) => Promise<unknown>
   confirm?: (updating: boolean) => Promise<boolean>
-  redirectToDetail?: boolean
+  detailAfterUpdate?: boolean
 }
+
+const FIRST_CONTROL = 'form fieldset :is(input, textarea, button[role="combobox"]):not([disabled])'
 
 function focusFirstInvalidControl() {
   document.querySelector<HTMLElement>('form [aria-invalid="true"]')?.focus()
+}
+
+function focusFirstControl() {
+  document.querySelector<HTMLElement>(FIRST_CONTROL)?.focus()
 }
 
 export function useCrudForm<Values extends GenericObject, Output extends GenericObject, Entity>(
@@ -58,46 +64,51 @@ export function useCrudForm<Values extends GenericObject, Output extends Generic
 
   const { saved } = useDiscardGuard(() => dirty.value, recordName)
 
-  async function finish(id: string | undefined, updating: boolean) {
-    if (!options.redirectToDetail) {
-      options.form.resetForm(
-        updating ? { values: options.form.values as Resettable<Values, Output> } : undefined,
-      )
+  async function finish(updatedId: string | undefined) {
+    if (updatedId === undefined) {
+      options.form.resetForm()
+      return
+    }
+    if (!options.detailAfterUpdate) {
+      options.form.resetForm({ values: options.form.values as Resettable<Values, Output> })
       return
     }
     saved.value = true
-    await (id
-      ? router.push({ name: `${options.routeName}.detail`, params: { id } })
-      : changeToList())
+    await router.push({ name: `${options.routeName}.detail`, params: { id: updatedId } })
   }
 
   async function save(values: Output) {
     const id = options.id()
     const updating = id !== undefined
     if (options.confirm && !(await options.confirm(updating))) {
-      return
+      return false
     }
-    let savedId: string
     if (updating) {
       await options.update(id, values)
-      savedId = id
     } else {
-      savedId = await options.create(values)
+      await options.create(values)
     }
     const kind = updating ? 'updated' : 'created'
     showSuccess(`${options.entity}.toast.${kind}`, `${options.entity}.toast.${kind}-detail`, true, {
       name: recordName(),
     })
-    await finish(savedId, updating)
+    await finish(id)
+    return !updating
   }
 
   const onSubmit = options.form.handleSubmit(
     async (values) => {
       submitting.value = true
+      let created = false
       try {
-        await run(() => save(values))
+        await run(async () => {
+          created = await save(values)
+        })
       } finally {
         submitting.value = false
+      }
+      if (created) {
+        await nextTick(focusFirstControl)
       }
     },
     () => nextTick(focusFirstInvalidControl),

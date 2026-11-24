@@ -5,6 +5,7 @@ import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
 import br.com.webbudget.server.infrastructure.repository.excluding
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
+import br.com.webbudget.server.jooq.financial.tables.references.WALLET_ENTRIES
 import br.com.webbudget.server.jooq.registration.tables.references.WALLETS
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
@@ -24,7 +25,15 @@ class WalletRepository(
         return dsl.selectFrom(wallets)
             .where(wallets.EXTERNAL_ID.eq(externalId))
             .fetchOne { record -> record.toWallet() }
+            ?.also { wallet -> wallet.lastEntryOn = findLastEntryOn(wallet.id) }
     }
+
+    private fun findLastEntryOn(walletId: Long?): LocalDateTime? = dsl
+        .select(DSL.max(WALLET_ENTRIES.CREATED_ON))
+        .from(WALLET_ENTRIES)
+        .where(WALLET_ENTRIES.ID_WALLET.eq(walletId))
+        .fetchSingle()
+        .value1()
 
     fun findAll(filter: String?, active: Boolean?, pageable: Pageable): PagedModel<Wallet> {
 
@@ -33,10 +42,9 @@ class WalletRepository(
         val textCondition = filter?.let { text ->
             DSL.or(
                 wallets.NAME.containsIgnoreCase(text),
-                wallets.DESCRIPTION.containsIgnoreCase(text),
                 wallets.BANK.containsIgnoreCase(text),
-                wallets.AGENCY.eq(text),
-                wallets.NUMBER.eq(text)
+                wallets.AGENCY.containsIgnoreCase(text),
+                wallets.NUMBER.containsIgnoreCase(text)
             )
         }
 

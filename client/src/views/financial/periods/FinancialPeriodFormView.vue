@@ -29,7 +29,7 @@ const { messages, fields, submitting, loadingRecord, dirty, changeToList, onSubm
   toFormValues: toFinancialPeriodFormValues,
   create: (values) => store.create(toFinancialPeriodCreateForm(values)),
   update: (id, values) => store.update(id, toFinancialPeriodUpdateForm(values)),
-  redirectToDetail: true,
+  detailAfterUpdate: true,
 })
 
 const updating = computed(() => props.id !== undefined)

@@ -110,7 +110,7 @@ describe('WalletFormView', () => {
       expect(field(wrapper, 'bank').exists()).toBe(false)
     })
 
-    it('creates a bank account and goes to its detail', async () => {
+    it('creates a bank account and stays on the cleared form', async () => {
       vi.mocked(walletsApi.create).mockResolvedValue('w-9')
       const { wrapper, router } = await mountView(WalletFormView, 'wallets')
 
@@ -134,19 +134,9 @@ describe('WalletFormView', () => {
         description: '“Main” já aparece nos lançamentos.',
         duration: 4000,
       })
-      expect(router.currentRoute.value.name).toBe('wallets.detail')
-      expect(router.currentRoute.value.params.id).toBe('w-9')
-    })
-
-    it('goes to the listing when the server does not say where the wallet is', async () => {
-      vi.mocked(walletsApi.create).mockResolvedValue('')
-      const { wrapper, router } = await mountView(WalletFormView, 'wallets')
-
-      await field(wrapper, 'name').setValue('Cash')
-      await chooseType(wrapper, 'PERSONAL')
-      await submit(wrapper)
-
-      expect(router.currentRoute.value.name).toBe('wallets')
+      expect(router.currentRoute.value.name).not.toBe('wallets.detail')
+      expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('')
+      expect(document.activeElement).toBe(field(wrapper, 'name').element)
     })
 
     it('drops the bank data of a personal wallet', async () => {

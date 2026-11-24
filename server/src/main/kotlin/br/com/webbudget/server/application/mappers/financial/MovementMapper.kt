@@ -38,10 +38,8 @@ class MovementMapper(
             dueDate = movement.dueDate,
             status = movement.status.name,
             overdue = movement.isOverdue(today),
-            classification = movement.classification?.let {
-                MovementClassificationView(it.externalId, it.name, it.type)
-            },
-            costCenter = movement.costCenter?.let { MovementCostCenterView(it.externalId, it.name, it.fullName) },
+            classification = mapToClassificationView(movement),
+            costCenter = mapToCostCenterView(movement),
             financialPeriod = mapToPeriodView(movement.financialPeriod, today),
             description = movement.description,
             payment = movement.payment?.let { mapToPaymentView(it) },
@@ -63,6 +61,9 @@ class MovementMapper(
             dueDate = movement.dueDate,
             status = movement.status.name,
             overdue = movement.isOverdue(today),
+            paymentMethod = movement.payment?.method?.name,
+            classification = mapToClassificationView(movement),
+            costCenter = mapToCostCenterView(movement),
             financialPeriod = mapToPeriodView(movement.financialPeriod, today)
         )
     }
@@ -98,6 +99,14 @@ class MovementMapper(
         discount = form.discount ?: BigDecimal.ZERO,
         card = form.card?.let { movementReferenceRepository.findCard(it) ?: throw ResourceNotFoundException() }
     )
+
+    private fun mapToClassificationView(movement: Movement) = movement.classification?.let {
+        MovementClassificationView(it.externalId, it.name, it.type)
+    }
+
+    private fun mapToCostCenterView(movement: Movement) = movement.costCenter?.let {
+        MovementCostCenterView(it.externalId, it.name, it.fullName)
+    }
 
     private fun mapToPeriodView(period: FinancialPeriodReference, today: LocalDate) = MovementFinancialPeriodView(
         id = period.externalId,
