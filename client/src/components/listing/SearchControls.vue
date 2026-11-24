@@ -95,11 +95,14 @@ function resetFilter() {
         </button>
       </div>
     </form>
-    <StatusTabs
-      :status="props.status"
-      :options="props.statusOptions"
-      :counts="props.counts"
-      @select="selectStatus"
-    />
+    <div class="flex flex-wrap items-center gap-3">
+      <StatusTabs
+        :status="props.status"
+        :options="props.statusOptions"
+        :counts="props.counts"
+        @select="selectStatus"
+      />
+      <slot />
+    </div>
   </div>
 </template>

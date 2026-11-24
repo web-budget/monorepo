@@ -48,12 +48,14 @@ describe('recurringMovementSchema', () => {
     expect(issuesOf({ ...values, firstInstallment: null })).toEqual([])
   })
 
-  it('starts as an indefinite fixed expense', () => {
+  it('starts as a fixed expense in twelve installments, launched automatically', () => {
     expect(recurringMovementFormDefaults()).toMatchObject({
       type: 'EXPENSE',
       valueKind: 'FIXED',
-      indefinite: true,
-      autoLaunch: false,
+      indefinite: false,
+      installments: 12,
+      firstInstallment: 1,
+      autoLaunch: true,
     })
   })
 })
@@ -124,7 +126,7 @@ describe('payloads', () => {
       toRecurringMovementFormValues({
         ...view,
         installments: 6,
-        card: { id: 'k-1', name: 'Visa' },
+        card: { id: 'k-1', name: 'Visa', lastFourDigits: '4821' },
       }),
     ).toMatchObject({ indefinite: false, installments: 6, card: 'k-1' })
   })

@@ -24,7 +24,9 @@ export function launchValueOf(
 
 export const useRecurringLaunchStore = defineStore('recurringLaunch', () => {
   const filters = ref<ExtraQuery>({})
-  const pageRequest = ref(createPageRequest<string>({ status: 'ALL' }))
+  const pageRequest = ref(
+    createPageRequest<string>({ status: 'ALL', sortField: 'name', direction: 'asc' }),
+  )
   const pageResponse = ref<PageResponse<RecurringMovementView>>(createPageResponse())
   const typedValues = ref<Record<string, number | null>>({})
   const selection = ref<Record<string, RecurringMovementView>>({})
@@ -52,8 +54,7 @@ export const useRecurringLaunchStore = defineStore('recurringLaunch', () => {
     return track(async () => {
       const query = toPageQuery(pageRequest.value)
       const { content, page } = await recurringMovementsApi.findAll({
-        active: true,
-        finished: false,
+        ended: false,
         financialPeriod: filters.value.period || undefined,
         page: query.page,
         size: query.size,
@@ -100,7 +101,11 @@ export const useRecurringLaunchStore = defineStore('recurringLaunch', () => {
 
   function reset() {
     filters.value = {}
-    pageRequest.value = createPageRequest<string>({ status: 'ALL' })
+    pageRequest.value = createPageRequest<string>({
+      status: 'ALL',
+      sortField: 'name',
+      direction: 'asc',
+    })
     pageResponse.value = createPageResponse()
     clearSelection()
   }
