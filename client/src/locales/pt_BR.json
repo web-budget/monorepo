@@ -1307,7 +1307,8 @@
     "undo": {
       "title": "Desfazer o pagamento de “{name}”?",
       "confirm": "Desfazer",
-      "description-wallet": "O valor volta para {wallet} como estorno. O movimento volta para “Em aberto”.",
+      "description-wallet": "O valor volta para {wallet} como {reversal}. O movimento volta para “Em aberto”.",
+      "reversal-word": "estorno",
       "description-card": "A compra sai da fatura de {card}. O movimento volta para “Em aberto”.",
       "reversal": "Estorno de {amount}"
     }

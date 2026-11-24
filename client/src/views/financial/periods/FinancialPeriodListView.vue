@@ -202,6 +202,7 @@ const listCopy = computed(() => ({
         @retry="reload()"
       />
       <ItemsTable
+        active-sort-icon-only
         v-else
         :data="pageResponse.content"
         :total-elements="pageResponse.totalElements"

@@ -168,6 +168,24 @@ describe('ItemsTable', () => {
     ])
   })
 
+  describe('the sort icon', () => {
+    it('shows the icon on every sortable column by default', () => {
+      const wrapper = render()
+
+      expect(headerButton(wrapper, 'Nome').find('svg').exists()).toBe(true)
+    })
+
+    it('shows the icon only on the sorted column when asked to', async () => {
+      const wrapper = render({ activeSortIconOnly: true })
+
+      expect(headerButton(wrapper, 'Nome').find('svg').exists()).toBe(false)
+
+      await headerButton(wrapper, 'Nome').trigger('click')
+
+      expect(headerButton(wrapper, 'Nome').find('svg').exists()).toBe(true)
+    })
+  })
+
   describe('the sort given by the parent', () => {
     it('shows the column and the direction of the sort', () => {
       const wrapper = render({ sortedField: 'name', sortedOrder: 'desc' })

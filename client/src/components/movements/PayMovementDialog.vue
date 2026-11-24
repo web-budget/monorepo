@@ -128,7 +128,7 @@ const submit = form.handleSubmit((values) => {
 
 <template>
   <Dialog :open="movement !== null" @update:open="emit('close')">
-    <DialogContent class="sm:max-w-md">
+    <DialogContent class="sm:max-w-lg">
       <form class="flex flex-col gap-4" novalidate @submit.prevent="submit">
         <DialogHeader>
           <DialogTitle>

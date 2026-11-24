@@ -22,29 +22,43 @@ const { t, n } = useI18n()
 
 const card = computed(() => props.movement?.payment?.card ?? null)
 const wallet = computed(() => props.movement?.payment?.wallet ?? null)
+const credit = computed(() => props.movement?.type !== 'INCOME')
 const reversal = computed(() => {
   const paid = props.movement?.payment?.valuePaid ?? 0
-  const sign = props.movement?.type === 'INCOME' ? '−' : '+'
-  return `${sign}${n(paid, 'currency')}`
+  return `${credit.value ? '+' : '−'}${n(paid, 'currency')}`
 })
 </script>
 
 <template>
   <Dialog :open="movement !== null" @update:open="emit('close')">
-    <DialogContent class="sm:max-w-md">
+    <DialogContent class="sm:max-w-lg">
       <DialogHeader>
         <DialogTitle>{{ t('movement.undo.title', { name: movement?.name }) }}</DialogTitle>
         <DialogDescription>
-          {{
-            card
-              ? t('movement.undo.description-card', { card: card.name })
-              : t('movement.undo.description-wallet', { wallet: wallet?.name })
-          }}
+          <template v-if="card">
+            {{ t('movement.undo.description-card', { card: card.name }) }}
+          </template>
+          <i18n-t v-else keypath="movement.undo.description-wallet" scope="global">
+            <template #wallet>{{ wallet?.name }}</template>
+            <template #reversal>
+              <strong class="text-foreground font-semibold">{{
+                t('movement.undo.reversal-word')
+              }}</strong>
+            </template>
+          </i18n-t>
         </DialogDescription>
       </DialogHeader>
       <Alert data-slot="reversal">
         <Info />
-        <AlertTitle>{{ t('movement.undo.reversal', { amount: reversal }) }}</AlertTitle>
+        <AlertTitle>
+          <i18n-t keypath="movement.undo.reversal" scope="global">
+            <template #amount>
+              <span :class="['font-mono', credit ? 'text-income' : 'text-expense']">{{
+                reversal
+              }}</span>
+            </template>
+          </i18n-t>
+        </AlertTitle>
       </Alert>
       <DialogFooter>
         <Button type="button" variant="outline" @click="emit('close')">

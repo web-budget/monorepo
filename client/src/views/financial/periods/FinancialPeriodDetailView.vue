@@ -71,10 +71,10 @@ onMounted(async () => {
         <DetailField :label="$t('financial-period.form.status')">
           <PeriodStatusBadge :status="financialPeriod.status" :expired="financialPeriod.expired" />
         </DetailField>
-        <DetailField :label="$t('financial-period.form.starting-at')" mono>
+        <DetailField :label="$t('financial-period.table-columns.starting-at')" mono>
           <DateTimeDisplay fix-time :value="financialPeriod.startingAt" />
         </DetailField>
-        <DetailField :label="$t('financial-period.form.ending-at')" mono>
+        <DetailField :label="$t('financial-period.table-columns.ending-at')" mono>
           <DateTimeDisplay fix-time :value="financialPeriod.endingAt" />
         </DetailField>
         <DetailField :label="$t('financial-period.form.revenues-goal')" mono>

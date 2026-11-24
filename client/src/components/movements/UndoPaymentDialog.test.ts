@@ -73,16 +73,24 @@ describe('UndoPaymentDialog', () => {
     expect(document.body.textContent).toContain('O valor volta para Conta corrente como estorno.')
   })
 
+  it('highlights the word reversal in the description', async () => {
+    await render(paidExpense)
+
+    expect(document.body.querySelector('[role="dialog"] strong')!.textContent).toBe('estorno')
+  })
+
   it('shows the reversal of an expense as a credit', async () => {
     await render(paidExpense)
 
     expect(reversal()).toMatch(/Estorno de \+R\$\s90,00/)
+    expect(document.body.querySelector('[data-slot="reversal"] .text-income')).not.toBeNull()
   })
 
   it('shows the reversal of an income as a debit', async () => {
     await render(paidIncome)
 
     expect(reversal()).toMatch(/Estorno de −R\$\s8\.300,00/)
+    expect(document.body.querySelector('[data-slot="reversal"] .text-expense')).not.toBeNull()
   })
 
   it('says the purchase leaves the invoice when it was paid on the card', async () => {

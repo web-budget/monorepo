@@ -142,6 +142,15 @@ describe('PayMovementDialog', () => {
     expect(summary()).toMatch(/Saldo depois\s*R\$\s915,00/)
   })
 
+  it('counts a cleared discount as zero', async () => {
+    await render(expense, vi.fn().mockResolvedValue(1000))
+    await type('discount', '500')
+
+    await type('discount', '')
+
+    expect(summary()).toMatch(/Valor pago\s*R\$\s100,00/)
+  })
+
   it('adds an income to the balance', async () => {
     const { wrapper } = await render(income, vi.fn().mockResolvedValue(1000))
 

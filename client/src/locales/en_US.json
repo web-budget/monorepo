@@ -1307,7 +1307,8 @@
     "undo": {
       "title": "Undo the payment of “{name}”?",
       "confirm": "Undo",
-      "description-wallet": "The money goes back to {wallet} as a reversal. The movement goes back to “Open”.",
+      "description-wallet": "The money goes back to {wallet} as a {reversal}. The movement goes back to “Open”.",
+      "reversal-word": "reversal",
       "description-card": "The purchase leaves the invoice of {card}. The movement goes back to “Open”.",
       "reversal": "Reversal of {amount}"
     }

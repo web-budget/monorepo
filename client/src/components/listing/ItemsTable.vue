@@ -71,6 +71,7 @@ const props = withDefaults(
     sortedOrder?: 'asc' | 'desc'
     noun?: string
     defaultSortField?: string
+    activeSortIconOnly?: boolean
   }>(),
   {
     columns: () => [],
@@ -87,6 +88,7 @@ const props = withDefaults(
     sortedOrder: undefined,
     noun: undefined,
     defaultSortField: DEFAULT_SORT_FIELD,
+    activeSortIconOnly: false,
   },
 )
 
@@ -241,6 +243,7 @@ function changePageSize(value: unknown) {
                 {{ column.header }}
                 <component
                   :is="sortIcon(column.field)"
+                  v-if="!activeSortIconOnly || sortField === column.field"
                   :class="['size-3', sortField !== column.field && 'opacity-40']"
                 />
               </button>
