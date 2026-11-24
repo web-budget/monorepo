@@ -19,7 +19,6 @@ export const MOVEMENT_FILTER_KEYS = [
   'costCenter',
   'classification',
   'overdue',
-  'invoices',
 ]
 
 export const ALL_PERIODS = 'all'
@@ -33,7 +32,6 @@ export function toMovementQuery(query: PageQuery, filters: ExtraQuery): Movement
     costCenter: filters.costCenter || undefined,
     classification: filters.classification || undefined,
     overdue: filters.overdue === 'true' ? true : undefined,
-    invoicePayments: filters.invoices === 'true' ? true : undefined,
     financialPeriods:
       filters.period && filters.period !== ALL_PERIODS ? [filters.period] : undefined,
     page: query.page,
@@ -68,7 +66,7 @@ export const useMovementsStore = defineStore('movements', () => {
     pageResponse: resource.pageResponse,
     loading: resource.loading,
     findAll: resource.findAll,
-    count: resource.count,
+    count: (status: MovementStatusFilter) => resource.count(status, true),
     findOne: resource.findOne,
     create: resource.create,
     update: resource.update,

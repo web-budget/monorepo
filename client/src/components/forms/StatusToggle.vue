@@ -14,7 +14,9 @@ const { value } = useField<boolean>(() => props.name)
 
 <template>
   <div :class="cn('grid content-start gap-2 md:col-span-2', props.class)">
-    <span class="text-sm leading-none font-medium">{{ heading ?? $t('crud.status') }}</span>
+    <span v-if="heading !== ''" class="text-sm leading-none font-medium">{{
+      heading ?? $t('crud.status')
+    }}</span>
     <Label class="flex h-9 items-center gap-2.5 font-normal">
       <Switch :model-value="value" @update:model-value="value = $event" />
       {{ label ?? $t('status.active') }}

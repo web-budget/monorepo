@@ -62,13 +62,13 @@ describe('ClassificationDetailView', () => {
     vi.mocked(classificationsApi.remove).mockResolvedValue(undefined)
     const dialog = useConfirmDialog()
 
-    await buttonWithText(wrapper, 'Remover').trigger('click')
-    expect(dialog.state.options.title).toBe('Remover a classificação “Salary”?')
+    await buttonWithText(wrapper, 'Excluir').trigger('click')
+    expect(dialog.state.options.title).toBe('Excluir a classificação “Salary”?')
     dialog.accept()
     await flushPromises()
 
     expect(classificationsApi.remove).toHaveBeenCalledWith('c-1')
-    expect(toast.success).toHaveBeenCalledWith('Classificação removida', {
+    expect(toast.success).toHaveBeenCalledWith('Classificação excluída', {
       description: '“Salary” saiu da lista.',
       duration: 4000,
     })
@@ -78,7 +78,7 @@ describe('ClassificationDetailView', () => {
   it('does nothing when the removal is not confirmed', async () => {
     const { wrapper, router } = await render()
 
-    await buttonWithText(wrapper, 'Remover').trigger('click')
+    await buttonWithText(wrapper, 'Excluir').trigger('click')
     useConfirmDialog().cancel()
     await flushPromises()
 
@@ -92,7 +92,7 @@ describe('ClassificationDetailView', () => {
       problem(400, { error: 'data-integrity-violation' }),
     )
 
-    await buttonWithText(wrapper, 'Remover').trigger('click')
+    await buttonWithText(wrapper, 'Excluir').trigger('click')
     useConfirmDialog().accept()
     await flushPromises()
 

@@ -20,6 +20,7 @@ const values: MovementFormValues = {
   classification: 'cl-1',
   description: ' ',
   paid: false,
+  via: 'WALLET',
   paidOn: null,
   wallet: null,
   discount: null,
@@ -38,6 +39,18 @@ describe('movementSchema', () => {
     const result = movementSchema.safeParse({ ...values, paid: true, paidOn: '', wallet: null })
 
     expect(result.error?.issues.map((issue) => issue.path[0])).toEqual(['paidOn', 'wallet'])
+  })
+
+  it('asks for the card of an expense paid on the card', () => {
+    const result = movementSchema.safeParse({
+      ...values,
+      paid: true,
+      paidOn: '2026-11-21',
+      via: 'CARD',
+      card: null,
+    })
+
+    expect(result.error?.issues.map((issue) => issue.path[0])).toEqual(['card'])
   })
 
   it('refuses a discount that reaches the value', () => {
@@ -84,8 +97,31 @@ describe('movement form conversions', () => {
     ).toEqual({ wallet: 'w-1', paidOn: '2026-11-21', discount: 5 })
   })
 
-  it('leaves the payment out when it is marked paid without a wallet', () => {
-    expect(toMovementCreateForm({ ...values, paid: true, wallet: null }).payment).toBeNull()
+  it('keeps the missing wallet in the payment, since the schema rejects it before the conversion', () => {
+    const paidWithoutWallet = { ...values, paid: true, paidOn: '2026-11-21', wallet: null }
+
+    expect(
+      movementSchema.safeParse(paidWithoutWallet).error?.issues.map((issue) => issue.path[0]),
+    ).toEqual(['wallet'])
+    expect(toMovementCreateForm(paidWithoutWallet).payment).toEqual({
+      wallet: null,
+      paidOn: '2026-11-21',
+      discount: null,
+    })
+  })
+
+  it('pays an income through the wallet whatever the form says about the way', () => {
+    expect(
+      toMovementCreateForm({
+        ...values,
+        type: 'INCOME',
+        paid: true,
+        paidOn: '2026-11-21',
+        via: 'CARD',
+        wallet: 'w-1',
+        card: 'c-1',
+      }).payment,
+    ).toEqual({ wallet: 'w-1', paidOn: '2026-11-21', discount: null })
   })
 
   it('falls back to an empty date when a paid movement has none', () => {

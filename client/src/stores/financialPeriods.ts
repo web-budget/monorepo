@@ -1,13 +1,39 @@
 import { defineStore } from 'pinia'
 import { financialPeriodsApi } from '@/api/financialPeriods'
+import { movementsApi } from '@/api/movements'
 import { useCrudResource } from '@/composables/useCrudResource'
 import { createPageRequest } from '@/utils/pageRequest'
-import type { FinancialPeriodStatusFilter } from '@/types'
+import { nextPeriodDates } from '@/utils/periodDates'
+import type { FinancialPeriodStatusFilter, MovementStatus } from '@/types'
+
+const EXPIRED_PAGE_SIZE = 100
 
 export const useFinancialPeriodsStore = defineStore('financialPeriods', () => {
   const resource = useCrudResource(financialPeriodsApi, () =>
     createPageRequest<FinancialPeriodStatusFilter>({ status: 'OPEN' }),
   )
+
+  async function findExpired() {
+    const page = await financialPeriodsApi.findAll({ status: 'OPEN', size: EXPIRED_PAGE_SIZE })
+    return page.content.filter((period) => period.expired)
+  }
+
+  async function findNextDates() {
+    const page = await financialPeriodsApi.findAll({
+      status: 'ALL',
+      size: 1,
+      sort: 'endingAt,desc',
+    })
+    return nextPeriodDates(page.content[0]?.endingAt ?? null, new Date())
+  }
+
+  async function findMovementCounts(financialPeriod: string) {
+    const total = async (statuses?: MovementStatus[]) =>
+      (await movementsApi.findAll({ financialPeriods: [financialPeriod], statuses, size: 1 })).page
+        .totalElements
+    const [launched, open, paid] = await Promise.all([total(), total(['OPEN']), total(['PAID'])])
+    return { launched, open, paid }
+  }
 
   return {
     financialPeriod: resource.current,
@@ -21,6 +47,9 @@ export const useFinancialPeriodsStore = defineStore('financialPeriods', () => {
     update: resource.update,
     remove: resource.remove,
     findResult: financialPeriodsApi.findResult,
+    findExpired,
+    findNextDates,
+    findMovementCounts,
     reset: resource.reset,
   }
 })
