@@ -247,6 +247,7 @@ class PasswordChangeTest : BaseIntegrationTest() {
             .jsonPath("$.hasPassword").isEqualTo(true)
             .jsonPath("$.googleLinked").isEqualTo(false)
             .jsonPath("$.totpEnabled").isEqualTo(false)
+            .jsonPath("$.totpRequired").isEqualTo(false)
     }
 
     @Test
@@ -276,7 +277,7 @@ class PasswordChangeTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `should not tell the totp as active while the installation does not ask for it`() {
+    fun `should tell the totp of the user as on even while the installation does not ask for it`() {
 
         val user = createLoginUser(EMAIL, PASSWORD, "REGISTRATION")
         authenticateAs(EMAIL, PASSWORD)
@@ -285,7 +286,8 @@ class PasswordChangeTest : BaseIntegrationTest() {
 
         getSession().expectStatus().isOk
             .expectBody()
-            .jsonPath("$.totpEnabled").isEqualTo(false)
+            .jsonPath("$.totpEnabled").isEqualTo(true)
+            .jsonPath("$.totpRequired").isEqualTo(false)
     }
 
     @Test

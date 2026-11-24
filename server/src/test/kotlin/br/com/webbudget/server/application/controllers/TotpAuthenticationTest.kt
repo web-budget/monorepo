@@ -74,7 +74,7 @@ class TotpAuthenticationTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `should tell on the session that the totp is active when the installation asks for it`() {
+    fun `should tell on the session that the totp is on and that the installation asks for it`() {
 
         restTestClient.get()
             .uri("/private/v1/auth/session")
@@ -82,6 +82,7 @@ class TotpAuthenticationTest : BaseIntegrationTest() {
             .expectStatus().isOk
             .expectBody()
             .jsonPath("$.totpEnabled").isEqualTo(true)
+            .jsonPath("$.totpRequired").isEqualTo(true)
     }
 
     @Test

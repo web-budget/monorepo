@@ -154,7 +154,8 @@ data class SessionView(
     val roles: List<String>,
     val hasPassword: Boolean,
     val googleLinked: Boolean,
-    val totpEnabled: Boolean
+    val totpEnabled: Boolean,
+    val totpRequired: Boolean
 ) {
 
     companion object {
@@ -167,7 +168,8 @@ data class SessionView(
             roles = user.roles.sorted(),
             hasPassword = user.hasPassword,
             googleLinked = user.googleLinked,
-            totpEnabled = totpRequired && user.totpEnabled
+            totpEnabled = user.totpEnabled,
+            totpRequired = totpRequired
         )
     }
 }
