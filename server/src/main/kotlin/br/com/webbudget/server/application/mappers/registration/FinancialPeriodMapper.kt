@@ -28,7 +28,9 @@ class FinancialPeriodMapper {
         startingAt = financialPeriod.startingAt,
         endingAt = financialPeriod.endingAt,
         status = financialPeriod.status.name,
-        expired = financialPeriod.isExpired(LocalDate.now())
+        expired = financialPeriod.isExpired(LocalDate.now()),
+        revenuesGoal = financialPeriod.revenuesGoal,
+        expensesGoal = financialPeriod.expensesGoal
     )
 
     fun mapToDomain(form: FinancialPeriodCreateForm): FinancialPeriod = FinancialPeriod(

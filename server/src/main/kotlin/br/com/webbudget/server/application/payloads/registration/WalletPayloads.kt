@@ -9,6 +9,7 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
 import java.math.BigDecimal
+import java.time.LocalDateTime
 import java.util.UUID
 
 data class WalletCreateForm(
@@ -47,14 +48,18 @@ data class WalletView(
     val description: String? = null,
     val bank: String? = null,
     val number: String? = null,
-    val agency: String? = null
+    val agency: String? = null,
+    val lastEntryOn: LocalDateTime? = null
 )
 
 data class WalletListView(
     val id: UUID,
     val name: String,
     val type: Type,
+    val currentBalance: BigDecimal,
     val bank: String? = null,
+    val agency: String? = null,
+    val number: String? = null,
     val active: Boolean = true
 )
 

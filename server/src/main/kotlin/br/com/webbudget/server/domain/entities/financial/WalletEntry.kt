@@ -34,5 +34,18 @@ class StatementLine(
     val resultingBalance: BigDecimal,
     val financialPeriod: FinancialPeriodReference?,
     val movementExternalId: UUID?,
-    val transferExternalId: UUID?
+    val transferExternalId: UUID?,
+    val transferIsReturn: Boolean = false,
+    val transferReturnable: Boolean = false
+)
+
+class StatementTotal(
+    val total: BigDecimal,
+    val count: Int
+)
+
+class StatementSummary(
+    val credits: StatementTotal,
+    val debits: StatementTotal,
+    val lastEntryOn: LocalDateTime?
 )

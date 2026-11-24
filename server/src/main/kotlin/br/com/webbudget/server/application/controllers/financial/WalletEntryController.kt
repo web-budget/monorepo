@@ -3,6 +3,7 @@ package br.com.webbudget.server.application.controllers.financial
 import br.com.webbudget.server.application.mappers.financial.WalletEntryMapper
 import br.com.webbudget.server.application.payloads.financial.AdjustmentForm
 import br.com.webbudget.server.application.payloads.financial.StatementFilter
+import br.com.webbudget.server.application.payloads.financial.StatementSummaryView
 import br.com.webbudget.server.application.payloads.financial.WalletEntryView
 import br.com.webbudget.server.domain.entities.administration.Role
 import br.com.webbudget.server.domain.exceptions.ResourceNotFoundException
@@ -43,20 +44,27 @@ class WalletEntryController(
 
         val wallet = movementReferenceRepository.findWallet(id) ?: throw ResourceNotFoundException()
 
-        val criteria = StatementCriteria(
-            from = filter.from,
-            to = filter.to,
-            financialPeriod = filter.financialPeriod,
-            origins = filter.origins,
-            direction = filter.direction,
-            text = filter.filter,
-            minValue = filter.minValue,
-            maxValue = filter.maxValue
-        )
-
-        return walletEntryRepository.findAll(wallet.id, criteria, pageable)
+        return walletEntryRepository.findAll(wallet.id, filter.toCriteria(), pageable)
             .map { walletEntryMapper.mapToView(it) }
             .let { ResponseEntity.ok(it) }
+    }
+
+    @GetMapping("/{id}/statement/summary")
+    fun getStatementSummary(@PathVariable id: UUID, filter: StatementFilter): ResponseEntity<StatementSummaryView> {
+
+        val wallet = movementReferenceRepository.findWallet(id) ?: throw ResourceNotFoundException()
+
+        return ResponseEntity.ok(walletEntryMapper.mapToView(walletEntryRepository.summarize(wallet.id, filter.toCriteria())))
+    }
+
+    @GetMapping("/{id}/statement/{entryId}")
+    fun getStatementEntry(@PathVariable id: UUID, @PathVariable entryId: UUID): ResponseEntity<WalletEntryView> {
+
+        val wallet = movementReferenceRepository.findWallet(id) ?: throw ResourceNotFoundException()
+
+        val line = walletEntryRepository.findByExternalId(wallet.id, entryId) ?: throw ResourceNotFoundException()
+
+        return ResponseEntity.ok(walletEntryMapper.mapToDetailView(line, wallet))
     }
 
     @PostMapping("/{id}/adjustments")
@@ -68,4 +76,15 @@ class WalletEntryController(
 
         return ResponseEntity.ok(walletEntryMapper.mapToView(entry))
     }
+
+    private fun StatementFilter.toCriteria() = StatementCriteria(
+        from = from,
+        to = to,
+        financialPeriod = financialPeriod,
+        origins = origins,
+        direction = direction,
+        text = filter,
+        minValue = minValue,
+        maxValue = maxValue
+    )
 }
