@@ -37,7 +37,7 @@ import {
 } from '@/components/ui/table'
 import { useActiveCards } from '@/composables/useActiveCards'
 import { useActiveWallets } from '@/composables/useActiveWallets'
-import { useCloseInvoice } from '@/composables/useCloseInvoice'
+import { useCloseClosingInvoice } from '@/composables/useCloseClosingInvoice'
 import { useMovementActions } from '@/composables/useMovementActions'
 import { useMovementFilterOptions } from '@/composables/useMovementFilterOptions'
 import { useNotification } from '@/composables/useNotification'
@@ -87,7 +87,7 @@ function reload() {
 }
 
 const actions = useMovementActions(reload)
-const closeInvoice = useCloseInvoice(reload)
+const closeInvoice = useCloseClosingInvoice(reload)
 
 async function choose(id: string) {
   selectedId.value = id

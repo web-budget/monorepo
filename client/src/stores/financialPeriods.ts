@@ -10,6 +10,7 @@ import type {
   FinancialPeriodCreateForm,
   FinancialPeriodListView,
   FinancialPeriodResultView,
+  FinancialPeriodCreationPreview,
   FinancialPeriodStatusFilter,
   MovementStatus,
   PeriodResultView,
@@ -23,15 +24,24 @@ function emptyReport(): RecurringLaunchReport {
   return { launched: [], skipped: [] }
 }
 
+function emptyPreview(): FinancialPeriodCreationPreview {
+  return { recurringMovements: [], invoices: [] }
+}
+
 export const useFinancialPeriodsStore = defineStore('financialPeriods', () => {
   const recurringLaunch = ref<RecurringLaunchReport>(emptyReport())
+  const creationPreview = ref<FinancialPeriodCreationPreview>(emptyPreview())
+  const openedInvoices = ref(0)
 
   const resource = useCrudResource(
     {
       ...financialPeriodsApi,
       create: async (form: FinancialPeriodCreateForm) => {
+        const invoices = creationPreview.value.invoices.length
         const creation = await financialPeriodsApi.create(form)
         recurringLaunch.value = creation.recurringLaunch
+        openedInvoices.value = invoices
+        void findCreationPreview()
         return creation.id
       },
     },
@@ -80,10 +90,20 @@ export const useFinancialPeriodsStore = defineStore('financialPeriods', () => {
     return resource.track(() => financialPeriodsApi.reopen(id))
   }
 
+  async function findCreationPreview() {
+    try {
+      creationPreview.value = await financialPeriodsApi.findCreationPreview()
+    } catch {
+      creationPreview.value = emptyPreview()
+    }
+  }
+
   function reset() {
     recurringLaunch.value = emptyReport()
     results.value = {}
     lastClosedId.value = null
+    creationPreview.value = emptyPreview()
+    openedInvoices.value = 0
     resource.reset()
   }
 
@@ -114,6 +134,8 @@ export const useFinancialPeriodsStore = defineStore('financialPeriods', () => {
     recurringLaunch,
     results,
     lastClosedId,
+    creationPreview,
+    openedInvoices,
     pageRequest: resource.pageRequest,
     pageResponse: resource.pageResponse,
     loading: resource.loading,
@@ -128,6 +150,7 @@ export const useFinancialPeriodsStore = defineStore('financialPeriods', () => {
     findLastClosedId,
     close,
     reopen,
+    findCreationPreview,
     findExpired,
     findNextDates,
     findMovementCounts,

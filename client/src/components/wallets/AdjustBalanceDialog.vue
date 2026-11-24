@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import { Check } from 'lucide-vue-next'
 import { useForm } from 'vee-validate'
 import { computed, watch } from 'vue'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
-import InputField from '@/components/forms/InputField.vue'
+import MoneyField from '@/components/forms/MoneyField.vue'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -45,21 +46,19 @@ const submit = form.handleSubmit((values) => {
 
 <template>
   <Dialog :open="wallet !== null" @update:open="emit('close')">
-    <DialogContent class="sm:max-w-md">
+    <DialogContent class="sm:max-w-lg">
       <form class="flex flex-col gap-4" novalidate @submit.prevent="submit">
         <DialogHeader>
           <DialogTitle>{{ $t('statement.adjust.title', { name: wallet?.name }) }}</DialogTitle>
-          <DialogDescription>{{ $t('statement.adjust.description') }}</DialogDescription>
+          <DialogDescription class="sr-only">{{ wallet?.name }}</DialogDescription>
         </DialogHeader>
-        <InputField
+        <MoneyField
           name="value"
-          type="number"
           :label="$t('statement.adjust.value')"
-          :hint="$t('statement.adjust.value-hint')"
-          mono
+          :placeholder="$t('statement.adjust.value-example')"
+          signed
           required
         />
-        <InputField name="name" :label="$t('statement.adjust.reason')" :maxlength="150" required />
         <dl
           class="bg-muted/50 grid gap-1.5 rounded-md border p-3 text-sm"
           data-slot="adjust-summary"
@@ -70,7 +69,7 @@ const submit = form.handleSubmit((values) => {
           </div>
           <div class="flex justify-between gap-3">
             <dt class="text-muted-foreground">{{ $t('statement.adjust.adjustment') }}</dt>
-            <dd><CurrencyDisplay :value="adjustment" signed /></dd>
+            <dd><CurrencyDisplay :value="adjustment" signed glued /></dd>
           </div>
           <div class="flex justify-between gap-3 border-t pt-1.5 font-semibold">
             <dt>{{ $t('statement.adjust.balance-after') }}</dt>
@@ -81,7 +80,9 @@ const submit = form.handleSubmit((values) => {
           <Button type="button" variant="outline" @click="emit('close')">
             {{ $t('form.cancel') }}
           </Button>
-          <Button type="submit" :disabled="loading">{{ $t('statement.adjust.confirm') }}</Button>
+          <Button type="submit" :disabled="loading">
+            <Check />{{ $t('statement.adjust.confirm') }}
+          </Button>
         </DialogFooter>
       </form>
     </DialogContent>

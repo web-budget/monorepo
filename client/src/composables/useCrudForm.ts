@@ -20,6 +20,7 @@ interface CrudFormOptions<Values extends GenericObject, Output extends GenericOb
   update: (id: string, values: Output) => Promise<unknown>
   confirm?: (updating: boolean) => Promise<boolean>
   detailAfterUpdate?: boolean
+  successTitle?: (updating: boolean, values: Output) => string | undefined
   successDetail?: (updating: boolean, values: Output) => string | undefined
   createDefaults?: () => Promise<Resettable<Values, Output>>
   toastParams?: () => Record<string, unknown>
@@ -108,7 +109,8 @@ export function useCrudForm<Values extends GenericObject, Output extends Generic
     const detail = options.successDetail
       ? options.successDetail(updating, values)
       : `${options.entity}.toast.${kind}-detail`
-    showSuccess(`${options.entity}.toast.${kind}`, detail, true, {
+    const title = options.successTitle?.(updating, values) ?? `${options.entity}.toast.${kind}`
+    showSuccess(title, detail, true, {
       name: recordName(),
       ...options.toastParams?.(),
     })
