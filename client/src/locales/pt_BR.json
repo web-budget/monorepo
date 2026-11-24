@@ -1138,7 +1138,7 @@
       "found": "{count} período financeiro encontrado para “{query}” | {count} períodos financeiros encontrados para “{query}”",
       "expired-notice": {
         "title": "{count} período expirado: {names} | {count} períodos expirados: {names}",
-        "description": "Ainda aceita lançamentos. | Ainda aceitam lançamentos."
+        "description": "Ainda aceita lançamentos."
       },
       "noun": "período | períodos",
       "tabs-note": "Resultado só existe depois do fechamento.",

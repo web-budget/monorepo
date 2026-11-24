@@ -306,7 +306,7 @@ function createPeriod() {
           </div>
         </section>
         <Card class="gap-0 py-0" data-slot="pendencies">
-          <div class="flex items-start justify-between gap-3 border-b p-5">
+          <div class="flex flex-wrap items-start justify-between gap-3 border-b p-5">
             <div class="grid gap-0.5">
               <h2 class="text-base font-semibold">{{ $t('period-closing.pendencies.title') }}</h2>
               <p class="text-muted-foreground text-sm">

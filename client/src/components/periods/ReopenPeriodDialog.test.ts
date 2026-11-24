@@ -42,6 +42,17 @@ describe('ReopenPeriodDialog', () => {
     expect(document.body.querySelector('[role="dialog"]')).toBeNull()
   })
 
+  it('opens when a period arrives and keeps its name while it closes', async () => {
+    const wrapper = await render(null)
+
+    await wrapper.setProps({ period: { name: 'Setembro de 2026' } })
+    await flushPromises()
+    expect(document.body.textContent).toContain('Reabrir Setembro de 2026?')
+
+    await wrapper.setProps({ period: null })
+    expect(document.body.textContent).toContain('Reabrir Setembro de 2026?')
+  })
+
   it('confirms and cancels', async () => {
     const wrapper = await render()
 

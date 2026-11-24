@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Check, Info, LockOpen } from 'lucide-vue-next'
+import { ref, watch } from 'vue'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -10,9 +11,20 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 
-defineProps<{ period: { name: string } | null; loading: boolean }>()
+const props = defineProps<{ period: { name: string } | null; loading: boolean }>()
 
 const emit = defineEmits<{ close: []; confirm: [] }>()
+
+const shown = ref(props.period)
+
+watch(
+  () => props.period,
+  (period) => {
+    if (period) {
+      shown.value = period
+    }
+  },
+)
 
 const effects = [
   { key: 'erases-result', icon: Check, tone: 'text-income' },
@@ -27,7 +39,7 @@ const effects = [
     <DialogContent class="sm:max-w-md">
       <div class="flex flex-col gap-4">
         <DialogHeader>
-          <DialogTitle>{{ $t('period-closing.reopen.title', { name: period?.name }) }}</DialogTitle>
+          <DialogTitle>{{ $t('period-closing.reopen.title', { name: shown?.name }) }}</DialogTitle>
           <DialogDescription>{{ $t('period-closing.reopen.description') }}</DialogDescription>
         </DialogHeader>
         <ul class="grid gap-2 text-sm" data-slot="reopen-effects">

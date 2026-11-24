@@ -1138,7 +1138,7 @@
       "found": "{count} financial period found for “{query}” | {count} financial periods found for “{query}”",
       "expired-notice": {
         "title": "{count} expired period: {names} | {count} expired periods: {names}",
-        "description": "It still accepts postings. | They still accept postings."
+        "description": "It still accepts postings."
       },
       "noun": "period | periods",
       "tabs-note": "The result only exists after closing.",

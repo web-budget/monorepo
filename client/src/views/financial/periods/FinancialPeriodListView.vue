@@ -194,7 +194,7 @@ const listCopy = computed(() => ({
           }}
         </AlertTitle>
         <AlertDescription class="grid gap-2">
-          {{ $t('financial-period.list.expired-notice.description', expiredPeriods.length) }}
+          {{ $t('financial-period.list.expired-notice.description') }}
           <span>
             <Button
               type="button"

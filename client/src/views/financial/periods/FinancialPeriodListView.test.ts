@@ -168,7 +168,7 @@ describe('FinancialPeriodListView', () => {
     const { wrapper } = await render([periods[1]!, { ...periods[1]!, id: 'p-4', name: 'October' }])
 
     expect(wrapper.find('[data-slot="expired-notice"]').text()).toContain(
-      '2 períodos expirados: December, OctoberAinda aceitam lançamentos.',
+      '2 períodos expirados: December, OctoberAinda aceita lançamentos.',
     )
   })
 
