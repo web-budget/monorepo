@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { RefreshCw } from 'lucide-vue-next'
+import { useMediaQuery } from '@vueuse/core'
+import { ListChecks, RefreshCw } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -27,10 +28,11 @@ import {
   useRecurringLaunchStore,
 } from '@/stores/recurringLaunch'
 import type { FinancialPeriodListView, RecurringMovementView } from '@/types'
-import { defaultPeriod } from '@/utils/movements'
-import { signedValue } from '@/utils/recurringMovements'
+import { nextOpenPeriod } from '@/utils/movements'
+import { isLaunchedIn, signedValue } from '@/utils/recurringMovements'
 
 const { t, d } = useI18n()
+const compact = useMediaQuery('(max-width: 767px)')
 const router = useRouter()
 const { showSuccess, showWarn } = useNotification()
 
@@ -50,7 +52,8 @@ const { writeRoute } = useListFilters({
   pageRequest,
   initialStatus: 'ALL',
   statuses: ['ALL'],
-  sortFields: ['name', 'value'],
+  sortFields: ['name'],
+  defaultSort: { sortField: 'name', direction: 'asc' },
   extra: { keys: RECURRING_LAUNCH_FILTER_KEYS, values: filters },
   onExternalChange: reload,
 })
@@ -60,7 +63,10 @@ const ready = optionErrors.run(openPeriods.load).then(applyDefaultPeriod)
 function applyDefaultPeriod() {
   const known = openPeriods.periods.value.some((period) => period.id === filters.value.period)
   if (!known) {
-    filters.value = { ...filters.value, period: defaultPeriod(openPeriods.periods.value)?.id ?? '' }
+    filters.value = {
+      ...filters.value,
+      period: nextOpenPeriod(openPeriods.periods.value)?.id ?? '',
+    }
   }
 }
 
@@ -100,19 +106,58 @@ const listState = computed<ListStateKind | 'table'>(() => {
 })
 
 const columns = computed(() => [
-  { field: 'name', header: t('recurrent-movement.table-columns.name'), sortable: true },
-  { field: 'valueKind', header: t('recurrent-movement.table-columns.value-kind') },
+  {
+    field: 'name',
+    header: t('recurrent-movement.launch.recurring-movement'),
+    mobile: 'title' as const,
+  },
+  {
+    field: 'valueKind',
+    header: t('recurrent-movement.table-columns.value-kind'),
+    mobile: 'hide' as const,
+  },
   {
     field: 'value',
     header: t('recurrent-movement.table-columns.value'),
-    sortable: true,
     align: 'end' as const,
+    mobile: 'value' as const,
   },
-  { field: 'situation', header: t('recurrent-movement.table-columns.situation') },
+  {
+    field: 'situation',
+    header: t('recurrent-movement.table-columns.situation'),
+    mobile: 'line' as const,
+    mobileLabel: false,
+  },
 ])
 
-function launched(recurringMovement: RecurringMovementView) {
-  return recurringMovement.launchedInPeriod !== null
+const nothingToLaunch = computed(
+  () => pageResponse.value.content.length > 0 && pageResponse.value.content.every(isLaunchedIn),
+)
+
+function situationOf(recurringMovement: RecurringMovementView) {
+  if (!isLaunchedIn(recurringMovement)) {
+    return 'available'
+  }
+  return recurringMovement.autoLaunch ? 'launched-auto' : 'launched'
+}
+
+function situationText(recurringMovement: RecurringMovementView) {
+  return situationOf(recurringMovement) === 'available'
+    ? t(`recurrent-movement.value-kind.${recurringMovement.valueKind}`)
+    : t(`recurrent-movement.launch.${situationOf(recurringMovement)}`)
+}
+
+function toggleRow({ data }: { data: RecurringMovementView }) {
+  if (!isLaunchedIn(data)) {
+    store.toggle(data, !selection.value[data.id])
+  }
+}
+
+function installmentBadge(recurringMovement: RecurringMovementView) {
+  const { installments, nextInstallment } = recurringMovement
+  return installments == null || nextInstallment == null
+    ? null
+    : `${nextInstallment}/${installments}`
 }
 
 function typedValue(recurringMovement: RecurringMovementView) {
@@ -120,6 +165,7 @@ function typedValue(recurringMovement: RecurringMovementView) {
 }
 
 function changePeriod(value: string) {
+  store.clearSelection()
   filters.value = { ...filters.value, period: value }
   pageRequest.value.current = 0
   return reload()
@@ -128,12 +174,6 @@ function changePeriod(value: string) {
 function onPageChange(event: { currentPage: number; pageSize: number }) {
   pageRequest.value.size = event.pageSize
   pageRequest.value.current = event.currentPage
-  return reload()
-}
-
-function onTableSorted(event: { sortField: string; sortOrder: 'asc' | 'desc' }) {
-  pageRequest.value.sortField = event.sortField
-  pageRequest.value.direction = event.sortOrder
   return reload()
 }
 
@@ -183,7 +223,7 @@ async function launch() {
       :title="$t('recurrent-movement.launch.title')"
       :description="$t('recurrent-movement.launch.description')"
     />
-    <div class="grid gap-3">
+    <div class="grid gap-4">
       <Alert v-if="!initializing && openPeriods.periods.value.length === 0" variant="destructive">
         <AlertTitle>{{ $t('recurrent-movement.launch.no-open-period') }}</AlertTitle>
         <AlertDescription class="flex flex-wrap items-center gap-3">
@@ -193,7 +233,7 @@ async function launch() {
           </Button>
         </AlertDescription>
       </Alert>
-      <div v-else class="grid max-w-sm gap-1">
+      <div v-else class="grid gap-3 md:grid-cols-[320px_minmax(0,1fr)] md:items-end">
         <FilterSelect
           :label="$t('recurrent-movement.launch.period')"
           :none-label="$t('recurrent-movement.launch.period-none')"
@@ -201,9 +241,17 @@ async function launch() {
           :model-value="filters.period ?? ''"
           @update:model-value="changePeriod"
         />
-        <span v-if="selectedPeriod" class="text-muted-foreground text-xs" data-slot="due-hint">
-          {{ $t('recurrent-movement.launch.due-hint', { date: dueDateOf(selectedPeriod) }) }}
-        </span>
+        <p
+          v-if="selectedPeriod"
+          class="text-muted-foreground pb-2.5 text-xs md:pb-2"
+          data-slot="due-hint"
+        >
+          {{
+            nothingToLaunch
+              ? $t('recurrent-movement.launch.nothing-manual')
+              : $t('recurrent-movement.launch.due-hint', { date: dueDateOf(selectedPeriod) })
+          }}
+        </p>
       </div>
       <ServerErrorAlert
         :messages="[...optionErrors.messages.value, ...launchErrors.messages.value]"
@@ -226,68 +274,82 @@ async function launch() {
         :loading="busy"
         :current-page="pageRequest.current"
         :page-size="pageRequest.size"
-        :sorted-field="pageRequest.sortField"
-        :sorted-order="pageRequest.direction"
         @page-changed="onPageChange"
-        @table-sorted="onTableSorted"
+        @row-selected="toggleRow"
       >
         <template #cell-name="{ item }">
-          <span :class="['inline-flex items-center gap-2.5', launched(item) && 'opacity-60']">
+          <span
+            :class="['inline-flex items-center gap-3', isLaunchedIn(item) && 'opacity-60']"
+            data-slot="launch-name"
+          >
             <Checkbox
               :aria-label="$t('recurrent-movement.launch.select', { name: item.name })"
-              :disabled="launched(item)"
+              :disabled="isLaunchedIn(item)"
               :model-value="Boolean(selection[item.id])"
+              @click.stop
               @update:model-value="(checked) => store.toggle(item, checked === true)"
             />
-            {{ item.name }}
-            <Badge
-              v-if="item.nextInstallment !== null && item.installments !== null"
-              variant="outline"
-            >
-              {{ item.nextInstallment }}/{{ item.installments }}
+            <span class="font-medium">{{ item.name }}</span>
+            <Badge v-if="installmentBadge(item)" variant="outline">
+              {{ installmentBadge(item) }}
             </Badge>
           </span>
         </template>
         <template #cell-valueKind="{ item }">
-          <RecurringValueKindBadge :value-kind="item.valueKind" />
+          <span :class="isLaunchedIn(item) && 'opacity-60'">
+            <RecurringValueKindBadge :value-kind="item.valueKind" />
+          </span>
         </template>
         <template #cell-value="{ item }">
           <MoneyInput
-            v-if="item.valueKind === 'VARIABLE' && !launched(item)"
+            v-if="item.valueKind === 'VARIABLE' && !isLaunchedIn(item) && !compact"
             :label="$t('recurrent-movement.launch.value-of', { name: item.name })"
             :model-value="typedValue(item)"
             @update:model-value="(value) => store.type(item.id, value)"
           />
-          <CurrencyDisplay v-else :value="signedValue(item)" signed />
+          <span v-else :class="isLaunchedIn(item) && 'opacity-60'">
+            <CurrencyDisplay :value="signedValue(item)" signed glued bare />
+          </span>
         </template>
         <template #cell-situation="{ item }">
-          <Badge :variant="launched(item) ? 'neutral' : 'approved'">
-            {{
-              $t(
-                launched(item)
-                  ? 'recurrent-movement.launch.launched'
-                  : 'recurrent-movement.launch.available',
-              )
-            }}
+          <template v-if="compact">{{ situationText(item) }}</template>
+          <Badge
+            v-else
+            :variant="isLaunchedIn(item) ? 'approved' : 'neutral'"
+            :class="isLaunchedIn(item) && 'opacity-60'"
+          >
+            {{ $t(`recurrent-movement.launch.${situationOf(item)}`) }}
           </Badge>
         </template>
       </ItemsTable>
-    </div>
-    <div
-      class="bg-background sticky bottom-0 -mx-1 flex flex-wrap items-center justify-between gap-3 border-t px-1 py-3"
-      data-slot="launch-bar"
-    >
-      <p class="text-sm">
-        {{ $t('recurrent-movement.launch.selected', { count: selected.length }, selected.length) }}
-        ·
-        {{ $t('recurrent-movement.launch.effect') }}
-        <CurrencyDisplay :value="effect" signed />
-      </p>
-      <div class="flex gap-2">
-        <Button type="button" variant="outline" @click="cancel()">{{ $t('form.cancel') }}</Button>
-        <Button type="button" :disabled="selected.length === 0 || loading" @click="launch()">
-          {{ $t('recurrent-movement.launch.submit', { count: selected.length }, selected.length) }}
-        </Button>
+      <div
+        class="bg-muted sticky bottom-0 z-10 flex flex-wrap items-center justify-between gap-3 rounded-lg border px-5 py-3"
+        data-slot="launch-bar"
+      >
+        <span class="text-sm">
+          <template v-if="selected.length > 0">
+            <b>{{
+              $t('recurrent-movement.launch.selected', { count: selected.length }, selected.length)
+            }}</b>
+            · {{ $t('recurrent-movement.launch.effect') }}
+            <CurrencyDisplay :value="effect" signed glued bare />
+          </template>
+          <template v-else>{{ $t('recurrent-movement.launch.none-selected') }}</template>
+        </span>
+        <div class="flex gap-2">
+          <Button type="button" variant="outline" @click="cancel()">{{ $t('form.cancel') }}</Button>
+          <Button type="button" :disabled="selected.length === 0 || loading" @click="launch()">
+            <ListChecks />{{
+              selected.length === 0
+                ? $t('recurrent-movement.launch.submit-none')
+                : $t(
+                    'recurrent-movement.launch.submit',
+                    { count: selected.length },
+                    selected.length,
+                  )
+            }}
+          </Button>
+        </div>
       </div>
     </div>
   </PageContainer>

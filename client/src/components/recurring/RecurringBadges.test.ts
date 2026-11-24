@@ -22,6 +22,16 @@ describe('RecurringInstallments', () => {
     expect(wrapper.find('[data-slot="installments-bar"]').attributes('style')).toContain('25%')
   })
 
+  it('says indefinite when the server leaves the deadline out', () => {
+    const wrapper = mount(RecurringInstallments, {
+      props: { recurringMovement: {} },
+      ...plugins(),
+    })
+
+    expect(wrapper.text()).toBe('Indeterminado')
+    expect(wrapper.find('[data-slot="installments-bar"]').exists()).toBe(false)
+  })
+
   it('says indefinite when there is no deadline', () => {
     const wrapper = mount(RecurringInstallments, {
       props: { recurringMovement: { installments: null, launchedInstallments: null } },
@@ -34,13 +44,21 @@ describe('RecurringInstallments', () => {
 
 describe('RecurringStatusBadge', () => {
   it.each([
-    [true, false, 'Ativo'],
-    [false, false, 'Inativo'],
-    [true, true, 'Encerrado'],
-  ])('labels active %s and finished %s as %s', (active, finished, label) => {
-    const wrapper = mount(RecurringStatusBadge, { props: { active, finished }, ...plugins() })
+    [false, 'Ativo'],
+    [true, 'Encerrado'],
+  ])('labels ended %s as %s', (ended, label) => {
+    const wrapper = mount(RecurringStatusBadge, { props: { ended }, ...plugins() })
 
     expect(wrapper.text()).toBe(label)
+  })
+
+  it('dims the ended one', () => {
+    expect(
+      mount(RecurringStatusBadge, { props: { ended: true }, ...plugins() }).classes(),
+    ).toContain('opacity-70')
+    expect(
+      mount(RecurringStatusBadge, { props: { ended: false }, ...plugins() }).classes(),
+    ).not.toContain('opacity-70')
   })
 })
 
@@ -49,9 +67,12 @@ describe('RecurringValueKindBadge', () => {
     expect(
       mount(RecurringValueKindBadge, { props: { valueKind: 'FIXED' }, ...plugins() }).text(),
     ).toBe('Fixo')
-    expect(
-      mount(RecurringValueKindBadge, { props: { valueKind: 'VARIABLE' }, ...plugins() }).text(),
-    ).toBe('Variável')
+    const variable = mount(RecurringValueKindBadge, {
+      props: { valueKind: 'VARIABLE' },
+      ...plugins(),
+    })
+    expect(variable.text()).toBe('Variável')
+    expect(variable.classes()).toContain('bg-highlight')
   })
 })
 

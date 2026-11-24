@@ -54,9 +54,10 @@ export function recurringMovementFormDefaults() {
   return {
     type: 'EXPENSE' as MovementType,
     valueKind: 'FIXED' as const,
-    indefinite: true,
+    indefinite: false,
+    installments: 12,
     firstInstallment: 1,
-    autoLaunch: false,
+    autoLaunch: true,
     active: true,
   }
 }

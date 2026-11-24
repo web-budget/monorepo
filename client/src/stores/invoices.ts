@@ -24,6 +24,8 @@ export const INVOICE_FILTER_KEYS = ['period', 'card']
 
 export const ALL_PERIODS = 'all'
 
+const PURCHASES_PAGE_SIZE = 500
+
 export function toInvoiceQuery(query: PageQuery, filters: ExtraQuery): InvoiceQuery {
   const status = query.status as InvoiceStatusFilter | undefined
   return {
@@ -91,7 +93,7 @@ export const useInvoicesStore = defineStore('invoices', () => {
     return track(async () => {
       const { content, page } = await cardPurchasesApi.findAll({
         invoice: id,
-        size: 50,
+        size: PURCHASES_PAGE_SIZE,
         sort: 'purchasedOn,desc',
       })
       purchases.value = { content, ...page }

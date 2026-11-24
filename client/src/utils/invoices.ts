@@ -8,6 +8,19 @@ export function invoicePaymentDueDate(periodEnd: string, paymentDay: number): st
   return formatLocalDate(new Date(end.getFullYear(), month, Math.min(paymentDay, lastDay)))
 }
 
+export function periodMonth(periodName: string): string {
+  return periodName.replace(/ de .*$/, '')
+}
+
+export function cardLabel(card: { name: string; lastFourDigits: string }): string {
+  return `${card.name} ••${card.lastFourDigits}`
+}
+
+export function dayAndMonth(isoDate: string): string {
+  const [, month, day] = isoDate.split('-')
+  return `${day}/${month}`
+}
+
 export function purchaseDisplayName(purchase: {
   name: string
   recurringMovement?: Pick<PurchaseRecurringView, 'installment' | 'installments'> | null

@@ -39,10 +39,11 @@ export async function mountView(
   props: Record<string, unknown> = {},
   initialState: Record<string, unknown> = {},
   location?: string,
+  extraRoutes: RouteRecordRaw[] = [],
 ) {
   installZodErrorMap()
   const { router, plugins } = createTestPlugins({
-    routes: crudTestRoutes(routeName),
+    routes: [...crudTestRoutes(routeName), ...extraRoutes],
     stubActions: false,
     initialState,
   })
@@ -114,6 +115,14 @@ export function serveListing<T>(
 
 export function listingCalls(findAll: Mock<(query: PageQuery) => Promise<unknown>>) {
   return findAll.mock.calls.map(([query]) => query).filter((query) => query.size !== 1)
+}
+
+export function namedTestRoutes(...names: string[]): RouteRecordRaw[] {
+  return names.map((name) => ({
+    path: `/__${name}${name.endsWith('detail') || name.endsWith('update') ? '/:id' : ''}`,
+    name,
+    component: leaf,
+  }))
 }
 
 export function stateOf(wrapper: ReturnType<typeof mount>) {
