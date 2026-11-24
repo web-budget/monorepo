@@ -2,7 +2,11 @@ package br.com.webbudget.server.application.mappers.financial
 
 import br.com.webbudget.server.application.payloads.financial.MovementClassificationView
 import br.com.webbudget.server.application.payloads.financial.MovementCostCenterView
+import br.com.webbudget.server.application.payloads.financial.CreationPreviewRecurringView
+import br.com.webbudget.server.application.payloads.financial.FinancialPeriodCreationPreviewView
 import br.com.webbudget.server.application.payloads.financial.PaymentCardView
+import br.com.webbudget.server.application.payloads.financial.RecurringLaunchEntryView
+import br.com.webbudget.server.application.payloads.financial.RecurringValuePeriodView
 import br.com.webbudget.server.application.payloads.financial.RecurringLaunchForm
 import br.com.webbudget.server.application.payloads.financial.RecurringLaunchView
 import br.com.webbudget.server.application.payloads.financial.RecurringLaunchedView
@@ -11,7 +15,10 @@ import br.com.webbudget.server.application.payloads.financial.RecurringMovementU
 import br.com.webbudget.server.application.payloads.financial.RecurringMovementView
 import br.com.webbudget.server.application.payloads.financial.RecurringSkippedView
 import br.com.webbudget.server.application.payloads.financial.RecurringValueView
+import br.com.webbudget.server.domain.entities.financial.FinancialPeriodCreationPreview
+import br.com.webbudget.server.domain.entities.financial.FinancialPeriodReference
 import br.com.webbudget.server.domain.entities.financial.LaunchRequest
+import br.com.webbudget.server.domain.entities.financial.RecurringLaunchEntry
 import br.com.webbudget.server.domain.entities.financial.RecurringLaunchReport
 import br.com.webbudget.server.domain.entities.financial.RecurringMovement
 import br.com.webbudget.server.domain.entities.financial.RecurringValue
@@ -37,6 +44,7 @@ class RecurringMovementMapper(
         launchedInstallments = recurringMovement.launchedInstallments,
         nextInstallment = recurringMovement.nextInstallment,
         finished = recurringMovement.finished,
+        ended = recurringMovement.ended,
         autoLaunch = recurringMovement.autoLaunch,
         active = recurringMovement.active,
         classification = recurringMovement.classification.let {
@@ -48,8 +56,41 @@ class RecurringMovementMapper(
         createdOn = recurringMovement.createdOn!!
     )
 
-    fun mapToView(value: RecurringValue): RecurringValueView =
-        RecurringValueView(value.value, value.reason, value.validFrom)
+    fun mapToView(value: RecurringValue): RecurringValueView = RecurringValueView(
+        value = value.value,
+        reason = value.reason,
+        validFrom = value.validFrom,
+        validFromPeriod = value.validFromPeriod?.let { mapToPeriodView(it) },
+        current = value.current
+    )
+
+    fun mapToView(entry: RecurringLaunchEntry): RecurringLaunchEntryView = RecurringLaunchEntryView(
+        financialPeriod = mapToPeriodView(entry.financialPeriod),
+        installment = entry.installment,
+        movement = entry.movementId,
+        value = entry.value,
+        status = entry.status.name,
+        valuePaid = entry.valuePaid
+    )
+
+    fun mapToView(preview: FinancialPeriodCreationPreview): FinancialPeriodCreationPreviewView =
+        FinancialPeriodCreationPreviewView(
+            recurringMovements = preview.recurringMovements.map {
+                CreationPreviewRecurringView(
+                    id = it.externalId!!,
+                    name = it.name,
+                    type = it.type.name,
+                    value = it.launchValue,
+                    installment = if (it.installments != null) it.nextInstallment else null,
+                    installments = it.installments
+                )
+            },
+            invoices = preview.cards.map { PaymentCardView(it.externalId, it.name, it.lastFourDigits) }
+        )
+
+    private fun mapToPeriodView(period: FinancialPeriodReference) =
+        RecurringValuePeriodView(period.externalId, period.name, period.startingAt)
+
 
     fun mapToView(report: RecurringLaunchReport): RecurringLaunchView = RecurringLaunchView(
         launched = report.launched.map {

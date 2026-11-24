@@ -54,6 +54,7 @@ export function useListFilters<S extends string>(options: ListFiltersOptions<S>)
       options.initialStatus,
       options.extra?.values.value,
       extraKeys,
+      options.defaultSort,
     )
     if (!sameListQuery(query, route.query, extraKeys)) {
       void router.replace({ query })

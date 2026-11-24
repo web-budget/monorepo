@@ -24,6 +24,9 @@ const wallet = {
   name: 'Main',
   type: 'BANK_ACCOUNT',
   bank: 'ACME',
+  currentBalance: 0,
+  agency: null,
+  number: null,
   active: true,
 } as const
 
@@ -88,7 +91,7 @@ describe('CardFormView', () => {
     expect(document.activeElement).toBe(field(wrapper, 'name').element)
   })
 
-  it('creates a card without a wallet and goes to its detail', async () => {
+  it('creates a card without a wallet and stays on the cleared form', async () => {
     vi.mocked(cardsApi.create).mockResolvedValue('k-9')
     const { wrapper, router } = await mountView(CardFormView, 'cards')
 
@@ -109,8 +112,9 @@ describe('CardFormView', () => {
       description: '“Travel” já aparece nos lançamentos.',
       duration: 4000,
     })
-    expect(router.currentRoute.value.name).toBe('cards.detail')
-    expect(router.currentRoute.value.params.id).toBe('k-9')
+    expect(router.currentRoute.value.name).not.toBe('cards.detail')
+    expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('')
+    expect(document.activeElement).toBe(field(wrapper, 'name').element)
   })
 
   it('creates a card linked to the wallet that pays the invoice, found by name', async () => {

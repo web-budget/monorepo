@@ -98,7 +98,8 @@ data class PaymentView(
     val discount: BigDecimal,
     val valuePaid: BigDecimal,
     val wallet: PaymentWalletView?,
-    val card: PaymentCardView?
+    val card: PaymentCardView?,
+    val invoice: InvoiceSummaryView? = null
 )
 
 data class MovementInvoiceView(
@@ -132,6 +133,9 @@ data class MovementListView(
     val dueDate: LocalDate,
     val status: String,
     val overdue: Boolean,
+    val paymentMethod: String?,
+    val classification: MovementClassificationView?,
+    val costCenter: MovementCostCenterView?,
     val financialPeriod: MovementFinancialPeriodView,
     val invoicePayment: Boolean
 )
@@ -155,7 +159,9 @@ data class FinancialPeriodResultView(
     val revenues: BigDecimal,
     val expenses: BigDecimal,
     val result: BigDecimal,
-    val recorded: Boolean
+    val recorded: Boolean,
+    val toPay: BigDecimal,
+    val overdueExpenses: Int
 )
 
 data class MovementRecurringView(

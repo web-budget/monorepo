@@ -60,7 +60,13 @@ class MovementRepository(
 
         val condition = DSL.and(
             listOfNotNull(
-                filter.text?.let { text -> movements.NAME.containsIgnoreCase(text) },
+                filter.text?.let { text ->
+                    DSL.or(
+                        movements.NAME.containsIgnoreCase(text),
+                        costCenters.NAME.containsIgnoreCase(text),
+                        classifications.NAME.containsIgnoreCase(text)
+                    )
+                },
                 filter.type?.let { type -> movements.TYPE.eq(type.name) },
                 filter.statuses?.takeIf { it.isNotEmpty() }
                     ?.let { statuses -> movements.STATUS.`in`(statuses.map(Movement.Status::name)) },
@@ -77,6 +83,7 @@ class MovementRepository(
         val sortable = mapOf(
             "name" to movements.NAME,
             "dueDate" to movements.DUE_DATE,
+            "costCenter" to costCenters.NAME,
             "value" to movements.VALUE,
             "status" to movements.STATUS,
             "createdOn" to movements.CREATED_ON
@@ -134,6 +141,22 @@ class MovementRepository(
         .groupBy(movements.TYPE)
         .fetch()
         .associate { record -> Movement.Type.valueOf(record.value1()!!) to (record.value2() ?: BigDecimal.ZERO) }
+
+    fun sumOpenExpenses(financialPeriodId: Long, today: LocalDate): OpenExpenses {
+
+        val record = dsl
+            .select(
+                DSL.coalesce(DSL.sum(movements.VALUE), BigDecimal.ZERO),
+                DSL.count().filterWhere(movements.DUE_DATE.lt(today))
+            )
+            .from(movements)
+            .where(movements.ID_FINANCIAL_PERIOD.eq(financialPeriodId))
+            .and(movements.TYPE.eq(Movement.Type.EXPENSE.name))
+            .and(movements.STATUS.eq(Movement.Status.OPEN.name))
+            .fetchSingle()
+
+        return OpenExpenses(record.value1()!!, record.value2()!!)
+    }
 
     fun insert(movement: Movement): Movement {
         val record = dsl.insertInto(MOVEMENTS)
@@ -242,6 +265,11 @@ class MovementRepository(
         )
     }
 }
+
+data class OpenExpenses(
+    val total: BigDecimal,
+    val overdueCount: Int
+)
 
 data class MovementCriteria(
     val text: String? = null,

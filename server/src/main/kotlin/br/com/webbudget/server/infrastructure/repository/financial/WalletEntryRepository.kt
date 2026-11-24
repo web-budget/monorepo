@@ -1,6 +1,8 @@
 package br.com.webbudget.server.infrastructure.repository.financial
 
 import br.com.webbudget.server.domain.entities.financial.StatementLine
+import br.com.webbudget.server.domain.entities.financial.StatementSummary
+import br.com.webbudget.server.domain.entities.financial.StatementTotal
 import br.com.webbudget.server.domain.entities.financial.WalletEntry
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
@@ -9,6 +11,7 @@ import br.com.webbudget.server.jooq.financial.tables.references.TRANSFERS
 import br.com.webbudget.server.jooq.financial.tables.references.WALLET_ENTRIES
 import br.com.webbudget.server.jooq.registration.tables.references.FINANCIAL_PERIODS
 import br.com.webbudget.server.jooq.registration.tables.references.WALLETS
+import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.Record
 import org.jooq.SelectJoinStep
@@ -29,6 +32,7 @@ class WalletEntryRepository(
     private val entries = WALLET_ENTRIES.`as`("wallet_entries")
     private val movements = MOVEMENTS.`as`("movements")
     private val transfers = TRANSFERS.`as`("transfers")
+    private val returnTransfers = TRANSFERS.`as`("return_transfers")
     private val financialPeriods = FINANCIAL_PERIODS.`as`("financial_periods")
 
     fun lockWallets(sortedWalletIds: List<Long>) {
@@ -75,20 +79,7 @@ class WalletEntryRepository(
 
     fun findAll(walletId: Long, criteria: StatementCriteria, pageable: Pageable): PagedModel<StatementLine> {
 
-        val condition = DSL.and(
-            listOfNotNull(
-                entries.ID_WALLET.eq(walletId),
-                criteria.from?.let { entries.CREATED_ON.ge(it.atStartOfDay()) },
-                criteria.to?.let { entries.CREATED_ON.lt(it.plusDays(1).atStartOfDay()) },
-                criteria.financialPeriod?.let { financialPeriods.EXTERNAL_ID.eq(it) },
-                criteria.origins?.takeIf { it.isNotEmpty() }
-                    ?.let { origins -> entries.ORIGIN.`in`(origins.map(WalletEntry.Origin::name)) },
-                criteria.direction?.let { entries.DIRECTION.eq(it.name) },
-                criteria.text?.let { entries.NAME.containsIgnoreCase(it) },
-                criteria.minValue?.let { entries.VALUE.ge(it) },
-                criteria.maxValue?.let { entries.VALUE.le(it) }
-            )
-        )
+        val condition = criteria.toCondition(walletId)
 
         val sortable = mapOf(
             "name" to entries.NAME,
@@ -111,15 +102,66 @@ class WalletEntryRepository(
         return pagedModelOf(content, pageable, total.toLong())
     }
 
+    fun findByExternalId(walletId: Long, externalId: UUID): StatementLine? = dsl.select().from(entries)
+        .joinReferences()
+        .where(entries.ID_WALLET.eq(walletId))
+        .and(entries.EXTERNAL_ID.eq(externalId))
+        .fetchOne()
+        ?.toStatementLine()
+
+    fun summarize(walletId: Long, criteria: StatementCriteria): StatementSummary {
+
+        val totals = dsl.select(entries.DIRECTION, DSL.sum(entries.VALUE), DSL.count())
+            .from(entries)
+            .joinReferences()
+            .where(criteria.toCondition(walletId))
+            .groupBy(entries.DIRECTION)
+            .fetch()
+            .associate { record ->
+                WalletEntry.Direction.valueOf(record.value1()!!) to
+                    StatementTotal(record.value2() ?: BigDecimal.ZERO, record.value3()!!)
+            }
+
+        val lastEntryOn = dsl.select(DSL.max(entries.CREATED_ON))
+            .from(entries)
+            .where(entries.ID_WALLET.eq(walletId))
+            .fetchSingle()
+            .value1()
+
+        return StatementSummary(
+            credits = totals[WalletEntry.Direction.CREDIT] ?: StatementTotal(BigDecimal.ZERO, 0),
+            debits = totals[WalletEntry.Direction.DEBIT] ?: StatementTotal(BigDecimal.ZERO, 0),
+            lastEntryOn = lastEntryOn
+        )
+    }
+
+    private fun StatementCriteria.toCondition(walletId: Long): Condition = DSL.and(
+        listOfNotNull(
+            entries.ID_WALLET.eq(walletId),
+            from?.let { entries.CREATED_ON.ge(it.atStartOfDay()) },
+            to?.let { entries.CREATED_ON.lt(it.plusDays(1).atStartOfDay()) },
+            financialPeriod?.let { financialPeriods.EXTERNAL_ID.eq(it) },
+            origins?.takeIf { it.isNotEmpty() }
+                ?.let { origins -> entries.ORIGIN.`in`(origins.map(WalletEntry.Origin::name)) },
+            direction?.let { entries.DIRECTION.eq(it.name) },
+            text?.let { entries.NAME.containsIgnoreCase(it) },
+            minValue?.let { entries.VALUE.ge(it) },
+            maxValue?.let { entries.VALUE.le(it) }
+        )
+    )
+
     private fun <R : Record> SelectJoinStep<R>.joinReferences(): SelectJoinStep<R> = this
         .leftJoin(movements).on(movements.ID.eq(entries.ID_MOVEMENT))
         .leftJoin(transfers).on(transfers.ID.eq(entries.ID_TRANSFER))
+        .leftJoin(returnTransfers).on(returnTransfers.ID_RETURNED_TRANSFER.eq(transfers.ID))
         .leftJoin(financialPeriods).on(financialPeriods.ID.eq(entries.ID_FINANCIAL_PERIOD))
 
     private fun Record.toStatementLine(): StatementLine {
 
         val entry = into(entries)
         val period = into(financialPeriods)
+        val transfer = into(transfers)
+        val isReturn = transfer.idReturnedTransfer != null
 
         return StatementLine(
             externalId = entry.externalId!!,
@@ -132,7 +174,9 @@ class WalletEntryRepository(
             resultingBalance = entry.resultingBalance!!,
             financialPeriod = period.id?.let { period.toFinancialPeriodReference() },
             movementExternalId = into(movements).externalId,
-            transferExternalId = into(transfers).externalId
+            transferExternalId = transfer.externalId,
+            transferIsReturn = isReturn,
+            transferReturnable = transfer.id != null && !isReturn && into(returnTransfers).id == null
         )
     }
 }

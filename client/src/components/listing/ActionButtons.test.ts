@@ -34,7 +34,7 @@ describe('ActionButtons', () => {
     await openMenu(wrapper)
 
     expect(menuItem('Editar')).toBeDefined()
-    expect(menuItem('Remover')).toBeDefined()
+    expect(menuItem('Excluir')).toBeDefined()
   })
 
   it('emits onEdit when Editar is chosen', async () => {
@@ -48,11 +48,11 @@ describe('ActionButtons', () => {
     expect(wrapper.emitted('onDelete')).toBeUndefined()
   })
 
-  it('emits onDelete when Remover is chosen', async () => {
+  it('emits onDelete when Excluir is chosen', async () => {
     const wrapper = render()
     await openMenu(wrapper)
 
-    menuItem('Remover').click()
+    menuItem('Excluir').click()
     await flushPromises()
 
     expect(wrapper.emitted('onDelete')).toHaveLength(1)

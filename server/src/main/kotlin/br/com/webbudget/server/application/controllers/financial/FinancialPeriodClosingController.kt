@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.math.BigDecimal
 import java.util.UUID
 
 @RestController
@@ -42,7 +43,7 @@ class FinancialPeriodClosingController(
         val periodResult = financialPeriodClosingService.close(findFinancialPeriod(id))
 
         return ResponseEntity.ok(
-            FinancialPeriodResultView(periodResult.revenues, periodResult.expenses, periodResult.result, true)
+            FinancialPeriodResultView(periodResult.revenues, periodResult.expenses, periodResult.result, true, BigDecimal.ZERO, 0)
         )
     }
 

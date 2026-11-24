@@ -39,7 +39,7 @@ const { messages, fields, submitting, loadingRecord, dirty, changeToList, onSubm
   toFormValues: toClassificationFormValues,
   create: (values) => store.create(toClassificationCreateForm(values)),
   update: (id, values) => store.update(id, toClassificationUpdateForm(values)),
-  redirectToDetail: true,
+  detailAfterUpdate: true,
 })
 
 const updating = computed(() => props.id !== undefined)

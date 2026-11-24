@@ -63,6 +63,8 @@ class ListingSortOrderTest : BaseIntegrationTest() {
         assertNames("/registration/cards", "", "XP Infinite", "Itau Personalite")
         assertNames("/registration/cards", "sort=name,asc", "Itau Personalite", "XP Infinite")
         assertNames("/registration/cards", "sort=name,desc", "XP Infinite", "Itau Personalite")
+        assertNames("/registration/cards", "sort=invoicePaymentDay,asc", "XP Infinite", "Itau Personalite")
+        assertNames("/registration/cards", "sort=invoicePaymentDay,desc", "Itau Personalite", "XP Infinite")
     }
 
     @Test
@@ -87,9 +89,9 @@ class ListingSortOrderTest : BaseIntegrationTest() {
     @Sql("/sql/registration/clear-tables.sql", "/sql/registration/create-financial-periods.sql")
     fun `should list the financial periods from the newest to the oldest by default`() {
 
-        assertNames("/registration/financial-periods", "status=ALL", "07/2024", "06/2024", "08/2024")
-        assertNames("/registration/financial-periods", "status=ALL&sort=name,asc", "06/2024", "07/2024", "08/2024")
-        assertNames("/registration/financial-periods", "status=ALL&sort=name,desc", "08/2024", "07/2024", "06/2024")
+        assertNames("/financial/financial-periods", "status=ALL", "07/2024", "06/2024", "08/2024")
+        assertNames("/financial/financial-periods", "status=ALL&sort=name,asc", "06/2024", "07/2024", "08/2024")
+        assertNames("/financial/financial-periods", "status=ALL&sort=name,desc", "08/2024", "07/2024", "06/2024")
     }
 
     @Test
@@ -104,6 +106,8 @@ class ListingSortOrderTest : BaseIntegrationTest() {
         assertNames("/financial/movements", "", "Groceries", "Salary", "Gym")
         assertNames("/financial/movements", "sort=name,asc", "Groceries", "Gym", "Salary")
         assertNames("/financial/movements", "sort=name,desc", "Salary", "Gym", "Groceries")
+        assertNames("/financial/movements", "sort=costCenter,asc", "Gym", "Groceries", "Salary")
+        assertNames("/financial/movements", "sort=costCenter,desc", "Groceries", "Salary", "Gym")
     }
 
     @Test
@@ -150,6 +154,8 @@ class ListingSortOrderTest : BaseIntegrationTest() {
         assertNames("/financial/recurring-movements", "", "Salary", "Phone", "Electricity", "Streaming")
         assertNames("/financial/recurring-movements", "sort=name,asc", "Electricity", "Phone", "Salary", "Streaming")
         assertNames("/financial/recurring-movements", "sort=name,desc", "Streaming", "Salary", "Phone", "Electricity")
+        assertNames("/financial/recurring-movements", "sort=valueKind,asc", "Salary", "Phone", "Streaming", "Electricity")
+        assertNames("/financial/recurring-movements", "sort=valueKind,desc", "Electricity", "Salary", "Phone", "Streaming")
     }
 
     @Test

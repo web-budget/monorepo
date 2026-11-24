@@ -14,12 +14,20 @@ class CardReference(
     val invoicePaymentDay: Int
 )
 
+class InvoicePayment(
+    val externalId: UUID,
+    val name: String,
+    val value: BigDecimal,
+    val dueDate: LocalDate
+)
+
 class Invoice(
     val card: CardReference,
     val financialPeriod: FinancialPeriodReference,
     var status: Status = Status.OPEN,
     var value: BigDecimal = BigDecimal.ZERO,
-    val purchaseCount: Int = 0
+    val purchaseCount: Int = 0,
+    val payment: InvoicePayment? = null
 ) : PersistentEntity() {
 
     fun isOpen(): Boolean = status == Status.OPEN
@@ -38,6 +46,13 @@ class Invoice(
     enum class Status { OPEN, CLOSED, PAID }
 }
 
+class PurchaseRecurring(
+    val externalId: UUID,
+    val name: String,
+    val installment: Int,
+    val installments: Int?
+)
+
 class CardPurchase(
     var name: String,
     var purchasedOn: LocalDate,
@@ -48,5 +63,6 @@ class CardPurchase(
     val financialPeriod: FinancialPeriodReference,
     var invoice: Invoice? = null,
     val movementId: Long? = null,
-    val movementExternalId: UUID? = null
+    val movementExternalId: UUID? = null,
+    val recurring: PurchaseRecurring? = null
 ) : PersistentEntity()

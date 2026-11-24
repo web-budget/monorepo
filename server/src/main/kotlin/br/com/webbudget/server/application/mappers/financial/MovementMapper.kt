@@ -1,5 +1,6 @@
 package br.com.webbudget.server.application.mappers.financial
 
+import br.com.webbudget.server.application.payloads.financial.InvoiceSummaryView
 import br.com.webbudget.server.application.payloads.financial.MovementClassificationView
 import br.com.webbudget.server.application.payloads.financial.MovementCostCenterView
 import br.com.webbudget.server.application.payloads.financial.MovementCreateForm
@@ -26,6 +27,7 @@ import br.com.webbudget.server.domain.entities.financial.Payment
 import br.com.webbudget.server.domain.exceptions.DomainException
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.NO_OPEN_PERIOD_AFTER
 import br.com.webbudget.server.domain.exceptions.ResourceNotFoundException
+import br.com.webbudget.server.infrastructure.repository.financial.InvoiceRepository
 import br.com.webbudget.server.infrastructure.repository.financial.MovementReferenceRepository
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
@@ -33,7 +35,8 @@ import java.time.LocalDate
 
 @Component
 class MovementMapper(
-    private val movementReferenceRepository: MovementReferenceRepository
+    private val movementReferenceRepository: MovementReferenceRepository,
+    private val invoiceRepository: InvoiceRepository
 ) {
 
     fun mapToView(movement: Movement): MovementView {
@@ -48,13 +51,11 @@ class MovementMapper(
             dueDate = movement.dueDate,
             status = movement.status.name,
             overdue = movement.isOverdue(today),
-            classification = movement.classification?.let {
-                MovementClassificationView(it.externalId, it.name, it.type)
-            },
-            costCenter = movement.costCenter?.let { MovementCostCenterView(it.externalId, it.name, it.fullName) },
+            classification = mapToClassificationView(movement),
+            costCenter = mapToCostCenterView(movement),
             financialPeriod = mapToPeriodView(movement.financialPeriod, today),
             description = movement.description,
-            payment = movement.payment?.let { mapToPaymentView(it) },
+            payment = movement.payment?.let { mapToPaymentView(it, movement) },
             invoice = movement.invoice?.let {
                 MovementInvoiceView(it.externalId!!, it.status.name, PaymentCardView(it.card.externalId, it.card.name, it.card.lastFourDigits))
             },
@@ -76,6 +77,9 @@ class MovementMapper(
             dueDate = movement.dueDate,
             status = movement.status.name,
             overdue = movement.isOverdue(today),
+            paymentMethod = movement.payment?.method?.name,
+            classification = mapToClassificationView(movement),
+            costCenter = mapToCostCenterView(movement),
             financialPeriod = mapToPeriodView(movement.financialPeriod, today),
             invoicePayment = movement.isInvoicePayment()
         )
@@ -156,6 +160,14 @@ class MovementMapper(
     private fun mapToClosingPeriodView(period: FinancialPeriodReference) =
         ClosingPeriodView(period.externalId, period.name, period.startingAt, period.endingAt)
 
+    private fun mapToClassificationView(movement: Movement) = movement.classification?.let {
+        MovementClassificationView(it.externalId, it.name, it.type)
+    }
+
+    private fun mapToCostCenterView(movement: Movement) = movement.costCenter?.let {
+        MovementCostCenterView(it.externalId, it.name, it.fullName)
+    }
+
     private fun mapToPeriodView(period: FinancialPeriodReference, today: LocalDate) = MovementFinancialPeriodView(
         id = period.externalId,
         name = period.name,
@@ -163,12 +175,16 @@ class MovementMapper(
         expired = period.isExpired(today)
     )
 
-    private fun mapToPaymentView(payment: Payment) = PaymentView(
+    private fun mapToPaymentView(payment: Payment, movement: Movement) = PaymentView(
         paidOn = payment.paidOn,
         value = payment.value,
         discount = payment.discount,
         valuePaid = payment.valuePaid,
         wallet = payment.wallet?.let { PaymentWalletView(it.externalId, it.name) },
-        card = payment.card?.let { PaymentCardView(it.externalId, it.name, it.lastFourDigits) }
+        card = payment.card?.let { PaymentCardView(it.externalId, it.name, it.lastFourDigits) },
+        invoice = payment.card?.let { card ->
+            invoiceRepository.findByCardAndFinancialPeriod(card.id, movement.financialPeriod.id)
+                ?.let { InvoiceSummaryView(it.externalId!!, it.status.name) }
+        }
     )
 }

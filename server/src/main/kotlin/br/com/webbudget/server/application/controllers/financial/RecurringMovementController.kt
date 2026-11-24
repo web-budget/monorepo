@@ -1,6 +1,7 @@
 package br.com.webbudget.server.application.controllers.financial
 
 import br.com.webbudget.server.application.mappers.financial.RecurringMovementMapper
+import br.com.webbudget.server.application.payloads.financial.RecurringLaunchEntryView
 import br.com.webbudget.server.application.payloads.financial.RecurringLaunchForm
 import br.com.webbudget.server.application.payloads.financial.RecurringLaunchView
 import br.com.webbudget.server.application.payloads.financial.RecurringMovementCreateForm
@@ -54,6 +55,7 @@ class RecurringMovementController(
             valueKinds = filter.valueKinds,
             active = filter.active,
             finished = filter.finished,
+            ended = filter.ended,
             cards = filter.cards,
             financialPeriod = filter.financialPeriod
         )
@@ -70,6 +72,12 @@ class RecurringMovementController(
     @GetMapping("/{id}/values")
     fun getValues(@PathVariable id: UUID, pageable: Pageable): ResponseEntity<PagedModel<RecurringValueView>> =
         recurringMovementRepository.findValues(findRecurringMovement(id).id!!, pageable)
+            .map { recurringMovementMapper.mapToView(it) }
+            .let { ResponseEntity.ok(it) }
+
+    @GetMapping("/{id}/launches")
+    fun getLaunches(@PathVariable id: UUID, pageable: Pageable): ResponseEntity<PagedModel<RecurringLaunchEntryView>> =
+        recurringMovementRepository.findLaunches(findRecurringMovement(id).id!!, pageable)
             .map { recurringMovementMapper.mapToView(it) }
             .let { ResponseEntity.ok(it) }
 

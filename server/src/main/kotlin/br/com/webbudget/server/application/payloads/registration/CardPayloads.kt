@@ -50,8 +50,11 @@ data class CardView(
 data class CardListView(
     val id: UUID,
     val name: String,
+    val lastFourDigits: String,
+    val invoicePaymentDay: Int,
     val active: Boolean,
-    val flag: String? = null
+    val flag: String? = null,
+    val wallet: WalletListView? = null
 )
 
 data class CardFilter(

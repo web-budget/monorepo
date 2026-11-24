@@ -55,6 +55,11 @@ class CardPurchaseControllerTest : BaseIntegrationTest() {
             .jsonPath("$.content[0].name").isEqualTo("Books")
             .jsonPath("$.content[0].invoice.status").isEqualTo("CLOSED")
             .jsonPath("$.content[0].card.name").isEqualTo("Financial test card")
+            .jsonPath("$.content[0].card.lastFourDigits").isEqualTo("9101")
+            .jsonPath("$.content[0].classification.id").isEqualTo(EXPENSE_CLASSIFICATION)
+            .jsonPath("$.content[0].classification.name").isEqualTo("Financial test gym")
+            .jsonPath("$.content[0].costCenter.id").isEqualTo(HEALTH_COST_CENTER)
+            .jsonPath("$.content[0].costCenter.name").isEqualTo("Financial test health")
             .jsonPath("$.content[2].name").isEqualTo("Pizza")
             .jsonPath("$.content[2].value").isEqualTo(80.0)
     }
@@ -281,7 +286,7 @@ class CardPurchaseControllerTest : BaseIntegrationTest() {
     fun `should not delete a period that has purchases`() {
 
         restTestClient.delete()
-            .uri("/private/v1/registration/financial-periods/$OPEN_PERIOD")
+            .uri("/private/v1/financial/financial-periods/$OPEN_PERIOD")
             .exchange()
             .expectStatus().isBadRequest
             .expectBody()

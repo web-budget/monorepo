@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { Lock, LockOpen } from 'lucide-vue-next'
+import { ReceiptText } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
-import { computed, onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { onMounted, ref } from 'vue'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
 import DateTimeDisplay from '@/components/common/DateTimeDisplay.vue'
 import DetailCard from '@/components/common/DetailCard.vue'
@@ -11,14 +10,12 @@ import DetailSection from '@/components/common/DetailSection.vue'
 import PeriodStatusBadge from '@/components/listing/PeriodStatusBadge.vue'
 import { Button } from '@/components/ui/button'
 import { useCrudDetail } from '@/composables/useCrudDetail'
-import { useReopenPeriod } from '@/composables/useReopenPeriod'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { useFinancialPeriodsStore } from '@/stores/financialPeriods'
 import type { FinancialPeriodResultView } from '@/types'
 
 const props = defineProps<{ id: string }>()
 
-const router = useRouter()
 const store = useFinancialPeriodsStore()
 const { financialPeriod } = storeToRefs(store)
 
@@ -31,80 +28,72 @@ const { messages, changeToUpdate, remove } = useCrudDetail({
   remove: store.remove,
 })
 
-const resultErrors = useServerErrors()
+const extraErrors = useServerErrors()
 const periodResult = ref<FinancialPeriodResultView>()
-const lastClosedId = ref<string | null>(null)
+const movementCounts = ref<{ launched: number; open: number; paid: number }>()
 
-const reopenable = computed(
-  () => financialPeriod.value?.status === 'CLOSED' && lastClosedId.value === props.id,
-)
-
-async function loadResult() {
-  await resultErrors.run(async () => {
-    periodResult.value = await store.findResult(props.id)
-    lastClosedId.value = await store.findLastClosedId()
+onMounted(async () => {
+  await extraErrors.run(async () => {
+    const [result, counts] = await Promise.all([
+      store.findResult(props.id),
+      store.findMovementCounts(props.id),
+    ])
+    periodResult.value = result
+    movementCounts.value = counts
   })
-}
-
-async function reloadAfterReopen() {
-  await store.findOne(props.id)
-  await loadResult()
-}
-
-const reopening = useReopenPeriod(reloadAfterReopen)
-
-function closePeriod() {
-  return router.push({ path: '/financial/closing', query: { period: props.id } })
-}
-
-onMounted(loadResult)
+})
 </script>
 
 <template>
   <DetailCard
     :title="financialPeriod?.name ?? $t('financial-period.form.detailing')"
-    :messages="[...messages, ...resultErrors.messages.value, ...reopening.messages.value]"
-    :readonly="financialPeriod?.status === 'CLOSED'"
+    :messages="[...messages, ...extraErrors.messages.value]"
+    readonly
     @edit="changeToUpdate"
     @delete="remove"
   >
     <template v-if="financialPeriod" #badge>
       <PeriodStatusBadge :status="financialPeriod.status" :expired="financialPeriod.expired" />
     </template>
-    <template v-if="financialPeriod?.status === 'OPEN' || reopenable" #extra-actions>
-      <Button v-if="financialPeriod?.status === 'OPEN'" type="button" @click="closePeriod()">
-        <Lock />{{ $t('period-closing.actions.close') }}
-      </Button>
-      <Button
-        v-else-if="reopenable"
-        type="button"
-        variant="outline"
-        @click="reopening.reopen(financialPeriod!)"
-      >
-        <LockOpen />{{ $t('period-closing.actions.reopen') }}
+    <template v-if="financialPeriod" #footer>
+      <Button as-child type="button" variant="outline">
+        <RouterLink :to="{ path: '/financial/movements', query: { period: id } }">
+          <ReceiptText />{{ $t('financial-period.actions.view-movements') }}
+        </RouterLink>
       </Button>
     </template>
     <template v-if="financialPeriod">
-      <DetailSection :title="$t('financial-period.sections.identification')">
+      <DetailSection
+        :title="$t('financial-period.sections.identification')"
+        columns="md:grid-cols-3"
+      >
         <DetailField :label="$t('financial-period.form.name')" :value="financialPeriod.name" />
-      </DetailSection>
-      <DetailSection :title="$t('financial-period.sections.dates')">
-        <DetailField :label="$t('financial-period.form.starting-at')" mono>
+        <DetailField :label="$t('financial-period.form.status')">
+          <PeriodStatusBadge :status="financialPeriod.status" :expired="financialPeriod.expired" />
+        </DetailField>
+        <DetailField :label="$t('financial-period.table-columns.starting-at')" mono>
           <DateTimeDisplay fix-time :value="financialPeriod.startingAt" />
         </DetailField>
-        <DetailField :label="$t('financial-period.form.ending-at')" mono>
+        <DetailField :label="$t('financial-period.table-columns.ending-at')" mono>
           <DateTimeDisplay fix-time :value="financialPeriod.endingAt" />
+        </DetailField>
+        <DetailField :label="$t('financial-period.form.revenues-goal')" mono>
+          <CurrencyDisplay :value="financialPeriod.revenuesGoal" zero-if-null />
+        </DetailField>
+        <DetailField :label="$t('financial-period.form.expenses-goal')" mono>
+          <CurrencyDisplay :value="financialPeriod.expensesGoal" zero-if-null />
         </DetailField>
       </DetailSection>
       <DetailSection
         v-if="periodResult"
         :title="
           $t(
-            periodResult.recorded
-              ? 'financial-period.sections.result-closed'
-              : 'financial-period.sections.result',
+            financialPeriod.status === 'OPEN'
+              ? 'financial-period.sections.result'
+              : 'financial-period.sections.result-closed',
           )
         "
+        columns="md:grid-cols-3"
       >
         <DetailField :label="$t('financial-period.result.revenues')">
           <CurrencyDisplay :value="periodResult.revenues" zero-if-null />
@@ -113,23 +102,33 @@ onMounted(loadResult)
           <CurrencyDisplay :value="periodResult.expenses" zero-if-null />
         </DetailField>
         <DetailField :label="$t('financial-period.result.result')">
-          <CurrencyDisplay :value="periodResult.result" signed />
+          <CurrencyDisplay
+            :value="periodResult.result"
+            zero-if-null
+            class="text-base font-semibold"
+          />
         </DetailField>
       </DetailSection>
-      <DetailSection :title="$t('financial-period.sections.movements')">
-        <Button as-child variant="outline" class="w-fit">
-          <RouterLink :to="{ path: '/financial/movements', query: { period: id } }">
-            {{ $t('financial-period.actions.view-movements') }}
-          </RouterLink>
-        </Button>
-      </DetailSection>
-      <DetailSection :title="$t('financial-period.sections.goals')">
-        <DetailField :label="$t('financial-period.form.revenues-goal')">
-          <CurrencyDisplay :value="financialPeriod.revenuesGoal" zero-if-null />
-        </DetailField>
-        <DetailField :label="$t('financial-period.form.expenses-goal')">
-          <CurrencyDisplay :value="financialPeriod.expensesGoal" zero-if-null />
-        </DetailField>
+      <DetailSection
+        v-if="movementCounts"
+        :title="$t('financial-period.sections.movements')"
+        columns="md:grid-cols-3"
+      >
+        <DetailField
+          :label="$t('financial-period.detail.launched')"
+          :value="movementCounts.launched"
+          mono
+        />
+        <DetailField
+          :label="$t('financial-period.detail.open')"
+          :value="movementCounts.open"
+          mono
+        />
+        <DetailField
+          :label="$t('financial-period.detail.paid')"
+          :value="movementCounts.paid"
+          mono
+        />
       </DetailSection>
     </template>
   </DetailCard>

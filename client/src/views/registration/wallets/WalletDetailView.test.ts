@@ -79,7 +79,7 @@ describe('WalletDetailView', () => {
     expect(wrapper.find('h1').text()).toBe('Detalhando carteira')
     expect(wrapper.find('dl').exists()).toBe(false)
     expect(buttonWithText(wrapper, 'Editar')).toBeDefined()
-    expect(buttonWithText(wrapper, 'Remover')).toBeDefined()
+    expect(buttonWithText(wrapper, 'Excluir')).toBeDefined()
   })
 
   it('links to a transfer from the wallet', async () => {
@@ -158,15 +158,15 @@ describe('WalletDetailView', () => {
     vi.mocked(walletsApi.remove).mockResolvedValue(undefined)
     const dialog = useConfirmDialog()
 
-    await buttonWithText(wrapper, 'Remover').trigger('click')
+    await buttonWithText(wrapper, 'Excluir').trigger('click')
 
-    expect(dialog.state.options.title).toBe('Remover a carteira “Main”?')
+    expect(dialog.state.options.title).toBe('Excluir a carteira “Main”?')
 
     dialog.accept()
     await flushPromises()
 
     expect(walletsApi.remove).toHaveBeenCalledWith('w-1')
-    expect(toast.success).toHaveBeenCalledWith('Carteira removida', {
+    expect(toast.success).toHaveBeenCalledWith('Carteira excluída', {
       description: '“Main” saiu da lista.',
       duration: 4000,
     })
@@ -176,7 +176,7 @@ describe('WalletDetailView', () => {
   it('removes nothing when the removal is not confirmed', async () => {
     const { wrapper, router } = await render()
 
-    await buttonWithText(wrapper, 'Remover').trigger('click')
+    await buttonWithText(wrapper, 'Excluir').trigger('click')
     useConfirmDialog().cancel()
     await flushPromises()
 
@@ -190,7 +190,7 @@ describe('WalletDetailView', () => {
       problem(400, { error: 'data-integrity-violation' }),
     )
 
-    await buttonWithText(wrapper, 'Remover').trigger('click')
+    await buttonWithText(wrapper, 'Excluir').trigger('click')
     useConfirmDialog().accept()
     await flushPromises()
 

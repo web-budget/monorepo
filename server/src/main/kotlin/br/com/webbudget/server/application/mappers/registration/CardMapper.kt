@@ -30,8 +30,11 @@ class CardMapper(
     fun mapToListView(card: Card): CardListView = CardListView(
         id = card.externalId!!,
         name = card.name,
+        lastFourDigits = card.lastFourDigits,
+        invoicePaymentDay = card.invoicePaymentDay,
         active = card.active,
-        flag = card.flag
+        flag = card.flag,
+        wallet = card.wallet?.let { walletMapper.mapToListView(it) }
     )
 
     fun mapToDomain(form: CardCreateForm): Card = Card(

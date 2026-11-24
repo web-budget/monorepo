@@ -217,7 +217,7 @@ describe('RecurringMovementDetailView', () => {
     await flushPromises()
     expect(router.currentRoute.value.name).toBe('recurring-movements.update')
 
-    await buttonWithText(wrapper, 'Remover').trigger('click')
+    await buttonWithText(wrapper, 'Excluir').trigger('click')
     dialog.accept()
     await settle()
 
