@@ -135,7 +135,7 @@ describe('ClassificationFormView', () => {
 
     const { wrapper } = await mountView(ClassificationFormView, 'classifications', { id: 'c-1' })
 
-    expect(wrapper.find('h1').text()).toBe('Editando classificação')
+    expect(wrapper.find('h1').text()).toBe('Editar classificação')
     expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('Salary')
     expect(wrapper.find('button[role="combobox"]').attributes('disabled')).toBeDefined()
     expect(wrapper.text()).toContain('O tipo não muda depois de criada.')

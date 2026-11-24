@@ -47,7 +47,7 @@ const walletTypes = computed(() => typeOptions('wallet', WALLET_TYPES, t))
 
 <template>
   <FormCard
-    :title="updating ? $t('wallet.form.editing') : $t('wallet.form.new')"
+    :title="updating ? $t('wallet.form.title-editing') : $t('wallet.form.title-new')"
     :description="updating ? form.values.name : undefined"
     :loading="loadingRecord"
     :submitting="submitting"

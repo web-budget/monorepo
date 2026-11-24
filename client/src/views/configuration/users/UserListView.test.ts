@@ -336,7 +336,7 @@ describe('UserListView', () => {
     await chooseRowAction(wrapper, 1, 'Excluir')
 
     expect(dialog.state.open).toBe(true)
-    expect(dialog.state.options.title).toBe('Remover o usuário “Bruno”?')
+    expect(dialog.state.options.title).toBe('Excluir o usuário “Bruno”?')
     expect(usersApi.remove).not.toHaveBeenCalled()
 
     dialog.accept()
@@ -344,7 +344,7 @@ describe('UserListView', () => {
 
     expect(usersApi.remove).toHaveBeenCalledWith('u-2')
     expect(wrapper.findAll('tbody tr')).toHaveLength(1)
-    expect(toast.success).toHaveBeenCalledWith('Usuário removido', {
+    expect(toast.success).toHaveBeenCalledWith('Usuário excluído', {
       description: '“Bruno” saiu da lista.',
       duration: 4000,
     })
@@ -739,7 +739,7 @@ describe('UserListView', () => {
       sheetButton('Excluir').click()
       await settle()
 
-      expect(useConfirmDialog().state.options.title).toBe('Remover o usuário “Bruno”?')
+      expect(useConfirmDialog().state.options.title).toBe('Excluir o usuário “Bruno”?')
       useConfirmDialog().cancel()
     })
 
