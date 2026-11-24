@@ -3,45 +3,54 @@ import {
   ArrowDownLeft,
   ArrowLeftRight,
   ArrowUpRight,
-  ArrowUpRightFromSquare,
   Scale,
   ScrollText,
+  Undo2,
   X,
 } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
+import DateTimeDisplay from '@/components/common/DateTimeDisplay.vue'
 import PageContainer from '@/components/common/PageContainer.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import FilterSelect from '@/components/forms/FilterSelect.vue'
+import MoneyFilter from '@/components/forms/MoneyFilter.vue'
 import ServerErrorAlert from '@/components/forms/ServerErrorAlert.vue'
 import ItemsTable from '@/components/listing/ItemsTable.vue'
-import ListState from '@/components/listing/ListState.vue'
+import ListState, { type ListStateKind } from '@/components/listing/ListState.vue'
 import SearchControls from '@/components/listing/SearchControls.vue'
-import { Badge } from '@/components/ui/badge'
+import OperationBadge from '@/components/statement/OperationBadge.vue'
+import GiveBackDialog from '@/components/transfers/GiveBackDialog.vue'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import AdjustBalanceDialog from '@/components/wallets/AdjustBalanceDialog.vue'
 import { useActiveWallets } from '@/composables/useActiveWallets'
+import { useGiveBack } from '@/composables/useGiveBack'
 import { useListFilters } from '@/composables/useListFilters'
 import { useMovementFilterOptions } from '@/composables/useMovementFilterOptions'
 import { useNotification } from '@/composables/useNotification'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { STATEMENT_FILTER_KEYS, useStatementStore, WALLET_ENTRY_ORIGINS } from '@/stores/statement'
+import { useTransfersStore } from '@/stores/transfers'
 import type { WalletEntryDirectionFilter, WalletEntryView } from '@/types'
+import { adjustmentNotice, defaultStatementWallet, entryLabel } from '@/utils/statement'
 import { typeKey } from '@/utils/typeLabels'
-import type { ListStateKind } from '@/components/listing/ListState.vue'
 
-const { t, d, locale } = useI18n()
+const { t, n } = useI18n()
+const router = useRouter()
 
 const store = useStatementStore()
-const { pageRequest, pageResponse, loading, filters } = storeToRefs(store)
+const transfers = useTransfersStore()
+const { pageRequest, pageResponse, loading, filters, summary } = storeToRefs(store)
 
 const activeWallets = useActiveWallets()
 const options = useMovementFilterOptions()
+const giveBack = useGiveBack()
 const loadErrors = useServerErrors()
 const optionErrors = useServerErrors()
 const actionErrors = useServerErrors()
@@ -85,7 +94,7 @@ function applyDefaultWallet() {
   if (filters.value.wallet !== undefined) {
     return
   }
-  const wallet = activeWallets.wallets.value.find((candidate) => candidate.active)
+  const wallet = defaultStatementWallet(activeWallets.wallets.value)
   if (wallet) {
     filters.value = { ...filters.value, wallet: wallet.id }
   }
@@ -98,7 +107,11 @@ async function reload() {
     initializing.value = false
     return
   }
-  loadFailed.value = !(await loadErrors.run(store.findAll))
+  const [listed] = await Promise.all([
+    loadErrors.run(store.findAll),
+    loadErrors.run(store.findSummary),
+  ])
+  loadFailed.value = !listed
   initializing.value = false
 }
 
@@ -137,6 +150,15 @@ const listState = computed<ListStateKind | 'table'>(() => {
     hasFilters.value || pageRequest.value.filterText !== '' || pageRequest.value.status !== 'ALL'
   return narrowed ? 'no-result' : 'empty'
 })
+const listCopy = computed(() => ({
+  emptyTitle: t('statement.list.empty-title', { name: wallet.value?.name }),
+  emptyDescription: t('statement.list.empty-description'),
+  errorDescription: t('statement.list.error-description'),
+  noResultQuery: t('statement.list.no-result-query', { query: pageRequest.value.filterText }),
+  noResultFilter: t('statement.list.no-result-filter'),
+  noResultHint: t('statement.list.no-result-hint'),
+  noResultAction: t('statement.list.no-result-action'),
+}))
 
 const walletChoices = computed(() =>
   activeWallets.wallets.value.map((candidate) => ({
@@ -152,44 +174,75 @@ const originChoices = computed(() =>
 )
 
 const columns = computed(() => [
-  { field: 'createdOn', header: t('statement.table-columns.created-on'), sortable: true },
-  { field: 'origin', header: t('statement.table-columns.origin'), sortable: true },
-  { field: 'name', header: t('statement.table-columns.name'), sortable: true },
+  {
+    field: 'createdOn',
+    header: t('statement.table-columns.created-on'),
+    sortable: true,
+    mobile: 'line' as const,
+    mobileLabel: false,
+  },
+  {
+    field: 'origin',
+    header: t('statement.table-columns.origin'),
+    sortable: true,
+    mobile: 'line' as const,
+    mobileLabel: false,
+  },
+  {
+    field: 'name',
+    header: t('statement.table-columns.name'),
+    sortable: true,
+    mobile: 'title' as const,
+  },
   {
     field: 'value',
     header: t('statement.table-columns.value'),
     sortable: true,
     align: 'end' as const,
+    mobile: 'value' as const,
   },
   {
     field: 'previousBalance',
     header: t('statement.table-columns.previous-balance'),
     align: 'end' as const,
+    mobile: 'line' as const,
   },
   {
     field: 'resultingBalance',
     header: t('statement.table-columns.resulting-balance'),
     align: 'end' as const,
+    mobile: 'line' as const,
   },
-  { field: 'reference', header: t('statement.table-columns.reference') },
+  {
+    field: 'reference',
+    header: t('statement.open-origin-header'),
+    srOnly: true,
+    mobile: 'hide' as const,
+  },
 ])
-
-function formatDateTime(value: string) {
-  const date = new Date(value)
-  const time = date.toLocaleTimeString(locale.value, { hour: '2-digit', minute: '2-digit' })
-  return `${d(date, 'short')} ${time}`
-}
 
 function signedValue(entry: WalletEntryView) {
   return entry.direction === 'CREDIT' ? entry.value : -entry.value
 }
 
-const REFERENCE_PATHS = { MOVEMENT: 'movements', TRANSFER: 'transfers' }
+const REFERENCE_PATHS = { MOVEMENT: 'movements', TRANSFER: 'transfers' } as const
 
-function referenceLink(entry: WalletEntryView) {
+function originPath(entry: WalletEntryView) {
   return entry.reference
     ? `/financial/${REFERENCE_PATHS[entry.reference.type]}/${entry.reference.id}/detail`
     : null
+}
+
+function openEntry(entry: WalletEntryView) {
+  return router.push(
+    originPath(entry) ?? `/financial/statement/${filters.value.wallet}/${entry.id}/detail`,
+  )
+}
+
+function startGiveBack(entry: WalletEntryView) {
+  return actionErrors.run(async () => {
+    giveBack.open(await transfers.findOne(entry.reference!.id))
+  })
 }
 
 function search() {
@@ -226,12 +279,11 @@ function clearSearch() {
   return search()
 }
 
-async function adjust(target: { id: string }, form: { value: number; name: string }) {
+async function adjust(target: { id: string }, form: { value: number }) {
   if (await actionErrors.run(() => store.adjust(target.id, form))) {
     adjusting.value = false
-    showSuccess('statement.toast.adjusted', 'statement.toast.adjusted-detail', true, {
-      name: wallet.value?.name,
-    })
+    const notice = adjustmentNotice(form.value, wallet.value?.name, n)
+    showSuccess('statement.toast.adjusted', notice.detail, true, notice.params)
     await reload()
     await loadBalance()
   }
@@ -245,11 +297,6 @@ async function adjust(target: { id: string }, form: { value: number; name: strin
       :description="wallet ? $t('statement.description', { name: wallet.name }) : undefined"
     >
       <template #actions>
-        <Button as-child variant="outline">
-          <RouterLink :to="{ path: '/financial/transfers/create', query: { from: wallet?.id } }">
-            <ArrowLeftRight />{{ $t('statement.actions.transfer') }}
-          </RouterLink>
-        </Button>
         <Button
           type="button"
           variant="outline"
@@ -258,11 +305,16 @@ async function adjust(target: { id: string }, form: { value: number; name: strin
         >
           <Scale />{{ $t('statement.actions.adjust') }}
         </Button>
+        <Button as-child variant="outline">
+          <RouterLink :to="{ path: '/financial/transfers/create', query: { from: wallet?.id } }">
+            <ArrowLeftRight />{{ $t('statement.actions.transfer') }}
+          </RouterLink>
+        </Button>
       </template>
     </PageHeader>
-    <div class="grid gap-3">
-      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
-        <Card class="gap-2 p-4">
+    <div class="grid gap-4">
+      <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <Card class="col-span-2 content-between gap-2 p-4 lg:col-span-1">
           <FilterSelect
             :label="$t('statement.filters.wallet')"
             :options="walletChoices"
@@ -279,99 +331,141 @@ async function adjust(target: { id: string }, form: { value: number; name: strin
           <CurrencyDisplay
             v-if="balance !== null"
             :value="balance"
-            :class="['text-xl font-semibold', balance < 0 && 'text-expense']"
+            :signed="balance < 0"
+            glued
+            class="text-xl font-semibold tracking-tight"
           />
+          <span v-if="summary?.lastEntryOn" class="text-muted-foreground text-xs">
+            {{ $t('statement.updated-on') }}
+            <DateTimeDisplay with-time :value="summary.lastEntryOn" />
+          </span>
+        </Card>
+        <Card class="gap-1 p-4" data-slot="credits">
+          <span class="text-muted-foreground text-xs">{{ $t('statement.credits') }}</span>
+          <CurrencyDisplay
+            :value="summary?.credits.total ?? 0"
+            signed
+            glued
+            class="text-xl font-semibold tracking-tight"
+          />
+          <span class="text-muted-foreground text-xs">
+            {{
+              $t(
+                'statement.lines',
+                { count: summary?.credits.count ?? 0 },
+                summary?.credits.count ?? 0,
+              )
+            }}
+          </span>
+        </Card>
+        <Card class="gap-1 p-4" data-slot="debits">
+          <span class="text-muted-foreground text-xs">{{ $t('statement.debits') }}</span>
+          <CurrencyDisplay
+            :value="-(summary?.debits.total ?? 0)"
+            signed
+            glued
+            class="text-xl font-semibold tracking-tight"
+          />
+          <span class="text-muted-foreground text-xs">
+            {{
+              $t(
+                'statement.lines',
+                { count: summary?.debits.count ?? 0 },
+                summary?.debits.count ?? 0,
+              )
+            }}
+          </span>
         </Card>
       </div>
-      <SearchControls
-        v-model:status="pageRequest.status"
-        v-model:filter="pageRequest.filterText"
-        :placeholder="$t('statement.search.placeholder')"
-        :status-options="statusOptions"
-        @on-filter-change="search()"
-        @on-filter-reset="search()"
-      />
-      <div
-        class="grid grid-cols-2 items-end gap-3 lg:grid-cols-[repeat(6,minmax(0,1fr))_auto]"
-        data-slot="filters"
-      >
-        <div class="grid min-w-0 content-start gap-2">
-          <Label for="statement-from">{{ $t('statement.filters.from') }}</Label>
-          <Input
-            id="statement-from"
-            type="date"
-            class="font-mono"
-            :model-value="filters.from ?? ''"
-            @update:model-value="(value) => changeFilter('from', String(value))"
-          />
-        </div>
-        <div class="grid min-w-0 content-start gap-2">
-          <Label for="statement-to">{{ $t('statement.filters.to') }}</Label>
-          <Input
-            id="statement-to"
-            type="date"
-            class="font-mono"
-            :model-value="filters.to ?? ''"
-            @update:model-value="(value) => changeFilter('to', String(value))"
-          />
-        </div>
-        <FilterSelect
-          :label="$t('statement.filters.period')"
-          :none-label="$t('statement.filters.all-periods')"
-          :options="periodChoices"
-          :model-value="filters.period ?? ''"
-          @update:model-value="(value: string) => changeFilter('period', value)"
+      <Card class="grid gap-4 p-4" data-slot="filter-card">
+        <SearchControls
+          v-model:status="pageRequest.status"
+          v-model:filter="pageRequest.filterText"
+          :placeholder="$t('statement.search.placeholder')"
+          :status-options="statusOptions"
+          @on-filter-change="search()"
+          @on-filter-reset="search()"
         />
-        <FilterSelect
-          :label="$t('statement.filters.origin')"
-          :none-label="$t('statement.filters.all-origins')"
-          :options="originChoices"
-          :model-value="filters.origin ?? ''"
-          @update:model-value="(value: string) => changeFilter('origin', value)"
-        />
-        <div class="grid min-w-0 content-start gap-2">
-          <Label for="statement-min">{{ $t('statement.filters.min') }}</Label>
-          <Input
+        <div
+          class="border-border grid grid-cols-2 items-end gap-3 border-t pt-4 lg:grid-cols-[repeat(6,minmax(0,1fr))_auto]"
+          data-slot="filters"
+        >
+          <div class="grid min-w-0 content-start gap-2">
+            <Label for="statement-from">{{ $t('statement.filters.from') }}</Label>
+            <Input
+              id="statement-from"
+              type="date"
+              class="font-mono"
+              :model-value="filters.from ?? ''"
+              @update:model-value="(value) => changeFilter('from', String(value))"
+            />
+          </div>
+          <div class="grid min-w-0 content-start gap-2">
+            <Label for="statement-to">{{ $t('statement.filters.to') }}</Label>
+            <Input
+              id="statement-to"
+              type="date"
+              class="font-mono"
+              :model-value="filters.to ?? ''"
+              @update:model-value="(value) => changeFilter('to', String(value))"
+            />
+          </div>
+          <FilterSelect
+            :label="$t('statement.filters.period')"
+            :none-label="$t('statement.filters.all-periods')"
+            :options="periodChoices"
+            :model-value="filters.period ?? ''"
+            @update:model-value="(value: string) => changeFilter('period', value)"
+          />
+          <FilterSelect
+            :label="$t('statement.filters.origin')"
+            :none-label="$t('statement.filters.all-origins')"
+            :options="originChoices"
+            :model-value="filters.origin ?? ''"
+            @update:model-value="(value: string) => changeFilter('origin', value)"
+          />
+          <MoneyFilter
             id="statement-min"
-            type="number"
-            class="font-mono"
+            :label="$t('statement.filters.min')"
             :model-value="filters.min ?? ''"
-            @update:model-value="(value) => changeFilter('min', String(value))"
+            @update:model-value="(value: string) => changeFilter('min', value)"
           />
-        </div>
-        <div class="grid min-w-0 content-start gap-2">
-          <Label for="statement-max">{{ $t('statement.filters.max') }}</Label>
-          <Input
+          <MoneyFilter
             id="statement-max"
-            type="number"
-            class="font-mono"
+            :label="$t('statement.filters.max')"
             :model-value="filters.max ?? ''"
-            @update:model-value="(value) => changeFilter('max', String(value))"
+            @update:model-value="(value: string) => changeFilter('max', value)"
           />
+          <Button type="button" variant="ghost" :disabled="!hasFilters" @click="clearFilters()">
+            <X />{{ $t('statement.filters.clear') }}
+          </Button>
         </div>
-        <Button type="button" variant="ghost" :disabled="!hasFilters" @click="clearFilters()">
-          <X />{{ $t('statement.filters.clear') }}
-        </Button>
-      </div>
+      </Card>
       <ServerErrorAlert
-        :messages="[...optionErrors.messages.value, ...actionErrors.messages.value]"
+        :messages="[
+          ...optionErrors.messages.value,
+          ...actionErrors.messages.value,
+          ...giveBack.messages.value,
+        ]"
       />
       <ListState
         v-if="listState !== 'table'"
         :kind="listState"
         entity="statement"
         :icon="ScrollText"
-        :creatable="false"
         :query="pageRequest.filterText"
         :message="loadErrors.messages.value[0]"
+        :copy="listCopy"
+        @create="router.push({ name: 'movements.create' })"
         @clear="clearSearch()"
         @retry="reload()"
       />
       <ItemsTable
-        active-sort-icon-only
         v-else
+        active-sort-icon-only
         :data="pageResponse.content"
         :total-elements="pageResponse.totalElements"
+        :noun="$t('statement.list.noun', pageResponse.totalElements)"
         :columns="columns"
         :show-status="false"
         :marked-row="(entry: WalletEntryView) => entry.origin === 'REVERSAL'"
@@ -382,14 +476,16 @@ async function adjust(target: { id: string }, form: { value: number; name: strin
         :sorted-order="pageRequest.direction"
         @page-changed="onPageChange"
         @table-sorted="onTableSorted"
+        @row-selected="({ data }) => openEntry(data)"
       >
         <template #cell-createdOn="{ item }">
-          <span class="font-mono tabular-nums">{{ formatDateTime(item.createdOn) }}</span>
+          <DateTimeDisplay with-time class="font-mono tabular-nums" :value="item.createdOn" />
         </template>
         <template #cell-origin="{ item }">
-          <Badge :variant="item.origin === 'REVERSAL' ? 'pending' : 'neutral'">
-            {{ $t(`statement.origin.${item.origin}`) }}
-          </Badge>
+          <OperationBadge :origin="item.origin" />
+        </template>
+        <template #cell-name="{ item }">
+          {{ entryLabel(item, t) }}
         </template>
         <template #cell-value="{ item }">
           <span class="inline-flex items-center justify-end gap-1">
@@ -397,25 +493,37 @@ async function adjust(target: { id: string }, form: { value: number; name: strin
               :is="item.direction === 'CREDIT' ? ArrowDownLeft : ArrowUpRight"
               :class="['size-3.5', item.direction === 'CREDIT' ? 'text-income' : 'text-expense']"
             />
-            <CurrencyDisplay :value="signedValue(item)" signed />
+            <CurrencyDisplay :value="signedValue(item)" signed bare glued />
           </span>
         </template>
         <template #cell-previousBalance="{ item }">
-          <CurrencyDisplay :value="item.previousBalance" />
+          <CurrencyDisplay :value="item.previousBalance" bare />
         </template>
         <template #cell-resultingBalance="{ item }">
-          <CurrencyDisplay :value="item.resultingBalance" />
+          <CurrencyDisplay :value="item.resultingBalance" bare />
         </template>
         <template #cell-reference="{ item }">
           <RouterLink
-            v-if="referenceLink(item)"
-            :to="referenceLink(item)!"
-            :aria-label="$t('statement.open-origin', { name: item.name })"
+            v-if="originPath(item)"
+            :to="originPath(item)!"
+            :aria-label="$t('statement.open-origin', { name: entryLabel(item, t) })"
             class="text-muted-foreground hover:text-foreground inline-flex"
+            @click.stop
           >
-            <ArrowUpRightFromSquare class="size-4" />
+            <ArrowUpRight class="size-4" />
           </RouterLink>
           <span v-else class="text-muted-foreground">—</span>
+        </template>
+        <template #actions="{ item }">
+          <Button
+            v-if="item.reference?.returnable"
+            type="button"
+            variant="outline"
+            size="sm"
+            @click="startGiveBack(item)"
+          >
+            <Undo2 />{{ $t('transfer.actions.give-back') }}
+          </Button>
         </template>
       </ItemsTable>
     </div>
@@ -428,6 +536,13 @@ async function adjust(target: { id: string }, form: { value: number; name: strin
       :loading="loading"
       @close="adjusting = false"
       @adjust="adjust"
+    />
+    <GiveBackDialog
+      :transfer="giveBack.target.value"
+      :loading="transfers.loading"
+      :balance-of="giveBack.balanceOf"
+      @close="giveBack.close()"
+      @confirm="giveBack.confirm"
     />
   </PageContainer>
 </template>

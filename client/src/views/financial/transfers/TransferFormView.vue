@@ -9,7 +9,6 @@ import InputField from '@/components/forms/InputField.vue'
 import MoneyField from '@/components/forms/MoneyField.vue'
 import SelectField from '@/components/forms/SelectField.vue'
 import TransferStatement from '@/components/transfers/TransferStatement.vue'
-import { Card } from '@/components/ui/card'
 import { useActiveWallets } from '@/composables/useActiveWallets'
 import { useDiscardGuard } from '@/composables/useDiscardGuard'
 import { useNotification } from '@/composables/useNotification'
@@ -71,10 +70,7 @@ const onSubmit = form.handleSubmit(async (values) => {
     let createdId = ''
     if (await run(async () => (createdId = await store.create(toTransferForm(values))))) {
       saved.value = true
-      showSuccess('transfer.toast.created', 'transfer.toast.created-detail', true, {
-        from: from.value?.name,
-        to: to.value?.name,
-      })
+      showSuccess('transfer.toast.created', 'transfer.toast.created-detail')
       await router.push({ name: 'transfers.detail', params: { id: createdId } })
     }
   } finally {
@@ -93,8 +89,7 @@ onMounted(async () => {
 
 <template>
   <FormCard
-    :title="$t('transfer.form.new')"
-    :description="$t('transfer.form.description')"
+    :title="$t('transfer.form.title')"
     :loading="false"
     :submitting="submitting"
     :dirty="dirty"
@@ -104,10 +99,7 @@ onMounted(async () => {
     @submit="onSubmit"
     @back="cancel"
   >
-    <FormSection
-      :title="$t('transfer.sections.wallets')"
-      :description="$t('transfer.sections.wallets-help')"
-    >
+    <FormSection :title="$t('transfer.sections.wallets')">
       <SelectField
         name="fromWallet"
         :label="$t('transfer.form.from')"
@@ -122,23 +114,21 @@ onMounted(async () => {
       />
     </FormSection>
     <FormSection :title="$t('transfer.sections.value')">
-      <MoneyField name="value" :label="$t('transfer.form.value')" required />
-      <InputField
-        name="description"
-        :label="$t('transfer.form.note')"
-        multiline
-        class="md:col-span-2"
+      <div class="grid content-start gap-4">
+        <MoneyField name="value" :label="$t('transfer.form.value')" required />
+        <InputField
+          name="description"
+          :label="$t('transfer.form.note')"
+          :placeholder="$t('transfer.form.note-placeholder')"
+          multiline
+        />
+      </div>
+      <TransferStatement
+        :title="$t('transfer.statement.title')"
+        :from="from"
+        :to="to"
+        :value="form.values.value ?? 0"
       />
     </FormSection>
-    <template #aside>
-      <Card class="gap-0 py-0">
-        <div class="grid gap-3 p-4">
-          <p class="text-muted-foreground text-[11px] font-medium tracking-wider uppercase">
-            {{ $t('transfer.statement.title') }}
-          </p>
-          <TransferStatement :from="from" :to="to" :value="form.values.value ?? 0" />
-        </div>
-      </Card>
-    </template>
   </FormCard>
 </template>

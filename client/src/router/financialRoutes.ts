@@ -23,9 +23,21 @@ export const financialRoutes: RouteRecordRaw[] = [
       }),
       {
         path: 'statement',
-        name: 'statement',
         meta: { breadcrumb: 'statement.menu' },
-        component: () => import('@/views/financial/statement/StatementView.vue'),
+        children: [
+          {
+            path: '',
+            name: 'statement',
+            component: () => import('@/views/financial/statement/StatementView.vue'),
+          },
+          {
+            path: ':wallet/:id/detail',
+            name: 'statement.detail',
+            props: true,
+            meta: { breadcrumb: 'statement.detailing' },
+            component: () => import('@/views/financial/statement/StatementEntryView.vue'),
+          },
+        ],
       },
       {
         path: 'transfers',
