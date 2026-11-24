@@ -150,6 +150,8 @@ class ListingSortOrderTest : BaseIntegrationTest() {
         assertNames("/financial/recurring-movements", "", "Salary", "Phone", "Electricity", "Streaming")
         assertNames("/financial/recurring-movements", "sort=name,asc", "Electricity", "Phone", "Salary", "Streaming")
         assertNames("/financial/recurring-movements", "sort=name,desc", "Streaming", "Salary", "Phone", "Electricity")
+        assertNames("/financial/recurring-movements", "sort=valueKind,asc", "Salary", "Phone", "Streaming", "Electricity")
+        assertNames("/financial/recurring-movements", "sort=valueKind,desc", "Electricity", "Salary", "Phone", "Streaming")
     }
 
     @Test

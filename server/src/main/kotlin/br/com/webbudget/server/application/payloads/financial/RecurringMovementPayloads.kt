@@ -7,6 +7,7 @@ import br.com.webbudget.server.application.payloads.ErrorCodes.IS_NULL_OR_BLANK
 import br.com.webbudget.server.application.payloads.ErrorCodes.MAX_CHARS
 import br.com.webbudget.server.domain.entities.financial.Movement
 import br.com.webbudget.server.domain.entities.financial.RecurringMovement
+import com.fasterxml.jackson.annotation.JsonInclude
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
@@ -14,6 +15,7 @@ import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.Size
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -87,6 +89,7 @@ data class RecurringMovementFilter(
     val valueKinds: List<RecurringMovement.ValueKind>? = null,
     val active: Boolean? = null,
     val finished: Boolean? = null,
+    val ended: Boolean? = null,
     val cards: List<UUID>? = null,
     val financialPeriod: UUID? = null
 )
@@ -103,19 +106,52 @@ data class RecurringMovementView(
     val launchedInstallments: Int?,
     val nextInstallment: Int?,
     val finished: Boolean,
+    val ended: Boolean,
     val autoLaunch: Boolean,
     val active: Boolean,
     val classification: MovementClassificationView,
     val costCenter: MovementCostCenterView,
     val card: PaymentCardView?,
+    @field:JsonInclude(JsonInclude.Include.ALWAYS)
     val launchedInPeriod: UUID?,
     val createdOn: LocalDateTime
+)
+
+data class RecurringValuePeriodView(
+    val id: UUID,
+    val name: String,
+    val startingAt: LocalDate
 )
 
 data class RecurringValueView(
     val value: BigDecimal,
     val reason: String?,
-    val validFrom: LocalDateTime
+    val validFrom: LocalDateTime,
+    val validFromPeriod: RecurringValuePeriodView?,
+    val current: Boolean
+)
+
+data class RecurringLaunchEntryView(
+    val financialPeriod: RecurringValuePeriodView,
+    val installment: Int,
+    val movement: UUID,
+    val value: BigDecimal,
+    val status: String,
+    val valuePaid: BigDecimal?
+)
+
+data class CreationPreviewRecurringView(
+    val id: UUID,
+    val name: String,
+    val type: String,
+    val value: BigDecimal,
+    val installment: Int?,
+    val installments: Int?
+)
+
+data class FinancialPeriodCreationPreviewView(
+    val recurringMovements: List<CreationPreviewRecurringView>,
+    val invoices: List<PaymentCardView>
 )
 
 data class RecurringLaunchedView(

@@ -10,10 +10,12 @@ import br.com.webbudget.server.application.payloads.financial.MovementClassifica
 import br.com.webbudget.server.application.payloads.financial.MovementCostCenterView
 import br.com.webbudget.server.application.payloads.financial.MovementFinancialPeriodView
 import br.com.webbudget.server.application.payloads.financial.PaymentCardView
+import br.com.webbudget.server.application.payloads.financial.PurchaseRecurringView
 import br.com.webbudget.server.domain.entities.financial.CardPurchase
 import br.com.webbudget.server.domain.entities.financial.CardReference
 import br.com.webbudget.server.domain.entities.financial.FinancialPeriodReference
 import br.com.webbudget.server.domain.entities.financial.Invoice
+import br.com.webbudget.server.domain.entities.financial.PurchaseRecurring
 import br.com.webbudget.server.domain.exceptions.ResourceNotFoundException
 import br.com.webbudget.server.infrastructure.repository.financial.MovementReferenceRepository
 import org.springframework.stereotype.Component
@@ -42,7 +44,8 @@ class CardPurchaseMapper(
             purchase.costCenter.name,
             purchase.costCenter.fullName
         ),
-        movement = purchase.movementExternalId
+        movement = purchase.movementExternalId,
+        recurringMovement = purchase.recurring?.let { mapToRecurringView(it) }
     )
 
     fun mapToListView(purchase: CardPurchase): CardPurchaseListView = CardPurchaseListView(
@@ -51,7 +54,8 @@ class CardPurchaseMapper(
         purchasedOn = purchase.purchasedOn,
         value = purchase.value,
         card = mapToCardView(purchase.card),
-        invoice = mapToSummary(purchase.invoice!!)
+        invoice = mapToSummary(purchase.invoice!!),
+        recurringMovement = purchase.recurring?.let { mapToRecurringView(it) }
     )
 
     fun mapToView(invoice: Invoice): InvoiceView = InvoiceView(
@@ -85,7 +89,10 @@ class CardPurchaseMapper(
             ?: throw ResourceNotFoundException()
     }
 
-    private fun mapToCardView(card: CardReference) = PaymentCardView(card.externalId, card.name)
+    private fun mapToRecurringView(recurring: PurchaseRecurring) =
+        PurchaseRecurringView(recurring.externalId, recurring.name, recurring.installment, recurring.installments)
+
+    private fun mapToCardView(card: CardReference) = PaymentCardView(card.externalId, card.name, card.lastFourDigits)
 
     private fun mapToSummary(invoice: Invoice) = InvoiceSummaryView(invoice.externalId!!, invoice.status.name)
 
