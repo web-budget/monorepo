@@ -1,5 +1,4 @@
 import { computed, ref } from 'vue'
-import { cardPurchasesApi } from '@/api/cardPurchases'
 import { cardsApi } from '@/api/cards'
 import { useNotification } from '@/composables/useNotification'
 import { useServerErrors } from '@/composables/useServerErrors'
@@ -19,8 +18,8 @@ export function useCloseInvoice(reload: () => Promise<unknown> | unknown) {
   const { messages, run } = useServerErrors()
 
   const target = ref<{ invoice: ClosingInvoiceView; period: ClosablePeriod } | null>(null)
-  const purchases = ref(0)
   const card = ref<CardView | null>(null)
+  const purchases = computed(() => target.value?.invoice.purchaseCount ?? 0)
 
   const dueDate = computed(() =>
     card.value && target.value
@@ -30,12 +29,7 @@ export function useCloseInvoice(reload: () => Promise<unknown> | unknown) {
 
   async function open(invoice: ClosingInvoiceView, period: ClosablePeriod) {
     await run(async () => {
-      const [purchasePage, found] = await Promise.all([
-        cardPurchasesApi.findAll({ invoice: invoice.id, size: 1 }),
-        cardsApi.findById(invoice.card.id),
-      ])
-      purchases.value = purchasePage.page.totalElements
-      card.value = found
+      card.value = await cardsApi.findById(invoice.card.id)
       target.value = { invoice, period }
     })
   }

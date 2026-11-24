@@ -870,7 +870,6 @@
     "title-of": "Fechamento de {name}",
     "description": "Resolva as pendências e grave o resultado.",
     "period": "Período a fechar",
-    "none": "Nenhum",
     "summary": {
       "revenues": "Receitas pagas",
       "revenues-note": "Só o que foi recebido",
@@ -879,47 +878,60 @@
       "result": "Resultado",
       "result-note": "Receitas − despesas",
       "accumulated": "Acumulado",
-      "accumulated-note": "Fechados mais provisório dos abertos"
+      "accumulated-note": "Fechados mais provisório dos abertos",
+      "title": "Resumo do período"
     },
     "pendencies": {
       "title": "Pendências",
       "hint": "Pague ou mova para outro período aberto.",
-      "none": "Nenhuma pendência",
+      "none": "Tudo o que estava em aberto foi pago ou movido.",
       "movement": "Movimento",
       "due-date": "Vencimento",
       "value": "Valor (R$)",
       "invoice": "fatura",
       "overdue": "vencido",
       "move": "Mover",
-      "move-disabled": "Crie um período aberto para poder mover.",
+      "move-disabled": "Não há período aberto depois deste",
       "no-next": "Não há período aberto depois de {name}",
       "no-next-hint": "Pague tudo ou crie um período para mover.",
-      "create-period": "Criar período"
+      "create-period": "Criar período",
+      "remaining": "{count} restante | {count} restantes",
+      "resolved": "Resolvidas",
+      "actions": "O que fazer",
+      "none-title": "Nenhuma pendência",
+      "pay-all": "Pagar tudo",
+      "due-on": "Vence em"
     },
     "invoices": {
       "title": "Faturas",
       "hint": "Fatura aberta com compras bloqueia o fechamento.",
-      "none": "Nenhuma fatura neste período",
+      "none": "Nenhum cartão ativo neste período.",
       "close": "Fechar fatura",
       "note": {
         "blocking": "Bloqueia o fechamento",
         "empty": "Fecha sozinha com valor zero",
         "payment": "Pagamento de fatura nas pendências",
         "paid": "Paga"
-      }
+      },
+      "purchases": "{count} compra | {count} compras"
     },
     "checklist": {
       "title": "Para fechar",
       "pendencies": "Pendências resolvidas",
       "invoices": "Faturas resolvidas",
       "next-period": "Período seguinte aberto",
-      "close": "Fechar {name}"
+      "close": "Fechar {name}",
+      "pendencies-open": "{count} falta pagar ou mover | {count} faltam pagar ou mover",
+      "pendencies-done": "Nada em aberto",
+      "invoices-open": "{count} fatura com lançamento ainda aberta | {count} faturas com lançamento ainda abertas",
+      "invoices-done": "Nenhuma fatura bloqueia",
+      "next-period-missing": "Não há: pague tudo ou crie um",
+      "ready": "Tudo certo.",
+      "blocked": "Resolva os itens acima."
     },
     "move": {
       "title": "Mover “{name}”",
-      "description": "O movimento vai para outro período aberto.",
       "period": "Período",
-      "none": "Escolha um período",
       "expired": "expirado",
       "confirm": "Mover"
     },
@@ -930,9 +942,14 @@
     },
     "reopen": {
       "title": "Reabrir {name}?",
-      "description": "O resultado gravado é apagado e o período volta a aceitar lançamentos. Faturas fechadas sozinhas reabrem.",
-      "confirm": "Reabrir",
-      "only-last": "Só o último período encerrado reabre"
+      "description": "Só o último período encerrado pode ser reaberto.",
+      "confirm": "Reabrir período",
+      "only-last": "só o último",
+      "erases-result": "Apaga o resultado do período.",
+      "unfreezes": "Descongela movimentos, compras e faturas.",
+      "invoices-closed-by-hand": "Faturas fechadas à mão continuam fechadas.",
+      "empty-invoices": "Faturas vazias voltam a ficar abertas.",
+      "only-last-hint": "Só o último período encerrado reabre"
     },
     "actions": {
       "close": "Fechar período",
@@ -944,7 +961,10 @@
       "moved-detail": "“{name}” foi para {period}.",
       "closed": "{name} encerrado",
       "closed-detail": "Resultado {result} gravado. Faturas vazias fecharam com valor zero.",
-      "reopened": "Período reaberto"
+      "reopened": "{name} reaberto",
+      "reopened-detail": "O resultado saiu da tabela e o período voltou a aceitar lançamentos.",
+      "paid-all": "Pendências pagas",
+      "paid-all-detail": "Saíram de {wallet}."
     }
   },
   "wallet": {
@@ -1417,7 +1437,8 @@
     },
     "expired-notice": {
       "title": "{name} expirou em {date} e continua aberto",
-      "description": "Ainda aceita lançamentos."
+      "description": "Ainda aceita lançamentos.",
+      "go-to-closing": "Ir ao fechamento"
     },
     "list": {
       "description": "Receitas e despesas de {period}.",

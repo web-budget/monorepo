@@ -19,9 +19,12 @@ const future: ClosingPeriodView = {
 }
 const movement = { id: 'm-1', name: 'Conta de luz' }
 
-async function render(suggested: ClosingPeriodView | null = future) {
+async function render(
+  suggested: ClosingPeriodView | null = future,
+  targets: ClosingPeriodView[] = [past, future],
+) {
   const wrapper = mount(MoveMovementDialog, {
-    props: { movement: null, targets: [past, future], suggested, loading: false },
+    props: { movement: null, targets, suggested, loading: false },
     attachTo: document.body,
     global: { plugins: createTestPlugins().plugins },
   })
@@ -64,8 +67,15 @@ describe('MoveMovementDialog', () => {
     expect(wrapper.emitted('confirm')![0]).toEqual([movement, past])
   })
 
+  it('starts on the first target when no period is suggested', async () => {
+    const wrapper = await render(null)
+
+    expect(wrapper.findComponent(FilterSelect).props('modelValue')).toBe('p-10')
+    expect(confirmButton().disabled).toBe(false)
+  })
+
   it('cannot move without a period', async () => {
-    await render(null)
+    await render(null, [])
 
     expect(confirmButton().disabled).toBe(true)
   })
