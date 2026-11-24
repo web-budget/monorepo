@@ -88,6 +88,12 @@ describe('CardPurchaseDetailView', () => {
     )
   })
 
+  it('still edits and deletes when the server leaves the movement out of the payload', async () => {
+    const { wrapper } = await render({ movement: undefined })
+
+    expect(footerActions(wrapper)).toEqual(['Ver fatura', 'Editar', 'Excluir'])
+  })
+
   it('goes to the edit form', async () => {
     const { wrapper, router } = await render()
 

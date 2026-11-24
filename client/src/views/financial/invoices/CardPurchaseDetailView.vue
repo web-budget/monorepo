@@ -27,7 +27,7 @@ const { messages, changeToUpdate, remove } = useCrudDetail({
 })
 
 const editable = computed(
-  () => purchase.value?.invoice.status === 'OPEN' && purchase.value.movement === null,
+  () => purchase.value?.invoice.status === 'OPEN' && !purchase.value.movement,
 )
 </script>
 
