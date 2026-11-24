@@ -18,7 +18,7 @@ const key = computed(() => {
   <Badge v-if="key === 'closed'" variant="neutral">
     <Lock />{{ $t('financial-period.status.closed') }}
   </Badge>
-  <Badge v-else-if="key === 'expired'" variant="pending">
+  <Badge v-else-if="key === 'expired'" variant="highlight">
     <Clock />{{ $t('financial-period.status.expired') }}
   </Badge>
   <Badge v-else variant="approved">{{ $t('financial-period.status.open') }}</Badge>
