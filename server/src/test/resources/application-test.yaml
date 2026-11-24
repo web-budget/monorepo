@@ -4,6 +4,9 @@ web-budget:
     login:
       max-attempts: 1000
       base-duration: 60s
+    password-change:
+      max-attempts: 1000
+      base-duration: 60s
     ip-lockout:
       max-attempts: 1000
       base-duration: 60s
