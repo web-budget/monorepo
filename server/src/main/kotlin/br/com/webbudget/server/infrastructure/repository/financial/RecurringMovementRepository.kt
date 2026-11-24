@@ -7,6 +7,7 @@ import br.com.webbudget.server.domain.entities.financial.RecurringLaunchEntry
 import br.com.webbudget.server.domain.entities.financial.RecurringMovement
 import br.com.webbudget.server.domain.entities.financial.RecurringValue
 import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
+import br.com.webbudget.server.infrastructure.repository.containsIgnoringAccents
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.financial.tables.references.MOVEMENTS
@@ -88,9 +89,9 @@ class RecurringMovementRepository(
         val condition = DSL.and(
             listOfNotNull(
                 criteria.text?.let { text ->
-                    recurringMovements.NAME.containsIgnoreCase(text)
-                        .or(classifications.NAME.containsIgnoreCase(text))
-                        .or(costCenters.NAME.containsIgnoreCase(text))
+                    recurringMovements.NAME.containsIgnoringAccents(text)
+                        .or(classifications.NAME.containsIgnoringAccents(text))
+                        .or(costCenters.NAME.containsIgnoringAccents(text))
                 },
                 criteria.type?.let { recurringMovements.TYPE.eq(it.name) },
                 criteria.valueKinds
