@@ -10,6 +10,7 @@ import DetailCard from '@/components/common/DetailCard.vue'
 import DetailSection from '@/components/common/DetailSection.vue'
 import CloseInvoiceDialog from '@/components/invoices/CloseInvoiceDialog.vue'
 import InvoiceStatusBadge from '@/components/invoices/InvoiceStatusBadge.vue'
+import PurchaseInstallmentBadge from '@/components/invoices/PurchaseInstallmentBadge.vue'
 import ItemsTable from '@/components/listing/ItemsTable.vue'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -20,7 +21,7 @@ import { useServerErrors } from '@/composables/useServerErrors'
 import { useInvoicesStore } from '@/stores/invoices'
 import { useMovementsStore } from '@/stores/movements'
 import type { CardView, FinancialPeriodView } from '@/types'
-import { invoicePaymentDueDate } from '@/utils/invoices'
+import { invoicePaymentDueDate, purchaseDisplayName } from '@/utils/invoices'
 import i18n from '@/locales'
 
 const props = defineProps<{ id: string }>()
@@ -197,6 +198,14 @@ async function deletePayment() {
         >
           <template #cell-purchasedOn="{ item }">
             <DateTimeDisplay fix-time :value="item.purchasedOn" class="font-mono" />
+          </template>
+          <template #cell-name="{ item }">
+            {{ purchaseDisplayName(item) }}
+            <PurchaseInstallmentBadge
+              :recurring-movement="item.recurringMovement"
+              table
+              class="ml-1"
+            />
           </template>
           <template #cell-value="{ item }"><CurrencyDisplay :value="item.value" /></template>
         </ItemsTable>

@@ -825,7 +825,8 @@
     "purchases": {
       "date": "Date",
       "name": "Purchase",
-      "value": "Value (R$)"
+      "value": "Value (R$)",
+      "recurring": "recurring"
     },
     "actions": {
       "close": "Close invoice",

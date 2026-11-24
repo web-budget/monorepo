@@ -825,7 +825,8 @@
     "purchases": {
       "date": "Data",
       "name": "Compra",
-      "value": "Valor (R$)"
+      "value": "Valor (R$)",
+      "recurring": "recorrente"
     },
     "actions": {
       "close": "Fechar fatura",

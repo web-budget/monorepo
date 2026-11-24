@@ -117,6 +117,35 @@ describe('InvoiceDetailView', () => {
     expect(wrapper.findAll('a').some((candidate) => candidate.text() === 'Nova compra')).toBe(false)
   })
 
+  it('badges the purchases born from a recurring with the installment or "recorrente"', async () => {
+    const { wrapper } = await render({}, [
+      {
+        ...purchases[0]!,
+        name: 'Celular novo 10/12',
+        recurringMovement: { id: 'r-1', name: 'Celular novo', installment: 10, installments: 12 },
+      },
+      {
+        ...purchases[1]!,
+        recurringMovement: { id: 'r-2', name: 'Streaming', installment: 4, installments: null },
+      },
+      { id: 'cp-3', name: 'Padaria', purchasedOn: '2026-11-05', value: 20 } as CardPurchaseListView,
+    ])
+
+    const rows = wrapper.findAll('tbody tr')
+    expect(rows.map((row) => row.findAll('td')[1]!.text())).toEqual([
+      'Celular novo 10/12',
+      'Posto recorrente',
+      'Padaria',
+    ])
+    expect(rows.map((row) => row.find('[data-slot="installment"]').exists())).toEqual([
+      true,
+      true,
+      false,
+    ])
+    expect(rows[0]!.find('[data-slot="installment"]').text()).toBe('10/12')
+    expect(rows[1]!.find('[data-slot="installment"]').text()).toBe('recorrente')
+  })
+
   it('says when there are no purchases', async () => {
     const { wrapper } = await render({ value: 0 }, [])
 

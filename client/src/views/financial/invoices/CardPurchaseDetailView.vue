@@ -8,9 +8,11 @@ import DetailCard from '@/components/common/DetailCard.vue'
 import DetailField from '@/components/common/DetailField.vue'
 import DetailSection from '@/components/common/DetailSection.vue'
 import InvoiceStatusBadge from '@/components/invoices/InvoiceStatusBadge.vue'
+import PurchaseInstallmentBadge from '@/components/invoices/PurchaseInstallmentBadge.vue'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { useCrudDetail } from '@/composables/useCrudDetail'
 import { useCardPurchasesStore } from '@/stores/cardPurchases'
+import { purchaseDisplayName } from '@/utils/invoices'
 
 const props = defineProps<{ id: string }>()
 
@@ -33,13 +35,14 @@ const readonly = computed(
 
 <template>
   <DetailCard
-    :title="purchase?.name ?? $t('card-purchase.form.detailing')"
+    :title="purchase ? purchaseDisplayName(purchase) : $t('card-purchase.form.detailing')"
     :messages="messages"
     :readonly="readonly"
     @edit="changeToUpdate"
     @delete="remove"
   >
     <template v-if="purchase" #badge>
+      <PurchaseInstallmentBadge :recurring-movement="purchase.recurringMovement" />
       <InvoiceStatusBadge :status="purchase.invoice.status" />
     </template>
     <template v-if="purchase">
