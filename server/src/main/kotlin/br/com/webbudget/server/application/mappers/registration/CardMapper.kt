@@ -39,7 +39,7 @@ class CardMapper(
     fun mapToDomain(form: CardCreateForm): Card = Card(
         name = form.name!!,
         lastFourDigits = form.lastFourDigits!!,
-        type = form.type!!,
+        type = form.type ?: Card.Type.CREDIT,
         invoicePaymentDay = form.invoicePaymentDay,
         flag = form.flag,
         wallet = mapWallet(form.wallet)

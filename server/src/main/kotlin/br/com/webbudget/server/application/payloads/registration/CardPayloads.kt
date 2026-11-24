@@ -18,7 +18,6 @@ data class CardCreateForm(
     @field:Size(message = MAX_CHARS, max = 4)
     val lastFourDigits: String?,
     val invoicePaymentDay: Int?,
-    @field:NotNull(message = IS_NULL)
     var type: Type?,
     val wallet: UUID?,
     val flag: String?
