@@ -48,7 +48,9 @@ const classificationTypes = computed(() => typeOptions('classification', CLASSIF
 
 <template>
   <FormCard
-    :title="updating ? $t('classification.form.editing') : $t('classification.form.new')"
+    :title="
+      updating ? $t('classification.form.title-editing') : $t('classification.form.title-new')
+    "
     :description="updating ? form.values.name : undefined"
     :loading="loadingRecord"
     :submitting="submitting"

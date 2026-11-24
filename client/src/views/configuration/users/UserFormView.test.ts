@@ -360,32 +360,32 @@ describe('UserFormView', () => {
         await field(wrapper, 'name').setValue('Bruno Souza')
         const dialog = useConfirmDialog()
 
-        await buttonWithText(wrapper, 'Remover usuário').trigger('click')
+        await buttonWithText(wrapper, 'Excluir usuário').trigger('click')
         await settle()
-        expect(dialog.state.options.title).toBe('Remover o usuário “Bruno”?')
+        expect(dialog.state.options.title).toBe('Excluir o usuário “Bruno”?')
         dialog.accept()
         await settle()
 
         expect(usersApi.remove).toHaveBeenCalledWith('u-2')
-        expect(toast.success).toHaveBeenCalledWith('Usuário removido', {
+        expect(toast.success).toHaveBeenCalledWith('Usuário excluído', {
           description: '“Bruno” saiu da lista.',
           duration: 4000,
         })
-        expect(dialog.state.options.title).toBe('Remover o usuário “Bruno”?')
+        expect(dialog.state.options.title).toBe('Excluir o usuário “Bruno”?')
         expect(router.currentRoute.value.name).toBe('users')
       })
 
       it('keeps the user when the removal is not confirmed or the server refuses it', async () => {
         const { wrapper, router } = await renderExisting({ auth: { session } })
 
-        await buttonWithText(wrapper, 'Remover usuário').trigger('click')
+        await buttonWithText(wrapper, 'Excluir usuário').trigger('click')
         await settle()
         useConfirmDialog().cancel()
         await settle()
         expect(usersApi.remove).not.toHaveBeenCalled()
 
         vi.mocked(usersApi.remove).mockRejectedValue(problem(500))
-        await buttonWithText(wrapper, 'Remover usuário').trigger('click')
+        await buttonWithText(wrapper, 'Excluir usuário').trigger('click')
         await settle()
         useConfirmDialog().accept()
         await settle()
@@ -402,7 +402,7 @@ describe('UserFormView', () => {
         })
 
         expect(buttonWithText(wrapper, 'Redefinir senha').attributes('disabled')).toBeDefined()
-        expect(buttonWithText(wrapper, 'Remover usuário').attributes('disabled')).toBeDefined()
+        expect(buttonWithText(wrapper, 'Excluir usuário').attributes('disabled')).toBeDefined()
       })
 
       it('shows the approval status and the TOTP of the account', async () => {
