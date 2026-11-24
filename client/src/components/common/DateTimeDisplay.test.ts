@@ -3,7 +3,12 @@ import { describe, expect, it } from 'vitest'
 import DateTimeDisplay from '@/components/common/DateTimeDisplay.vue'
 import i18n from '@/locales'
 
-function render(props: { value: string; type?: 'short' | 'long'; fixTime?: boolean }) {
+function render(props: {
+  value: string
+  type?: 'short' | 'long'
+  fixTime?: boolean
+  withTime?: boolean
+}) {
   return mount(DateTimeDisplay, { props, global: { plugins: [i18n] } })
 }
 
@@ -18,5 +23,9 @@ describe('DateTimeDisplay', () => {
 
   it('formats in the long format', () => {
     expect(render({ value: '2025-03-05T12:30:00', type: 'long' }).text()).toContain('12:30')
+  })
+
+  it('adds the time of day when asked to', () => {
+    expect(render({ value: '2025-03-05T09:41:00', withTime: true }).text()).toBe('05/03/2025 09:41')
   })
 })

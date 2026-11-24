@@ -53,6 +53,7 @@ const november: FinancialPeriodListView = {
   endingAt: '2026-11-30',
   status: 'OPEN',
   expired: false,
+  reopenable: false,
 }
 const october: FinancialPeriodListView = {
   id: 'p-10',
@@ -61,6 +62,7 @@ const october: FinancialPeriodListView = {
   endingAt: '2026-10-31',
   status: 'OPEN',
   expired: true,
+  reopenable: false,
 }
 const september: FinancialPeriodListView = {
   id: 'p-09',
@@ -69,6 +71,7 @@ const september: FinancialPeriodListView = {
   endingAt: '2026-09-30',
   status: 'CLOSED',
   expired: false,
+  reopenable: false,
 }
 
 const costCenters = [{ id: 'cc-1', name: 'Casa', fullName: 'Casa' }] as CostCenterListView[]
@@ -94,6 +97,7 @@ const movements: MovementListView[] = [
     classification: housing,
     costCenter: house,
     financialPeriod: period,
+    invoicePayment: false,
   },
   {
     id: 'm-2',
@@ -106,6 +110,7 @@ const movements: MovementListView[] = [
     classification: salary,
     costCenter: house,
     financialPeriod: period,
+    invoicePayment: false,
   },
 ]
 
@@ -266,6 +271,27 @@ describe('MovementListView', () => {
       expect(wrapper.find('tbody tr').text()).toContain('Pago no cartão')
     })
 
+    it('marks an invoice payment with the invoice badge and leaves its cost center and classification empty', async () => {
+      const invoicePayment: MovementListView = {
+        ...movements[0]!,
+        name: 'Pagamento de fatura, Visa',
+        classification: null,
+        costCenter: null,
+        invoicePayment: true,
+      }
+      const { wrapper } = await render(
+        undefined,
+        [november, october],
+        [invoicePayment, movements[1]!],
+      )
+
+      const rows = wrapper.findAll('tbody tr')
+      expect(rows[0]!.find('td').text()).toBe('Pagamento de fatura, Visa fatura')
+      expect(rows[0]!.findAll('td')[2]!.text()).toBe('')
+      expect(rows[0]!.findAll('td')[3]!.text()).toBe('')
+      expect(rows[1]!.find('td').find('[data-slot="badge"]').exists()).toBe(false)
+    })
+
     it('uses the compact layout on the phone', async () => {
       useCompactViewport(true)
       const { wrapper } = await render()
@@ -300,6 +326,15 @@ describe('MovementListView', () => {
       expect(wrapper.find('[data-slot="expired-notice"]').text()).toContain(
         'Outubro expirou em 31/10/2026 e continua aberto',
       )
+    })
+
+    it('goes to the closing of the expired period from the warning', async () => {
+      const { wrapper, router } = await render(undefined, [october])
+      const push = vi.spyOn(router, 'push').mockResolvedValue(undefined)
+
+      await wrapper.find('[data-slot="go-to-closing"]').trigger('click')
+
+      expect(push).toHaveBeenCalledWith({ name: 'closing', query: { period: 'p-10' } })
     })
 
     it('does not warn about a period that has not expired', async () => {

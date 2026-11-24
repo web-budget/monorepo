@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { FinancialPeriodListView } from '@/types'
-import { daysOverdue, defaultPeriod } from '@/utils/movements'
+import { daysOverdue, defaultPeriod, nextOpenPeriod } from '@/utils/movements'
 
 function period(id: string, startingAt: string, endingAt: string, status: 'OPEN' | 'CLOSED') {
   return { id, name: id, startingAt, endingAt, status, expired: false } as FinancialPeriodListView
@@ -54,5 +54,35 @@ describe('defaultPeriod', () => {
 
   it('uses the current day when no day is given', () => {
     expect(defaultPeriod([period('any', '2000-01-01', '2999-12-31', 'OPEN')])?.id).toBe('any')
+  })
+})
+
+describe('nextOpenPeriod', () => {
+  const today = new Date(2026, 10, 21)
+  const october = period('october', '2026-10-01', '2026-10-31', 'OPEN')
+  const november = period('november', '2026-11-01', '2026-11-30', 'OPEN')
+  const december = period('december', '2026-12-01', '2026-12-31', 'OPEN')
+  const january = period('january', '2027-01-01', '2027-01-31', 'OPEN')
+
+  it('picks the open period that starts right after the current one', () => {
+    expect(nextOpenPeriod([january, december, november, october], today)).toBe(december)
+  })
+
+  it('ignores a closed period after the current one', () => {
+    const closed = period('closed', '2026-12-01', '2026-12-31', 'CLOSED')
+
+    expect(nextOpenPeriod([closed, january, november], today)).toBe(january)
+  })
+
+  it('stays on the current period when no open period comes after it', () => {
+    expect(nextOpenPeriod([october, november], today)).toBe(november)
+  })
+
+  it('has no period without periods', () => {
+    expect(nextOpenPeriod([], today)).toBeUndefined()
+  })
+
+  it('uses the current day when no day is given', () => {
+    expect(nextOpenPeriod([period('any', '2000-01-01', '2999-12-31', 'OPEN')])?.id).toBe('any')
   })
 })

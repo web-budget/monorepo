@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Lock } from 'lucide-vue-next'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
 import { Button } from '@/components/ui/button'
 import {
@@ -35,18 +36,31 @@ const emit = defineEmits<{ close: []; confirm: [] }>()
           data-slot="close-summary"
         >
           <dt class="text-muted-foreground">{{ $t('financial-period.result.revenues') }}</dt>
-          <dd class="text-right"><CurrencyDisplay :value="result.revenues" /></dd>
+          <dd class="text-right">
+            <CurrencyDisplay :value="result.revenues" sign="income" glued bare />
+          </dd>
           <dt class="text-muted-foreground">{{ $t('financial-period.result.expenses') }}</dt>
-          <dd class="text-right"><CurrencyDisplay :value="result.expenses" /></dd>
-          <dt class="font-semibold">{{ $t('financial-period.result.result') }}</dt>
-          <dd class="text-right"><CurrencyDisplay :value="result.result" signed /></dd>
+          <dd class="text-right">
+            <CurrencyDisplay :value="result.expenses" sign="expense" glued bare />
+          </dd>
+          <dt class="font-medium">{{ $t('financial-period.result.result') }}</dt>
+          <dd class="text-right">
+            <CurrencyDisplay
+              :value="result.result"
+              :sign="result.result < 0 ? 'expense' : 'income'"
+              glued
+              bare
+              neutral
+              class="font-semibold"
+            />
+          </dd>
         </dl>
         <DialogFooter>
           <Button type="button" variant="outline" @click="emit('close')">
             {{ $t('form.cancel') }}
           </Button>
           <Button type="button" :disabled="loading" @click="emit('confirm')">
-            {{ $t('period-closing.close.confirm') }}
+            <Lock />{{ $t('period-closing.close.confirm') }}
           </Button>
         </DialogFooter>
       </div>

@@ -15,18 +15,28 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 
+const NONE = '__none__'
+
 withDefaults(
   defineProps<{
     name: string
     label: string
     options: { label: string; value: string }[]
     placeholder?: string
+    noneLabel?: string
     disabled?: boolean
     required?: boolean
     hint?: string
     class?: string
   }>(),
-  { placeholder: undefined, disabled: false, required: false, hint: undefined, class: undefined },
+  {
+    placeholder: undefined,
+    noneLabel: undefined,
+    disabled: false,
+    required: false,
+    hint: undefined,
+    class: undefined,
+  },
 )
 </script>
 
@@ -34,13 +44,22 @@ withDefaults(
   <FormField v-slot="{ componentField }" :name="name">
     <FormItem :class="$props.class">
       <FormLabel :required="required">{{ label }}</FormLabel>
-      <Select v-bind="componentField" :disabled="disabled">
+      <Select
+        :model-value="
+          noneLabel !== undefined && !componentField.modelValue ? NONE : componentField.modelValue
+        "
+        :disabled="disabled"
+        @update:model-value="
+          (value: unknown) => componentField['onUpdate:modelValue']?.(value === NONE ? null : value)
+        "
+      >
         <FormControl>
           <SelectTrigger class="w-full">
             <SelectValue :placeholder="placeholder" />
           </SelectTrigger>
         </FormControl>
         <SelectContent>
+          <SelectItem v-if="noneLabel !== undefined" :value="NONE">{{ noneLabel }}</SelectItem>
           <SelectItem v-for="option in options" :key="option.value" :value="option.value">
             {{ option.label }}
           </SelectItem>

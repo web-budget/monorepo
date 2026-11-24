@@ -4,7 +4,15 @@ import { toast } from 'vue-sonner'
 import { financialPeriodsApi } from '@/api/financialPeriods'
 import { recurringMovementsApi } from '@/api/recurringMovements'
 import FilterSelect from '@/components/forms/FilterSelect.vue'
-import { buttonWithText, crudTestRoutes, pageOf, problem, settle, stateOf } from '@/test/crud'
+import {
+  buttonWithText,
+  crudTestRoutes,
+  pageOf,
+  problem,
+  settle,
+  stateOf,
+  useCompactViewport,
+} from '@/test/crud'
 import { createTestPlugins } from '@/test/mounting'
 import type { FinancialPeriodListView, RecurringMovementView } from '@/types'
 import RecurringLaunchView from '@/views/financial/recurring/RecurringLaunchView.vue'
@@ -39,6 +47,15 @@ const periods = [
   },
 ] as FinancialPeriodListView[]
 
+const december = {
+  id: 'p-12',
+  name: 'Dezembro',
+  startingAt: '2026-12-01',
+  endingAt: '2026-12-31',
+  status: 'OPEN',
+  expired: false,
+} as FinancialPeriodListView
+
 const rent = {
   id: 'r-1',
   name: 'Aluguel',
@@ -48,7 +65,6 @@ const rent = {
   suggestedValue: 1200,
   installments: null,
   nextInstallment: 5,
-  launchedInPeriod: null,
 } as RecurringMovementView
 
 const phone = {
@@ -84,6 +100,7 @@ const internet = {
   suggestedValue: 100,
   installments: null,
   nextInstallment: 3,
+  autoLaunch: false,
   launchedInPeriod: 'm-9',
 } as RecurringMovementView
 
@@ -94,9 +111,8 @@ const salary = {
   valueKind: 'FIXED',
   value: 5000,
   suggestedValue: 5000,
-  installments: null,
-  nextInstallment: 2,
-  launchedInPeriod: null,
+  autoLaunch: true,
+  launchedInPeriod: 'm-10',
 } as RecurringMovementView
 
 type Wrapper = Awaited<ReturnType<typeof render>>['wrapper']
@@ -104,8 +120,9 @@ type Wrapper = Awaited<ReturnType<typeof render>>['wrapper']
 async function render(
   location = '/recurring-movements/launch',
   content: RecurringMovementView[] | Error = [rent, phone, energy, internet, salary],
+  openPeriods = periods,
 ) {
-  vi.mocked(financialPeriodsApi.findAll).mockResolvedValue(pageOf(periods))
+  vi.mocked(financialPeriodsApi.findAll).mockResolvedValue(pageOf(openPeriods))
   if (content instanceof Error) {
     vi.mocked(recurringMovementsApi.findAll).mockRejectedValue(content)
   } else {
@@ -150,10 +167,12 @@ describe('RecurringLaunchView', () => {
     document.body.replaceChildren()
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date(2026, 10, 21))
+    useCompactViewport(false)
   })
 
   afterEach(() => {
     vi.useRealTimers()
+    useCompactViewport(false)
   })
 
   it('opens on the open period that holds today, tells when they fall due and keeps it in the URL', async () => {
@@ -169,8 +188,23 @@ describe('RecurringLaunchView', () => {
       expect.objectContaining({ status: 'OPEN' }),
     )
     expect(recurringMovementsApi.findAll).toHaveBeenCalledWith(
-      expect.objectContaining({ active: true, finished: false, financialPeriod: 'p-11' }),
+      expect.objectContaining({
+        ended: false,
+        financialPeriod: 'p-11',
+        sort: 'name,asc',
+      }),
     )
+  })
+
+  it('opens on the period after the current one when there is one', async () => {
+    const { wrapper, router } = await render(
+      '/recurring-movements/launch',
+      [rent],
+      [december, ...periods],
+    )
+
+    expect(router.currentRoute.value.query.period).toBe('p-12')
+    expect(wrapper.find('[data-slot="due-hint"]').text()).toBe('Vencem em 31/12/2026.')
   })
 
   it('keeps a period that comes in the URL and falls back when it is not open', async () => {
@@ -182,6 +216,18 @@ describe('RecurringLaunchView', () => {
     expect(fallen.router.currentRoute.value.query.period).toBe('p-11')
   })
 
+  it('has the columns of the design, with no sorting', async () => {
+    const { wrapper } = await render()
+
+    expect(wrapper.findAll('thead th').map((header) => header.text())).toEqual([
+      'Recorrente',
+      'Tipo de valor',
+      'Valor (R$)',
+      'Situação',
+    ])
+    expect(wrapper.find('thead button').exists()).toBe(false)
+  })
+
   it('shows each recurring movement with its next installment, kind, value and situation', async () => {
     const { wrapper } = await render()
 
@@ -190,36 +236,71 @@ describe('RecurringLaunchView', () => {
     expect(rows[0]!.text()).toContain('Aluguel')
     expect(rows[0]!.text()).not.toContain('5/')
     expect(rows[0]!.text()).toContain('Fixo')
-    expect(rows[0]!.text()).toMatch(/−\s*R\$\s*1\.200,00/)
+    expect(rows[0]!.text()).toContain('−1.200,00')
+    expect(rows[0]!.text()).not.toContain('R$ 1')
     expect(rows[0]!.text()).toContain('Disponível')
+    expect(checkbox(wrapper, 'Aluguel').attributes('disabled')).toBeUndefined()
     expect(rows[1]!.text()).toContain('4/12')
     expect(rows[2]!.text()).toContain('Variável')
     expect(
       (rows[2]!.find('input[aria-label="Valor de Energia"]').element as HTMLInputElement).value,
-    ).toMatch(/R\$\s*210,00/)
+    ).toBe('210,00')
     expect(rows[3]!.text()).toContain('Já lançado')
     expect(rows[3]!.find('input').exists()).toBe(false)
     expect(checkbox(wrapper, 'Internet').attributes('disabled')).toBeDefined()
-    expect(rows[4]!.text()).toMatch(/\+\s*R\$\s*5\.000,00/)
+    expect(rows[4]!.text()).toContain('+5.000,00')
+    expect(rows[4]!.text()).toContain('Lançado automaticamente')
+    expect(checkbox(wrapper, 'Salário').attributes('disabled')).toBeDefined()
+  })
+
+  it('says nothing manual is left when every recurring movement was launched', async () => {
+    const { wrapper } = await render('/recurring-movements/launch', [internet, salary])
+
+    expect(wrapper.find('[data-slot="due-hint"]').text()).toBe(
+      'Neste período não sobrou nada manual para lançar.',
+    )
   })
 
   it('sums the effect on the period as the selection changes', async () => {
     const { wrapper } = await render()
-    expect(bar(wrapper).text()).toContain('0 selecionados')
-    expect(buttonWithText(wrapper, 'Lançar 0 recorrentes').attributes('disabled')).toBeDefined()
+    expect(bar(wrapper).text()).toContain('Nenhum selecionado')
+    expect(buttonWithText(wrapper, 'Lançar recorrentes').attributes('disabled')).toBeDefined()
 
     await checkbox(wrapper, 'Aluguel').trigger('click')
-    expect(bar(wrapper).text()).toMatch(/1 selecionado · efeito no período\s*−\s*R\$\s*1\.200,00/)
+    expect(bar(wrapper).text()).toContain('1 selecionado · efeito no período −1.200,00')
+    expect(buttonWithText(wrapper, 'Lançar 1 recorrente').attributes('disabled')).toBeUndefined()
 
-    await checkbox(wrapper, 'Salário').trigger('click')
+    await checkbox(wrapper, 'Celular novo').trigger('click')
     await checkbox(wrapper, 'Energia').trigger('click')
-    expect(bar(wrapper).text()).toMatch(/3 selecionados · efeito no período\s*\+\s*R\$\s*3\.590,00/)
+    expect(bar(wrapper).text()).toContain('3 selecionados · efeito no período −1.660,00')
 
     await wrapper.find('input[aria-label="Valor de Energia"]').setValue('15000')
-    expect(bar(wrapper).text()).toMatch(/\+\s*R\$\s*3\.650,00/)
+    expect(bar(wrapper).text()).toContain('−1.600,00')
 
-    await checkbox(wrapper, 'Salário').trigger('click')
+    await checkbox(wrapper, 'Celular novo').trigger('click')
     expect(bar(wrapper).text()).toContain('2 selecionados')
+  })
+
+  it('toggles the selection by clicking the row, but never a launched one', async () => {
+    const { wrapper } = await render()
+    const rows = wrapper.findAll('tbody tr')
+
+    await rows[0]!.trigger('click')
+    expect(bar(wrapper).text()).toContain('1 selecionado')
+
+    await rows[0]!.trigger('click')
+    expect(bar(wrapper).text()).toContain('Nenhum selecionado')
+
+    await rows[3]!.trigger('click')
+    expect(bar(wrapper).text()).toContain('Nenhum selecionado')
+  })
+
+  it('does not toggle twice when the checkbox itself is clicked', async () => {
+    const { wrapper } = await render()
+
+    await checkbox(wrapper, 'Aluguel').trigger('click')
+
+    expect(bar(wrapper).text()).toContain('1 selecionado')
   })
 
   it('launches the selection, tells what was created and goes to the movements of the period', async () => {
@@ -293,41 +374,54 @@ describe('RecurringLaunchView', () => {
     await flushPromises()
 
     expect(router.currentRoute.value.name).toBe('recurring-movements')
-    expect(bar(wrapper).text()).toContain('0 selecionados')
+    expect(bar(wrapper).text()).toContain('Nenhum selecionado')
   })
 
-  it('reloads for the chosen period, the page and the sorting', async () => {
+  it('reloads for the chosen period and forgets the selection', async () => {
     const { wrapper, router } = await render()
+    await checkbox(wrapper, 'Aluguel').trigger('click')
 
     wrapper.findComponent(FilterSelect).vm.$emit('update:modelValue', 'p-10')
     await settle()
+
     expect(recurringMovementsApi.findAll).toHaveBeenLastCalledWith(
       expect.objectContaining({ financialPeriod: 'p-10', page: 0 }),
     )
     expect(router.currentRoute.value.query.period).toBe('p-10')
     expect(wrapper.find('[data-slot="due-hint"]').text()).toBe('Vencem em 31/10/2026.')
-
-    await buttonWithText(wrapper, 'Valor (R$)').trigger('click')
-    await flushPromises()
-    expect(recurringMovementsApi.findAll).toHaveBeenLastCalledWith(
-      expect.objectContaining({ sort: 'value,asc' }),
-    )
+    expect(bar(wrapper).text()).toContain('Nenhum selecionado')
   })
 
   it('goes to another page keeping the selection of the first', async () => {
-    vi.mocked(financialPeriodsApi.findAll).mockResolvedValue(pageOf(periods))
     const { wrapper } = await render()
     vi.mocked(recurringMovementsApi.findAll).mockResolvedValue(pageOf([rent], 40))
-    await buttonWithText(wrapper, 'Valor (R$)').trigger('click')
-    await flushPromises()
+    wrapper.findComponent(FilterSelect).vm.$emit('update:modelValue', 'p-10')
+    await settle()
     await checkbox(wrapper, 'Aluguel').trigger('click')
-
     await wrapper.find('button[aria-label="Próxima página"]').trigger('click')
     await settle()
 
     expect(recurringMovementsApi.findAll).toHaveBeenLastCalledWith(
       expect.objectContaining({ page: 1 }),
     )
+    expect(bar(wrapper).text()).toContain('1 selecionado')
+  })
+
+  it('shows the compact list on a phone, with the situation or the kind below the name', async () => {
+    useCompactViewport(true)
+    const { wrapper } = await render()
+
+    const cards = wrapper.findAll('[data-layout="compact"] > div')
+    expect(cards).toHaveLength(5)
+    expect(cards[0]!.text()).toContain('Aluguel')
+    expect(cards[0]!.text()).toContain('−1.200,00')
+    expect(cards[0]!.text()).toContain('Fixo')
+    expect(cards[2]!.find('input').exists()).toBe(false)
+    expect(cards[2]!.text()).toContain('Variável')
+    expect(cards[3]!.text()).toContain('Já lançado')
+    expect(cards[4]!.text()).toContain('Lançado automaticamente')
+
+    await cards[0]!.trigger('click')
     expect(bar(wrapper).text()).toContain('1 selecionado')
   })
 

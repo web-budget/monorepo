@@ -43,11 +43,12 @@ const existing = {
   launchedInstallments: 3,
   nextInstallment: 4,
   finished: false,
+  ended: false,
   autoLaunch: false,
   active: true,
   classification: { id: 'cl-1', name: 'Moradia', type: 'EXPENSE' },
   costCenter: { id: 'cc-1', name: 'Casa', fullName: 'Casa' },
-  card: { id: 'k-1', name: 'Visa' },
+  card: { id: 'k-1', name: 'Visa', lastFourDigits: '4821' },
 } as RecurringMovementView
 
 function field(wrapper: Wrapper, name: string) {
@@ -60,6 +61,20 @@ function selects(wrapper: Wrapper) {
 
 function switches(wrapper: Wrapper) {
   return wrapper.findAll('button[role="switch"]')
+}
+
+function radio(wrapper: Wrapper, text: string) {
+  const found = wrapper
+    .findAll('button[role="radio"]')
+    .find((candidate) => candidate.text().startsWith(text))
+  if (!found) {
+    throw new Error(`no radio ${text}`)
+  }
+  return found
+}
+
+function segment(wrapper: Wrapper, text: string) {
+  return wrapper.findAll('button[aria-pressed]').find((candidate) => candidate.text() === text)!
 }
 
 async function submit(wrapper: Wrapper) {
@@ -92,8 +107,8 @@ async function render(id?: string) {
 async function fillBasics(wrapper: Wrapper) {
   await field(wrapper, 'name').setValue('Celular novo')
   await field(wrapper, 'value').setValue('25000')
-  selects(wrapper)[1]!.vm.$emit('update:modelValue', 'cc-1')
-  selects(wrapper)[2]!.vm.$emit('update:modelValue', 'cl-1')
+  selects(wrapper)[0]!.vm.$emit('update:modelValue', 'cc-1')
+  selects(wrapper)[1]!.vm.$emit('update:modelValue', 'cl-1')
 }
 
 describe('RecurringMovementFormView', () => {
@@ -105,19 +120,19 @@ describe('RecurringMovementFormView', () => {
   it('shows the sections of a new recurring movement and asks for what is required', async () => {
     const { wrapper } = await render()
 
-    expect(wrapper.find('h1').text()).toBe('Criando')
+    expect(wrapper.find('h1').text()).toBe('Novo recorrente')
     expect(wrapper.findAll('h2').map((title) => title.text())).toEqual([
       'Tipo',
       'Identificação',
       'Modalidade',
       'Repetição',
-      'Cartão sugerido',
       'Lançamento',
     ])
     expect(wrapper.text()).toContain('O recorrente termina sozinho depois da última parcela.')
-    expect(wrapper.text()).toContain('Só sugere o cartão na hora de pagar.')
     expect(wrapper.text()).toContain('Vence no último dia do período.')
+    expect(wrapper.text()).not.toContain('Cartão sugerido')
     expect(wrapper.find('button[type="submit"]').text()).toBe('Criar')
+    expect(field(wrapper, 'name').attributes('placeholder')).toBe('Ex.: Videoflix')
 
     await submit(wrapper)
 
@@ -125,15 +140,25 @@ describe('RecurringMovementFormView', () => {
     expect(wrapper.text()).toContain('Campo obrigatório')
   })
 
-  it('creates an installment expense with a suggested card and stays on the cleared form', async () => {
+  it('opens as a fixed expense in twelve installments, launched automatically', async () => {
+    const { wrapper } = await render()
+
+    expect(segment(wrapper, 'Despesa').attributes('aria-pressed')).toBe('true')
+    expect(radio(wrapper, 'Fixo').attributes('aria-checked')).toBe('true')
+    expect(radio(wrapper, 'Variável').attributes('aria-checked')).toBe('false')
+    expect(radio(wrapper, 'Número de parcelas').attributes('aria-checked')).toBe('true')
+    expect((field(wrapper, 'installments').element as HTMLInputElement).value).toBe('12')
+    expect((field(wrapper, 'firstInstallment').element as HTMLInputElement).value).toBe('1')
+    expect(wrapper.text()).toContain('Começa a contar desta parcela.')
+    expect(switches(wrapper)[0]!.attributes('aria-checked')).toBe('true')
+  })
+
+  it('creates an installment expense and stays on the cleared form', async () => {
     const { wrapper, router } = await render()
     vi.mocked(recurringMovementsApi.create).mockResolvedValue('r-9')
     await fillBasics(wrapper)
-    await switches(wrapper)[0]!.trigger('click')
     await field(wrapper, 'installments').setValue('12')
     await field(wrapper, 'firstInstallment').setValue('3')
-    selects(wrapper)[4]!.vm.$emit('update:modelValue', 'k-1')
-    await switches(wrapper)[1]!.trigger('click')
 
     await submit(wrapper)
 
@@ -147,20 +172,37 @@ describe('RecurringMovementFormView', () => {
       autoLaunch: true,
       classification: 'cl-1',
       costCenter: 'cc-1',
-      card: 'k-1',
+      card: null,
     })
     expect(toast.success).toHaveBeenCalledWith('Recorrente criado', {
-      description: '“Celular novo” já pode ser lançado.',
+      description: 'Entra sozinho no próximo período.',
       duration: 4000,
     })
     expect(router.currentRoute.value.name).not.toBe('recurring-movements.detail')
     expect((wrapper.find('[name="name"]').element as HTMLInputElement).value).toBe('')
   })
 
+  it('creates one with no deadline and hides the installments', async () => {
+    const { wrapper } = await render()
+    vi.mocked(recurringMovementsApi.create).mockResolvedValue('r-9')
+    await fillBasics(wrapper)
+
+    await radio(wrapper, 'Prazo indeterminado').trigger('click')
+
+    expect(radio(wrapper, 'Prazo indeterminado').attributes('aria-checked')).toBe('true')
+    expect(field(wrapper, 'installments').exists()).toBe(false)
+    expect(field(wrapper, 'firstInstallment').exists()).toBe(false)
+
+    await submit(wrapper)
+
+    expect(recurringMovementsApi.create).toHaveBeenCalledWith(
+      expect.objectContaining({ installments: null, firstInstallment: null }),
+    )
+  })
+
   it('does not accept a current installment past the last one', async () => {
     const { wrapper } = await render()
     await fillBasics(wrapper)
-    await switches(wrapper)[0]!.trigger('click')
     await field(wrapper, 'installments').setValue('3')
     await field(wrapper, 'firstInstallment').setValue('4')
 
@@ -174,26 +216,27 @@ describe('RecurringMovementFormView', () => {
     const { wrapper } = await render()
     expect(wrapper.text()).not.toContain('Valor sugerido')
 
-    selects(wrapper)[3]!.vm.$emit('update:modelValue', 'VARIABLE')
-    await settle()
+    await radio(wrapper, 'Variável').trigger('click')
 
+    expect(radio(wrapper, 'Variável').attributes('aria-checked')).toBe('true')
     expect(wrapper.text()).toContain('Valor sugerido')
   })
 
-  it('has no suggested card for an income and filters the classifications by type', async () => {
+  it('filters the classifications by type and gives the income its own example', async () => {
     const { wrapper } = await render()
     vi.mocked(recurringMovementsApi.create).mockResolvedValue('r-9')
 
-    selects(wrapper)[0]!.vm.$emit('update:modelValue', 'INCOME')
+    await segment(wrapper, 'Receita').trigger('click')
     await settle()
 
-    expect(wrapper.findAll('h2').map((title) => title.text())).not.toContain('Cartão sugerido')
     expect(wrapper.text()).toContain('Classificação de receita')
+    expect(field(wrapper, 'name').attributes('placeholder')).toBe('Ex.: Salário')
 
     await field(wrapper, 'name').setValue('Salário')
     await field(wrapper, 'value').setValue('500000')
-    selects(wrapper)[1]!.vm.$emit('update:modelValue', 'cc-1')
-    selects(wrapper)[2]!.vm.$emit('update:modelValue', 'cl-2')
+    selects(wrapper)[0]!.vm.$emit('update:modelValue', 'cc-1')
+    selects(wrapper)[1]!.vm.$emit('update:modelValue', 'cl-2')
+    await radio(wrapper, 'Prazo indeterminado').trigger('click')
     await submit(wrapper)
 
     expect(recurringMovementsApi.create).toHaveBeenCalledWith(
@@ -204,13 +247,13 @@ describe('RecurringMovementFormView', () => {
   it('shows what the server refuses in the alert and keeps the form', async () => {
     const { wrapper, router } = await render()
     vi.mocked(recurringMovementsApi.create).mockRejectedValue(
-      problem(400, { error: 'card-recurring-must-be-expense' }),
+      problem(400, { error: 'classification-type-mismatch' }),
     )
     await fillBasics(wrapper)
 
     await submit(wrapper)
 
-    expect(wrapper.find('[role="alert"]').text()).toContain('Só a despesa pode ter cartão sugerido')
+    expect(wrapper.find('[role="alert"]').exists()).toBe(true)
     expect(router.currentRoute.value.name).toBeUndefined()
     expect(toast.error).not.toHaveBeenCalled()
   })
@@ -219,10 +262,11 @@ describe('RecurringMovementFormView', () => {
     const { wrapper, router } = await render('r-1')
     vi.mocked(recurringMovementsApi.update).mockResolvedValue(existing)
 
-    expect(wrapper.find('h1').text()).toBe('Editando')
+    expect(wrapper.find('h1').text()).toBe('Editando recorrente')
     expect(wrapper.text()).toContain('Celular novo')
     expect(field(wrapper, 'value').exists()).toBe(false)
     expect(field(wrapper, 'firstInstallment').exists()).toBe(false)
+    expect(radio(wrapper, 'Fixo').attributes('disabled')).toBeDefined()
     expect(wrapper.text()).toContain('Para mudar o valor, use Reajustar valor no detalhe.')
     expect(wrapper.text()).toContain('Inativar para parar de lançar')
     expect(wrapper.find('button[type="submit"]').text()).toBe('Salvar')
@@ -262,7 +306,8 @@ describe('RecurringMovementFormView', () => {
       id: 'r-1',
     })
 
-    expect(wrapper.findAll('h2').map((title) => title.text())).not.toContain('Cartão sugerido')
+    expect(radio(wrapper, 'Prazo indeterminado').attributes('aria-checked')).toBe('true')
     expect(field(wrapper, 'installments').exists()).toBe(false)
+    expect(wrapper.text()).toContain('Receita')
   })
 })
