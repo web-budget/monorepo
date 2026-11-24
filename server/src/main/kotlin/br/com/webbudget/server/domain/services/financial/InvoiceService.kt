@@ -2,6 +2,7 @@ package br.com.webbudget.server.domain.services.financial
 
 import br.com.webbudget.server.domain.entities.financial.Invoice
 import br.com.webbudget.server.domain.entities.financial.Movement
+import br.com.webbudget.server.domain.services.registration.CardSaved
 import br.com.webbudget.server.domain.services.registration.FinancialPeriodCreated
 import br.com.webbudget.server.domain.services.registration.FinancialPeriodDeleting
 import br.com.webbudget.server.domain.validators.OnCloseValidation
@@ -11,6 +12,7 @@ import br.com.webbudget.server.infrastructure.repository.financial.MovementRepos
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDate
 
 @Service
 @Transactional(readOnly = true)
@@ -31,6 +33,20 @@ class InvoiceService(
 
     @Transactional
     @EventListener
+    fun reconcileInvoices(event: CardSaved) {
+
+        if (!event.active) {
+            invoiceRepository.deleteEmptyOpenByCard(event.cardId)
+            return
+        }
+
+        invoiceRepository.findOpenFinancialPeriodIds()
+            .filterNot { invoiceRepository.existsByCardAndFinancialPeriod(event.cardId, it) }
+            .forEach { invoiceRepository.insert(event.cardId, it, Invoice.Status.OPEN) }
+    }
+
+    @Transactional
+    @EventListener
     fun deleteInvoices(event: FinancialPeriodDeleting) {
         invoiceRepository.deleteByFinancialPeriod(event.financialPeriodId)
     }
@@ -44,7 +60,7 @@ class InvoiceService(
             name = "${invoice.card.name} - ${invoice.financialPeriod.name}".take(MAX_NAME_LENGTH),
             type = Movement.Type.EXPENSE,
             value = invoice.value,
-            dueDate = invoice.paymentDueDate(),
+            dueDate = invoice.paymentDueDate(LocalDate.now()),
             classification = null,
             costCenter = null,
             financialPeriod = invoice.financialPeriod,
@@ -54,9 +70,7 @@ class InvoiceService(
         movementRepository.insert(payment)
         invoiceRepository.updateStatus(invoice.id!!, Invoice.Status.OPEN, Invoice.Status.CLOSED)
 
-        invoice.status = Invoice.Status.CLOSED
-
-        return invoice
+        return invoiceRepository.findByExternalId(invoice.externalId!!)!!
     }
 
     companion object {

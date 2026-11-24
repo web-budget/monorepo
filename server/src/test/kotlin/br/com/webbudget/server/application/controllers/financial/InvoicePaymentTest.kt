@@ -4,6 +4,7 @@ import br.com.webbudget.server.BaseIntegrationTest
 import br.com.webbudget.server.jooq.financial.tables.references.INVOICES
 import br.com.webbudget.server.jooq.financial.tables.references.MOVEMENTS
 import br.com.webbudget.server.jooq.financial.tables.references.WALLET_ENTRIES
+import br.com.webbudget.server.jooq.registration.tables.references.CARDS
 import br.com.webbudget.server.jooq.registration.tables.references.FINANCIAL_PERIODS
 import br.com.webbudget.server.jooq.registration.tables.references.WALLETS
 import org.assertj.core.api.Assertions.assertThat
@@ -67,6 +68,40 @@ class InvoicePaymentTest : BaseIntegrationTest() {
             .jsonPath("$.invoice.id").isEqualTo(OPEN_INVOICE)
             .jsonPath("$.invoice.status").isEqualTo("CLOSED")
             .jsonPath("$.invoice.card.name").isEqualTo("Financial test card")
+    }
+
+    @Test
+    fun `should show the due date and the payment on the invoice once it is closed`() {
+
+        close(OPEN_INVOICE)
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.dueDate").isEqualTo("2025-01-10")
+            .jsonPath("$.purchaseCount").isEqualTo(2)
+            .jsonPath("$.payment.id").isEqualTo(paymentId())
+            .jsonPath("$.payment.name").isEqualTo("Financial test card - Financial test 12/2024")
+            .jsonPath("$.payment.value").isEqualTo(125.5)
+
+        restTestClient.get()
+            .uri("$INVOICES_URL/$OPEN_INVOICE")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.dueDate").isEqualTo("2025-01-10")
+            .jsonPath("$.payment.id").isEqualTo(paymentId())
+    }
+
+    @Test
+    fun `should be due on the day it is closed when the card has no invoice payment day`() {
+
+        dsl.update(CARDS).set(CARDS.INVOICE_PAYMENT_DAY, null as Int?).where(CARDS.ID.eq(9101L)).execute()
+
+        close(OPEN_INVOICE)
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.dueDate").isEqualTo(LocalDate.now().toString())
+
+        assertThat(dsl.selectFrom(MOVEMENTS).fetchSingle().dueDate).isEqualTo(LocalDate.now())
     }
 
     @Test
@@ -158,6 +193,7 @@ class InvoicePaymentTest : BaseIntegrationTest() {
         val entry = dsl.selectFrom(WALLET_ENTRIES).fetchSingle()
 
         assertThat(entry.origin).isEqualTo("INVOICE_PAYMENT")
+        assertThat(entry.name).isEqualTo("Fatura Financial test card, dezembro")
         assertThat(entry.direction).isEqualTo("DEBIT")
         assertThat(entry.value).isEqualByComparingTo("125.50")
 
@@ -193,6 +229,7 @@ class InvoicePaymentTest : BaseIntegrationTest() {
 
         assertThat(invoiceStatus()).isEqualTo("CLOSED")
         assertThat(dsl.selectFrom(WALLET_ENTRIES).fetch().map { it.origin }).containsExactlyInAnyOrder("INVOICE_PAYMENT", "REVERSAL")
+        assertThat(dsl.selectFrom(WALLET_ENTRIES).fetch().map { it.name }).containsOnly("Fatura Financial test card, dezembro")
         assertThat(dsl.select(WALLETS.CURRENT_BALANCE).from(WALLETS).where(WALLETS.ID.eq(9101L)).fetchSingle().value1())
             .isEqualByComparingTo("0")
     }
@@ -237,6 +274,15 @@ class InvoicePaymentTest : BaseIntegrationTest() {
         assertTotal("invoicePayments=true", 1)
         assertTotal("invoicePayments=false", 1)
         assertTotal("", 2)
+
+        restTestClient.get()
+            .uri("$MOVEMENTS_URL?sort=name,asc")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.content[0].name").isEqualTo("Common")
+            .jsonPath("$.content[0].invoicePayment").isEqualTo(false)
+            .jsonPath("$.content[1].invoicePayment").isEqualTo(true)
     }
 
     private fun assertTotal(query: String, expected: Int) {

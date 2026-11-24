@@ -1,12 +1,15 @@
 package br.com.webbudget.server.infrastructure.repository.financial
 
 import br.com.webbudget.server.domain.entities.financial.CardReference
+import br.com.webbudget.server.domain.entities.financial.FinancialPeriodReference
 import br.com.webbudget.server.domain.entities.financial.Invoice
+import br.com.webbudget.server.domain.entities.financial.InvoicePayment
 import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.financial.tables.references.CARD_PURCHASES
 import br.com.webbudget.server.jooq.financial.tables.references.INVOICES
+import br.com.webbudget.server.jooq.financial.tables.references.MOVEMENTS
 import br.com.webbudget.server.jooq.registration.tables.references.CARDS
 import br.com.webbudget.server.jooq.registration.tables.references.FINANCIAL_PERIODS
 import org.jooq.DSLContext
@@ -30,12 +33,19 @@ class InvoiceRepository(
     private val cards = CARDS.`as`("cards")
     private val financialPeriods = FINANCIAL_PERIODS.`as`("financial_periods")
     private val purchases = CARD_PURCHASES.`as`("card_purchases")
+    private val payments = MOVEMENTS.`as`("invoice_payments")
 
     private val invoiceValue: Field<BigDecimal> = DSL.field(
         DSL.select(DSL.coalesce(DSL.sum(purchases.VALUE), BigDecimal.ZERO))
             .from(purchases)
             .where(purchases.ID_INVOICE.eq(invoices.ID))
     ).`as`("invoice_value")
+
+    private val purchaseCount: Field<Int> = DSL.field(
+        DSL.selectCount()
+            .from(purchases)
+            .where(purchases.ID_INVOICE.eq(invoices.ID))
+    ).`as`("purchase_count")
 
     fun findActiveCards(): List<CardReference> {
         val activeCards = CARDS.`as`("active_cards")
@@ -44,6 +54,12 @@ class InvoiceRepository(
             .orderBy(activeCards.ID)
             .fetch { record -> record.toCardReference() }
     }
+
+    fun findOpenFinancialPeriodIds(): List<Long> = dsl.select(FINANCIAL_PERIODS.ID)
+        .from(FINANCIAL_PERIODS)
+        .where(FINANCIAL_PERIODS.STATUS.eq(FinancialPeriodReference.Status.OPEN.name))
+        .orderBy(FINANCIAL_PERIODS.ID)
+        .fetch { record -> record.value1()!! }
 
     fun findByExternalId(externalId: UUID): Invoice? = selectJoined()
         .where(invoices.EXTERNAL_ID.eq(externalId))
@@ -121,6 +137,25 @@ class InvoiceRepository(
         }
     }
 
+    fun deleteEmptyOpenByCard(cardId: Long) {
+        dsl.deleteFrom(INVOICES)
+            .where(INVOICES.ID_CARD.eq(cardId))
+            .and(INVOICES.STATUS.eq(Invoice.Status.OPEN.name))
+            .and(
+                INVOICES.ID_FINANCIAL_PERIOD.`in`(
+                    dsl.select(FINANCIAL_PERIODS.ID)
+                        .from(FINANCIAL_PERIODS)
+                        .where(FINANCIAL_PERIODS.STATUS.eq(FinancialPeriodReference.Status.OPEN.name))
+                )
+            )
+            .and(
+                DSL.notExists(
+                    dsl.selectOne().from(CARD_PURCHASES).where(CARD_PURCHASES.ID_INVOICE.eq(INVOICES.ID))
+                )
+            )
+            .execute()
+    }
+
     fun deleteByFinancialPeriod(financialPeriodId: Long) {
         dsl.deleteFrom(INVOICES)
             .where(INVOICES.ID_FINANCIAL_PERIOD.eq(financialPeriodId))
@@ -128,13 +163,30 @@ class InvoiceRepository(
     }
 
     private fun selectJoined() = dsl
-        .select(*invoices.fields(), *cards.fields(), *financialPeriods.fields(), invoiceValue)
+        .select(
+            *invoices.fields(),
+            *cards.fields(),
+            *financialPeriods.fields(),
+            *payments.fields(),
+            invoiceValue,
+            purchaseCount
+        )
         .from(invoices)
         .joinReferences()
+        .leftJoin(payments).on(payments.ID_INVOICE.eq(invoices.ID))
 
     private fun <R : Record> SelectJoinStep<R>.joinReferences(): SelectJoinStep<R> = this
         .join(cards).on(cards.ID.eq(invoices.ID_CARD))
         .join(financialPeriods).on(financialPeriods.ID.eq(invoices.ID_FINANCIAL_PERIOD))
+
+    private fun Record.toInvoicePayment(): InvoicePayment? {
+
+        val paymentRecord = into(payments)
+
+        return paymentRecord.externalId?.let {
+            InvoicePayment(it, paymentRecord.name!!, paymentRecord.value!!, paymentRecord.dueDate!!)
+        }
+    }
 
     private fun Record.toInvoice(): Invoice {
 
@@ -144,7 +196,9 @@ class InvoiceRepository(
             card = into(cards).toCardReference(),
             financialPeriod = into(financialPeriods).toFinancialPeriodReference(),
             status = Invoice.Status.valueOf(invoiceRecord.status!!),
-            value = get(invoiceValue)
+            value = get(invoiceValue),
+            purchaseCount = get(purchaseCount),
+            payment = toInvoicePayment()
         ).also { invoice ->
             invoice.restore(
                 invoiceRecord.id,

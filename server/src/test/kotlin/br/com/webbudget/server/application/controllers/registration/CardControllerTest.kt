@@ -50,6 +50,9 @@ class CardControllerTest : BaseIntegrationTest() {
             .jsonPath("$.content[0].name").isEqualTo("XP Infinite")
             .jsonPath("$.content[0].type").doesNotExist()
             .jsonPath("$.content[0].flag").isEqualTo("Visa Infinite")
+            .jsonPath("$.content[0].lastFourDigits").isEqualTo("1234")
+            .jsonPath("$.content[0].invoicePaymentDay").isEqualTo(8)
+            .jsonPath("$.content[0].wallet").doesNotExist()
             .jsonPath("$.page.totalElements").isEqualTo(2)
             .jsonPath("$.page.totalPages").isEqualTo(2)
     }
@@ -65,6 +68,34 @@ class CardControllerTest : BaseIntegrationTest() {
                 .expectBody()
                 .jsonPath("$.page.totalElements").isEqualTo(1)
                 .jsonPath("$.content[0].name").isEqualTo(name)
+        }
+    }
+
+    @Test
+    fun `should filter by the name of the wallet`() {
+
+        restTestClient.get()
+            .uri("$ENDPOINT_URL?filter=BANK ACC")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.page.totalElements").isEqualTo(1)
+            .jsonPath("$.content[0].name").isEqualTo("Itau Personalite")
+            .jsonPath("$.content[0].wallet.id").isEqualTo(WALLET_ID)
+            .jsonPath("$.content[0].wallet.name").isEqualTo("Bank account")
+    }
+
+    @Test
+    fun `should sort by the invoice payment day`() {
+
+        listOf("asc" to listOf("XP Infinite", "Itau Personalite"), "desc" to listOf("Itau Personalite", "XP Infinite")).forEach { (direction, names) ->
+            restTestClient.get()
+                .uri("$ENDPOINT_URL?sort=invoicePaymentDay,$direction")
+                .exchange()
+                .expectStatus().isOk
+                .expectBody()
+                .jsonPath("$.content[0].name").isEqualTo(names[0])
+                .jsonPath("$.content[1].name").isEqualTo(names[1])
         }
     }
 
@@ -143,6 +174,27 @@ class CardControllerTest : BaseIntegrationTest() {
     }
 
     @Test
+    fun `should create a card without the invoice payment day`() {
+
+        val location = restTestClient.post()
+            .uri(ENDPOINT_URL)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"name": "No day", "lastFourDigits": "9990"}""")
+            .exchange()
+            .expectStatus().isCreated
+            .returnResult(Void::class.java)
+            .responseHeaders.location!!
+
+        restTestClient.get()
+            .uri(location)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.name").isEqualTo("No day")
+            .jsonPath("$.invoicePaymentDay").doesNotExist()
+    }
+
+    @Test
     fun `should create a card with its wallet`() {
 
         restTestClient.post()
@@ -185,7 +237,6 @@ class CardControllerTest : BaseIntegrationTest() {
             .expectBody()
             .jsonPath("$.parameters.name").isEqualTo("is-null-or-blank")
             .jsonPath("$.parameters.lastFourDigits").isEqualTo("has-max-chars-of-4")
-            .jsonPath("$.parameters.invoicePaymentDay").isEqualTo("is-null")
     }
 
     @Test
@@ -257,16 +308,16 @@ class CardControllerTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `should answer bad request when updating without the invoice payment day`() {
+    fun `should clear the invoice payment day when updating without it`() {
 
         restTestClient.put()
             .uri("$ENDPOINT_URL/$CARD_ID")
             .contentType(MediaType.APPLICATION_JSON)
             .body("""{"name": "Name", "lastFourDigits": "1234", "active": true}""")
             .exchange()
-            .expectStatus().isEqualTo(422)
+            .expectStatus().isOk
             .expectBody()
-            .jsonPath("$.parameters.invoicePaymentDay").isEqualTo("is-null")
+            .jsonPath("$.invoicePaymentDay").doesNotExist()
     }
 
     @Test

@@ -63,6 +63,8 @@ class ListingSortOrderTest : BaseIntegrationTest() {
         assertNames("/registration/cards", "", "XP Infinite", "Itau Personalite")
         assertNames("/registration/cards", "sort=name,asc", "Itau Personalite", "XP Infinite")
         assertNames("/registration/cards", "sort=name,desc", "XP Infinite", "Itau Personalite")
+        assertNames("/registration/cards", "sort=invoicePaymentDay,asc", "XP Infinite", "Itau Personalite")
+        assertNames("/registration/cards", "sort=invoicePaymentDay,desc", "Itau Personalite", "XP Infinite")
     }
 
     @Test

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <changeSet id="24-1000-1" author="${claude}">
+        <sql>
+            ALTER TABLE registration.cards
+                ALTER COLUMN invoice_payment_day DROP NOT NULL;
+        </sql>
+        <rollback>
+            <sql>
+                UPDATE registration.cards SET invoice_payment_day = 1 WHERE invoice_payment_day IS NULL;
+                ALTER TABLE registration.cards
+                    ALTER COLUMN invoice_payment_day SET NOT NULL;
+            </sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

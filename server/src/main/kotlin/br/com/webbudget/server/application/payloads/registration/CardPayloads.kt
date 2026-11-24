@@ -16,7 +16,6 @@ data class CardCreateForm(
     @field:NotBlank(message = IS_NULL_OR_BLANK)
     @field:Size(message = MAX_CHARS, max = 4)
     val lastFourDigits: String?,
-    @field:NotNull(message = IS_NULL)
     val invoicePaymentDay: Int?,
     val wallet: UUID?,
     val flag: String?
@@ -29,7 +28,6 @@ data class CardUpdateForm(
     @field:NotBlank(message = IS_NULL_OR_BLANK)
     @field:Size(message = MAX_CHARS, max = 4)
     val lastFourDigits: String?,
-    @field:NotNull(message = IS_NULL)
     val invoicePaymentDay: Int?,
     val wallet: UUID?,
     val flag: String?,
@@ -41,7 +39,7 @@ data class CardView(
     val id: UUID,
     val name: String,
     val lastFourDigits: String,
-    val invoicePaymentDay: Int,
+    val invoicePaymentDay: Int?,
     val active: Boolean,
     val flag: String? = null,
     val wallet: WalletListView? = null
@@ -50,8 +48,11 @@ data class CardView(
 data class CardListView(
     val id: UUID,
     val name: String,
+    val lastFourDigits: String,
+    val invoicePaymentDay: Int?,
     val active: Boolean,
-    val flag: String? = null
+    val flag: String? = null,
+    val wallet: WalletListView? = null
 )
 
 data class CardFilter(

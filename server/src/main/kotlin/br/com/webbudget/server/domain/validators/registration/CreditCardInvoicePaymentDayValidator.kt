@@ -14,7 +14,7 @@ class CreditCardInvoicePaymentDayValidator : CardValidator {
 
     override fun validate(value: Card) {
 
-        val paymentDay = value.invoicePaymentDay
+        val paymentDay = value.invoicePaymentDay ?: return
 
         if (paymentDay !in VALID_DAYS) {
             throw DomainException(
