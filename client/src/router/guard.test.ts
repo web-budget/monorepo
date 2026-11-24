@@ -20,8 +20,12 @@ function sessionWith(roles: Role[]): SessionResponse {
     email: 'ana@example.com',
     status: 'APPROVED',
     language: 'PT_BR',
-    roles,
     dueDateNotices: true,
+    hasPassword: true,
+    googleLinked: false,
+    totpEnabled: false,
+    totpRequired: false,
+    roles,
   }
 }
 

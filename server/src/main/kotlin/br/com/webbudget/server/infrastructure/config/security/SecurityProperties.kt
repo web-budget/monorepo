@@ -7,6 +7,7 @@ import java.time.Duration
 data class SecurityProperties(
     val adminDefaultPassword: String = "",
     val login: LockoutProperties = LockoutProperties(maxAttempts = 5, baseDuration = Duration.ofSeconds(60)),
+    val passwordChange: LockoutProperties = LockoutProperties(maxAttempts = 5, baseDuration = Duration.ofSeconds(60)),
     val ipLockout: LockoutProperties = LockoutProperties(
         maxAttempts = 20,
         baseDuration = Duration.ofSeconds(60),

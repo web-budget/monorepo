@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { ChevronDown, LogOut, MonitorSmartphone, User } from 'lucide-vue-next'
-import { useRouter } from 'vue-router'
-import LanguageSwitch from '@/components/layout/LanguageSwitch.vue'
+import { ChevronDown, LogOut, UserRound } from 'lucide-vue-next'
 import ThemeSwitch from '@/components/layout/ThemeSwitch.vue'
 import UserAvatar from '@/components/layout/UserAvatar.vue'
 import { Button } from '@/components/ui/button'
@@ -13,12 +11,11 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useTrustedDevicesDialog } from '@/composables/useTrustedDevicesDialog'
+import { useAccountDialog } from '@/composables/useAccountDialog'
 import { useAuthStore } from '@/stores/auth'
 
 const auth = useAuthStore()
-const trustedDevicesDialog = useTrustedDevicesDialog()
-const router = useRouter()
+const accountDialog = useAccountDialog()
 </script>
 
 <template>
@@ -39,9 +36,9 @@ const router = useRouter()
         </div>
       </DropdownMenuLabel>
       <DropdownMenuSeparator />
-      <DropdownMenuItem @select="router.push({ name: 'profile' })">
-        <User />
-        {{ $t('layout.profile') }}
+      <DropdownMenuItem @select="accountDialog.show('profile')">
+        <UserRound />
+        {{ $t('layout.account') }}
       </DropdownMenuItem>
       <DropdownMenuSeparator />
       <DropdownMenuLabel class="text-muted-foreground text-xs font-medium">
@@ -50,17 +47,7 @@ const router = useRouter()
       <div class="px-1 pb-1.5">
         <ThemeSwitch in-menu />
       </div>
-      <DropdownMenuLabel class="text-muted-foreground text-xs font-medium">
-        {{ $t('layout.language') }}
-      </DropdownMenuLabel>
-      <div class="px-1 pb-1.5">
-        <LanguageSwitch in-menu />
-      </div>
       <DropdownMenuSeparator />
-      <DropdownMenuItem @select="trustedDevicesDialog.show()">
-        <MonitorSmartphone />
-        {{ $t('layout.trusted-devices') }}
-      </DropdownMenuItem>
       <DropdownMenuItem @select="auth.logout()">
         <LogOut />
         {{ $t('layout.logout') }}

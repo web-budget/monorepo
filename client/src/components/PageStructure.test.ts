@@ -2,7 +2,7 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { h } from 'vue'
 import PageStructure from '@/components/PageStructure.vue'
-import { useTrustedDevicesDialog } from '@/composables/useTrustedDevicesDialog'
+import { useAccountDialog } from '@/composables/useAccountDialog'
 import { useAuthStore } from '@/stores/auth'
 import { mockMatchMedia } from '@/test/matchMedia'
 import { createTestPlugins } from '@/test/mounting'
@@ -152,27 +152,28 @@ describe('PageStructure', () => {
       )!
       expect(footer.textContent).toContain('Ana Souza')
       expect(footer.textContent).toContain('ana@example.com')
-      expect(footer.querySelectorAll('[role="radio"]')).toHaveLength(5)
+      expect(footer.querySelectorAll('[role="radio"]')).toHaveLength(3)
 
       ;(footer.querySelector('button[aria-label="Sair"]') as HTMLElement).click()
 
       expect(useAuthStore().logout).toHaveBeenCalledTimes(1)
     })
 
-    it('opens the trusted devices from the sheet footer and closes the sheet', async () => {
+    it('opens the account dialog from the sheet footer and closes the sheet', async () => {
       const wrapper = await render()
       await openMenu(wrapper)
 
       ;(
         document.body.querySelector(
-          '[data-mobile="true"] button[aria-label="Dispositivos confiáveis"]',
+          '[data-mobile="true"] button:has(svg.lucide-user-round)',
         ) as HTMLElement
       ).click()
       await flushPromises()
 
-      expect(useTrustedDevicesDialog().open.value).toBe(true)
+      expect(useAccountDialog().open.value).toBe(true)
+      expect(useAccountDialog().tab.value).toBeNull()
       expect(document.body.querySelector('[data-mobile="true"]')).toBeNull()
-      useTrustedDevicesDialog().close()
+      useAccountDialog().close()
     })
 
     it('closes the sheet with the close button', async () => {
