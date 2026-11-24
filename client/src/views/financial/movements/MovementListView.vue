@@ -15,6 +15,7 @@ import ListState from '@/components/listing/ListState.vue'
 import SearchControls from '@/components/listing/SearchControls.vue'
 import MovementRowActions from '@/components/movements/MovementRowActions.vue'
 import PayMovementDialog from '@/components/movements/PayMovementDialog.vue'
+import UndoPaymentDialog from '@/components/movements/UndoPaymentDialog.vue'
 import MovementStatusBadge from '@/components/movements/MovementStatusBadge.vue'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
@@ -187,7 +188,12 @@ const activeFilters = computed(() => {
 })
 
 const columns = computed(() => [
-  { field: 'name', header: t('movement.table-columns.name'), sortable: true, mobile: 'title' as const },
+  {
+    field: 'name',
+    header: t('movement.table-columns.name'),
+    sortable: true,
+    mobile: 'title' as const,
+  },
   {
     field: 'dueDate',
     header: t('movement.table-columns.due-date'),
@@ -504,12 +510,18 @@ onMounted(async () => {
             @details="changeToDetail({ data: item, index: 0 })"
             @pay="actions.openPay(item)"
             @edit="changeToUpdate(item.id)"
-            @undo="actions.undoPayment(item)"
+            @undo="actions.openUndo(item)"
             @remove="remove(item)"
           />
         </template>
       </ItemsTable>
     </div>
+    <UndoPaymentDialog
+      :movement="actions.undoTarget.value"
+      :loading="loading"
+      @close="actions.closeUndo()"
+      @confirm="actions.undoPayment"
+    />
     <PayMovementDialog
       :movement="actions.payTarget.value"
       :wallets="activeWallets.wallets.value"

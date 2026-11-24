@@ -1,12 +1,15 @@
 <script setup lang="ts">
+import { Check, CircleAlert, CreditCard, Wallet } from 'lucide-vue-next'
 import { useForm } from 'vee-validate'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
 import InputField from '@/components/forms/InputField.vue'
+import SegmentedField from '@/components/forms/SegmentedField.vue'
 import ServerErrorAlert from '@/components/forms/ServerErrorAlert.vue'
 import MoneyField from '@/components/forms/MoneyField.vue'
 import SelectField from '@/components/forms/SelectField.vue'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -16,6 +19,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { useOpenInvoice } from '@/composables/useOpenInvoice'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { createPaymentSchema, PAYMENT_METHODS, toPaymentForm } from '@/schemas/movementSchema'
 import type { CardListView, MovementType, PaymentForm, WalletListView } from '@/types'
@@ -27,6 +31,7 @@ interface PayableMovement {
   type: MovementType
   value: number
   invoicePayment?: boolean
+  financialPeriod?: { id: string; name: string }
 }
 
 const props = defineProps<{
@@ -41,13 +46,14 @@ const emit = defineEmits<{ close: []; pay: [movement: PayableMovement, form: Pay
 
 const { t } = useI18n()
 const balanceErrors = useServerErrors()
+const openInvoice = useOpenInvoice()
 
 function initialValues() {
   return {
     paidOn: formatLocalDate(new Date()),
     via: 'WALLET' as const,
-    wallet: '',
-    card: '',
+    wallet: props.wallets[0]?.id ?? '',
+    card: props.cards[0]?.id ?? '',
     discount: null,
   }
 }
@@ -64,8 +70,17 @@ const cardAllowed = computed(
   () => props.movement?.type === 'EXPENSE' && !props.movement.invoicePayment,
 )
 const methodOptions = computed(() =>
-  PAYMENT_METHODS.map((method) => ({ value: method, label: t(`movement.pay.method.${method}`) })),
+  PAYMENT_METHODS.map((method) => ({
+    value: method,
+    label: t(`movement.pay.method.${method}`),
+    icon: method === 'CARD' ? CreditCard : Wallet,
+  })),
 )
+const selectedCard = computed(() => props.cards.find((card) => card.id === form.values.card))
+const invoiceLabel = computed(() => {
+  const month = (props.movement?.financialPeriod?.name ?? '').split(' de ')[0]
+  return `${selectedCard.value?.name ?? ''}, ${month}`
+})
 const cardOptions = computed(() =>
   props.cards.map((card) => ({ value: card.id, label: card.name })),
 )
@@ -99,6 +114,13 @@ watch(
   },
 )
 
+watch(
+  () => [onCard.value, form.values.card, props.movement?.financialPeriod?.id] as const,
+  ([cardSelected, card, financialPeriod]) =>
+    openInvoice.check(cardSelected ? card : null, financialPeriod),
+  { immediate: true },
+)
+
 const submit = form.handleSubmit((values) => {
   emit('pay', props.movement as PayableMovement, toPaymentForm(values as never))
 })
@@ -119,11 +141,12 @@ const submit = form.handleSubmit((values) => {
           <DialogDescription class="sr-only">{{ movement?.name }}</DialogDescription>
         </DialogHeader>
         <InputField name="paidOn" type="date" :label="t('movement.pay.paid-on')" required />
-        <SelectField
+        <SegmentedField
           v-if="cardAllowed"
           name="via"
           :label="t('movement.pay.method.label')"
           :options="methodOptions"
+          required
         />
         <SelectField
           v-if="onCard"
@@ -132,6 +155,22 @@ const submit = form.handleSubmit((values) => {
           :options="cardOptions"
           required
         />
+        <Alert
+          v-if="onCard && openInvoice.missing.value"
+          variant="destructive"
+          data-slot="no-open-invoice"
+        >
+          <CircleAlert />
+          <AlertTitle>
+            {{
+              t('movement.form.no-open-invoice', {
+                card: selectedCard?.name,
+                period: movement?.financialPeriod?.name,
+              })
+            }}
+          </AlertTitle>
+          <AlertDescription>{{ t('movement.form.no-open-invoice-hint') }}</AlertDescription>
+        </Alert>
         <SelectField
           v-else
           name="wallet"
@@ -145,7 +184,11 @@ const submit = form.handleSubmit((values) => {
           class="bg-muted/50 grid gap-1.5 rounded-md border p-3 text-sm"
           data-slot="payment-summary"
         >
-          <div v-if="!onCard && balance !== null" class="flex justify-between gap-3">
+          <div v-if="onCard" class="flex justify-between gap-3" data-slot="invoice-line">
+            <dt class="text-muted-foreground">{{ t('movement.pay.invoice') }}</dt>
+            <dd>{{ invoiceLabel }}</dd>
+          </div>
+          <div v-else-if="balance !== null" class="flex justify-between gap-3">
             <dt class="text-muted-foreground">{{ t('movement.pay.wallet-balance') }}</dt>
             <dd><CurrencyDisplay :value="balance" /></dd>
           </div>
@@ -170,16 +213,13 @@ const submit = form.handleSubmit((values) => {
             <dt>{{ t('movement.pay.balance-after') }}</dt>
             <dd><CurrencyDisplay :value="balanceAfter" /></dd>
           </div>
-          <p v-if="onCard" class="text-muted-foreground text-xs" data-slot="card-note">
-            {{ t('movement.pay.card-note') }}
-          </p>
         </dl>
         <DialogFooter>
           <Button type="button" variant="outline" @click="emit('close')">
             {{ t('form.cancel') }}
           </Button>
-          <Button type="submit" :disabled="loading">
-            {{ t(receiving ? 'movement.pay.confirm-receive' : 'movement.pay.confirm-pay') }}
+          <Button type="submit" :disabled="loading || (onCard && openInvoice.missing.value)">
+            <Check />{{ t('movement.pay.confirm') }}
           </Button>
         </DialogFooter>
       </form>

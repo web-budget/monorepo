@@ -1,10 +1,9 @@
 import { ref } from 'vue'
-import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import { useNotification } from '@/composables/useNotification'
 import { useServerErrors } from '@/composables/useServerErrors'
+import { movementsApi } from '@/api/movements'
 import { useMovementsStore } from '@/stores/movements'
 import type { MovementType, MovementView, PaymentForm } from '@/types'
-import i18n from '@/locales'
 
 interface MovementTarget {
   id: string
@@ -12,15 +11,16 @@ interface MovementTarget {
   type: MovementType
   value: number
   invoicePayment?: boolean
+  financialPeriod?: { id: string; name: string }
 }
 
 export function useMovementActions(reload: () => Promise<unknown> | unknown) {
   const store = useMovementsStore()
-  const { confirm } = useConfirmDialog()
   const { showSuccess } = useNotification()
   const { messages, run } = useServerErrors()
 
   const payTarget = ref<MovementTarget | null>(null)
+  const undoTarget = ref<MovementView | null>(null)
 
   function openPay(target: MovementTarget) {
     payTarget.value = target
@@ -53,19 +53,33 @@ export function useMovementActions(reload: () => Promise<unknown> | unknown) {
     }
   }
 
-  async function undoPayment(target: Pick<MovementTarget, 'id' | 'name'>) {
-    const { t } = i18n.global
-    const confirmed = await confirm({
-      destructive: true,
-      title: t('movement.undo.title', { name: target.name }),
-      description: t('movement.undo.description'),
-      confirmLabel: t('movement.undo.confirm'),
+  async function openUndo(target: Pick<MovementTarget, 'id'>) {
+    await run(async () => {
+      undoTarget.value = await movementsApi.findById(target.id)
     })
-    if (confirmed && (await run(() => store.undoPayment(target.id)))) {
+  }
+
+  function closeUndo() {
+    undoTarget.value = null
+  }
+
+  async function undoPayment(target: MovementView) {
+    if (await run(() => store.undoPayment(target.id))) {
+      closeUndo()
       showSuccess('movement.toast.payment-undone', 'movement.toast.payment-undone-detail')
       await reload()
     }
   }
 
-  return { messages, payTarget, openPay, closePay, pay, undoPayment }
+  return {
+    messages,
+    payTarget,
+    undoTarget,
+    openPay,
+    closePay,
+    pay,
+    openUndo,
+    closeUndo,
+    undoPayment,
+  }
 }

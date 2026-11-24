@@ -4,7 +4,10 @@ import { invoicesApi } from '@/api/invoices'
 export function useOpenInvoice() {
   const missing = ref(false)
 
-  async function check(card: string | null | undefined, financialPeriod: string | null | undefined) {
+  async function check(
+    card: string | null | undefined,
+    financialPeriod: string | null | undefined,
+  ) {
     if (!card || !financialPeriod) {
       missing.value = false
       return

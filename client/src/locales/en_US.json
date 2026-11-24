@@ -818,10 +818,13 @@
       "placeholder": "Name"
     },
     "table-columns": {
-      "name": "Name",
+      "name": "Period",
       "starting-at": "Start",
       "ending-at": "End",
-      "status": "Status"
+      "status": "Status",
+      "revenues-goal": "Revenue goal",
+      "expenses-goal": "Expense goal",
+      "result": "Result (R$)"
     },
     "status": {
       "open": "Open",
@@ -836,15 +839,17 @@
       "closed": "Closed"
     },
     "form": {
-      "new": "New financial period",
-      "editing": "Editing financial period",
+      "new": "New period",
+      "editing": "Edit name and goals",
       "detailing": "Financial period details",
       "deleting": "Deleting financial period",
       "name": "Name",
-      "starting-at": "Start",
-      "ending-at": "End",
-      "expenses-goal": "Expenses goal",
-      "revenues-goal": "Income goal"
+      "starting-at": "Start date",
+      "ending-at": "End date",
+      "expenses-goal": "Expense goal",
+      "revenues-goal": "Revenue goal",
+      "name-example": "E.g.: January 2027",
+      "status": "Status"
     },
     "errors": {
       "overlapping-dates": "The start and end dates overlap with another existing financial period",
@@ -853,19 +858,25 @@
     },
     "list": {
       "description": "Date ranges for postings.",
-      "empty-title": "No financial periods yet",
-      "empty-description": "Create a financial period to start recording entries.",
+      "empty-title": "No period created",
+      "empty-description": "Nothing is posted without an open period. Create the first one.",
       "plural": "financial periods",
       "found": "{count} financial period found for “{query}” | {count} financial periods found for “{query}”",
-      "expired-notice": "{count} expired period: {names}. It still accepts postings. | {count} expired periods: {names}. They still accept postings."
+      "expired-notice": {
+        "title": "{count} expired period: {names} | {count} expired periods: {names}",
+        "description": "It still accepts postings. | They still accept postings."
+      },
+      "noun": "period | periods",
+      "tabs-note": "The result only exists after closing.",
+      "provisional": "provisional",
+      "edit": "Edit name and goals"
     },
     "remove": {
       "title": "Remove the financial period “{name}”?",
       "description": "This cannot be undone."
     },
     "toast": {
-      "created": "Financial period created",
-      "created-detail": "“{name}” now accepts entries.",
+      "created": "Period created",
       "updated": "Changes saved",
       "updated-detail": "“{name}” was updated.",
       "removed": "Financial period removed",
@@ -873,11 +884,10 @@
     },
     "sections": {
       "identification": "Identification",
-      "identification-help": "How the period appears in entries.",
       "dates": "Dates",
-      "dates-help": "The dates do not change after creation.",
+      "dates-help": "No overlap with another period.",
       "goals": "Goals",
-      "goals-help": "Expected income and expense amounts for the period.",
+      "goals-help": "Optional.",
       "result": "Provisional result",
       "result-closed": "Result",
       "movements": "Movements"
@@ -889,6 +899,11 @@
     },
     "actions": {
       "view-movements": "View movements"
+    },
+    "detail": {
+      "launched": "Posted",
+      "open": "Open",
+      "paid": "Paid"
     }
   },
   "classification": {
@@ -1083,7 +1098,9 @@
       "pay": "Pay",
       "receive": "Receive",
       "edit": "Edit",
-      "undo": "Undo payment"
+      "undo": "Undo payment",
+      "view-statement": "View on statement",
+      "view-invoice": "View on invoice"
     },
     "table-columns": {
       "name": "Name",
@@ -1168,13 +1185,16 @@
       "removed": "Movement deleted",
       "removed-detail": "“{name}” left the list.",
       "created": "Movement posted",
-      "created-detail": "“{name}” now shows in the period.",
+      "created-detail": "It shows up as open in the period.",
       "updated": "Changes saved",
-      "updated-detail": "“{name}” was updated.",
       "paid": "Payment recorded",
-      "paid-detail": "“{name}” was paid, with a new line in the statement.",
+      "paid-detail": "It left {wallet}, new line on the statement.",
       "payment-undone": "Payment undone",
-      "payment-undone-detail": "“{name}” is open again and the reversal is in the statement."
+      "payment-undone-detail": "The reversal is already on the statement and the movement is open again.",
+      "created-paid-detail": "Posted already paid: the money left the wallet.",
+      "received": "Receipt registered",
+      "received-detail": "It entered {wallet}, new line on the statement.",
+      "paid-on-card-detail": "It entered the invoice of {card}."
     },
     "form": {
       "new": "Posting",
@@ -1190,21 +1210,40 @@
       "period-hint": "Open periods only.",
       "cost-center": "Cost center",
       "classification": "Classification",
-      "description": "Description",
       "paid": "Post as already paid",
       "paid-on": "Payment date",
       "wallet": "Wallet",
       "discount": "Discount",
       "discount-hint": "Optional.",
       "submit-post": "Post",
-      "submit-post-paid": "Post and pay"
+      "submit-post-paid": "Post and pay",
+      "title-new": "New movement",
+      "title-edit": "Edit movement",
+      "name-example": {
+        "INCOME": "E.g.: December salary",
+        "EXPENSE": "E.g.: Water bill"
+      },
+      "value-hint": "Zero or more.",
+      "wallet-option": "{name} · balance {balance}",
+      "paid-by": "Paid by",
+      "card": "Card",
+      "card-hint": "It goes into the open invoice of the period.",
+      "no-open-invoice": "There is no open invoice for {card} in {period}",
+      "no-open-invoice-hint": "Nothing is posted. Choose another period or card.",
+      "classification-of": {
+        "INCOME": "Income classification",
+        "EXPENSE": "Expense classification"
+      }
     },
     "sections": {
       "identification": "Identification",
       "payment": "Payment",
       "type": "Type",
       "classification": "Classification",
-      "classification-help": "Only classifications of the chosen type appear.",
+      "classification-help": {
+        "INCOME": "Only income classifications show up.",
+        "EXPENSE": "Only expense classifications show up."
+      },
       "payment-help": "Optional.",
       "invoice": "Invoice"
     },
@@ -1216,7 +1255,6 @@
       "period": "Period",
       "cost-center": "Cost center",
       "classification": "Classification",
-      "description": "Description",
       "no-payment": "No payment.",
       "paid-on": "Date",
       "movement-value": "Movement value",
@@ -1230,15 +1268,17 @@
       "invoice-card": "Card",
       "invoice-status": "Invoice status",
       "invoice": "Invoice",
-      "invoice-link": "Open the invoice"
+      "invoice-link": "Open the invoice",
+      "discount-none": "---"
     },
     "notices": {
       "paid": "Paid: it cannot be edited or deleted",
       "paid-description": "Undo the payment to change it.",
-      "closed": "Closed period: {name}",
+      "closed": "Period closed on {name}",
       "closed-description": "Frozen. Reopen the period to undo.",
       "overdue": "Was due on {date}",
-      "overdue-description": "Open for {days} day. | Open for {days} days."
+      "overdue-description": "Open for {days} day. | Open for {days} days.",
+      "closed-action": "See periods"
     },
     "menu": "Movements",
     "pay": {
@@ -1253,20 +1293,21 @@
       "amount-paid": "Amount paid",
       "amount-received": "Amount received",
       "balance-after": "Balance after",
-      "confirm-pay": "Pay",
-      "confirm-receive": "Receive",
       "method": {
-        "label": "Pay with",
+        "label": "Paid by",
         "WALLET": "Wallet",
-        "CARD": "Card"
+        "CARD": "Credit card"
       },
       "card": "Card",
-      "card-note": "The expense goes in as a purchase on the open invoice of the card, in the period of the movement."
+      "confirm": "Confirm",
+      "invoice": "Invoice"
     },
     "undo": {
       "title": "Undo the payment of “{name}”?",
-      "description": "The amount goes back to the wallet as a reversal and the movement goes back to “Open”.",
-      "confirm": "Undo"
+      "confirm": "Undo",
+      "description-wallet": "The money goes back to {wallet} as a reversal. The movement goes back to “Open”.",
+      "description-card": "The purchase leaves the invoice of {card}. The movement goes back to “Open”.",
+      "reversal": "Reversal of {amount}"
     }
   },
   "transfer": {

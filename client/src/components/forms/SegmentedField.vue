@@ -19,9 +19,7 @@ const { value } = useField<string>(() => props.name)
 
 <template>
   <div :class="['grid content-start gap-2', props.class]">
-    <Label v-if="label">
-      {{ label }}<span v-if="required" class="text-destructive">*</span>
-    </Label>
+    <Label v-if="label"> {{ label }}<span v-if="required" class="text-destructive">*</span> </Label>
     <div
       class="bg-muted text-muted-foreground inline-flex h-9 w-fit max-w-full items-center gap-0.5 rounded-md p-1"
       role="group"

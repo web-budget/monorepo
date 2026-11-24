@@ -71,7 +71,9 @@ function parseSort(
   const [sortField = '', directionText, ...rest] = text.split(',')
   const direction = SORT_DIRECTIONS.find((candidate) => candidate === directionText)
   const knownField =
-    sortField === DEFAULT_SORT_FIELD || sortField === fallback.sortField || sortFields.includes(sortField)
+    sortField === DEFAULT_SORT_FIELD ||
+    sortField === fallback.sortField ||
+    sortFields.includes(sortField)
   if (!knownField || direction === undefined || rest.length > 0) {
     return { ...fallback }
   }
@@ -131,7 +133,9 @@ export function sameListQuery(
   second: LocationQuery,
   extraKeys: readonly string[] = [],
 ): boolean {
-  return [...LIST_QUERY_KEYS, ...extraKeys].every((key) => queryValue(first[key]) === queryValue(second[key]))
+  return [...LIST_QUERY_KEYS, ...extraKeys].every(
+    (key) => queryValue(first[key]) === queryValue(second[key]),
+  )
 }
 
 export function sameListState<S extends string>(

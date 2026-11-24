@@ -341,11 +341,7 @@ function changePageSize(value: unknown) {
       >
         <div class="flex items-start justify-between gap-3">
           <div class="min-w-0 font-medium">
-            <RouterLink
-              v-if="props.detailRoute !== undefined"
-              :to="detailTarget(item)"
-              @click.stop
-            >
+            <RouterLink v-if="props.detailRoute !== undefined" :to="detailTarget(item)" @click.stop>
               <slot
                 :name="`cell-${titleColumn}`"
                 :item="item"
@@ -381,7 +377,11 @@ function changePageSize(value: unknown) {
         >
           <span v-for="column in lineColumns" :key="column.field">
             <template v-if="column.mobileLabel !== false">{{ column.header }}: </template>
-            <slot :name="`cell-${column.field}`" :item="item" :value="cellValue(item, column.field)">
+            <slot
+              :name="`cell-${column.field}`"
+              :item="item"
+              :value="cellValue(item, column.field)"
+            >
               {{ cellValue(item, column.field) }}
             </slot>
           </span>

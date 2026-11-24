@@ -10,6 +10,10 @@ import type {
 } from '@/types'
 import { formatLocalDate } from '@/utils/localDate'
 
+export const PAYMENT_METHODS = ['WALLET', 'CARD'] as const
+
+export type PaymentMethod = (typeof PAYMENT_METHODS)[number]
+
 export const MOVEMENT_TYPES = ['EXPENSE', 'INCOME'] as const
 
 function discountBelowValue(
@@ -64,10 +68,6 @@ export function movementFormDefaults() {
     via: 'WALLET' as PaymentMethod,
   }
 }
-
-export const PAYMENT_METHODS = ['WALLET', 'CARD'] as const
-
-export type PaymentMethod = (typeof PAYMENT_METHODS)[number]
 
 export function createPaymentSchema(movementValue: () => number) {
   return toTypedSchema(

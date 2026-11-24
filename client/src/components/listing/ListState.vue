@@ -45,8 +45,7 @@ const texts = computed(() => {
   if (props.kind === 'error') {
     return {
       title: t('crud.list.error.title', { plural: t(`${props.entity}.list.plural`) }),
-      description:
-        props.copy.errorDescription ?? props.message ?? t('crud.list.error.description'),
+      description: props.copy.errorDescription ?? props.message ?? t('crud.list.error.description'),
       action: t('crud.list.error.retry'),
     }
   }

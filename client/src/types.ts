@@ -142,13 +142,17 @@ export interface WalletView {
   bank: string | null
   number: string | null
   agency: string | null
+  lastEntryOn?: string | null
 }
 
 export interface WalletListView {
   id: string
   name: string
   type: WalletType
+  currentBalance: number
   bank: string | null
+  agency: string | null
+  number: string | null
   active: boolean
 }
 

@@ -30,6 +30,7 @@ const { messages, fields, submitting, loadingRecord, dirty, changeToList, onSubm
   create: (values) => store.create(toFinancialPeriodCreateForm(values)),
   update: (id, values) => store.update(id, toFinancialPeriodUpdateForm(values)),
   detailAfterUpdate: true,
+  successDetail: (updating) => (updating ? 'financial-period.toast.updated-detail' : undefined),
 })
 
 const updating = computed(() => props.id !== undefined)
@@ -48,20 +49,18 @@ const updating = computed(() => props.id !== undefined)
     @submit="onSubmit"
     @back="changeToList"
   >
-    <FormSection
-      :title="$t('financial-period.sections.identification')"
-      :description="$t('financial-period.sections.identification-help')"
-    >
+    <FormSection :title="$t('financial-period.sections.identification')">
       <InputField
         name="name"
         :label="$t('financial-period.form.name')"
+        :placeholder="$t('financial-period.form.name-example')"
         required
         class="md:col-span-2"
       />
     </FormSection>
     <FormSection
       :title="$t('financial-period.sections.dates')"
-      :description="updating ? $t('financial-period.sections.dates-help') : undefined"
+      :description="$t('financial-period.sections.dates-help')"
     >
       <InputField
         name="startingAt"
