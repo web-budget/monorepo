@@ -41,6 +41,9 @@ const previousUserOption: WalletListView = {
   name: 'Previous user wallet',
   type: 'PERSONAL',
   bank: null,
+  currentBalance: 0,
+  agency: null,
+  number: null,
   active: true,
 }
 

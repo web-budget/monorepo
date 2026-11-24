@@ -7,15 +7,19 @@ import StatusBadge from '@/components/listing/StatusBadge.vue'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 
-defineProps<{
-  title: string
-  description?: string
-  active?: boolean
-  feminineStatus?: boolean
-  messages: string[]
-  readonly?: boolean
-  hideEdit?: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    title: string
+    description?: string
+    active?: boolean
+    feminineStatus?: boolean
+    messages: string[]
+    readonly?: boolean
+    hideEdit?: boolean
+    editVariant?: 'default' | 'outline'
+  }>(),
+  { editVariant: 'default' },
+)
 
 const emit = defineEmits<{ edit: []; delete: [] }>()
 </script>
@@ -38,7 +42,12 @@ const emit = defineEmits<{ edit: []; delete: [] }>()
         >
           <Trash2 />{{ $t('crud.actions.remove') }}
         </Button>
-        <Button v-if="!readonly && !hideEdit" type="button" @click="emit('edit')">
+        <Button
+          v-if="!readonly && !hideEdit"
+          type="button"
+          :variant="props.editVariant"
+          @click="emit('edit')"
+        >
           <Pencil />{{ $t('crud.actions.edit') }}
         </Button>
         <slot name="extra-actions" />
@@ -47,6 +56,13 @@ const emit = defineEmits<{ edit: []; delete: [] }>()
     <ServerErrorAlert :messages="messages" />
     <Card class="gap-0 py-0">
       <slot />
+      <div
+        v-if="$slots.footer"
+        class="bg-muted flex flex-wrap items-center justify-end gap-2 rounded-b-lg px-5 py-3"
+        data-slot="detail-footer"
+      >
+        <slot name="footer" />
+      </div>
     </Card>
   </PageContainer>
 </template>

@@ -3,22 +3,35 @@ import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 const props = withDefaults(
-  defineProps<{ value: number | null; zeroIfNull?: boolean; signed?: boolean }>(),
-  { zeroIfNull: false, signed: false },
+  defineProps<{
+    value: number | null
+    zeroIfNull?: boolean
+    signed?: boolean
+    bare?: boolean
+    glued?: boolean
+    neutral?: boolean
+  }>(),
+  { zeroIfNull: false, signed: false, bare: false, glued: false, neutral: false },
 )
 
 const { n } = useI18n()
 
 const amount = computed(() => props.value ?? (props.zeroIfNull ? 0 : null))
+
 const direction = computed(() => {
   if (!props.signed || !amount.value) return null
   return amount.value > 0 ? 'income' : 'expense'
 })
 
+function plain(value: number) {
+  const formatted = n(value, 'currency')
+  return props.bare ? formatted.replace(/^R\$\s*/, '') : formatted
+}
+
 function format(value: number) {
-  if (direction.value === null) return n(value, 'currency')
+  if (direction.value === null) return plain(value)
   const sign = direction.value === 'income' ? '+' : '−'
-  return `${sign} ${n(Math.abs(value), 'currency')}`
+  return `${sign}${props.glued ? '' : ' '}${plain(Math.abs(value))}`
 }
 </script>
 
@@ -29,8 +42,8 @@ function format(value: number) {
     :data-direction="direction ?? undefined"
     :class="[
       'font-mono tabular-nums',
-      direction === 'income' && 'text-income',
-      direction === 'expense' && 'text-expense',
+      !neutral && direction === 'income' && 'text-income',
+      !neutral && direction === 'expense' && 'text-expense',
     ]"
     >{{ format(amount) }}</span
   >

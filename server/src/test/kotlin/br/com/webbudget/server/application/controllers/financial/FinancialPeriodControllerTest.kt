@@ -1,4 +1,4 @@
-package br.com.webbudget.server.application.controllers.registration
+package br.com.webbudget.server.application.controllers.financial
 
 import br.com.webbudget.server.BaseIntegrationTest
 import br.com.webbudget.server.domain.entities.registration.FinancialPeriod
@@ -30,14 +30,43 @@ class FinancialPeriodControllerTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `should require the registration role`() {
+    fun `should require the financial role`() {
 
-        authenticateWithRoles("FINANCIAL")
+        authenticateWithRoles("REGISTRATION")
 
         restTestClient.get()
             .uri(ENDPOINT_URL)
             .exchange()
             .expectStatus().isForbidden
+    }
+
+    @Test
+    fun `should answer not found on the old registration route without redirecting`() {
+
+        restTestClient.get()
+            .uri("/private/v1/registration/financial-periods")
+            .exchange()
+            .expectStatus().isNotFound
+
+        restTestClient.get()
+            .uri("/private/v1/registration/financial-periods/$ACTIVE_ID")
+            .exchange()
+            .expectStatus().isNotFound
+    }
+
+    @Test
+    fun `should list the goals of each period`() {
+
+        restTestClient.get()
+            .uri("$ENDPOINT_URL?status=ALL&sort=name,asc")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.content[0].revenuesGoal").doesNotExist()
+            .jsonPath("$.content[1].revenuesGoal").isEqualTo(10000.0)
+            .jsonPath("$.content[1].expensesGoal").isEqualTo(5000.0)
+            .jsonPath("$.content[2].revenuesGoal").isEqualTo(9000.0)
+            .jsonPath("$.content[2].expensesGoal").isEqualTo(4500.0)
     }
 
     @Test
@@ -52,6 +81,7 @@ class FinancialPeriodControllerTest : BaseIntegrationTest() {
             .jsonPath("$.content[0].name").isEqualTo("07/2024")
             .jsonPath("$.content[0].status").isEqualTo("CLOSED")
             .jsonPath("$.content[0].expired").isEqualTo(false)
+            .jsonPath("$.content[0].reopenable").isEqualTo(true)
     }
 
     @Test
@@ -137,8 +167,36 @@ class FinancialPeriodControllerTest : BaseIntegrationTest() {
             .jsonPath("$.id").isEqualTo(ACTIVE_ID)
             .jsonPath("$.name").isEqualTo("08/2024")
             .jsonPath("$.status").isEqualTo("OPEN")
+            .jsonPath("$.reopenable").isEqualTo(false)
             .jsonPath("$.expired").isEqualTo(true)
             .jsonPath("$.expensesGoal").isEqualTo(4500.00)
+    }
+
+    @Test
+    fun `should only let the last closed period be reopened`() {
+
+        financialPeriodRepository.updateStatus(
+            financialPeriodRepository.findByExternalId(UUID.fromString(ACTIVE_ID))!!.id!!,
+            FinancialPeriod.Status.OPEN,
+            FinancialPeriod.Status.CLOSED
+        )
+
+        restTestClient.get()
+            .uri("$ENDPOINT_URL?status=CLOSED&sort=name,asc")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.content[0].name").isEqualTo("07/2024")
+            .jsonPath("$.content[0].reopenable").isEqualTo(false)
+            .jsonPath("$.content[1].name").isEqualTo("08/2024")
+            .jsonPath("$.content[1].reopenable").isEqualTo(true)
+
+        restTestClient.get()
+            .uri("$ENDPOINT_URL/$ACCOUNTED_ID")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.reopenable").isEqualTo(false)
     }
 
     @Test
@@ -177,7 +235,7 @@ class FinancialPeriodControllerTest : BaseIntegrationTest() {
             .expectStatus().isCreated
             .expectHeader().value("Location") { location ->
                 assertThat(location)
-                    .matches("http://localhost:[0-9]+/private/v1/registration/financial-periods/[0-9a-f-]{36}")
+                    .matches("http://localhost:[0-9]+/private/v1/financial/financial-periods/[0-9a-f-]{36}")
             }
 
         val created = financialPeriodRepository.findAll("09/2024", FinancialPeriod.Status.entries, PageRequest.of(0, 1)).content.single()
@@ -391,7 +449,7 @@ class FinancialPeriodControllerTest : BaseIntegrationTest() {
     }
 
     companion object {
-        private const val ENDPOINT_URL = "/private/v1/registration/financial-periods"
+        private const val ENDPOINT_URL = "/private/v1/financial/financial-periods"
         private const val ACTIVE_ID = "27881a12-5e61-43cd-a6d0-fdb32eaa75c0"
         private const val ACCOUNTED_ID = "df05156c-3fce-4f56-88ff-918d50200312"
     }

@@ -27,7 +27,12 @@ class WalletAdjustmentService(
             direction = if (adjustment.value.signum() > 0) Direction.CREDIT else Direction.DEBIT,
             origin = Origin.ADJUSTMENT,
             value = adjustment.value.abs(),
-            name = adjustment.name
+            name = adjustment.name ?: DEFAULT_NAME
         )
+    }
+
+    companion object {
+
+        private const val DEFAULT_NAME = "Ajuste de saldo"
     }
 }

@@ -18,11 +18,12 @@ class ClosingSummaryService(
 
     fun summarize(financialPeriod: FinancialPeriodReference): ClosingSummary {
 
-        val (invoicesWithPurchases, emptyInvoices) = invoiceRepository.findOpenByFinancialPeriod(financialPeriod.id)
-            .partition { it.value.signum() > 0 }
+        val invoices = invoiceRepository.findByFinancialPeriod(financialPeriod.id)
+        val (invoicesWithPurchases, emptyInvoices) = invoices.filter { it.isOpen() }.partition { it.purchaseCount > 0 }
 
         return ClosingSummary(
             openMovements = movementRepository.summarizeOpenByType(financialPeriod.id),
+            invoices = invoices,
             openInvoices = invoicesWithPurchases,
             emptyInvoices = emptyInvoices,
             nextOpenPeriod = movementReferenceRepository.findNextOpenFinancialPeriod(financialPeriod.endingAt),

@@ -48,7 +48,7 @@ const { messages, fields, submitting, loadingRecord, dirty, changeToList, onSubm
     toFormValues: toRecurringMovementFormValues,
     create: (values) => store.create(toRecurringMovementCreateForm(values)),
     update: (id, values) => store.update(id, toRecurringMovementUpdateForm(values)),
-    redirectToDetail: true,
+    detailAfterUpdate: true,
   })
 
 const updating = computed(() => props.id !== undefined)

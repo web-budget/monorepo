@@ -3,6 +3,7 @@ package br.com.webbudget.server.domain.entities.financial
 import br.com.webbudget.server.domain.entities.PersistentEntity
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.UUID
 
 class Transfer(
@@ -29,10 +30,17 @@ class Transfer(
         fromWallet = toWallet,
         toWallet = fromWallet,
         value = value,
-        description = description,
+        description = RETURN_DESCRIPTION.format(createdOn!!.toLocalDate().format(RETURN_DATE_FORMAT)),
         returnedTransferId = id,
         returnedTransferExternalId = externalId
     )
+
+    companion object {
+
+        private const val RETURN_DESCRIPTION = "Devolução da transferência de %s"
+
+        private val RETURN_DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy")
+    }
 }
 
 class TransferLink(
@@ -43,5 +51,5 @@ class TransferLink(
 class WalletAdjustment(
     val wallet: WalletReference,
     val value: BigDecimal,
-    val name: String
+    val name: String?
 )

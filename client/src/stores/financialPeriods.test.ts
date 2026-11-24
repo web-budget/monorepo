@@ -2,11 +2,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { financialPeriodsApi } from '@/api/financialPeriods'
 import { periodResultsApi } from '@/api/periodResults'
+import { movementsApi } from '@/api/movements'
 import type { FinancialPeriodListView, FinancialPeriodView } from '@/types'
 import { useFinancialPeriodsStore } from './financialPeriods'
 
 vi.mock('@/api/financialPeriods')
 vi.mock('@/api/periodResults')
+vi.mock('@/api/movements')
 
 const row: FinancialPeriodListView = {
   id: 'fp-1',
@@ -143,6 +145,16 @@ describe('useFinancialPeriodsStore', () => {
     expect(store.lastClosedId).toBeNull()
   })
 
+  it('has no last closed period when the server finds none', async () => {
+    vi.mocked(periodResultsApi.findAll).mockResolvedValue({ ...page, content: [] } as never)
+    vi.mocked(financialPeriodsApi.findAll).mockResolvedValue({ ...page, content: [] })
+    const store = useFinancialPeriodsStore()
+
+    await store.loadClosedInformation([{ ...row, status: 'CLOSED' }])
+
+    expect(store.lastClosedId).toBeNull()
+  })
+
   it('finds the id of the last closed period, if there is one', async () => {
     const store = useFinancialPeriodsStore()
     vi.mocked(financialPeriodsApi.findAll).mockResolvedValueOnce({ ...page, content: [] })
@@ -161,6 +173,8 @@ describe('useFinancialPeriodsStore', () => {
       expenses: 1,
       result: 0,
       recorded: true,
+      toPay: 0,
+      overdueExpenses: 0,
     })
     vi.mocked(financialPeriodsApi.reopen).mockResolvedValue(undefined)
     const store = useFinancialPeriodsStore()
@@ -184,5 +198,64 @@ describe('useFinancialPeriodsStore', () => {
 
     expect(store.results).toEqual({})
     expect(store.lastClosedId).toBeNull()
+  })
+
+  it('finds only the expired open periods', async () => {
+    const expired = { ...row, id: 'fp-2', expired: true }
+    vi.mocked(financialPeriodsApi.findAll).mockResolvedValue({ ...page, content: [row, expired] })
+    const store = useFinancialPeriodsStore()
+
+    await expect(store.findExpired()).resolves.toEqual([expired])
+    expect(financialPeriodsApi.findAll).toHaveBeenCalledWith({ status: 'OPEN', size: 100 })
+  })
+
+  it('proposes the dates of the period after the last one, or of the current month', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 10, 24))
+    const store = useFinancialPeriodsStore()
+
+    vi.mocked(financialPeriodsApi.findAll).mockResolvedValue({
+      ...page,
+      content: [{ ...row, endingAt: '2026-12-31' }],
+    })
+    await expect(store.findNextDates()).resolves.toEqual({
+      startingAt: '2027-01-01',
+      endingAt: '2027-01-31',
+    })
+    expect(financialPeriodsApi.findAll).toHaveBeenCalledWith({
+      status: 'ALL',
+      size: 1,
+      sort: 'endingAt,desc',
+    })
+
+    vi.mocked(financialPeriodsApi.findAll).mockResolvedValue({ ...page, content: [] })
+    await expect(store.findNextDates()).resolves.toEqual({
+      startingAt: '2026-11-01',
+      endingAt: '2026-11-30',
+    })
+    vi.useRealTimers()
+  })
+
+  it('counts the launched, open and paid movements of a period', async () => {
+    vi.mocked(movementsApi.findAll).mockImplementation((query) => {
+      const totals = { OPEN: 4, PAID: 3 } as Record<string, number>
+      const total = query.statuses ? (totals[query.statuses[0]!] ?? 0) : 7
+      return Promise.resolve({
+        content: [],
+        page: { size: 1, number: 0, totalElements: total, totalPages: total },
+      })
+    })
+    const store = useFinancialPeriodsStore()
+
+    await expect(store.findMovementCounts('fp-1')).resolves.toEqual({
+      launched: 7,
+      open: 4,
+      paid: 3,
+    })
+    expect(movementsApi.findAll).toHaveBeenCalledWith({
+      financialPeriods: ['fp-1'],
+      statuses: ['PAID'],
+      size: 1,
+    })
   })
 })

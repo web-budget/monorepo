@@ -25,6 +25,9 @@ class RecurringMovement(
     val finished: Boolean
         get() = installments != null && (launchedInstallments ?: 0) >= installments!!
 
+    val ended: Boolean
+        get() = !active || finished
+
     val nextInstallment: Int?
         get() = if (finished) null else (launchedInstallments ?: (firstInstallment - 1)) + 1
 
@@ -50,7 +53,23 @@ class RecurringMovement(
 class RecurringValue(
     val value: BigDecimal,
     val reason: String?,
-    val validFrom: LocalDateTime
+    val validFrom: LocalDateTime,
+    val validFromPeriod: FinancialPeriodReference? = null,
+    val current: Boolean = false
+)
+
+class RecurringLaunchEntry(
+    val financialPeriod: FinancialPeriodReference,
+    val installment: Int,
+    val movementId: UUID,
+    val value: BigDecimal,
+    val status: Movement.Status,
+    val valuePaid: BigDecimal?
+)
+
+class FinancialPeriodCreationPreview(
+    val recurringMovements: List<RecurringMovement>,
+    val cards: List<CardReference>
 )
 
 class LaunchRequest(

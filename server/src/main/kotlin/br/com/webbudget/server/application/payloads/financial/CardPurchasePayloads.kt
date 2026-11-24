@@ -51,6 +51,13 @@ data class InvoiceSummaryView(
     val status: String
 )
 
+data class PurchaseRecurringView(
+    val id: UUID,
+    val name: String,
+    val installment: Int,
+    val installments: Int?
+)
+
 data class CardPurchaseView(
     val id: UUID,
     val name: String,
@@ -61,7 +68,8 @@ data class CardPurchaseView(
     val financialPeriod: MovementFinancialPeriodView,
     val classification: MovementClassificationView,
     val costCenter: MovementCostCenterView,
-    val movement: UUID?
+    val movement: UUID?,
+    val recurringMovement: PurchaseRecurringView? = null
 )
 
 data class CardPurchaseListView(
@@ -70,7 +78,10 @@ data class CardPurchaseListView(
     val purchasedOn: LocalDate,
     val value: BigDecimal,
     val card: PaymentCardView,
-    val invoice: InvoiceSummaryView
+    val invoice: InvoiceSummaryView,
+    val recurringMovement: PurchaseRecurringView? = null,
+    val classification: MovementClassificationView,
+    val costCenter: MovementCostCenterView
 )
 
 data class CardPurchaseFilter(
@@ -86,12 +97,21 @@ data class CardPurchaseFilter(
     val to: LocalDate? = null
 )
 
+data class InvoicePaymentView(
+    val id: UUID,
+    val name: String,
+    val value: BigDecimal
+)
+
 data class InvoiceView(
     val id: UUID,
     val status: String,
     val value: BigDecimal,
+    val purchaseCount: Int,
+    val dueDate: LocalDate?,
     val card: PaymentCardView,
-    val financialPeriod: MovementFinancialPeriodView
+    val financialPeriod: MovementFinancialPeriodView,
+    val payment: InvoicePaymentView?
 )
 
 data class InvoiceFilter(

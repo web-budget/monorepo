@@ -133,14 +133,14 @@ describe('CardListView', () => {
     vi.mocked(cardsApi.remove).mockResolvedValue(undefined)
     const dialog = useConfirmDialog()
 
-    await chooseRowAction(wrapper, 0, 'Remover')
-    expect(dialog.state.options.title).toBe('Remover o cartão “Travel”?')
+    await chooseRowAction(wrapper, 0, 'Excluir')
+    expect(dialog.state.options.title).toBe('Excluir o cartão “Travel”?')
     dialog.accept()
     await flushPromises()
 
     expect(cardsApi.remove).toHaveBeenCalledWith('k-1')
     expect(wrapper.findAll('tbody tr')).toHaveLength(1)
-    expect(toast.success).toHaveBeenCalledWith('Cartão removido', {
+    expect(toast.success).toHaveBeenCalledWith('Cartão excluído', {
       description: '“Travel” saiu da lista.',
       duration: 4000,
     })
@@ -149,7 +149,7 @@ describe('CardListView', () => {
   it('keeps the card when the removal is not confirmed', async () => {
     const { wrapper } = await render()
 
-    await chooseRowAction(wrapper, 0, 'Remover')
+    await chooseRowAction(wrapper, 0, 'Excluir')
     useConfirmDialog().cancel()
     await flushPromises()
 
@@ -163,7 +163,7 @@ describe('CardListView', () => {
       problem(400, { error: 'data-integrity-violation' }),
     )
 
-    await chooseRowAction(wrapper, 0, 'Remover')
+    await chooseRowAction(wrapper, 0, 'Excluir')
     useConfirmDialog().accept()
     await flushPromises()
 

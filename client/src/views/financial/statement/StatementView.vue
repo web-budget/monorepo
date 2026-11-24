@@ -368,6 +368,7 @@ async function adjust(target: { id: string }, form: { value: number; name: strin
         @retry="reload()"
       />
       <ItemsTable
+        active-sort-icon-only
         v-else
         :data="pageResponse.content"
         :total-elements="pageResponse.totalElements"

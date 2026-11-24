@@ -137,6 +137,8 @@ function serve(
     expenses: 400,
     result: 600,
     recorded: false,
+    toPay: 0,
+    overdueExpenses: 0,
   })
   vi.mocked(periodResultsApi.findAccumulated).mockResolvedValue({
     recorded: 1400,
@@ -515,6 +517,8 @@ describe('PeriodClosingView', () => {
       expenses: 400,
       result: 600,
       recorded: true,
+      toPay: 0,
+      overdueExpenses: 0,
     })
 
     await buttonWithText(wrapper, 'Fechar Outubro').trigger('click')
@@ -546,6 +550,8 @@ describe('PeriodClosingView', () => {
       expenses: 400,
       result: -300,
       recorded: true,
+      toPay: 0,
+      overdueExpenses: 0,
     })
 
     await buttonWithText(wrapper, 'Fechar Outubro').trigger('click')

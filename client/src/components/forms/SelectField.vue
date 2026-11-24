@@ -1,5 +1,12 @@
 <script setup lang="ts">
-import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
+import {
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from '@/components/ui/form'
 import {
   Select,
   SelectContent,
@@ -16,9 +23,10 @@ withDefaults(
     placeholder?: string
     disabled?: boolean
     required?: boolean
+    hint?: string
     class?: string
   }>(),
-  { placeholder: undefined, disabled: false, required: false, class: undefined },
+  { placeholder: undefined, disabled: false, required: false, hint: undefined, class: undefined },
 )
 </script>
 
@@ -38,6 +46,7 @@ withDefaults(
           </SelectItem>
         </SelectContent>
       </Select>
+      <FormDescription v-if="hint">{{ hint }}</FormDescription>
       <FormMessage />
     </FormItem>
   </FormField>

@@ -103,7 +103,7 @@ class MovementService(
                     else -> Origin.EXPENSE
                 },
                 value = payment.valuePaid,
-                name = movement.name,
+                name = movement.statementName(),
                 movementId = movement.id,
                 financialPeriodId = movement.financialPeriod.id
             )
@@ -149,7 +149,7 @@ class MovementService(
                 direction = if (movement.type == Movement.Type.INCOME) Direction.DEBIT else Direction.CREDIT,
                 origin = Origin.REVERSAL,
                 value = payment.valuePaid,
-                name = movement.name,
+                name = movement.statementName(),
                 movementId = movement.id,
                 financialPeriodId = movement.financialPeriod.id
             )

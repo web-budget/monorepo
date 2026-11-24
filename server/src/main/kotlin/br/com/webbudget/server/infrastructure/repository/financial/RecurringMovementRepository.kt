@@ -1,7 +1,9 @@
 package br.com.webbudget.server.infrastructure.repository.financial
 
+import br.com.webbudget.server.domain.entities.financial.FinancialPeriodReference
 import br.com.webbudget.server.domain.entities.financial.Movement
 import br.com.webbudget.server.domain.entities.financial.Payment
+import br.com.webbudget.server.domain.entities.financial.RecurringLaunchEntry
 import br.com.webbudget.server.domain.entities.financial.RecurringMovement
 import br.com.webbudget.server.domain.entities.financial.RecurringValue
 import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
@@ -95,12 +97,14 @@ class RecurringMovementRepository(
                     ?.let { kinds -> recurringMovements.VALUE_KIND.`in`(kinds.map(RecurringMovement.ValueKind::name)) },
                 criteria.active?.let { recurringMovements.ACTIVE.eq(it) },
                 criteria.cards?.let { cards.EXTERNAL_ID.`in`(it) },
-                criteria.finished?.let { requested -> if (requested) finished else DSL.not(finished) }
+                criteria.finished?.let { requested -> if (requested) finished else DSL.not(finished) },
+                criteria.ended?.let { requested -> if (requested) ended() else DSL.not(ended()) }
             )
         )
 
         val sortable = mapOf(
             "name" to recurringMovements.NAME,
+            "valueKind" to recurringMovements.VALUE_KIND,
             "value" to currentValue,
             "createdOn" to recurringMovements.CREATED_ON
         )
@@ -132,21 +136,109 @@ class RecurringMovementRepository(
         .orderBy(recurringMovements.ID)
         .fetch { record -> record.value1()!! }
 
+    fun findAutoLaunchableRecurringMovements(): List<RecurringMovement> = selectJoined(null)
+        .where(recurringMovements.ACTIVE.isTrue)
+        .and(recurringMovements.AUTO_LAUNCH.isTrue)
+        .and(DSL.not(finishedCondition()))
+        .orderBy(recurringMovements.ID)
+        .fetch()
+        .map { record -> record.toRecurringMovement() }
+
     fun findValues(recurringMovementId: Long, pageable: Pageable): PagedModel<RecurringValue> {
 
         val values = RECURRING_VALUES.`as`("recurring_values")
+        val laterValues = RECURRING_VALUES.`as`("later_values")
+        val launches = RECURRING_LAUNCHES.`as`("value_launches")
 
-        val content = dsl.selectFrom(values)
+        val firstLaunchPeriod: Field<Long?> = DSL.field(
+            dsl.select(launches.ID_FINANCIAL_PERIOD)
+                .from(launches)
+                .where(launches.ID_RECURRING_MOVEMENT.eq(values.ID_RECURRING_MOVEMENT))
+                .and(launches.CREATED_ON.ge(values.VALID_FROM))
+                .andNotExists(
+                    dsl.selectOne().from(laterValues)
+                        .where(laterValues.ID_RECURRING_MOVEMENT.eq(values.ID_RECURRING_MOVEMENT))
+                        .and(laterValues.VALID_FROM.gt(values.VALID_FROM))
+                        .and(laterValues.VALID_FROM.le(launches.CREATED_ON))
+                )
+                .orderBy(launches.CREATED_ON, launches.ID)
+                .limit(1)
+        ).`as`("first_launch_period")
+
+        val currentValueId = dsl.select(values.ID)
+            .from(values)
+            .where(values.ID_RECURRING_MOVEMENT.eq(recurringMovementId))
+            .orderBy(values.VALID_FROM.desc(), values.ID.desc())
+            .limit(1)
+            .fetchOne()?.value1()
+
+        val records = dsl.select(*values.fields(), firstLaunchPeriod)
+            .from(values)
             .where(values.ID_RECURRING_MOVEMENT.eq(recurringMovementId))
             .orderBy(values.VALID_FROM.desc(), values.ID.desc())
             .limit(pageable.pageSize)
             .offset(pageable.offset)
             .fetch()
-            .map { record -> RecurringValue(record.value!!, record.reason, record.validFrom!!) }
+
+        val periods = findFinancialPeriods(records.mapNotNull { it.get(firstLaunchPeriod) })
+
+        val content = records.map { record ->
+            RecurringValue(
+                value = record.get(values.VALUE)!!,
+                reason = record.get(values.REASON),
+                validFrom = record.get(values.VALID_FROM)!!,
+                validFromPeriod = record.get(firstLaunchPeriod)?.let { periods[it] },
+                current = record.get(values.ID) == currentValueId
+            )
+        }
 
         val total = dsl.fetchCount(RECURRING_VALUES, RECURRING_VALUES.ID_RECURRING_MOVEMENT.eq(recurringMovementId))
 
         return pagedModelOf(content, pageable, total.toLong())
+    }
+
+    fun findLaunches(recurringMovementId: Long, pageable: Pageable): PagedModel<RecurringLaunchEntry> {
+
+        val launches = RECURRING_LAUNCHES.`as`("entry_launches")
+        val launchedMovements = MOVEMENTS.`as`("entry_movements")
+        val periods = FINANCIAL_PERIODS.`as`("entry_periods")
+        val payments = PAYMENTS.`as`("entry_payments")
+
+        val content = dsl.select(*launches.fields(), *launchedMovements.fields(), *periods.fields(), payments.VALUE_PAID)
+            .from(launches)
+            .join(launchedMovements).on(launchedMovements.ID.eq(launches.ID_MOVEMENT))
+            .join(periods).on(periods.ID.eq(launches.ID_FINANCIAL_PERIOD))
+            .leftJoin(payments).on(payments.ID_MOVEMENT.eq(launchedMovements.ID))
+            .where(launches.ID_RECURRING_MOVEMENT.eq(recurringMovementId))
+            .orderBy(periods.STARTING_AT.desc(), launches.ID.desc())
+            .limit(pageable.pageSize)
+            .offset(pageable.offset)
+            .fetch { record ->
+                RecurringLaunchEntry(
+                    financialPeriod = record.into(periods).toFinancialPeriodReference(),
+                    installment = record.get(launches.INSTALLMENT)!!,
+                    movementId = record.get(launchedMovements.EXTERNAL_ID)!!,
+                    value = record.get(launchedMovements.VALUE)!!,
+                    status = Movement.Status.valueOf(record.get(launchedMovements.STATUS)!!),
+                    valuePaid = record.get(payments.VALUE_PAID)
+                )
+            }
+
+        val total = dsl.fetchCount(RECURRING_LAUNCHES, RECURRING_LAUNCHES.ID_RECURRING_MOVEMENT.eq(recurringMovementId))
+
+        return pagedModelOf(content, pageable, total.toLong())
+    }
+
+    private fun findFinancialPeriods(ids: List<Long>): Map<Long, FinancialPeriodReference> {
+
+        if (ids.isEmpty()) {
+            return emptyMap()
+        }
+
+        return dsl.selectFrom(FINANCIAL_PERIODS)
+            .where(FINANCIAL_PERIODS.ID.`in`(ids))
+            .fetch()
+            .associate { record -> record.id!! to record.toFinancialPeriodReference() }
     }
 
     fun insert(recurringMovement: RecurringMovement): RecurringMovement {
@@ -170,7 +262,7 @@ class RecurringMovementRepository(
 
         recurringMovement.restore(record.id, record.externalId, record.version, record.createdOn, record.lastUpdate)
 
-        insertValue(record.id!!, recurringMovement.value, null)
+        insertValue(record.id!!, recurringMovement.value, INITIAL_VALUE_REASON)
 
         return recurringMovement
     }
@@ -216,6 +308,8 @@ class RecurringMovementRepository(
             .where(RECURRING_MOVEMENTS.ID.eq(recurringMovement.id))
             .execute()
     }
+
+    private fun ended(): Condition = recurringMovements.ACTIVE.isFalse.or(finishedCondition())
 
     private fun finishedCondition(): Condition = recurringMovements.INSTALLMENTS.isNotNull
         .and(DSL.coalesce(launchedInstallments, 0).ge(recurringMovements.INSTALLMENTS))
@@ -281,12 +375,15 @@ class RecurringMovementRepository(
     }
 }
 
+private const val INITIAL_VALUE_REASON = "Valor inicial"
+
 data class RecurringMovementCriteria(
     val text: String? = null,
     val type: Movement.Type? = null,
     val valueKinds: List<RecurringMovement.ValueKind>? = null,
     val active: Boolean? = null,
     val finished: Boolean? = null,
+    val ended: Boolean? = null,
     val cards: List<UUID>? = null,
     val financialPeriod: UUID? = null
 )

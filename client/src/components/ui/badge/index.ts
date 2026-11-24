@@ -16,6 +16,7 @@ export const badgeVariants = cva(
           'bg-income-muted text-income before:size-1.5 before:rounded-full before:bg-current before:content-[""]',
         pending:
           'bg-highlight text-highlight-foreground before:size-1.5 before:rounded-full before:bg-current before:content-[""]',
+        highlight: 'bg-highlight text-highlight-foreground',
         blocked:
           'bg-expense-muted text-expense before:size-1.5 before:rounded-full before:bg-current before:content-[""]',
         outline:

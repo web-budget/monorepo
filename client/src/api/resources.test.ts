@@ -207,7 +207,7 @@ describe.each([
 })
 
 describe('financialPeriodsApi', () => {
-  const path = '/registration/financial-periods'
+  const path = '/financial/financial-periods'
 
   it('lists, finds, updates and removes like the other resources', async () => {
     const query = { filter: 'x', status: 'OPEN', page: 1, size: 15, sort: 'name,asc' }
@@ -240,5 +240,15 @@ describe('financialPeriodsApi', () => {
       financialPeriodsApi.create({ name: 'New', startingAt: '2026-01-01', endingAt: '2026-01-31' }),
     ).resolves.toEqual({ id: 'new-id', recurringLaunch })
     expect(lastRequest()).toMatchObject({ method: 'post', url: path, data: { name: 'New' } })
+  })
+})
+
+describe('financialPeriodsApi.findResult', () => {
+  it('reads the result of the period', async () => {
+    await expect(financialPeriodsApi.findResult('id-1')).resolves.toEqual({ served: true })
+    expect(lastRequest()).toMatchObject({
+      method: 'get',
+      url: '/financial/financial-periods/id-1/result',
+    })
   })
 })
