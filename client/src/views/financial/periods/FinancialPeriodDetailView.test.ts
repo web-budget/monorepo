@@ -136,7 +136,7 @@ describe('FinancialPeriodDetailView', () => {
       id: 'p-1',
     })
 
-    expect(wrapper.find('h1').text()).toBe('Detalhando período financeiro')
+    expect(wrapper.find('h1').text()).toBe('Detalhando')
     expect(wrapper.find('[data-slot="detail-footer"]').exists()).toBe(false)
     expect(
       wrapper.find('[data-slot="page-title"]').element.parentElement!.textContent,

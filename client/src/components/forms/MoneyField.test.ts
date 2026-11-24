@@ -26,7 +26,7 @@ describe('MoneyField', () => {
   it('shows the amount next to the R$ addon, or nothing without one', () => {
     expect(shown(render(1500.5).wrapper)).toBe('1.500,50')
     expect(shown(render(null).wrapper)).toBe('')
-    expect(render(null).wrapper.find('input').attributes('placeholder')).toBe('0,00')
+    expect(render(null).wrapper.find('input').attributes('placeholder')).toBeUndefined()
   })
 
   it('formats while typing and keeps the number in the form', async () => {

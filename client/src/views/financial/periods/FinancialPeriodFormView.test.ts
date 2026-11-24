@@ -92,6 +92,36 @@ describe('FinancialPeriodFormView', () => {
     expect(document.activeElement).toBe(field(wrapper, 'name').element)
   })
 
+  it('opens with the dates of the month after the last period and refills them after creating', async () => {
+    vi.mocked(financialPeriodsApi.findAll)
+      .mockResolvedValueOnce({
+        content: [{ ...existing, endingAt: '2026-12-31' }],
+        page: { size: 1, number: 0, totalElements: 1, totalPages: 1 },
+      })
+      .mockResolvedValueOnce({
+        content: [{ ...existing, endingAt: '2027-01-31' }],
+        page: { size: 1, number: 0, totalElements: 1, totalPages: 1 },
+      })
+    vi.mocked(financialPeriodsApi.create).mockResolvedValue('p-9')
+    const { wrapper } = await mountView(FinancialPeriodFormView, 'financial-periods')
+    await settle()
+
+    const value = (name: string) => (field(wrapper, name).element as HTMLInputElement).value
+    expect(value('startingAt')).toBe('2027-01-01')
+    expect(value('endingAt')).toBe('2027-01-31')
+    expect(wrapper.text()).not.toContain('Alterações não salvas')
+
+    await field(wrapper, 'name').setValue('Janeiro de 2027')
+    await submit(wrapper)
+
+    expect(financialPeriodsApi.create).toHaveBeenCalledWith(
+      expect.objectContaining({ startingAt: '2027-01-01', endingAt: '2027-01-31' }),
+    )
+    expect(value('name')).toBe('')
+    expect(value('startingAt')).toBe('2027-02-01')
+    expect(value('endingAt')).toBe('2027-02-28')
+  })
+
   it('accepts a one day period', async () => {
     vi.mocked(financialPeriodsApi.create).mockResolvedValue('p-9')
     const { wrapper } = await mountView(FinancialPeriodFormView, 'financial-periods')

@@ -21,6 +21,7 @@ interface CrudFormOptions<Values extends GenericObject, Output extends GenericOb
   confirm?: (updating: boolean) => Promise<boolean>
   detailAfterUpdate?: boolean
   successDetail?: (updating: boolean, values: Output) => string | undefined
+  createDefaults?: () => Promise<Resettable<Values, Output>>
 }
 
 const FIRST_CONTROL = 'form fieldset :is(input, textarea, button[role="combobox"]):not([disabled])'
@@ -65,9 +66,22 @@ export function useCrudForm<Values extends GenericObject, Output extends Generic
 
   const { saved } = useDiscardGuard(() => dirty.value, recordName)
 
+  async function createDefaults() {
+    try {
+      return await options.createDefaults?.()
+    } catch {
+      return undefined
+    }
+  }
+
+  async function resetToDefaults() {
+    const values = await createDefaults()
+    options.form.resetForm(values ? { values } : undefined)
+  }
+
   async function finish(updatedId: string | undefined) {
     if (updatedId === undefined) {
-      options.form.resetForm()
+      await resetToDefaults()
       return
     }
     if (!options.detailAfterUpdate) {
@@ -122,6 +136,9 @@ export function useCrudForm<Values extends GenericObject, Output extends Generic
     const id = options.id()
     if (id !== undefined) {
       return run(() => load(id))
+    }
+    if (options.createDefaults) {
+      return resetToDefaults()
     }
   })
 

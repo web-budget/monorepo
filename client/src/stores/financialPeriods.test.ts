@@ -98,6 +98,33 @@ describe('useFinancialPeriodsStore', () => {
     expect(financialPeriodsApi.findAll).toHaveBeenCalledWith({ status: 'OPEN', size: 100 })
   })
 
+  it('proposes the dates of the period after the last one, or of the current month', async () => {
+    vi.useFakeTimers({ toFake: ['Date'] })
+    vi.setSystemTime(new Date(2026, 10, 24))
+    const store = useFinancialPeriodsStore()
+
+    vi.mocked(financialPeriodsApi.findAll).mockResolvedValue({
+      ...page,
+      content: [{ ...row, endingAt: '2026-12-31' }],
+    })
+    await expect(store.findNextDates()).resolves.toEqual({
+      startingAt: '2027-01-01',
+      endingAt: '2027-01-31',
+    })
+    expect(financialPeriodsApi.findAll).toHaveBeenCalledWith({
+      status: 'ALL',
+      size: 1,
+      sort: 'endingAt,desc',
+    })
+
+    vi.mocked(financialPeriodsApi.findAll).mockResolvedValue({ ...page, content: [] })
+    await expect(store.findNextDates()).resolves.toEqual({
+      startingAt: '2026-11-01',
+      endingAt: '2026-11-30',
+    })
+    vi.useRealTimers()
+  })
+
   it('counts the launched, open and paid movements of a period', async () => {
     vi.mocked(movementsApi.findAll).mockImplementation((query) => {
       const totals = { OPEN: 4, PAID: 3 } as Record<string, number>

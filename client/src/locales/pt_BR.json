@@ -839,9 +839,11 @@
       "closed": "Encerrados"
     },
     "form": {
-      "new": "Novo período",
-      "editing": "Editar nome e metas",
-      "detailing": "Detalhando período financeiro",
+      "new": "Criando",
+      "editing": "Editando",
+      "detailing": "Detalhando",
+      "title-new": "Novo período",
+      "title-editing": "Editar nome e metas",
       "deleting": "Excluindo período financeiro",
       "name": "Nome",
       "starting-at": "Data inicial",

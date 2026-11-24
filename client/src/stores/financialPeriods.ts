@@ -3,6 +3,7 @@ import { financialPeriodsApi } from '@/api/financialPeriods'
 import { movementsApi } from '@/api/movements'
 import { useCrudResource } from '@/composables/useCrudResource'
 import { createPageRequest } from '@/utils/pageRequest'
+import { nextPeriodDates } from '@/utils/periodDates'
 import type { FinancialPeriodStatusFilter, MovementStatus } from '@/types'
 
 const EXPIRED_PAGE_SIZE = 100
@@ -15,6 +16,15 @@ export const useFinancialPeriodsStore = defineStore('financialPeriods', () => {
   async function findExpired() {
     const page = await financialPeriodsApi.findAll({ status: 'OPEN', size: EXPIRED_PAGE_SIZE })
     return page.content.filter((period) => period.expired)
+  }
+
+  async function findNextDates() {
+    const page = await financialPeriodsApi.findAll({
+      status: 'ALL',
+      size: 1,
+      sort: 'endingAt,desc',
+    })
+    return nextPeriodDates(page.content[0]?.endingAt ?? null, new Date())
   }
 
   async function findMovementCounts(financialPeriod: string) {
@@ -38,6 +48,7 @@ export const useFinancialPeriodsStore = defineStore('financialPeriods', () => {
     remove: resource.remove,
     findResult: financialPeriodsApi.findResult,
     findExpired,
+    findNextDates,
     findMovementCounts,
     reset: resource.reset,
   }

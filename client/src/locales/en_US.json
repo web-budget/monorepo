@@ -839,9 +839,11 @@
       "closed": "Closed"
     },
     "form": {
-      "new": "New period",
-      "editing": "Edit name and goals",
-      "detailing": "Financial period details",
+      "new": "Creating",
+      "editing": "Editing",
+      "detailing": "Viewing",
+      "title-new": "New period",
+      "title-editing": "Edit name and goals",
       "deleting": "Deleting financial period",
       "name": "Name",
       "starting-at": "Start date",

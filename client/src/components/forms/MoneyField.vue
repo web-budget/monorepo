@@ -78,7 +78,6 @@ function readInput(
             autocomplete="off"
             data-slot="input"
             :value="format(value)"
-            :placeholder="format(0)"
             :disabled="disabled"
             class="h-full min-w-0 flex-1 bg-transparent px-3 text-right font-mono tabular-nums outline-none disabled:cursor-not-allowed"
             @input="readInput($event, value, handleChange, errors.length > 0)"

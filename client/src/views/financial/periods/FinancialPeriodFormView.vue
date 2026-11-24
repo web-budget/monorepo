@@ -31,6 +31,7 @@ const { messages, fields, submitting, loadingRecord, dirty, changeToList, onSubm
   update: (id, values) => store.update(id, toFinancialPeriodUpdateForm(values)),
   detailAfterUpdate: true,
   successDetail: (updating) => (updating ? 'financial-period.toast.updated-detail' : undefined),
+  createDefaults: store.findNextDates,
 })
 
 const updating = computed(() => props.id !== undefined)
@@ -38,7 +39,9 @@ const updating = computed(() => props.id !== undefined)
 
 <template>
   <FormCard
-    :title="updating ? $t('financial-period.form.editing') : $t('financial-period.form.new')"
+    :title="
+      updating ? $t('financial-period.form.title-editing') : $t('financial-period.form.title-new')
+    "
     :description="updating ? form.values.name : undefined"
     :loading="loadingRecord"
     :submitting="submitting"

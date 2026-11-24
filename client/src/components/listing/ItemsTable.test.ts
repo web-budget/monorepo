@@ -412,6 +412,14 @@ describe('ItemsTable on a small screen', () => {
     expect(card.find('strong').text()).toBe('Main')
   })
 
+  it('marks the highlighted cards', () => {
+    const wrapper = renderCompact({ markedRow: (item: { id: string }) => item.id === '2' })
+
+    const cards = wrapper.findAll('[data-slot="items-cards"] > [data-slot="card"]')
+    expect(cards[0]!.classes().join(' ')).not.toContain('inset')
+    expect(cards[1]!.classes().join(' ')).toContain('inset')
+  })
+
   it('shows placeholders while loading and no cards for an empty list', () => {
     const loading = renderCompact({ data: [], totalElements: 0, loading: true })
     expect(loading.findAll('[aria-label="Carregando..."]')).toHaveLength(3)
@@ -473,5 +481,133 @@ describe('ItemsTable column span', () => {
     const wrapper = render({ data: [], totalElements: 0, showStatus: false })
 
     expect(emptyCell(wrapper)).toBe('2')
+  })
+})
+
+describe('ItemsTable pagination noun', () => {
+  it('names what is being counted in the range', () => {
+    const wrapper = render({ noun: 'movimentos' })
+
+    expect(wrapper.text()).toContain('1–2 de 2 movimentos')
+  })
+})
+
+describe('ItemsTable with a custom default sort', () => {
+  it('goes from descending back to ascending instead of dropping the sort', async () => {
+    const wrapper = render({ defaultSortField: 'name' })
+    const button = headerButton(wrapper, 'Nome')
+
+    await button.trigger('click')
+    await button.trigger('click')
+    await button.trigger('click')
+
+    expect(wrapper.emitted('tableSorted')).toEqual([
+      [{ sortField: 'name', sortOrder: 'asc' }],
+      [{ sortField: 'name', sortOrder: 'desc' }],
+      [{ sortField: 'name', sortOrder: 'asc' }],
+    ])
+  })
+})
+
+describe('ItemsTable compact cards driven by the mobile columns', () => {
+  const mobileColumns: ItemsTableColumn[] = [
+    { field: 'name', header: 'Nome', mobile: 'title' },
+    { field: 'amount', header: 'Valor', mobile: 'value' },
+    { field: 'dueDate', header: 'Vencimento', mobile: 'line' },
+    { field: 'note', header: 'Nota', mobile: 'line', mobileLabel: false },
+    { field: 'bank', header: 'Banco', mobile: 'hide' },
+  ]
+  const rows = [
+    { id: '1', name: 'Água', amount: '96,12', dueDate: '25/11', note: 'urgente', bank: 'ACME' },
+    { id: '2', name: 'Luz', amount: '50,00', dueDate: '26/11', note: 'normal', bank: 'Other' },
+  ]
+  const cardSelector = '[data-layout="compact"] > div'
+
+  function renderCards(props: Record<string, unknown> = {}, slots: Record<string, unknown> = {}) {
+    useCompactViewport(true)
+    return render({ data: rows, columns: mobileColumns, ...props }, slots)
+  }
+
+  afterEach(() => {
+    useCompactViewport(false)
+  })
+
+  it('shows the title, the value and the labelled lines of each record', () => {
+    const wrapper = renderCards()
+
+    const cards = wrapper.findAll(cardSelector)
+    expect(cards).toHaveLength(2)
+    expect(cards[0]!.text()).toContain('Água')
+    expect(cards[0]!.text()).toContain('96,12')
+    expect(cards[0]!.text()).toContain('Vencimento: 25/11')
+    expect(cards[0]!.text()).toContain('urgente')
+    expect(cards[0]!.text()).not.toContain('Nota:')
+    expect(cards[0]!.text()).not.toContain('ACME')
+    expect(wrapper.find('table').exists()).toBe(false)
+  })
+
+  it('links the title to the detail and keeps the row click apart', async () => {
+    const wrapper = renderCards({ detailRoute: 'items.detail' })
+
+    const card = wrapper.findAll(cardSelector)[0]!
+    expect(card.find('a').attributes('href')).toBe('/items/1')
+    await card.find('a').trigger('click')
+    expect(wrapper.emitted('rowSelected')).toBeUndefined()
+
+    await card.trigger('click')
+    expect(wrapper.emitted('rowSelected')).toEqual([[{ data: rows[0], index: 0 }]])
+  })
+
+  it('renders the cell slots of the title, the value and the lines, and the actions', async () => {
+    const wrapper = renderCards(
+      {},
+      {
+        'cell-name': ({ value }: { value: string }) => h('strong', value),
+        'cell-amount': ({ value }: { value: string }) => h('b', value),
+        'cell-dueDate': ({ value }: { value: string }) => h('i', value),
+        actions: ({ item }: { item: { id: string } }) => h('button', { class: 'act' }, item.id),
+      },
+    )
+
+    const card = wrapper.findAll(cardSelector)[0]!
+    expect(card.find('strong').text()).toBe('Água')
+    expect(card.find('b').text()).toBe('96,12')
+    expect(card.find('i').text()).toBe('25/11')
+    await card.find('button.act').trigger('click')
+    expect(wrapper.emitted('rowSelected')).toBeUndefined()
+  })
+
+  it('falls back to the linked column as title and has no value or lines without them', () => {
+    const wrapper = renderCards({
+      columns: [
+        { field: 'name', header: 'Nome', mobile: 'hide' },
+        { field: 'bank', header: 'Banco', mobile: 'hide' },
+      ],
+    })
+
+    const card = wrapper.findAll(cardSelector)[0]!
+    expect(card.text()).toContain('Água')
+    expect(card.text()).not.toContain('Vencimento')
+    expect(card.text()).not.toContain('ACME')
+  })
+
+  it('marks the highlighted rows', () => {
+    const wrapper = renderCards({ markedRow: (item: { id: string }) => item.id === '2' })
+
+    const cards = wrapper.findAll(cardSelector)
+    expect(cards[0]!.classes().join(' ')).not.toContain('inset')
+    expect(cards[1]!.classes().join(' ')).toContain('inset')
+  })
+
+  it('shows placeholders while loading', () => {
+    const wrapper = renderCards({ data: [], totalElements: 0, loading: true })
+
+    expect(wrapper.findAll('[aria-label="Carregando..."]')).toHaveLength(3)
+  })
+
+  it('shows no cards for an empty list', () => {
+    const wrapper = renderCards({ data: [], totalElements: 0 })
+
+    expect(wrapper.findAll(cardSelector)).toHaveLength(0)
   })
 })

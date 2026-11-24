@@ -54,7 +54,7 @@ function initialValues() {
     via: 'WALLET' as const,
     wallet: props.wallets[0]?.id ?? '',
     card: props.cards[0]?.id ?? '',
-    discount: null,
+    discount: 0,
   }
 }
 
