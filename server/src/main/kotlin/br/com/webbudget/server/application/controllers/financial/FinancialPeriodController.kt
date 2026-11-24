@@ -1,4 +1,4 @@
-package br.com.webbudget.server.application.controllers.registration
+package br.com.webbudget.server.application.controllers.financial
 
 import br.com.webbudget.server.application.mappers.registration.FinancialPeriodMapper
 import br.com.webbudget.server.application.payloads.registration.FinancialPeriodCreateForm
@@ -30,8 +30,8 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder
 import java.util.UUID
 
 @RestController
-@RequiresRole(Role.REGISTRATION)
-@RequestMapping("/registration/financial-periods")
+@RequiresRole(Role.FINANCIAL)
+@RequestMapping("/financial/financial-periods")
 class FinancialPeriodController(
     private val financialPeriodMapper: FinancialPeriodMapper,
     private val financialPeriodService: FinancialPeriodService,

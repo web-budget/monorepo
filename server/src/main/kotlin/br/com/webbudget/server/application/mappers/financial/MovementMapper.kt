@@ -36,16 +36,8 @@ class MovementMapper(
             dueDate = movement.dueDate,
             status = movement.status.name,
             overdue = movement.isOverdue(today),
-            classification = MovementClassificationView(
-                movement.classification.externalId,
-                movement.classification.name,
-                movement.classification.type
-            ),
-            costCenter = MovementCostCenterView(
-                movement.costCenter.externalId,
-                movement.costCenter.name,
-                movement.costCenter.fullName
-            ),
+            classification = mapToClassificationView(movement),
+            costCenter = mapToCostCenterView(movement),
             financialPeriod = mapToPeriodView(movement.financialPeriod, today),
             description = movement.description,
             payment = movement.payment?.let { mapToPaymentView(it) }
@@ -64,6 +56,9 @@ class MovementMapper(
             dueDate = movement.dueDate,
             status = movement.status.name,
             overdue = movement.isOverdue(today),
+            paymentMethod = movement.payment?.method?.name,
+            classification = mapToClassificationView(movement),
+            costCenter = mapToCostCenterView(movement),
             financialPeriod = mapToPeriodView(movement.financialPeriod, today)
         )
     }
@@ -97,6 +92,18 @@ class MovementMapper(
         wallet = movementReferenceRepository.findWallet(form.wallet!!) ?: throw ResourceNotFoundException(),
         paidOn = form.paidOn ?: LocalDate.now(),
         discount = form.discount ?: BigDecimal.ZERO
+    )
+
+    private fun mapToClassificationView(movement: Movement) = MovementClassificationView(
+        movement.classification.externalId,
+        movement.classification.name,
+        movement.classification.type
+    )
+
+    private fun mapToCostCenterView(movement: Movement) = MovementCostCenterView(
+        movement.costCenter.externalId,
+        movement.costCenter.name,
+        movement.costCenter.fullName
     )
 
     private fun mapToPeriodView(period: FinancialPeriodReference, today: LocalDate) = MovementFinancialPeriodView(
