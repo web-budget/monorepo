@@ -26,6 +26,7 @@ import {
   toMovementUpdateForm,
 } from '@/schemas/movementSchema'
 import { useMovementsStore } from '@/stores/movements'
+import { cardLabel } from '@/utils/invoices'
 import { defaultPeriod } from '@/utils/movements'
 
 const props = defineProps<{ id?: string }>()
@@ -112,7 +113,7 @@ const walletChoices = computed(() =>
   })),
 )
 const cardChoices = computed(() =>
-  activeCards.cards.value.map((card) => ({ value: card.id, label: card.name })),
+  activeCards.cards.value.map((card) => ({ value: card.id, label: cardLabel(card) })),
 )
 const submitLabel = computed(() => {
   if (updating.value) {

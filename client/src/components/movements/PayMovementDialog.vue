@@ -23,6 +23,7 @@ import { useOpenInvoice } from '@/composables/useOpenInvoice'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { createPaymentSchema, PAYMENT_METHODS, toPaymentForm } from '@/schemas/movementSchema'
 import type { CardListView, MovementType, PaymentForm, WalletListView } from '@/types'
+import { cardLabel } from '@/utils/invoices'
 import { formatLocalDate } from '@/utils/localDate'
 
 interface PayableMovement {
@@ -82,7 +83,7 @@ const invoiceLabel = computed(() => {
   return `${selectedCard.value?.name ?? ''}, ${month}`
 })
 const cardOptions = computed(() =>
-  props.cards.map((card) => ({ value: card.id, label: card.name })),
+  props.cards.map((card) => ({ value: card.id, label: cardLabel(card) })),
 )
 const receiving = computed(() => props.movement?.type === 'INCOME')
 const walletOptions = computed(() =>

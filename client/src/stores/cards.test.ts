@@ -6,8 +6,16 @@ import { useCardsStore } from './cards'
 
 vi.mock('@/api/cards')
 
-const row: CardListView = { id: 'c-1', name: 'Gold', active: true, flag: 'Visa' }
-const view: CardView = { ...row, lastFourDigits: '1234', wallet: null, invoicePaymentDay: 10 }
+const row: CardListView = {
+  id: 'c-1',
+  name: 'Gold',
+  lastFourDigits: '1234',
+  invoicePaymentDay: 10,
+  active: true,
+  flag: 'Visa',
+  wallet: null,
+}
+const view: CardView = { ...row }
 const page = { content: [row], page: { size: 15, number: 0, totalElements: 1, totalPages: 1 } }
 
 describe('useCardsStore', () => {

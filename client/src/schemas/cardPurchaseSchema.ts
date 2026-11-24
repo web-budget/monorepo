@@ -1,6 +1,5 @@
 import { toTypedSchema } from '@/schemas/typedSchema'
 import { z } from 'zod'
-import { blankToNull } from '@/schemas/fields'
 import type { CardPurchaseCreateForm, CardPurchaseUpdateForm, CardPurchaseView } from '@/types'
 import { formatLocalDate } from '@/utils/localDate'
 
@@ -8,7 +7,7 @@ export const cardPurchaseSchema = z.object({
   card: z.string().min(1),
   financialPeriod: z.string().min(1),
   name: z.string().min(1).max(150),
-  purchasedOn: z.string().nullish(),
+  purchasedOn: z.string().min(1),
   value: z.number().positive(),
   costCenter: z.string().min(1),
   classification: z.string().min(1),
@@ -25,7 +24,7 @@ export function cardPurchaseFormDefaults() {
 export function toCardPurchaseCreateForm(values: CardPurchaseFormValues): CardPurchaseCreateForm {
   return {
     name: values.name,
-    purchasedOn: blankToNull(values.purchasedOn),
+    purchasedOn: values.purchasedOn,
     value: values.value,
     card: values.card,
     financialPeriod: values.financialPeriod,
@@ -37,7 +36,7 @@ export function toCardPurchaseCreateForm(values: CardPurchaseFormValues): CardPu
 export function toCardPurchaseUpdateForm(values: CardPurchaseFormValues): CardPurchaseUpdateForm {
   return {
     name: values.name,
-    purchasedOn: blankToNull(values.purchasedOn),
+    purchasedOn: values.purchasedOn,
     value: values.value,
     classification: values.classification,
     costCenter: values.costCenter,

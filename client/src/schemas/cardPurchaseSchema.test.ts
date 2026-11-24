@@ -11,7 +11,7 @@ const values = {
   card: 'c-1',
   financialPeriod: 'p-1',
   name: 'Mercado',
-  purchasedOn: ' ',
+  purchasedOn: '2026-11-02',
   value: 10,
   costCenter: 'cc-1',
   classification: 'cl-1',
@@ -22,19 +22,20 @@ describe('cardPurchaseSchema', () => {
     expect(cardPurchaseSchema.safeParse(values).success).toBe(true)
     expect(cardPurchaseSchema.safeParse({ ...values, value: 0 }).success).toBe(false)
     expect(cardPurchaseSchema.safeParse({ ...values, card: '' }).success).toBe(false)
+    expect(cardPurchaseSchema.safeParse({ ...values, purchasedOn: '' }).success).toBe(false)
   })
 
-  it('sends a blank date as null and keeps only what each call takes', () => {
+  it('keeps only what each call takes', () => {
     expect(toCardPurchaseCreateForm(values)).toEqual({
       name: 'Mercado',
-      purchasedOn: null,
+      purchasedOn: '2026-11-02',
       value: 10,
       card: 'c-1',
       financialPeriod: 'p-1',
       classification: 'cl-1',
       costCenter: 'cc-1',
     })
-    expect(toCardPurchaseUpdateForm({ ...values, purchasedOn: '2026-11-02' })).toEqual({
+    expect(toCardPurchaseUpdateForm(values)).toEqual({
       name: 'Mercado',
       purchasedOn: '2026-11-02',
       value: 10,
@@ -54,6 +55,6 @@ describe('cardPurchaseSchema', () => {
       classification: { id: 'cl-1' },
     } as CardPurchaseView
 
-    expect(toCardPurchaseFormValues(purchase)).toEqual({ ...values, purchasedOn: '2026-11-02' })
+    expect(toCardPurchaseFormValues(purchase)).toEqual(values)
   })
 })

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Lock } from 'lucide-vue-next'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
 import DateTimeDisplay from '@/components/common/DateTimeDisplay.vue'
 import { Button } from '@/components/ui/button'
@@ -26,7 +27,7 @@ const emit = defineEmits<{ close: []; confirm: [] }>()
 
 <template>
   <Dialog :open="open" @update:open="emit('close')">
-    <DialogContent class="sm:max-w-md">
+    <DialogContent class="sm:max-w-lg" :show-close-button="false">
       <div class="flex flex-col gap-4">
         <DialogHeader>
           <DialogTitle>{{ title }}</DialogTitle>
@@ -44,7 +45,7 @@ const emit = defineEmits<{ close: []; confirm: [] }>()
           <dt class="text-muted-foreground">{{ $t('credit-card-invoice.close.purchases') }}</dt>
           <dd class="text-right font-mono">{{ purchases }}</dd>
           <dt class="text-muted-foreground">{{ $t('credit-card-invoice.close.payment') }}</dt>
-          <dd class="text-right"><CurrencyDisplay :value="value" /></dd>
+          <dd class="text-right"><CurrencyDisplay :value="value" bare /></dd>
           <template v-if="dueDate">
             <dt class="text-muted-foreground">{{ $t('credit-card-invoice.close.due-date') }}</dt>
             <dd class="text-right font-mono"><DateTimeDisplay fix-time :value="dueDate" /></dd>
@@ -54,12 +55,13 @@ const emit = defineEmits<{ close: []; confirm: [] }>()
             <dd class="text-right">{{ walletName }}</dd>
           </template>
         </dl>
+        <p class="text-muted-foreground text-xs">{{ $t('credit-card-invoice.close.help') }}</p>
         <DialogFooter>
           <Button type="button" variant="outline" @click="emit('close')">
             {{ $t('form.cancel') }}
           </Button>
           <Button type="button" :disabled="loading" @click="emit('confirm')">
-            {{ $t('credit-card-invoice.close.confirm') }}
+            <Lock />{{ $t('credit-card-invoice.close.confirm') }}
           </Button>
         </DialogFooter>
       </div>
