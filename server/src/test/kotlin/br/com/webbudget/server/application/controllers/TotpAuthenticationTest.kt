@@ -74,6 +74,17 @@ class TotpAuthenticationTest : BaseIntegrationTest() {
     }
 
     @Test
+    fun `should tell on the session that the totp is active when the installation asks for it`() {
+
+        restTestClient.get()
+            .uri("/private/v1/auth/session")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.totpEnabled").isEqualTo(true)
+    }
+
+    @Test
     fun `should ask a user without totp to enroll before any session exists`() {
 
         createLoginUser(EMAIL, PASSWORD)
