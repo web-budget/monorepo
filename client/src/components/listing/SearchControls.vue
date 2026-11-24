@@ -96,6 +96,7 @@ function resetFilter() {
       </div>
     </form>
     <StatusTabs
+      v-if="props.statusOptions.length > 0"
       :status="props.status"
       :options="props.statusOptions"
       :counts="props.counts"

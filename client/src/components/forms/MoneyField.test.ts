@@ -81,4 +81,46 @@ describe('MoneyField', () => {
     expect(wrapper.text()).toContain('Opcional')
     expect(wrapper.find('input').attributes('disabled')).toBeDefined()
   })
+
+  describe('signed', () => {
+    it('shows the sign of the amount and the placeholder', () => {
+      const { wrapper } = render(-0.02, { signed: true, placeholder: '+0,03 ou −0,02' })
+
+      expect(shown(wrapper)).toBe('−0,02')
+      expect(wrapper.find('input').attributes('placeholder')).toBe('+0,03 ou −0,02')
+      expect(shown(render(3.5, { signed: true }).wrapper)).toBe('+3,50')
+      expect(shown(render(null, { signed: true }).wrapper)).toBe('')
+    })
+
+    it('credits by default and debits when the text has a minus sign', async () => {
+      const { wrapper, values } = render(null, { signed: true })
+
+      await wrapper.find('input').setValue('3')
+      expect(shown(wrapper)).toBe('+0,03')
+      expect(values().amount).toBe(0.03)
+
+      await wrapper.find('input').setValue('+0,03-')
+      expect(shown(wrapper)).toBe('−0,03')
+      expect(values().amount).toBe(-0.03)
+
+      await wrapper.find('input').setValue('−0,03+')
+      expect(shown(wrapper)).toBe('+0,03')
+      expect(values().amount).toBe(0.03)
+    })
+
+    it('keeps a lone minus sign while the digits come and drops it when cleared', async () => {
+      const { wrapper, values } = render(null, { signed: true })
+
+      await wrapper.find('input').setValue('-')
+      expect(shown(wrapper)).toBe('−')
+      expect(values().amount).toBeNull()
+
+      await wrapper.find('input').setValue('−5')
+      expect(shown(wrapper)).toBe('−0,05')
+
+      await wrapper.find('input').setValue('')
+      expect(shown(wrapper)).toBe('')
+      expect(values().amount).toBeNull()
+    })
+  })
 })

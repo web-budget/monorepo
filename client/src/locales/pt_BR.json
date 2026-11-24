@@ -734,12 +734,14 @@
     "title": "Carteiras",
     "menu": "Carteiras",
     "search": {
-      "placeholder": "Nome, descrição, banco, agência ou número"
+      "placeholder": "Nome, banco, agência ou número"
     },
     "table-columns": {
       "name": "Nome",
       "type": "Tipo",
-      "bank": "Banco"
+      "bank": "Banco",
+      "agency-number": "Agência / conta",
+      "balance": "Saldo atual (R$)"
     },
     "form": {
       "new": "Nova carteira",
@@ -751,24 +753,31 @@
       "type": "Tipo",
       "bank": "Banco",
       "agency": "Agência",
-      "number": "Número da conta",
+      "number": "Conta",
       "type-placeholder": "Selecione um tipo",
       "active-label": "Ativa",
       "active-hint": "Inativar para remover das listagens",
       "type-hint": "O tipo não muda depois de criada.",
-      "balance": "Saldo atual"
+      "balance": "Saldo atual",
+      "last-entry": "Última movimentação"
     },
     "type": {
-      "bank-account": "Conta Bancária",
+      "bank-account": "Conta bancária",
       "personal": "Pessoal",
       "investment": "Investimento"
     },
     "list": {
-      "description": "Contas bancárias, investimentos e dinheiro em espécie de onde saem e entram os lançamentos.",
-      "empty-title": "Nenhuma carteira ainda",
-      "empty-description": "Cadastre as contas e o dinheiro em espécie que você usa. Os lançamentos sempre saem de uma carteira.",
+      "description": "Contas, investimentos e dinheiro em espécie.",
+      "empty-title": "Nenhuma carteira cadastrada",
+      "empty-description": "Cadastre a primeira carteira.",
       "plural": "as carteiras",
-      "found": "{count} carteira encontrada para “{query}” | {count} carteiras encontradas para “{query}”"
+      "found": "{count} carteira encontrada para “{query}” | {count} carteiras encontradas para “{query}”",
+      "noun": "carteira | carteiras",
+      "error-description": "O servidor não respondeu. Seus filtros continuam na URL.",
+      "no-result-query": "Nenhuma carteira encontrada para “{query}”",
+      "no-result-filter": "Nenhuma carteira com esses filtros",
+      "no-result-hint": "Mude os filtros ou limpe a busca.",
+      "no-result-action": "Limpar filtros"
     },
     "remove": {
       "title": "Excluir a carteira “{name}”?",
@@ -793,6 +802,10 @@
       "view-statement": "Ver extrato",
       "adjust-balance": "Ajustar saldo",
       "transfer": "Transferir"
+    },
+    "notices": {
+      "balance": "O saldo não se edita na carteira",
+      "balance-description": "Ele vem do extrato."
     }
   },
   "card": {
@@ -1285,7 +1298,7 @@
         "INCOME": "Ex.: Salário de dezembro",
         "EXPENSE": "Ex.: Conta de água"
       },
-      "value-hint": "Zero ou mais.",
+      "value-hint": "Maior que zero.",
       "wallet-option": "{name} · saldo {balance}",
       "paid-by": "Pago por",
       "card": "Cartão",
@@ -1377,34 +1390,32 @@
     "form": {
       "new": "Transferindo",
       "detailing": "Detalhando",
-      "description": "Mova dinheiro de uma carteira para outra. Não muda o resultado do período.",
       "from": "De",
       "to": "Para",
       "value": "Valor",
       "note": "Observação",
-      "submit": "Transferir"
+      "submit": "Transferir",
+      "title": "Nova transferência",
+      "note-placeholder": "Opcional"
     },
     "sections": {
       "wallets": "Carteiras",
-      "wallets-help": "Só carteiras ativas, e as duas precisam ser diferentes.",
       "value": "Valor",
       "identification": "Identificação",
       "return": "Devolução"
     },
     "statement": {
       "title": "Extrato da transferência",
-      "from": "Origem",
-      "to": "Destino",
       "before": "Saldo anterior",
       "debit": "Débito",
       "credit": "Crédito",
-      "after": "Saldo depois"
+      "after": "Saldo posterior"
     },
     "toast": {
       "created": "Transferência feita",
-      "created-detail": "De {from} para {to}.",
+      "created-detail": "As duas carteiras ganharam uma linha no extrato.",
       "returned": "Transferência devolvida",
-      "returned-detail": "O dinheiro voltou de {from} para {to}."
+      "returned-detail": "As duas carteiras ganharam uma linha no extrato."
     },
     "detail": {
       "created-on": "Data e hora",
@@ -1412,10 +1423,8 @@
       "from": "De",
       "to": "Para",
       "note": "Observação",
-      "return-of": "Devolução da transferência de",
-      "returned-by": "Devolvida em",
-      "return-state": "Situação",
-      "not-returned": "Ainda não devolvida"
+      "return-of": "Devolve a transferência de",
+      "returned-by": "Devolvida em"
     },
     "status": {
       "returned": "Devolvida",
@@ -1424,26 +1433,30 @@
     },
     "actions": {
       "view-statement": "Ver no extrato",
-      "give-back": "Devolver",
-      "details": "Ver detalhes"
+      "give-back": "Devolver"
     },
     "give-back": {
-      "title": "Devolver a transferência de {from} para {to}?",
-      "description": "O dinheiro volta para a carteira de origem em uma nova transferência.",
-      "value": "Valor devolvido",
-      "confirm": "Devolver"
+      "title": "Devolver transferência?",
+      "confirm": "Devolver",
+      "statement": "Extrato da devolução"
     },
     "list": {
-      "description": "Dinheiro que mudou de carteira, da mais recente para a mais antiga.",
+      "description": "Dinheiro que muda de carteira.",
       "empty-title": "Nenhuma transferência ainda",
-      "empty-description": "Transfira dinheiro de uma carteira para outra.",
-      "plural": "as transferências"
+      "empty-description": "Transferir move dinheiro entre duas carteiras e não muda o resultado.",
+      "plural": "as transferências",
+      "noun": "transferência | transferências",
+      "error-description": "O servidor não respondeu. Seus filtros continuam na URL.",
+      "no-result-query": "Nenhuma transferência encontrada para “{query}”",
+      "no-result-filter": "Nenhuma transferência com esses filtros",
+      "no-result-hint": "Mude os filtros ou limpe a busca.",
+      "no-result-action": "Limpar filtros"
     },
     "search": {
       "placeholder": "Carteira de origem, carteira de destino ou observação"
     },
     "filters": {
-      "wallet": "Carteira",
+      "wallet": "Carteira (origem ou destino)",
       "all-wallets": "Todas",
       "from": "De",
       "to": "Até",
@@ -1503,9 +1516,15 @@
     },
     "open-origin": "Abrir a origem de {name}",
     "list": {
-      "empty-title": "Sem lançamentos ainda",
-      "empty-description": "Lance uma receita para dar saldo a esta carteira.",
-      "plural": "o extrato"
+      "empty-title": "{name} ainda não tem lançamentos",
+      "empty-description": "Lance uma receita para dar saldo.",
+      "plural": "o extrato",
+      "noun": "linha | linhas",
+      "error-description": "O servidor não respondeu. Seus filtros continuam na URL.",
+      "no-result-query": "Nenhuma linha no extrato encontrada para “{query}”",
+      "no-result-filter": "Nenhuma linha no extrato com esses filtros",
+      "no-result-hint": "Mude os filtros ou limpe a busca.",
+      "no-result-action": "Limpar filtros"
     },
     "actions": {
       "adjust": "Ajustar saldo",
@@ -1513,18 +1532,36 @@
     },
     "adjust": {
       "title": "Ajustar o saldo de {name}",
-      "description": "Para centavos de arredondamento. Não entra no resultado.",
       "value": "Valor do ajuste",
-      "value-hint": "Positivo credita, negativo debita.",
-      "reason": "Motivo",
       "wallet-balance": "Saldo da carteira",
       "adjustment": "Ajuste",
       "balance-after": "Saldo depois",
-      "confirm": "Ajustar"
+      "confirm": "Ajustar",
+      "value-example": "+0,03 ou −0,02"
     },
     "toast": {
       "adjusted": "Saldo ajustado",
-      "adjusted-detail": "O ajuste de {name} já está no extrato e não entra no resultado."
+      "adjusted-credit": "Crédito de {amount} em {name}. Não entra no resultado.",
+      "adjusted-debit": "Débito de {amount} em {name}. Não entra no resultado."
+    },
+    "updated-on": "Atualizado em",
+    "credits": "Créditos no filtro",
+    "debits": "Débitos no filtro",
+    "lines": "{count} linha | {count} linhas",
+    "detailing": "Detalhando",
+    "open-origin-header": "Abrir origem",
+    "sections": {
+      "entry": "Lançamento"
+    },
+    "detail": {
+      "value": "Valor"
+    },
+    "entry": {
+      "reversal": "Estorno de {name}",
+      "transfer-to": "Para {name}",
+      "transfer-from": "De {name}",
+      "return-to": "Devolução para {name}",
+      "return-from": "Devolução de {name}"
     }
   },
   "card-purchase": {

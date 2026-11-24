@@ -54,6 +54,7 @@ const emit = defineEmits<{ edit: []; delete: [] }>()
       </template>
     </PageHeader>
     <ServerErrorAlert :messages="messages" />
+    <slot name="notice" />
     <Card class="gap-0 py-0">
       <slot />
       <div

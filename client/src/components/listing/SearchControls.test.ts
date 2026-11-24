@@ -32,6 +32,13 @@ describe('SearchControls', () => {
     ])
   })
 
+  it('shows no tabs, not even an empty strip, when there are no statuses', () => {
+    const wrapper = render({ statusOptions: [] })
+
+    expect(wrapper.find('[aria-pressed]').exists()).toBe(false)
+    expect(wrapper.find('form').element.nextElementSibling).toBeNull()
+  })
+
   it('marks the current status as pressed', () => {
     const wrapper = render({ status: 'INACTIVE' })
 

@@ -154,6 +154,7 @@ export interface WalletListView {
   agency: string | null
   number: string | null
   active: boolean
+  lastEntryOn?: string | null
 }
 
 export interface CardCreateForm {
@@ -469,7 +470,26 @@ export interface WalletEntryView {
   previousBalance: number
   resultingBalance: number
   financialPeriod: { id: string; name: string } | null
-  reference: { type: 'MOVEMENT' | 'TRANSFER'; id: string } | null
+  reference: WalletEntryReference | null
+  wallet?: { id: string; name: string }
+}
+
+export interface WalletEntryReference {
+  type: 'MOVEMENT' | 'TRANSFER'
+  id: string
+  returnTransfer?: boolean | null
+  returnable?: boolean | null
+}
+
+export interface StatementTotal {
+  total: number
+  count: number
+}
+
+export interface StatementSummary {
+  credits: StatementTotal
+  debits: StatementTotal
+  lastEntryOn: string | null
 }
 
 export interface StatementQuery {
@@ -488,7 +508,7 @@ export interface StatementQuery {
 
 export interface AdjustmentForm {
   value: number
-  name: string
+  name?: string
 }
 
 export interface TransferForm {
