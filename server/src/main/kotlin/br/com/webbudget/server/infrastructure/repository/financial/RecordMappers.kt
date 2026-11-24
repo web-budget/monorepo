@@ -48,7 +48,7 @@ internal fun CardsRecord.toCardReference(): CardReference = CardReference(
     name = name!!,
     lastFourDigits = lastFourDigits!!,
     active = active!!,
-    invoicePaymentDay = invoicePaymentDay
+    invoicePaymentDay = invoicePaymentDay!!
 )
 
 internal fun WalletsRecord.toWalletReference(): WalletReference = WalletReference(

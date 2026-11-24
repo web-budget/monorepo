@@ -174,27 +174,6 @@ class CardControllerTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `should create a card without the invoice payment day`() {
-
-        val location = restTestClient.post()
-            .uri(ENDPOINT_URL)
-            .contentType(MediaType.APPLICATION_JSON)
-            .body("""{"name": "No day", "lastFourDigits": "9990"}""")
-            .exchange()
-            .expectStatus().isCreated
-            .returnResult(Void::class.java)
-            .responseHeaders.location!!
-
-        restTestClient.get()
-            .uri(location)
-            .exchange()
-            .expectStatus().isOk
-            .expectBody()
-            .jsonPath("$.name").isEqualTo("No day")
-            .jsonPath("$.invoicePaymentDay").doesNotExist()
-    }
-
-    @Test
     fun `should create a card with its wallet`() {
 
         restTestClient.post()
@@ -237,6 +216,7 @@ class CardControllerTest : BaseIntegrationTest() {
             .expectBody()
             .jsonPath("$.parameters.name").isEqualTo("is-null-or-blank")
             .jsonPath("$.parameters.lastFourDigits").isEqualTo("has-max-chars-of-4")
+            .jsonPath("$.parameters.invoicePaymentDay").isEqualTo("is-null")
     }
 
     @Test
@@ -308,16 +288,16 @@ class CardControllerTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `should clear the invoice payment day when updating without it`() {
+    fun `should answer bad request when updating without the invoice payment day`() {
 
         restTestClient.put()
             .uri("$ENDPOINT_URL/$CARD_ID")
             .contentType(MediaType.APPLICATION_JSON)
             .body("""{"name": "Name", "lastFourDigits": "1234", "active": true}""")
             .exchange()
-            .expectStatus().isOk
+            .expectStatus().isEqualTo(422)
             .expectBody()
-            .jsonPath("$.invoicePaymentDay").doesNotExist()
+            .jsonPath("$.parameters.invoicePaymentDay").isEqualTo("is-null")
     }
 
     @Test

@@ -12,7 +12,6 @@ import br.com.webbudget.server.infrastructure.repository.financial.MovementRepos
 import org.springframework.context.event.EventListener
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
 
 @Service
 @Transactional(readOnly = true)
@@ -60,7 +59,7 @@ class InvoiceService(
             name = "${invoice.card.name} - ${invoice.financialPeriod.name}".take(MAX_NAME_LENGTH),
             type = Movement.Type.EXPENSE,
             value = invoice.value,
-            dueDate = invoice.paymentDueDate(LocalDate.now()),
+            dueDate = invoice.paymentDueDate(),
             classification = null,
             costCenter = null,
             financialPeriod = invoice.financialPeriod,

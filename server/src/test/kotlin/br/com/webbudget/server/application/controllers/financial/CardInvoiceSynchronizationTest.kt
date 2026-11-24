@@ -37,7 +37,7 @@ class CardInvoiceSynchronizationTest : BaseIntegrationTest() {
         restTestClient.post()
             .uri(CARDS_URL)
             .contentType(MediaType.APPLICATION_JSON)
-            .body("""{"name": "New card", "lastFourDigits": "7777"}""")
+            .body("""{"name": "New card", "lastFourDigits": "7777", "invoicePaymentDay": 5}""")
             .exchange()
             .expectStatus().isCreated
 
@@ -56,7 +56,7 @@ class CardInvoiceSynchronizationTest : BaseIntegrationTest() {
         restTestClient.post()
             .uri(CARDS_URL)
             .contentType(MediaType.APPLICATION_JSON)
-            .body("""{"name": "New card", "lastFourDigits": "7777"}""")
+            .body("""{"name": "New card", "lastFourDigits": "7777", "invoicePaymentDay": 5}""")
             .exchange()
             .expectStatus().isCreated
 
@@ -95,7 +95,7 @@ class CardInvoiceSynchronizationTest : BaseIntegrationTest() {
         restTestClient.put()
             .uri("$CARDS_URL/$externalId")
             .contentType(MediaType.APPLICATION_JSON)
-            .body("""{"name": "Card", "lastFourDigits": "$lastFourDigits", "active": $active}""")
+            .body("""{"name": "Card", "lastFourDigits": "$lastFourDigits", "invoicePaymentDay": 5, "active": $active}""")
             .exchange()
             .expectStatus().isOk
     }

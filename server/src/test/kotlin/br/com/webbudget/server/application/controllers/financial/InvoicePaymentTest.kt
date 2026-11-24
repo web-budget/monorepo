@@ -4,7 +4,6 @@ import br.com.webbudget.server.BaseIntegrationTest
 import br.com.webbudget.server.jooq.financial.tables.references.INVOICES
 import br.com.webbudget.server.jooq.financial.tables.references.MOVEMENTS
 import br.com.webbudget.server.jooq.financial.tables.references.WALLET_ENTRIES
-import br.com.webbudget.server.jooq.registration.tables.references.CARDS
 import br.com.webbudget.server.jooq.registration.tables.references.FINANCIAL_PERIODS
 import br.com.webbudget.server.jooq.registration.tables.references.WALLETS
 import org.assertj.core.api.Assertions.assertThat
@@ -89,19 +88,6 @@ class InvoicePaymentTest : BaseIntegrationTest() {
             .expectBody()
             .jsonPath("$.dueDate").isEqualTo("2025-01-10")
             .jsonPath("$.payment.id").isEqualTo(paymentId())
-    }
-
-    @Test
-    fun `should be due on the day it is closed when the card has no invoice payment day`() {
-
-        dsl.update(CARDS).set(CARDS.INVOICE_PAYMENT_DAY, null as Int?).where(CARDS.ID.eq(9101L)).execute()
-
-        close(OPEN_INVOICE)
-            .expectStatus().isOk
-            .expectBody()
-            .jsonPath("$.dueDate").isEqualTo(LocalDate.now().toString())
-
-        assertThat(dsl.selectFrom(MOVEMENTS).fetchSingle().dueDate).isEqualTo(LocalDate.now())
     }
 
     @Test

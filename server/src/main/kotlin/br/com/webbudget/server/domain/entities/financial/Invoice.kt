@@ -11,7 +11,7 @@ class CardReference(
     val name: String,
     val lastFourDigits: String,
     val active: Boolean,
-    val invoicePaymentDay: Int?
+    val invoicePaymentDay: Int
 )
 
 class InvoicePayment(
@@ -32,9 +32,9 @@ class Invoice(
 
     fun isOpen(): Boolean = status == Status.OPEN
 
-    fun paymentDueDate(closedOn: LocalDate): LocalDate {
+    fun paymentDueDate(): LocalDate {
         val endingAt = financialPeriod.endingAt
-        val paymentDay = card.invoicePaymentDay ?: return closedOn
+        val paymentDay = card.invoicePaymentDay
         val sameMonth = endingAt.withDayOfMonth(minOf(paymentDay, endingAt.lengthOfMonth()))
         if (sameMonth.isAfter(endingAt)) {
             return sameMonth
