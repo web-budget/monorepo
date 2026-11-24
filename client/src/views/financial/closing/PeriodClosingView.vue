@@ -62,7 +62,6 @@ const optionErrors = useServerErrors()
 const loadErrors = useServerErrors()
 const moveErrors = useServerErrors()
 const closeErrors = useServerErrors()
-const payAllErrors = useServerErrors()
 const supportErrors = useServerErrors()
 
 const selectedId = ref('')
@@ -163,16 +162,6 @@ async function move(movement: { id: string; name: string }, target: ClosingPerio
   }
 }
 
-async function payAll() {
-  const wallet = activeWallets.wallets.value[0]!
-  if (await payAllErrors.run(() => store.payAll(wallet.id))) {
-    showSuccess('period-closing.toast.paid-all', 'period-closing.toast.paid-all-detail', true, {
-      wallet: wallet.name,
-    })
-  }
-  await reload()
-}
-
 function invoiceNote(invoice: ClosingInvoiceView) {
   if (invoice.status === 'OPEN') {
     return invoice.purchaseCount > 0 ? 'blocking' : 'empty'
@@ -227,7 +216,6 @@ function createPeriod() {
         ...loadErrors.messages.value,
         ...moveErrors.messages.value,
         ...closeErrors.messages.value,
-        ...payAllErrors.messages.value,
         ...supportErrors.messages.value,
         ...actions.messages.value,
         ...closeInvoice.messages.value,
@@ -341,15 +329,6 @@ function createPeriod() {
                   <span class="flex flex-wrap gap-2">
                     <Button type="button" size="sm" variant="outline" @click="createPeriod()">
                       <Plus />{{ $t('period-closing.pendencies.create-period') }}
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      :disabled="loading || activeWallets.wallets.value.length === 0"
-                      @click="payAll()"
-                    >
-                      <Banknote />{{ $t('period-closing.pendencies.pay-all') }}
                     </Button>
                   </span>
                 </AlertDescription>

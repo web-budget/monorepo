@@ -899,7 +899,6 @@
       "resolved": "Settled",
       "actions": "What to do",
       "none-title": "No pending items",
-      "pay-all": "Pay all",
       "due-on": "Due on"
     },
     "invoices": {
@@ -962,9 +961,7 @@
       "closed": "{name} closed",
       "closed-detail": "Result {result} recorded. Empty invoices closed with zero value.",
       "reopened": "{name} reopened",
-      "reopened-detail": "The result left the table and the period accepts entries again.",
-      "paid-all": "Pending items paid",
-      "paid-all-detail": "They left {wallet}."
+      "reopened-detail": "The result left the table and the period accepts entries again."
     }
   },
   "wallet": {
