@@ -2,6 +2,7 @@ package br.com.webbudget.server.infrastructure.repository.registration
 
 import br.com.webbudget.server.domain.entities.registration.CostCenter
 import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
+import br.com.webbudget.server.infrastructure.repository.containsIgnoringAccents
 import br.com.webbudget.server.infrastructure.repository.excluding
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
@@ -54,9 +55,9 @@ class CostCenterRepository(
 
         val textCondition = filter?.let { text ->
             DSL.or(
-                costCenters.NAME.containsIgnoreCase(text),
-                costCenters.FULL_NAME.containsIgnoreCase(text),
-                costCenters.DESCRIPTION.containsIgnoreCase(text)
+                costCenters.NAME.containsIgnoringAccents(text),
+                costCenters.FULL_NAME.containsIgnoringAccents(text),
+                costCenters.DESCRIPTION.containsIgnoringAccents(text)
             )
         }
 

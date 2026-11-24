@@ -162,6 +162,41 @@ class ListingSortOrderTest : BaseIntegrationTest() {
     @Sql(
         "/sql/financial/clear-tables.sql",
         "/sql/financial/create-registration-data.sql",
+        "/sql/financial/create-accented-recurring-movements.sql"
+    )
+    @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
+    fun `should sort by name ignoring accents and letter case`() {
+
+        assertNames(
+            "/financial/recurring-movements",
+            "sort=name,asc",
+            "Academia", "Água mineral", "Aluguel", "aluguel", "Conta de água", "Conta de luz"
+        )
+        assertNames(
+            "/financial/recurring-movements",
+            "sort=name,desc",
+            "Conta de luz", "Conta de água", "Aluguel", "aluguel", "Água mineral", "Academia"
+        )
+    }
+
+    @Test
+    @Sql(
+        "/sql/financial/clear-tables.sql",
+        "/sql/financial/create-registration-data.sql",
+        "/sql/financial/create-accented-recurring-movements.sql"
+    )
+    @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
+    fun `should filter by text ignoring accents and letter case`() {
+
+        assertNames("/financial/recurring-movements", "filter=agua", "Água mineral", "Conta de água")
+        assertNames("/financial/recurring-movements", "filter=ÁGUA", "Água mineral", "Conta de água")
+        assertNames("/financial/recurring-movements", "filter=ALUGUEL", "Aluguel", "aluguel")
+    }
+
+    @Test
+    @Sql(
+        "/sql/financial/clear-tables.sql",
+        "/sql/financial/create-registration-data.sql",
         "/sql/financial/create-movements.sql",
         "/sql/financial/create-wallet-entries.sql",
         "/sql/financial/create-transfers.sql"

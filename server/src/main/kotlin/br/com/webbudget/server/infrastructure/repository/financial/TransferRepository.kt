@@ -2,6 +2,7 @@ package br.com.webbudget.server.infrastructure.repository.financial
 
 import br.com.webbudget.server.domain.entities.financial.Transfer
 import br.com.webbudget.server.domain.entities.financial.TransferLink
+import br.com.webbudget.server.infrastructure.repository.containsIgnoringAccents
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.financial.tables.references.TRANSFERS
@@ -41,9 +42,9 @@ class TransferRepository(
                 criteria.from?.let { transfers.CREATED_ON.ge(it.atStartOfDay()) },
                 criteria.to?.let { transfers.CREATED_ON.lt(it.plusDays(1).atStartOfDay()) },
                 criteria.text?.let { text ->
-                    transfers.DESCRIPTION.containsIgnoreCase(text)
-                        .or(fromWallets.NAME.containsIgnoreCase(text))
-                        .or(toWallets.NAME.containsIgnoreCase(text))
+                    transfers.DESCRIPTION.containsIgnoringAccents(text)
+                        .or(fromWallets.NAME.containsIgnoringAccents(text))
+                        .or(toWallets.NAME.containsIgnoringAccents(text))
                 }
             )
         )
