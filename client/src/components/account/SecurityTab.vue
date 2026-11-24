@@ -46,8 +46,22 @@ const pending = ref<Pending | null>(null)
 const loaded = ref(false)
 const page = ref(1)
 
+const TOTP_BADGES = { active: 'approved', pending: 'pending', inactive: 'neutral' } as const
+
 const totpEnabled = computed(() => auth.session?.totpEnabled === true)
 const googleLinked = computed(() => auth.session?.googleLinked === true)
+const totpStatus = computed(() => {
+  if (totpEnabled.value) {
+    return 'active'
+  }
+  return auth.session?.totpRequired === true ? 'pending' : 'inactive'
+})
+const totpHelp = computed(() => {
+  if (totpStatus.value === 'active') {
+    return googleLinked.value ? 'help-google' : 'help'
+  }
+  return totpStatus.value === 'pending' ? 'pending-help' : 'not-required'
+})
 const pageCount = computed(() => Math.max(1, Math.ceil(devices.value.length / DEVICES_PER_PAGE)))
 const currentPage = computed(() => Math.min(page.value, pageCount.value))
 const firstIndex = computed(() => (currentPage.value - 1) * DEVICES_PER_PAGE)
@@ -119,18 +133,12 @@ async function confirmRevocation() {
       <div class="grid gap-1">
         <div class="flex items-center justify-between gap-3">
           <p class="text-sm font-medium">{{ $t('account.security.two-factor') }}</p>
-          <Badge :variant="totpEnabled ? 'approved' : 'neutral'" data-slot="two-factor-status">
-            {{ totpEnabled ? $t('account.security.active') : $t('account.security.inactive') }}
+          <Badge :variant="TOTP_BADGES[totpStatus]" data-slot="two-factor-status">
+            {{ $t(`account.security.${totpStatus}`) }}
           </Badge>
         </div>
         <p class="text-muted-foreground text-xs">
-          {{
-            !totpEnabled
-              ? $t('account.security.not-required')
-              : googleLinked
-                ? $t('account.security.help-google')
-                : $t('account.security.help')
-          }}
+          {{ $t(`account.security.${totpHelp}`) }}
         </p>
       </div>
       <div v-if="totpEnabled" class="border-border grid gap-2 border-t pt-5" data-slot="devices">

@@ -23,6 +23,7 @@ function sessionWith(roles: Role[]): SessionResponse {
     hasPassword: true,
     googleLinked: false,
     totpEnabled: false,
+    totpRequired: false,
     roles,
   }
 }

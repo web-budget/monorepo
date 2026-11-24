@@ -108,6 +108,7 @@ describe('installApiErrorHandler', () => {
       hasPassword: true,
       googleLinked: false,
       totpEnabled: false,
+      totpRequired: false,
       roles: [],
     }
     const client = createClient({ status: 401, data: { error: 'session-revoked' } }, router)

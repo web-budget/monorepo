@@ -58,6 +58,7 @@ describe('useInactivityLogout', () => {
       hasPassword: true,
       googleLinked: false,
       totpEnabled: false,
+      totpRequired: false,
       roles: [],
     }
     start()
@@ -78,6 +79,7 @@ describe('useInactivityLogout', () => {
       hasPassword: true,
       googleLinked: false,
       totpEnabled: false,
+      totpRequired: false,
       roles: [],
     }
     start()
@@ -98,6 +100,7 @@ describe('useInactivityLogout', () => {
       hasPassword: true,
       googleLinked: false,
       totpEnabled: false,
+      totpRequired: false,
       roles: [],
     }
     start()
@@ -120,6 +123,7 @@ describe('useInactivityLogout', () => {
       hasPassword: true,
       googleLinked: false,
       totpEnabled: false,
+      totpRequired: false,
       roles: [],
     }
     await nextTick()
@@ -131,6 +135,7 @@ describe('useInactivityLogout', () => {
       hasPassword: true,
       googleLinked: false,
       totpEnabled: false,
+      totpRequired: false,
       roles: ['FINANCIAL'],
     }
     await nextTick()
@@ -156,6 +161,7 @@ describe('useInactivityLogout', () => {
       hasPassword: true,
       googleLinked: false,
       totpEnabled: false,
+      totpRequired: false,
       roles: [],
     }
     start()

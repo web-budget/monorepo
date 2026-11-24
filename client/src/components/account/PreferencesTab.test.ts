@@ -21,7 +21,9 @@ describe('PreferencesTab', () => {
     const cards = wrapper.findAll('[role="radio"]')
     expect(cards.map((card) => card.text())).toEqual(['Português (Brasil)pt-BR', 'Englishen-US'])
     expect(cards.map((card) => card.attributes('aria-checked'))).toEqual(['true', 'false'])
-    expect(wrapper.text()).toContain('Aplica-se à interface e aos e-mails.')
+    expect(wrapper.text()).toContain(
+      'Vale para a interface e para os e-mails, em qualquer navegador.',
+    )
     expect(wrapper.text()).not.toContain('Tema')
     expect(wrapper.find('[data-slot="saved"]').exists()).toBe(false)
   })

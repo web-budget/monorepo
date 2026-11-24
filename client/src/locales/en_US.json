@@ -176,7 +176,7 @@
     },
     "preferences": {
       "language": "Language",
-      "help": "Applies to the interface and to the e-mails.",
+      "help": "Applies to the interface and to the e-mails, in any browser.",
       "saved": "Saved to your profile."
     },
     "password": {
@@ -211,9 +211,11 @@
       "two-factor": "Two-step verification",
       "active": "Active",
       "inactive": "Disabled",
+      "pending": "Pending",
       "help": "Asked at sign-in with a password, through the authenticator app. Changed phones? Ask an administrator to reset it.",
       "help-google": "Asked at sign-in with a password; signing in with Google does not ask for the code. Changed phones? Ask an administrator to reset it.",
       "not-required": "This installation does not ask for the authenticator code.",
+      "pending-help": "The authenticator is set up at your next password sign-in.",
       "devices-help": "Signing in on these devices does not ask for the code."
     }
   },

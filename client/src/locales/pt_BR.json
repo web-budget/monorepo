@@ -176,7 +176,7 @@
     },
     "preferences": {
       "language": "Idioma",
-      "help": "Aplica-se à interface e aos e-mails.",
+      "help": "Vale para a interface e para os e-mails, em qualquer navegador.",
       "saved": "Salvo no seu perfil."
     },
     "password": {
@@ -211,9 +211,11 @@
       "two-factor": "Verificação em duas etapas",
       "active": "Ativa",
       "inactive": "Desativada",
+      "pending": "Pendente",
       "help": "Pedida no login com senha, pelo aplicativo autenticador. Trocou de celular? Peça a um administrador para resetar.",
       "help-google": "Pedida no login com senha; o login com o Google não pede o código. Trocou de celular? Peça a um administrador para resetar.",
       "not-required": "Esta instalação não pede o código do autenticador.",
+      "pending-help": "O autenticador é cadastrado no próximo login com senha.",
       "devices-help": "O login nestes dispositivos não pede o código."
     }
   },

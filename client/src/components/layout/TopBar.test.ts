@@ -18,6 +18,7 @@ const session = {
   hasPassword: true,
   googleLinked: false,
   totpEnabled: false,
+  totpRequired: false,
   roles: allRoles,
 }
 

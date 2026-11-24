@@ -98,6 +98,7 @@ export interface SessionResponse {
   hasPassword: boolean
   googleLinked: boolean
   totpEnabled: boolean
+  totpRequired: boolean
 }
 
 export interface PasswordChangeRequest {

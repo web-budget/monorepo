@@ -31,6 +31,7 @@ interface Options {
   hasPassword?: boolean
   googleLinked?: boolean
   totpEnabled?: boolean
+  totpRequired?: boolean
   devices?: TrustedDeviceView[]
 }
 
@@ -43,6 +44,7 @@ async function render(options: Options = {}) {
           hasPassword: options.hasPassword ?? true,
           googleLinked: options.googleLinked ?? false,
           totpEnabled: options.totpEnabled ?? true,
+          totpRequired: options.totpRequired ?? true,
         },
       },
       trustedDevices: { devices: options.devices ?? [device(1), device(2), device(3)] },
@@ -82,13 +84,30 @@ describe('SecurityTab', () => {
   })
 
   it('shows a grey Desativada without the devices when the installation does not ask for the code', async () => {
-    const wrapper = await render({ totpEnabled: false })
+    const wrapper = await render({ totpEnabled: false, totpRequired: false })
 
     expect(wrapper.get('[data-slot="two-factor-status"]').text()).toBe('Desativada')
     expect(wrapper.text()).toContain('Esta instalação não pede o código do autenticador.')
     expect(wrapper.find('[data-slot="devices"]').exists()).toBe(false)
     expect(wrapper.text()).not.toContain('Dispositivos confiáveis')
     expect(useTrustedDevicesStore().findAll).not.toHaveBeenCalled()
+  })
+
+  it('shows a pending badge without the devices for an account that has no authenticator yet', async () => {
+    const wrapper = await render({ totpEnabled: false, totpRequired: true })
+
+    expect(wrapper.get('[data-slot="two-factor-status"]').text()).toBe('Pendente')
+    expect(wrapper.text()).toContain('O autenticador é cadastrado no próximo login com senha.')
+    expect(wrapper.text()).not.toContain('Esta instalação não pede')
+    expect(wrapper.find('[data-slot="devices"]').exists()).toBe(false)
+    expect(useTrustedDevicesStore().findAll).not.toHaveBeenCalled()
+  })
+
+  it('shows the active badge even when the installation does not ask for the code', async () => {
+    const wrapper = await render({ totpEnabled: true, totpRequired: false })
+
+    expect(wrapper.get('[data-slot="two-factor-status"]').text()).toBe('Ativa')
+    expect(wrapper.find('[data-slot="devices"]').exists()).toBe(true)
   })
 
   it('swaps a Google only account for the notice', async () => {

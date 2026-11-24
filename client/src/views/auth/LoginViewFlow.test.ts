@@ -24,6 +24,7 @@ const session: SessionResponse = {
   hasPassword: true,
   googleLinked: false,
   totpEnabled: false,
+  totpRequired: false,
   roles: [],
 }
 
