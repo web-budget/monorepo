@@ -950,7 +950,6 @@
       "resolved": "Resolvidas",
       "actions": "O que fazer",
       "none-title": "Nenhuma pendência",
-      "pay-all": "Pagar tudo",
       "due-on": "Vence em"
     },
     "invoices": {
@@ -1013,9 +1012,7 @@
       "closed": "{name} encerrado",
       "closed-detail": "Resultado {result} gravado. Faturas vazias fecharam com valor zero.",
       "reopened": "{name} reaberto",
-      "reopened-detail": "O resultado saiu da tabela e o período voltou a aceitar lançamentos.",
-      "paid-all": "Pendências pagas",
-      "paid-all-detail": "Saíram de {wallet}."
+      "reopened-detail": "O resultado saiu da tabela e o período voltou a aceitar lançamentos."
     }
   },
   "wallet": {

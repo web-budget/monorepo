@@ -59,14 +59,6 @@ export const usePeriodClosingStore = defineStore('periodClosing', () => {
     return track(() => financialPeriodsApi.close(financialPeriod))
   }
 
-  function payAll(wallet: string) {
-    return track(async () => {
-      for (const movement of pendencies.value) {
-        await movementsApi.pay(movement.id, { wallet })
-      }
-    })
-  }
-
   function closeInvoice(id: string) {
     return track(() => invoicesApi.close(id))
   }
@@ -88,7 +80,6 @@ export const usePeriodClosingStore = defineStore('periodClosing', () => {
     load,
     move,
     close,
-    payAll,
     closeInvoice,
     reset,
   }
