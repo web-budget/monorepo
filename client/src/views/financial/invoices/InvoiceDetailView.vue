@@ -10,6 +10,7 @@ import PageHeader from '@/components/common/PageHeader.vue'
 import ServerErrorAlert from '@/components/forms/ServerErrorAlert.vue'
 import CloseInvoiceDialog from '@/components/invoices/CloseInvoiceDialog.vue'
 import InvoiceStatusBadge from '@/components/invoices/InvoiceStatusBadge.vue'
+import PurchaseInstallmentBadge from '@/components/invoices/PurchaseInstallmentBadge.vue'
 import ItemsTable from '@/components/listing/ItemsTable.vue'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -19,7 +20,7 @@ import { useNotification } from '@/composables/useNotification'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { useInvoicesStore } from '@/stores/invoices'
 import { useMovementsStore } from '@/stores/movements'
-import { dayAndMonth } from '@/utils/invoices'
+import { dayAndMonth, purchaseDisplayName } from '@/utils/invoices'
 
 const props = defineProps<{ id: string }>()
 
@@ -212,6 +213,14 @@ async function deletePayment() {
       >
         <template #cell-purchasedOn="{ item }">
           <DateTimeDisplay fix-time :value="item.purchasedOn" class="font-mono tabular-nums" />
+        </template>
+        <template #cell-name="{ item }">
+          {{ purchaseDisplayName(item) }}
+          <PurchaseInstallmentBadge
+            :recurring-movement="item.recurringMovement"
+            table
+            class="ml-1"
+          />
         </template>
         <template #cell-costCenter="{ item }">{{ item.costCenter.name }}</template>
         <template #cell-classification="{ item }">{{ item.classification.name }}</template>
