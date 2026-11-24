@@ -39,10 +39,11 @@ export async function mountView(
   props: Record<string, unknown> = {},
   initialState: Record<string, unknown> = {},
   location?: string,
+  extraRoutes: RouteRecordRaw[] = [],
 ) {
   installZodErrorMap()
   const { router, plugins } = createTestPlugins({
-    routes: crudTestRoutes(routeName),
+    routes: [...crudTestRoutes(routeName), ...extraRoutes],
     stubActions: false,
     initialState,
   })

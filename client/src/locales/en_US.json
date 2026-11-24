@@ -699,12 +699,14 @@
     "title": "Wallets",
     "menu": "Wallets",
     "search": {
-      "placeholder": "Name, description, bank, branch or number"
+      "placeholder": "Name, bank, agency or number"
     },
     "table-columns": {
       "name": "Name",
       "type": "Type",
-      "bank": "Bank"
+      "bank": "Bank",
+      "agency-number": "Agency / account",
+      "balance": "Current balance (R$)"
     },
     "form": {
       "new": "New wallet",
@@ -716,12 +718,13 @@
       "type": "Type",
       "bank": "Bank",
       "agency": "Branch",
-      "number": "Account number",
+      "number": "Account",
       "type-placeholder": "Select a type",
       "active-label": "Active",
       "active-hint": "Deactivate to remove from listings",
       "type-hint": "The type does not change after creation.",
-      "balance": "Current balance"
+      "balance": "Current balance",
+      "last-entry": "Last entry"
     },
     "type": {
       "bank-account": "Bank account",
@@ -729,11 +732,17 @@
       "investment": "Investment"
     },
     "list": {
-      "description": "Bank accounts, investments and cash that entries come from and go to.",
-      "empty-title": "No wallets yet",
-      "empty-description": "Register the accounts and cash you use. Entries always come from a wallet.",
+      "description": "Accounts, investments and cash.",
+      "empty-title": "No wallets registered",
+      "empty-description": "Register the first wallet.",
       "plural": "wallets",
-      "found": "{count} wallet found for “{query}” | {count} wallets found for “{query}”"
+      "found": "{count} wallet found for “{query}” | {count} wallets found for “{query}”",
+      "noun": "wallet | wallets",
+      "error-description": "The server did not respond. Your filters stay in the URL.",
+      "no-result-query": "No wallet found for “{query}”",
+      "no-result-filter": "No wallet with these filters",
+      "no-result-hint": "Change the filters or clear the search.",
+      "no-result-action": "Clear filters"
     },
     "remove": {
       "title": "Delete the wallet “{name}”?",
@@ -758,6 +767,10 @@
       "view-statement": "View statement",
       "adjust-balance": "Adjust balance",
       "transfer": "Transfer"
+    },
+    "notices": {
+      "balance": "The balance is not edited on the wallet",
+      "balance-description": "It comes from the statement."
     }
   },
   "card": {
@@ -1319,34 +1332,32 @@
     "form": {
       "new": "Transferring",
       "detailing": "Detailing",
-      "description": "Move money from one wallet to another. It does not change the period result.",
       "from": "From",
       "to": "To",
       "value": "Value",
       "note": "Note",
-      "submit": "Transfer"
+      "submit": "Transfer",
+      "title": "New transfer",
+      "note-placeholder": "Optional"
     },
     "sections": {
       "wallets": "Wallets",
-      "wallets-help": "Active wallets only, and the two must be different.",
       "value": "Value",
       "identification": "Identification",
       "return": "Return"
     },
     "statement": {
       "title": "Transfer statement",
-      "from": "Origin",
-      "to": "Destination",
       "before": "Previous balance",
       "debit": "Debit",
       "credit": "Credit",
-      "after": "Balance after"
+      "after": "Closing balance"
     },
     "toast": {
       "created": "Transfer made",
-      "created-detail": "From {from} to {to}.",
+      "created-detail": "Both wallets got a new line in the statement.",
       "returned": "Transfer returned",
-      "returned-detail": "The money went back from {from} to {to}."
+      "returned-detail": "Both wallets got a new line in the statement."
     },
     "detail": {
       "created-on": "Date and time",
@@ -1354,10 +1365,8 @@
       "from": "From",
       "to": "To",
       "note": "Note",
-      "return-of": "Return of the transfer of",
-      "returned-by": "Returned on",
-      "return-state": "Status",
-      "not-returned": "Not returned yet"
+      "return-of": "Returns the transfer of",
+      "returned-by": "Returned on"
     },
     "status": {
       "returned": "Returned",
@@ -1366,26 +1375,30 @@
     },
     "actions": {
       "view-statement": "View in statement",
-      "give-back": "Return",
-      "details": "View details"
+      "give-back": "Return"
     },
     "give-back": {
-      "title": "Return the transfer from {from} to {to}?",
-      "description": "The money goes back to the origin wallet in a new transfer.",
-      "value": "Returned value",
-      "confirm": "Return"
+      "title": "Return transfer?",
+      "confirm": "Return",
+      "statement": "Return statement"
     },
     "list": {
-      "description": "Money that changed wallets, newest first.",
+      "description": "Money that changes wallet.",
       "empty-title": "No transfers yet",
-      "empty-description": "Transfer money from one wallet to another.",
-      "plural": "the transfers"
+      "empty-description": "Transferring moves money between two wallets and does not change the result.",
+      "plural": "the transfers",
+      "noun": "transfer | transfers",
+      "error-description": "The server did not respond. Your filters stay in the URL.",
+      "no-result-query": "No transfer found for “{query}”",
+      "no-result-filter": "No transfer with these filters",
+      "no-result-hint": "Change the filters or clear the search.",
+      "no-result-action": "Clear filters"
     },
     "search": {
       "placeholder": "Origin wallet, destination wallet or note"
     },
     "filters": {
-      "wallet": "Wallet",
+      "wallet": "Wallet (origin or destination)",
       "all-wallets": "All",
       "from": "From",
       "to": "To",
@@ -1445,9 +1458,15 @@
     },
     "open-origin": "Open the origin of {name}",
     "list": {
-      "empty-title": "No entries yet",
-      "empty-description": "Post an income to give this wallet a balance.",
-      "plural": "the statement"
+      "empty-title": "{name} has no entries yet",
+      "empty-description": "Post an income to give it a balance.",
+      "plural": "the statement",
+      "noun": "line | lines",
+      "error-description": "The server did not respond. Your filters stay in the URL.",
+      "no-result-query": "No statement line found for “{query}”",
+      "no-result-filter": "No statement line with these filters",
+      "no-result-hint": "Change the filters or clear the search.",
+      "no-result-action": "Clear filters"
     },
     "actions": {
       "adjust": "Adjust balance",
@@ -1455,18 +1474,36 @@
     },
     "adjust": {
       "title": "Adjust the balance of {name}",
-      "description": "For rounding cents. It does not count in the result.",
       "value": "Adjustment value",
-      "value-hint": "Positive credits, negative debits.",
-      "reason": "Reason",
       "wallet-balance": "Wallet balance",
       "adjustment": "Adjustment",
       "balance-after": "Balance after",
-      "confirm": "Adjust"
+      "confirm": "Adjust",
+      "value-example": "+0.03 or −0.02"
     },
     "toast": {
       "adjusted": "Balance adjusted",
-      "adjusted-detail": "The adjustment of {name} is in the statement and does not count in the result."
+      "adjusted-credit": "Credit of {amount} in {name}. It does not count in the result.",
+      "adjusted-debit": "Debit of {amount} in {name}. It does not count in the result."
+    },
+    "updated-on": "Updated on",
+    "credits": "Credits in the filter",
+    "debits": "Debits in the filter",
+    "lines": "{count} line | {count} lines",
+    "detailing": "Detailing",
+    "open-origin-header": "Open origin",
+    "sections": {
+      "entry": "Entry"
+    },
+    "detail": {
+      "value": "Value"
+    },
+    "entry": {
+      "reversal": "Reversal of {name}",
+      "transfer-to": "To {name}",
+      "transfer-from": "From {name}",
+      "return-to": "Return to {name}",
+      "return-from": "Return from {name}"
     }
   },
   "card-purchase": {

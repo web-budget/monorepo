@@ -30,6 +30,7 @@ const wallet: WalletView = {
   bank: 'ACME',
   agency: '123',
   number: '456',
+  lastEntryOn: '2026-11-20T10:05:00',
 }
 
 async function render(view: WalletView = wallet) {
@@ -57,12 +58,39 @@ describe('WalletDetailView', () => {
       'Dados do banco',
       'Saldo',
     ])
-    expect(wrapper.text()).toContain('Conta Bancária')
+    expect(wrapper.text()).toContain('Conta bancária')
     expect(wrapper.text()).toContain('ACME')
+    expect(wrapper.text()).toContain('Agência')
     expect(wrapper.text()).toContain('123')
     expect(wrapper.text()).toContain('456')
-    expect(wrapper.text()).toContain('---')
+    expect(wrapper.text()).not.toContain('Descrição')
     expect(wrapper.text()).toMatch(/R\$\s?10,00/)
+    expect(wrapper.text()).toContain('Última movimentação')
+    expect(wrapper.text()).toContain('20/11/2026 10:05')
+  })
+
+  it('says the balance comes from the statement', async () => {
+    const { wrapper } = await render()
+
+    const notice = wrapper.find('[data-slot="balance-notice"]')
+    expect(notice.text()).toContain('O saldo não se edita na carteira')
+    expect(notice.text()).toContain('Ele vem do extrato.')
+  })
+
+  it('puts the statement, the transfer and the adjustment in the footer of the card', async () => {
+    const { wrapper } = await render()
+
+    expect(wrapper.find('[data-slot="detail-footer"]').text()).toBe(
+      'Ver extratoTransferirAjustar saldo',
+    )
+  })
+
+  it('shows a debit balance in red and no last entry for a wallet without lines', async () => {
+    const { wrapper } = await render({ ...wallet, currentBalance: -312.08, lastEntryOn: null })
+
+    expect(wrapper.text()).toMatch(/−R\$\s?312,08/)
+    expect(wrapper.find('.text-expense').exists()).toBe(true)
+    expect(wrapper.text()).toContain('---')
   })
 
   it('leaves the bank section out of a personal wallet', async () => {
@@ -102,14 +130,14 @@ describe('WalletDetailView', () => {
     const dialog = wrapper.getComponent(AdjustBalanceDialog)
     expect(dialog.props('wallet')).toEqual({ id: 'w-1', name: 'Main', balance: 10 })
 
-    dialog.vm.$emit('adjust', dialog.props('wallet'), { value: 1, name: 'Arredondamento' })
+    dialog.vm.$emit('adjust', dialog.props('wallet'), { value: 1 })
     await flushPromises()
 
-    expect(walletEntriesApi.adjust).toHaveBeenCalledWith('w-1', {
-      value: 1,
-      name: 'Arredondamento',
+    expect(walletEntriesApi.adjust).toHaveBeenCalledWith('w-1', { value: 1 })
+    expect(toast.success).toHaveBeenCalledWith('Saldo ajustado', {
+      description: 'Crédito de 1,00 em Main. Não entra no resultado.',
+      duration: 4000,
     })
-    expect(toast.success).toHaveBeenCalledWith('Saldo ajustado', expect.anything())
     expect(dialog.props('wallet')).toBeNull()
     expect(walletsApi.findById).toHaveBeenCalledTimes(2)
   })
@@ -120,7 +148,7 @@ describe('WalletDetailView', () => {
 
     await buttonWithText(wrapper, 'Ajustar saldo').trigger('click')
     const dialog = wrapper.getComponent(AdjustBalanceDialog)
-    dialog.vm.$emit('adjust', dialog.props('wallet'), { value: 1, name: 'x' })
+    dialog.vm.$emit('adjust', dialog.props('wallet'), { value: 1 })
     await flushPromises()
 
     expect(dialog.props('wallet')).not.toBeNull()

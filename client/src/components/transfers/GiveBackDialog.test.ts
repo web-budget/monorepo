@@ -47,15 +47,14 @@ describe('GiveBackDialog', () => {
   it('shows the return the other way round with the balances after it', async () => {
     await render(transfer)
 
-    expect(document.body.textContent).toContain(
-      'Devolver a transferência de Conta corrente para Poupança?',
-    )
+    expect(document.body.textContent).toContain('Devolver transferência?')
+    expect(document.body.textContent).toContain('Extrato da devolução')
     const from = document.body.querySelector('[data-side="from"]')!.textContent!
     const to = document.body.querySelector('[data-side="to"]')!.textContent!
     expect(from).toContain('Poupança')
-    expect(from).toMatch(/Saldo depois\s*R\$\s50,00/)
+    expect(from).toMatch(/Saldo posterior\s*R\$\s50,00/)
     expect(to).toContain('Conta corrente')
-    expect(to).toMatch(/Saldo depois\s*R\$\s1.000,00/)
+    expect(to).toMatch(/Saldo posterior\s*R\$\s1.000,00/)
   })
 
   it('emits confirm with the transfer and close from the cancel button', async () => {

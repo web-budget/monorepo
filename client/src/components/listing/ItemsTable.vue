@@ -72,6 +72,7 @@ const props = withDefaults(
     noun?: string
     defaultSortField?: string
     activeSortIconOnly?: boolean
+    statusSortable?: boolean
   }>(),
   {
     columns: () => [],
@@ -89,6 +90,7 @@ const props = withDefaults(
     noun: undefined,
     defaultSortField: DEFAULT_SORT_FIELD,
     activeSortIconOnly: false,
+    statusSortable: true,
   },
 )
 
@@ -100,7 +102,8 @@ const emit = defineEmits<{
 
 defineSlots<{
   actions?(props: { item: T }): unknown
-  [slot: `cell-${string}`]: ((props: { item: T; value: unknown }) => unknown) | undefined
+  [slot: `cell-${string}`]:
+    ((props: { item: T; value: unknown; compact?: boolean }) => unknown) | undefined
 }>()
 
 const { t } = useI18n()
@@ -117,7 +120,9 @@ watch(
       return
     }
     const isDefault =
-      props.sortedField === DEFAULT_SORT_FIELD && props.sortedOrder === DEFAULT_SORT_DIRECTION
+      !props.activeSortIconOnly &&
+      props.sortedField === DEFAULT_SORT_FIELD &&
+      props.sortedOrder === DEFAULT_SORT_DIRECTION
     sortField.value = isDefault ? null : props.sortedField
     sortDirection.value = isDefault ? null : (props.sortedOrder ?? DEFAULT_SORT_DIRECTION)
   },
@@ -149,7 +154,7 @@ const secondaryColumns = computed(() =>
 const statusColumn = computed<ItemsTableColumn>(() => ({
   field: 'active',
   header: t('crud.status'),
-  sortable: true,
+  sortable: props.statusSortable,
 }))
 
 function isMarked(item: T): boolean {
@@ -247,6 +252,7 @@ function changePageSize(value: unknown) {
                   :class="['size-3', sortField !== column.field && 'opacity-40']"
                 />
               </button>
+              <span v-else-if="column.srOnly" class="sr-only">{{ column.header }}</span>
               <template v-else>{{ column.header }}</template>
             </TableHead>
             <TableHead v-if="hasActions" class="w-0">
@@ -347,6 +353,7 @@ function changePageSize(value: unknown) {
             <RouterLink v-if="props.detailRoute !== undefined" :to="detailTarget(item)" @click.stop>
               <slot
                 :name="`cell-${titleColumn}`"
+                :compact="true"
                 :item="item"
                 :value="cellValue(item, titleColumn)"
               >
@@ -356,6 +363,7 @@ function changePageSize(value: unknown) {
             <slot
               v-else
               :name="`cell-${titleColumn}`"
+              :compact="true"
               :item="item"
               :value="cellValue(item, titleColumn)"
             >
