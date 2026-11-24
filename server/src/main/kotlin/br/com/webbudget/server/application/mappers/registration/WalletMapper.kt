@@ -31,7 +31,8 @@ class WalletMapper {
         bank = wallet.bank,
         agency = wallet.agency,
         number = wallet.number,
-        active = wallet.active
+        active = wallet.active,
+        lastEntryOn = wallet.lastEntryOn
     )
 
     fun mapToDomain(form: WalletCreateForm): Wallet = Wallet(

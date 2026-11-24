@@ -62,12 +62,22 @@ class WalletRepository(
             "createdOn" to wallets.CREATED_ON
         )
 
-        val content = dsl.selectFrom(wallets)
+        val entries = WALLET_ENTRIES.`as`("wallet_entries")
+        val lastEntryOn = DSL.field(
+            dsl.select(DSL.max(entries.CREATED_ON))
+                .from(entries)
+                .where(entries.ID_WALLET.eq(wallets.ID))
+        ).`as`("last_entry_on")
+
+        val content = dsl.select(wallets.asterisk(), lastEntryOn)
+            .from(wallets)
             .where(condition)
             .orderBy(pageable.toOrderBy(sortable, wallets.CREATED_ON, wallets.ID))
             .limit(pageable.pageSize)
             .offset(pageable.offset)
-            .fetch { record -> record.toWallet() }
+            .fetch { record ->
+                record.into(wallets).toWallet().also { wallet -> wallet.lastEntryOn = record.get(lastEntryOn) }
+            }
 
         val total = dsl.fetchCount(wallets, condition)
 

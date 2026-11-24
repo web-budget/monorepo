@@ -60,7 +60,8 @@ data class WalletListView(
     val bank: String? = null,
     val agency: String? = null,
     val number: String? = null,
-    val active: Boolean = true
+    val active: Boolean = true,
+    val lastEntryOn: LocalDateTime? = null
 )
 
 data class WalletFilter(
