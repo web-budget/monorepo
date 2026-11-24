@@ -165,6 +165,40 @@ describe('RecurringMovementDetailView', () => {
     expect(wrapper.find('tbody').exists()).toBe(false)
   })
 
+  it('shows a skeleton, never the fixed note, while the history loads', async () => {
+    serve()
+    let finish: (value: ReturnType<typeof pageOf<RecurringValueView>>) => void = () => undefined
+    vi.mocked(recurringMovementsApi.findValues).mockReturnValue(
+      new Promise((resolve) => {
+        finish = resolve
+      }),
+    )
+    const { wrapper } = await mountView(RecurringMovementDetailView, 'recurring-movements', {
+      id: 'r-1',
+    })
+
+    expect(wrapper.text()).not.toContain('Valor fixo.')
+    expect(wrapper.find('[aria-label="Carregando..."]').exists()).toBe(true)
+
+    finish(pageOf(history.slice(0, 1)))
+    await flushPromises()
+
+    expect(wrapper.text()).toContain('Valor fixo.')
+    expect(wrapper.find('[aria-label="Carregando..."]').exists()).toBe(false)
+  })
+
+  it('does not call the value fixed when the history cannot be loaded', async () => {
+    serve()
+    vi.mocked(recurringMovementsApi.findValues).mockRejectedValue(problem(500))
+    const { wrapper } = await mountView(RecurringMovementDetailView, 'recurring-movements', {
+      id: 'r-1',
+    })
+
+    expect(wrapper.text()).not.toContain('Valor fixo.')
+    expect(wrapper.find('[role="alert"]').exists()).toBe(true)
+    expect(wrapper.find('[aria-label="Carregando..."]').exists()).toBe(false)
+  })
+
   it('goes to another page of the history', async () => {
     serve()
     vi.mocked(recurringMovementsApi.findValues).mockResolvedValue(pageOf(history, 40))

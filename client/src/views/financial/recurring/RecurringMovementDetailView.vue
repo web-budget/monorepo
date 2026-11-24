@@ -41,6 +41,8 @@ const title = computed(() => {
   return progress ? `${current.name} ${progress.current}/${progress.total}` : current.name
 })
 
+const historyStatus = ref<'loading' | 'ready' | 'failed'>('loading')
+
 const hasReadjustments = computed(() => values.value.totalElements > 1)
 
 const history = computed(() =>
@@ -71,8 +73,11 @@ const columns = computed(() => [
   },
 ])
 
-function loadHistory() {
-  return historyErrors.run(() => store.findValues(props.id, valuesPage.value, valuesSize.value))
+async function loadHistory() {
+  const loaded = await historyErrors.run(() =>
+    store.findValues(props.id, valuesPage.value, valuesSize.value),
+  )
+  historyStatus.value = loaded ? 'ready' : 'failed'
 }
 
 function loadLaunches() {
@@ -108,6 +113,7 @@ const loadedKind = computed(() =>
 watch(
   loadedKind,
   (kind) => {
+    historyStatus.value = 'loading'
     if (kind === 'FIXED') {
       void loadHistory()
     } else if (kind === 'VARIABLE') {
@@ -209,13 +215,13 @@ watch(
           </ul>
         </div>
         <ItemsTable
-          v-else-if="hasReadjustments"
-          :data="history"
+          v-else-if="historyStatus !== 'ready' || hasReadjustments"
+          :data="historyStatus === 'ready' ? history : []"
           :total-elements="values.totalElements"
           :noun="$t('recurrent-movement.history.noun', values.totalElements)"
           :columns="columns"
           :show-status="false"
-          :loading="loading"
+          :loading="loading || historyStatus === 'loading'"
           :current-page="valuesPage"
           :page-size="valuesSize"
           @page-changed="onHistoryPageChange"

@@ -57,6 +57,7 @@ const {
   statuses: ['ACTIVE', 'FINISHED', 'ALL'],
   sortFields: ['name', 'value', 'valueKind'],
   defaultSort: { sortField: 'name', direction: 'asc' },
+  countsFollowFilters: true,
   pageRequest,
   pageResponse,
   loading,

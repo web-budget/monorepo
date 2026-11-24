@@ -141,6 +141,20 @@ describe('RecurringMovementListView', () => {
     expect(wrapper.findAll('button').some((button) => button.text() === 'Limpar')).toBe(false)
   })
 
+  it('counts the tabs for the search and the type, not for the whole list', async () => {
+    const { wrapper } = await render()
+
+    await wrapper.find('input').setValue('cel')
+    await wrapper.find('input').trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+
+    const countCalls = vi
+      .mocked(recurringMovementsApi.findAll)
+      .mock.calls.map(([query]) => query)
+      .filter((query) => query.size === 1)
+    expect(countCalls.slice(-3).map((query) => query.filter)).toEqual(['cel', 'cel', 'cel'])
+  })
+
   it('says how many were found with the noun of the footer', async () => {
     const { wrapper } = await render()
 

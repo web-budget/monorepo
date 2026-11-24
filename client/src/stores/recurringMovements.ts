@@ -95,7 +95,7 @@ export const useRecurringMovementsStore = defineStore('recurringMovements', () =
     pageResponse: resource.pageResponse,
     loading: resource.loading,
     findAll: resource.findAll,
-    count: resource.count,
+    count: (status: RecurringMovementStatusFilter) => resource.count(status, true),
     findOne: resource.findOne,
     create: resource.create,
     update: resource.update,
