@@ -24,6 +24,7 @@ const existing: FinancialPeriodView = {
   endingAt: '2026-01-31',
   status: 'OPEN',
   expired: false,
+  reopenable: false,
   revenuesGoal: 5000,
   expensesGoal: null,
 }

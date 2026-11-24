@@ -280,6 +280,7 @@ export interface FinancialPeriodView {
   endingAt: string
   status: FinancialPeriodStatus
   expired: boolean
+  reopenable: boolean
   revenuesGoal: number | null
   expensesGoal: number | null
 }
@@ -291,6 +292,7 @@ export interface FinancialPeriodListView {
   endingAt: string
   status: FinancialPeriodStatus
   expired: boolean
+  reopenable: boolean
   revenuesGoal?: number | null
   expensesGoal?: number | null
 }
@@ -313,12 +315,15 @@ export interface ClosingPeriodView {
 
 export interface ClosingInvoiceView {
   id: string
-  card: { id: string; name: string }
+  card: { id: string; name: string; lastFourDigits: string }
   value: number
+  purchaseCount: number
+  status: InvoiceStatus
 }
 
 export interface ClosingSummaryView {
   openMovements: { count: number; income: number; expense: number }
+  invoices: ClosingInvoiceView[]
   openInvoices: ClosingInvoiceView[]
   emptyInvoices: ClosingInvoiceView[]
   nextOpenPeriod: ClosingPeriodView | null
@@ -448,6 +453,7 @@ export interface MovementListView {
   classification: MovementClassificationView
   costCenter: MovementCostCenterView
   financialPeriod: MovementFinancialPeriodView
+  invoicePayment: boolean
 }
 
 export interface PaymentForm {

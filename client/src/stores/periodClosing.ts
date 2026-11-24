@@ -8,7 +8,6 @@ import type {
   AccumulatedView,
   ClosingSummaryView,
   FinancialPeriodResultView,
-  InvoiceView,
   MovementListView,
 } from '@/types'
 
@@ -19,10 +18,9 @@ export const usePeriodClosingStore = defineStore('periodClosing', () => {
   const result = ref<FinancialPeriodResultView | null>(null)
   const accumulated = ref<AccumulatedView | null>(null)
   const pendencies = ref<MovementListView[]>([])
-  const invoicePaymentIds = ref<string[]>([])
-  const invoices = ref<InvoiceView[]>([])
   const pending = ref(0)
   const loading = computed(() => pending.value > 0)
+  const invoices = computed(() => summary.value?.invoices ?? [])
 
   async function track<T>(operation: () => Promise<T>): Promise<T> {
     pending.value++
@@ -35,26 +33,21 @@ export const usePeriodClosingStore = defineStore('periodClosing', () => {
 
   function load(financialPeriod: string): Promise<void> {
     return track(async () => {
-      const openMovements = {
-        statuses: ['OPEN' as const],
-        financialPeriods: [financialPeriod],
-        size: PENDING_PAGE_SIZE,
-      }
-      const [loadedSummary, loadedResult, loadedAccumulated, openPage, paymentPage, invoicePage] =
-        await Promise.all([
-          financialPeriodsApi.findClosing(financialPeriod),
-          financialPeriodsApi.findResult(financialPeriod),
-          periodResultsApi.findAccumulated(),
-          movementsApi.findAll({ ...openMovements, sort: 'dueDate,asc' }),
-          movementsApi.findAll({ ...openMovements, invoicePayments: true }),
-          invoicesApi.findAll({ financialPeriod, size: PENDING_PAGE_SIZE }),
-        ])
+      const [loadedSummary, loadedResult, loadedAccumulated, openPage] = await Promise.all([
+        financialPeriodsApi.findClosing(financialPeriod),
+        financialPeriodsApi.findResult(financialPeriod),
+        periodResultsApi.findAccumulated(),
+        movementsApi.findAll({
+          statuses: ['OPEN'],
+          financialPeriods: [financialPeriod],
+          size: PENDING_PAGE_SIZE,
+          sort: 'dueDate,asc',
+        }),
+      ])
       summary.value = loadedSummary
       result.value = loadedResult
       accumulated.value = loadedAccumulated
       pendencies.value = openPage.content
-      invoicePaymentIds.value = paymentPage.content.map((movement) => movement.id)
-      invoices.value = invoicePage.content
     })
   }
 
@@ -66,6 +59,14 @@ export const usePeriodClosingStore = defineStore('periodClosing', () => {
     return track(() => financialPeriodsApi.close(financialPeriod))
   }
 
+  function payAll(wallet: string) {
+    return track(async () => {
+      for (const movement of pendencies.value) {
+        await movementsApi.pay(movement.id, { wallet })
+      }
+    })
+  }
+
   function closeInvoice(id: string) {
     return track(() => invoicesApi.close(id))
   }
@@ -75,8 +76,6 @@ export const usePeriodClosingStore = defineStore('periodClosing', () => {
     result.value = null
     accumulated.value = null
     pendencies.value = []
-    invoicePaymentIds.value = []
-    invoices.value = []
   }
 
   return {
@@ -84,12 +83,12 @@ export const usePeriodClosingStore = defineStore('periodClosing', () => {
     result,
     accumulated,
     pendencies,
-    invoicePaymentIds,
     invoices,
     loading,
     load,
     move,
     close,
+    payAll,
     closeInvoice,
     reset,
   }

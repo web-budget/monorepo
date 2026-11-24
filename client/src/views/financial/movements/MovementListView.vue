@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowDownLeft, ArrowUpRight, Clock, Plus, ReceiptText, X } from 'lucide-vue-next'
+import { ArrowDownLeft, ArrowUpRight, Clock, Lock, Plus, ReceiptText, X } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -313,7 +313,20 @@ onMounted(async () => {
             })
           }}
         </AlertTitle>
-        <AlertDescription>{{ $t('movement.expired-notice.description') }}</AlertDescription>
+        <AlertDescription class="grid gap-2">
+          {{ $t('movement.expired-notice.description') }}
+          <span>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              data-slot="go-to-closing"
+              @click="router.push({ name: 'closing', query: { period: selectedPeriod.id } })"
+            >
+              <Lock />{{ $t('movement.expired-notice.go-to-closing') }}
+            </Button>
+          </span>
+        </AlertDescription>
       </Alert>
       <div v-if="periodResult" class="grid grid-cols-2 gap-3 md:grid-cols-4" data-slot="summary">
         <Card class="gap-1 p-4">

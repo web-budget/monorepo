@@ -870,7 +870,6 @@
     "title-of": "Closing of {name}",
     "description": "Settle the pending items and record the result.",
     "period": "Period to close",
-    "none": "None",
     "summary": {
       "revenues": "Paid revenues",
       "revenues-note": "Only what was received",
@@ -879,47 +878,60 @@
       "result": "Result",
       "result-note": "Revenues − expenses",
       "accumulated": "Accumulated",
-      "accumulated-note": "Closed ones plus the provisional of the open ones"
+      "accumulated-note": "Closed ones plus the provisional of the open ones",
+      "title": "Period summary"
     },
     "pendencies": {
       "title": "Pending items",
       "hint": "Pay or move to another open period.",
-      "none": "No pending items",
+      "none": "Everything that was open was paid or moved.",
       "movement": "Movement",
       "due-date": "Due date",
       "value": "Value (R$)",
       "invoice": "invoice",
       "overdue": "overdue",
       "move": "Move",
-      "move-disabled": "Create an open period to be able to move.",
+      "move-disabled": "There is no open period after this one",
       "no-next": "There is no open period after {name}",
       "no-next-hint": "Pay everything or create a period to move to.",
-      "create-period": "Create period"
+      "create-period": "Create period",
+      "remaining": "{count} remaining | {count} remaining",
+      "resolved": "Settled",
+      "actions": "What to do",
+      "none-title": "No pending items",
+      "pay-all": "Pay all",
+      "due-on": "Due on"
     },
     "invoices": {
       "title": "Invoices",
       "hint": "An open invoice with purchases blocks the closing.",
-      "none": "No invoices in this period",
+      "none": "No active card in this period.",
       "close": "Close invoice",
       "note": {
         "blocking": "Blocks the closing",
         "empty": "Closes by itself with zero value",
         "payment": "Invoice payment in the pending items",
         "paid": "Paid"
-      }
+      },
+      "purchases": "{count} purchase | {count} purchases"
     },
     "checklist": {
       "title": "To close",
       "pendencies": "Pending items settled",
       "invoices": "Invoices settled",
       "next-period": "Next period open",
-      "close": "Close {name}"
+      "close": "Close {name}",
+      "pendencies-open": "{count} left to pay or move | {count} left to pay or move",
+      "pendencies-done": "Nothing open",
+      "invoices-open": "{count} invoice with an entry still open | {count} invoices with entries still open",
+      "invoices-done": "No invoice blocks it",
+      "next-period-missing": "There is none: pay everything or create one",
+      "ready": "All set.",
+      "blocked": "Settle the items above."
     },
     "move": {
       "title": "Move “{name}”",
-      "description": "The movement goes to another open period.",
       "period": "Period",
-      "none": "Choose a period",
       "expired": "expired",
       "confirm": "Move"
     },
@@ -930,9 +942,14 @@
     },
     "reopen": {
       "title": "Reopen {name}?",
-      "description": "The recorded result is erased and the period accepts entries again. Invoices closed by themselves reopen.",
-      "confirm": "Reopen",
-      "only-last": "Only the last closed period can be reopened"
+      "description": "Only the last closed period can be reopened.",
+      "confirm": "Reopen period",
+      "only-last": "last only",
+      "erases-result": "Erases the period result.",
+      "unfreezes": "Unfreezes movements, purchases and invoices.",
+      "invoices-closed-by-hand": "Invoices closed by hand stay closed.",
+      "empty-invoices": "Empty invoices go back to open.",
+      "only-last-hint": "Only the last closed period can be reopened"
     },
     "actions": {
       "close": "Close period",
@@ -944,7 +961,10 @@
       "moved-detail": "“{name}” went to {period}.",
       "closed": "{name} closed",
       "closed-detail": "Result {result} recorded. Empty invoices closed with zero value.",
-      "reopened": "Period reopened"
+      "reopened": "{name} reopened",
+      "reopened-detail": "The result left the table and the period accepts entries again.",
+      "paid-all": "Pending items paid",
+      "paid-all-detail": "They left {wallet}."
     }
   },
   "wallet": {
@@ -1118,7 +1138,7 @@
       "found": "{count} financial period found for “{query}” | {count} financial periods found for “{query}”",
       "expired-notice": {
         "title": "{count} expired period: {names} | {count} expired periods: {names}",
-        "description": "It still accepts postings. | They still accept postings."
+        "description": "It still accepts postings."
       },
       "noun": "period | periods",
       "tabs-note": "The result only exists after closing.",
@@ -1417,7 +1437,8 @@
     },
     "expired-notice": {
       "title": "{name} expired on {date} and is still open",
-      "description": "It still accepts postings."
+      "description": "It still accepts postings.",
+      "go-to-closing": "Go to closing"
     },
     "list": {
       "description": "Income and expenses of {period}.",
