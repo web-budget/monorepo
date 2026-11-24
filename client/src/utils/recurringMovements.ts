@@ -6,7 +6,7 @@ export interface InstallmentProgress {
   percentage: number
 }
 
-// O server omite os campos nulos, então "sem prazo" chega como ausente (undefined) ou como null.
+// The server leaves null fields out, so a missing deadline arrives as undefined, not as null.
 export function installmentProgress(
   recurringMovement: Pick<RecurringMovementView, 'installments' | 'launchedInstallments'>,
 ): InstallmentProgress | null {
