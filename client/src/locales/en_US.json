@@ -725,9 +725,11 @@
       "skipped": "Some recurring movements were left out"
     },
     "form": {
-      "new": "New recurring movement",
-      "editing": "Editing recurring movement",
-      "detailing": "Detailing",
+      "new": "Creating",
+      "editing": "Editing",
+      "title-new": "New recurring movement",
+      "title-editing": "Editing recurring movement",
+      "detailing": "Viewing",
       "type": "Type",
       "type-hint": "The type does not change once created.",
       "name": "Name",

@@ -725,8 +725,10 @@
       "skipped": "Alguns recorrentes não entraram"
     },
     "form": {
-      "new": "Novo recorrente",
-      "editing": "Editando recorrente",
+      "new": "Criando",
+      "editing": "Editando",
+      "title-new": "Novo recorrente",
+      "title-editing": "Editando recorrente",
       "detailing": "Detalhando",
       "type": "Tipo",
       "type-hint": "O tipo não muda depois de criado.",
