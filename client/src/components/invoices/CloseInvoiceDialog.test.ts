@@ -49,7 +49,9 @@ describe('CloseInvoiceDialog', () => {
     const text = document.body.textContent!
     expect(text).toContain('Fechar a fatura de Novembro, Visa?')
     expect(text).toContain('Gera o pagamento de fatura')
-    expect(text).toMatch(/R\$\s500,00/)
+    expect(text).toContain('500,00')
+    expect(text).not.toContain('R$')
+    expect(text).toContain('A carteira é escolhida ao pagar.')
     expect(text).toContain('10/12/2026')
     expect(text).toContain('Conta corrente')
   })

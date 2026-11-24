@@ -329,7 +329,7 @@
       "credit-card-invoice": "Purchases of each card by period.",
       "period-closing": "Settle pending items and record the result.",
       "wallet": "Bank accounts, investments and cash.",
-      "card": "Credit and debit cards linked to wallets.",
+      "card": "Credit cards.",
       "classification": "Income and expense categories for entries.",
       "cost-center": "A hierarchy to group where the money is spent.",
       "financial-period": "Create, edit and follow the periods.",
@@ -804,13 +804,20 @@
       "total": "Invoice total",
       "purchases": "Purchases",
       "due-date": "Due date",
-      "no-purchases": "No purchases on this invoice"
+      "no-purchases": "No purchases on this invoice",
+      "payment-bar": "Invoice payment:"
     },
     "list": {
       "description": "Purchases of each card by period.",
       "empty-title": "No invoices in this period",
       "empty-description": "Create a period to generate the invoices.",
-      "plural": "the invoices"
+      "plural": "the invoices",
+      "noun": "invoice | invoices",
+      "empty-action": "Create",
+      "error-description": "The server did not respond. Your filters stay in the URL.",
+      "no-result-filter": "No invoices with these filters",
+      "no-result-hint": "Change the filters or clear the search.",
+      "no-result-action": "Clear filters"
     },
     "options": {
       "all": "All",
@@ -828,7 +835,10 @@
       "card": "Card",
       "period": "Period",
       "value": "Total (R$)",
-      "status": "Status"
+      "status": "Status",
+      "purchases": "Purchases",
+      "due-date": "Due date",
+      "actions": "Actions"
     },
     "status": {
       "OPEN": "Open",
@@ -841,13 +851,18 @@
     "purchases": {
       "date": "Date",
       "name": "Purchase",
-      "value": "Value (R$)"
+      "value": "Value (R$)",
+      "cost-center": "Cost center",
+      "classification": "Classification",
+      "recurring": "recurring"
     },
     "actions": {
       "close": "Close invoice",
       "view-payment": "View invoice payment",
       "delete-payment": "Delete invoice payment",
-      "new-purchase": "New purchase"
+      "new-purchase": "New purchase",
+      "import": "Import invoice",
+      "open": "Open invoice"
     },
     "close": {
       "title": "Close the {period} invoice of {card}?",
@@ -857,7 +872,8 @@
       "payment": "Invoice payment",
       "due-date": "Due date",
       "wallet": "Wallet suggested when paying",
-      "confirm": "Close invoice"
+      "confirm": "Close invoice",
+      "help": "The wallet is chosen when paying."
     },
     "delete-payment": {
       "title": "Delete the invoice payment?",
@@ -869,6 +885,25 @@
       "closed-detail": "Invoice payment of {value} generated, open.",
       "reopened": "Invoice reopened",
       "reopened-detail": "The invoice payment was deleted."
+    },
+    "due-date-open": "after closing",
+    "import": {
+      "breadcrumb": "Importing",
+      "title": "Import invoice",
+      "description": "Upload the CSV or OFX, classify and save.",
+      "steps": {
+        "upload": "Upload",
+        "processing": "Processing",
+        "draft": "Draft"
+      },
+      "card": "Card",
+      "period": "Invoice period",
+      "period-hint": "The card invoice must be open in this period.",
+      "drop": "Drag the invoice file or click to choose",
+      "formats": "CSV or OFX, up to 5 MB.",
+      "send": "Upload file",
+      "recent": "Recent imports",
+      "recent-empty": "No imports yet."
     }
   },
   "period-closing": {
@@ -879,12 +914,14 @@
     "title": "Wallets",
     "menu": "Wallets",
     "search": {
-      "placeholder": "Name, description, bank, branch or number"
+      "placeholder": "Name, bank, agency or number"
     },
     "table-columns": {
       "name": "Name",
       "type": "Type",
-      "bank": "Bank"
+      "bank": "Bank",
+      "agency-number": "Agency / account",
+      "balance": "Current balance (R$)"
     },
     "form": {
       "new": "New wallet",
@@ -896,12 +933,13 @@
       "type": "Type",
       "bank": "Bank",
       "agency": "Branch",
-      "number": "Account number",
+      "number": "Account",
       "type-placeholder": "Select a type",
       "active-label": "Active",
       "active-hint": "Deactivate to remove from listings",
       "type-hint": "The type does not change after creation.",
-      "balance": "Current balance"
+      "balance": "Current balance",
+      "last-entry": "Last entry"
     },
     "type": {
       "bank-account": "Bank account",
@@ -909,11 +947,17 @@
       "investment": "Investment"
     },
     "list": {
-      "description": "Bank accounts, investments and cash that entries come from and go to.",
-      "empty-title": "No wallets yet",
-      "empty-description": "Register the accounts and cash you use. Entries always come from a wallet.",
+      "description": "Accounts, investments and cash.",
+      "empty-title": "No wallets registered",
+      "empty-description": "Register the first wallet.",
       "plural": "wallets",
-      "found": "{count} wallet found for “{query}” | {count} wallets found for “{query}”"
+      "found": "{count} wallet found for “{query}” | {count} wallets found for “{query}”",
+      "noun": "wallet | wallets",
+      "error-description": "The server did not respond. Your filters stay in the URL.",
+      "no-result-query": "No wallet found for “{query}”",
+      "no-result-filter": "No wallet with these filters",
+      "no-result-hint": "Change the filters or clear the search.",
+      "no-result-action": "Clear filters"
     },
     "remove": {
       "title": "Delete the wallet “{name}”?",
@@ -938,22 +982,30 @@
       "view-statement": "View statement",
       "adjust-balance": "Adjust balance",
       "transfer": "Transfer"
+    },
+    "notices": {
+      "balance": "The balance is not edited on the wallet",
+      "balance-description": "It comes from the statement."
     }
   },
   "card": {
     "title": "Cards",
     "menu": "Cards",
     "search": {
-      "placeholder": "Name, last 4 digits or network"
+      "placeholder": "Name, last digits, network or wallet"
     },
     "table-columns": {
       "name": "Name",
-      "flag": "Network"
+      "flag": "Network",
+      "last-digits": "Last digits",
+      "invoice-payment-day": "Invoice payment day",
+      "wallet": "Wallet that pays the invoice",
+      "status": "Status"
     },
     "form": {
-      "new": "New card",
-      "editing": "Editing card",
-      "detailing": "Card details",
+      "new": "Creating",
+      "editing": "Editing",
+      "detailing": "Viewing",
       "deleting": "Deleting card",
       "name": "Name",
       "flag": "Network",
@@ -963,14 +1015,27 @@
       "wallet-search-empty": "No wallets found",
       "wallet-search-placeholder": "Type the name",
       "active-label": "Active",
-      "active-hint": "Deactivate to remove from listings"
+      "active-hint": "Deactivate to remove from listings",
+      "title-new": "New card",
+      "title-edit": "Edit card",
+      "description": "Credit cards only. Fields with * are required.",
+      "name-example": "E.g.: Visa Platinum",
+      "last-four-digits-example": "0000",
+      "wallet-hint": "Suggested when paying; you can change it on the spot.",
+      "wallet-placeholder": "No suggested wallet"
     },
     "list": {
       "description": "Credit cards.",
-      "empty-title": "No cards yet",
-      "empty-description": "Register the credit cards you use. Purchases go to the invoice.",
+      "empty-title": "No cards registered",
+      "empty-description": "Register the first card.",
       "plural": "cards",
-      "found": "{count} card found for “{query}” | {count} cards found for “{query}”"
+      "found": "{count} card found for “{query}” | {count} cards found for “{query}”",
+      "noun": "card | cards",
+      "error-description": "The server did not respond. Your filters stay in the URL.",
+      "no-result-query": "No cards found for “{query}”",
+      "no-result-filter": "No cards with these filters",
+      "no-result-hint": "Change the filters or clear the search.",
+      "no-result-action": "Clear filters"
     },
     "remove": {
       "title": "Delete the card “{name}”?",
@@ -978,7 +1043,7 @@
     },
     "toast": {
       "created": "Card created",
-      "created-detail": "“{name}” now shows up in entries.",
+      "created-detail": "It gets an open invoice in every open period.",
       "updated": "Changes saved",
       "updated-detail": "“{name}” was updated.",
       "removed": "Card deleted",
@@ -986,9 +1051,16 @@
     },
     "sections": {
       "identification": "Identification",
-      "identification-help": "How the card appears in entries.",
       "invoice": "Invoice",
-      "invoice-help": "Used as a suggestion when paying the closed invoice. The wallet is suggested when paying and can be changed then."
+      "invoice-help": "Used as a suggestion when paying the closed invoice."
+    },
+    "actions": {
+      "view-invoices": "View invoices"
+    },
+    "detail": {
+      "last-digits": "Last digits",
+      "invoice-payment-day": "Payment day",
+      "wallet": "Wallet that pays"
     }
   },
   "financial-period": {
@@ -1291,7 +1363,8 @@
       "edit": "Edit",
       "undo": "Undo payment",
       "view-statement": "View on statement",
-      "view-invoice": "View on invoice"
+      "view-invoice": "View on invoice",
+      "view-the-invoice": "View the invoice"
     },
     "table-columns": {
       "name": "Name",
@@ -1414,7 +1487,7 @@
         "INCOME": "E.g.: December salary",
         "EXPENSE": "E.g.: Water bill"
       },
-      "value-hint": "Zero or more.",
+      "value-hint": "Greater than zero.",
       "wallet-option": "{name} · balance {balance}",
       "paid-by": "Paid by",
       "card": "Card",
@@ -1435,8 +1508,7 @@
         "INCOME": "Only income classifications show up.",
         "EXPENSE": "Only expense classifications show up."
       },
-      "payment-help": "Optional.",
-      "invoice": "Invoice"
+      "payment-help": "Optional."
     },
     "detail": {
       "name": "Name",
@@ -1456,10 +1528,6 @@
       "card": "Card",
       "method-wallet": "Wallet",
       "method-card": "Credit card",
-      "invoice-card": "Card",
-      "invoice-status": "Invoice status",
-      "invoice": "Invoice",
-      "invoice-link": "Open the invoice",
       "recurring": "Recurring",
       "discount-none": "---"
     },
@@ -1501,6 +1569,9 @@
       "reversal-word": "reversal",
       "description-card": "The purchase leaves the invoice of {card}. The movement goes back to “Open”.",
       "reversal": "Reversal of {amount}"
+    },
+    "badge": {
+      "invoice": "invoice"
     }
   },
   "transfer": {
@@ -1509,34 +1580,32 @@
     "form": {
       "new": "Transferring",
       "detailing": "Detailing",
-      "description": "Move money from one wallet to another. It does not change the period result.",
       "from": "From",
       "to": "To",
       "value": "Value",
       "note": "Note",
-      "submit": "Transfer"
+      "submit": "Transfer",
+      "title": "New transfer",
+      "note-placeholder": "Optional"
     },
     "sections": {
       "wallets": "Wallets",
-      "wallets-help": "Active wallets only, and the two must be different.",
       "value": "Value",
       "identification": "Identification",
       "return": "Return"
     },
     "statement": {
       "title": "Transfer statement",
-      "from": "Origin",
-      "to": "Destination",
       "before": "Previous balance",
       "debit": "Debit",
       "credit": "Credit",
-      "after": "Balance after"
+      "after": "Closing balance"
     },
     "toast": {
       "created": "Transfer made",
-      "created-detail": "From {from} to {to}.",
+      "created-detail": "Both wallets got a new line in the statement.",
       "returned": "Transfer returned",
-      "returned-detail": "The money went back from {from} to {to}."
+      "returned-detail": "Both wallets got a new line in the statement."
     },
     "detail": {
       "created-on": "Date and time",
@@ -1544,10 +1613,8 @@
       "from": "From",
       "to": "To",
       "note": "Note",
-      "return-of": "Return of the transfer of",
-      "returned-by": "Returned on",
-      "return-state": "Status",
-      "not-returned": "Not returned yet"
+      "return-of": "Returns the transfer of",
+      "returned-by": "Returned on"
     },
     "status": {
       "returned": "Returned",
@@ -1556,26 +1623,30 @@
     },
     "actions": {
       "view-statement": "View in statement",
-      "give-back": "Return",
-      "details": "View details"
+      "give-back": "Return"
     },
     "give-back": {
-      "title": "Return the transfer from {from} to {to}?",
-      "description": "The money goes back to the origin wallet in a new transfer.",
-      "value": "Returned value",
-      "confirm": "Return"
+      "title": "Return transfer?",
+      "confirm": "Return",
+      "statement": "Return statement"
     },
     "list": {
-      "description": "Money that changed wallets, newest first.",
+      "description": "Money that changes wallet.",
       "empty-title": "No transfers yet",
-      "empty-description": "Transfer money from one wallet to another.",
-      "plural": "the transfers"
+      "empty-description": "Transferring moves money between two wallets and does not change the result.",
+      "plural": "the transfers",
+      "noun": "transfer | transfers",
+      "error-description": "The server did not respond. Your filters stay in the URL.",
+      "no-result-query": "No transfer found for “{query}”",
+      "no-result-filter": "No transfer with these filters",
+      "no-result-hint": "Change the filters or clear the search.",
+      "no-result-action": "Clear filters"
     },
     "search": {
       "placeholder": "Origin wallet, destination wallet or note"
     },
     "filters": {
-      "wallet": "Wallet",
+      "wallet": "Wallet (origin or destination)",
       "all-wallets": "All",
       "from": "From",
       "to": "To",
@@ -1635,9 +1706,15 @@
     },
     "open-origin": "Open the origin of {name}",
     "list": {
-      "empty-title": "No entries yet",
-      "empty-description": "Post an income to give this wallet a balance.",
-      "plural": "the statement"
+      "empty-title": "{name} has no entries yet",
+      "empty-description": "Post an income to give it a balance.",
+      "plural": "the statement",
+      "noun": "line | lines",
+      "error-description": "The server did not respond. Your filters stay in the URL.",
+      "no-result-query": "No statement line found for “{query}”",
+      "no-result-filter": "No statement line with these filters",
+      "no-result-hint": "Change the filters or clear the search.",
+      "no-result-action": "Clear filters"
     },
     "actions": {
       "adjust": "Adjust balance",
@@ -1645,18 +1722,36 @@
     },
     "adjust": {
       "title": "Adjust the balance of {name}",
-      "description": "For rounding cents. It does not count in the result.",
       "value": "Adjustment value",
-      "value-hint": "Positive credits, negative debits.",
-      "reason": "Reason",
       "wallet-balance": "Wallet balance",
       "adjustment": "Adjustment",
       "balance-after": "Balance after",
-      "confirm": "Adjust"
+      "confirm": "Adjust",
+      "value-example": "+0.03 or −0.02"
     },
     "toast": {
       "adjusted": "Balance adjusted",
-      "adjusted-detail": "The adjustment of {name} is in the statement and does not count in the result."
+      "adjusted-credit": "Credit of {amount} in {name}. It does not count in the result.",
+      "adjusted-debit": "Debit of {amount} in {name}. It does not count in the result."
+    },
+    "updated-on": "Updated on",
+    "credits": "Credits in the filter",
+    "debits": "Debits in the filter",
+    "lines": "{count} line | {count} lines",
+    "detailing": "Detailing",
+    "open-origin-header": "Open origin",
+    "sections": {
+      "entry": "Entry"
+    },
+    "detail": {
+      "value": "Value"
+    },
+    "entry": {
+      "reversal": "Reversal of {name}",
+      "transfer-to": "To {name}",
+      "transfer-from": "From {name}",
+      "return-to": "Return to {name}",
+      "return-from": "Return from {name}"
     }
   },
   "card-purchase": {
@@ -1664,8 +1759,8 @@
     "menu": "Card purchases",
     "form": {
       "new": "Posting purchase",
-      "editing": "Editing purchase",
-      "detailing": "Detailing purchase",
+      "editing": "Editing",
+      "detailing": "Viewing",
       "submit": "Post purchase",
       "card": "Card",
       "period": "Invoice period",
@@ -1677,25 +1772,28 @@
       "installment": "Installment purchase",
       "installments": "Number of installments",
       "installment-value": "Installment value",
-      "submit-installments": "Create installment plan"
+      "submit-installments": "Create installment plan",
+      "title-new": "New card purchase",
+      "name-example": "E.g.: Neighborhood market",
+      "period-hint": "Open periods only.",
+      "classification-hint": "Expense classifications only.",
+      "expired-suffix": "expired",
+      "title-edit": "Edit purchase"
     },
     "sections": {
       "card": "Card and period",
-      "card-help": "Open periods only.",
       "purchase": "Purchase",
-      "classification": "Classification",
       "installments": "Installments",
       "installments-help": "An installment purchase becomes a recurring movement."
     },
     "detail": {
       "value": "Value",
-      "purchased-on": "Purchase date",
-      "card": "Card",
+      "purchased-on": "Date",
       "invoice": "Invoice",
-      "invoice-link": "{period} invoice",
-      "period": "Period",
+      "invoice-link": "{card}, {period}",
       "cost-center": "Cost center",
-      "classification": "Classification"
+      "classification": "Classification",
+      "name": "Name"
     },
     "notices": {
       "movement": "This purchase came from a card payment and cannot be changed here.",
@@ -1703,7 +1801,7 @@
     },
     "toast": {
       "created": "Purchase posted",
-      "created-detail": "“{name}” went into the open invoice of the card.",
+      "created-detail": "It went into the open invoice of the card.",
       "updated": "Changes saved",
       "updated-detail": "“{name}” was updated.",
       "removed": "Purchase deleted",
@@ -1714,6 +1812,15 @@
     "remove": {
       "title": "Delete the purchase “{name}”?",
       "description": "It leaves the invoice and the spending by cost center. This cannot be undone."
+    },
+    "actions": {
+      "view-invoice": "View invoice"
+    },
+    "closed-invoice": {
+      "title": "The {period} invoice of {card} is closed",
+      "description": "Nothing was posted.",
+      "action": "View the invoice",
+      "title-missing": "There is no open invoice for {card} in {period}"
     },
     "installment-notice": {
       "title": "How the installment enters",

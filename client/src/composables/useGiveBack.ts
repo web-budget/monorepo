@@ -27,10 +27,7 @@ export function useGiveBack() {
     let createdId = ''
     if (await run(async () => (createdId = await store.giveBack(transfer.id)))) {
       close()
-      showSuccess('transfer.toast.returned', 'transfer.toast.returned-detail', true, {
-        from: transfer.toWallet.name,
-        to: transfer.fromWallet.name,
-      })
+      showSuccess('transfer.toast.returned', 'transfer.toast.returned-detail')
       await router.push({ name: 'transfers.detail', params: { id: createdId } })
     }
   }

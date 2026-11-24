@@ -12,7 +12,7 @@ const values = {
   card: 'c-1',
   financialPeriod: 'p-1',
   name: 'Mercado',
-  purchasedOn: ' ',
+  purchasedOn: '2026-11-02',
   value: 10,
   costCenter: 'cc-1',
   classification: 'cl-1',
@@ -38,12 +38,17 @@ describe('cardPurchaseSchema', () => {
     expect(cardPurchaseSchema.safeParse(values).success).toBe(true)
     expect(cardPurchaseSchema.safeParse({ ...values, value: 0 }).success).toBe(false)
     expect(cardPurchaseSchema.safeParse({ ...values, card: '' }).success).toBe(false)
+    expect(cardPurchaseSchema.safeParse({ ...values, purchasedOn: '' }).success).toBe(false)
   })
 
-  it('needs the value of a plain purchase but not of an installment plan', () => {
+  it('needs the date and the value of a plain purchase but not of an installment plan', () => {
+    expect(issuePaths({ ...values, purchasedOn: null })).toEqual(['purchasedOn'])
+    expect(issuePaths({ ...values, purchasedOn: '' })).toEqual(['purchasedOn'])
     expect(issuePaths({ ...values, value: null })).toEqual(['value'])
     expect(issuePaths({ ...values, value: undefined })).toEqual(['value'])
-    expect(cardPurchaseSchema.safeParse(installmentValues).success).toBe(true)
+    expect(cardPurchaseSchema.safeParse({ ...installmentValues, purchasedOn: null }).success).toBe(
+      true,
+    )
   })
 
   it('needs the installments and the value of each one for an installment plan', () => {
@@ -61,17 +66,17 @@ describe('cardPurchaseSchema', () => {
     expect(cardPurchaseSchema.safeParse({ ...values, installments: 1 }).success).toBe(true)
   })
 
-  it('sends a blank date as null and keeps only what each call takes', () => {
+  it('keeps only what each call takes', () => {
     expect(toCardPurchaseCreateForm(values)).toEqual({
       name: 'Mercado',
-      purchasedOn: null,
+      purchasedOn: '2026-11-02',
       value: 10,
       card: 'c-1',
       financialPeriod: 'p-1',
       classification: 'cl-1',
       costCenter: 'cc-1',
     })
-    expect(toCardPurchaseUpdateForm({ ...values, purchasedOn: '2026-11-02' })).toEqual({
+    expect(toCardPurchaseUpdateForm(values)).toEqual({
       name: 'Mercado',
       purchasedOn: '2026-11-02',
       value: 10,

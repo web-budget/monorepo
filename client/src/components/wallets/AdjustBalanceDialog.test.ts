@@ -57,10 +57,28 @@ describe('AdjustBalanceDialog', () => {
     expect(document.body.textContent).toContain('Ajustar o saldo de Conta corrente')
     expect(summary()).toMatch(/Saldo depois\s*R\$\s1\.000,00/)
 
-    await type('value', '-0.02')
+    await type('value', '-2')
 
-    expect(summary()).toMatch(/−\sR\$\s0,02/)
+    expect(input('value').value).toBe('−0,02')
+    expect(summary()).toMatch(/Ajuste\s*−R\$\s0,02/)
     expect(summary()).toMatch(/Saldo depois\s*R\$\s999,98/)
+  })
+
+  it('credits with a plus sign and keeps a lone minus sign waiting for the digits', async () => {
+    await render()
+
+    await type('value', '3')
+    expect(input('value').value).toBe('+0,03')
+    expect(summary()).toMatch(/Ajuste\s*\+R\$\s0,03/)
+
+    await type('value', '-')
+    expect(input('value').value).toBe('−')
+
+    await type('value', '−5')
+    expect(input('value').value).toBe('−0,05')
+
+    await type('value', '+0,05')
+    expect(input('value').value).toBe('+0,05')
   })
 
   it('treats a value that is not a number as no adjustment', async () => {
@@ -71,7 +89,7 @@ describe('AdjustBalanceDialog', () => {
     expect(summary()).toMatch(/Saldo depois\s*R\$\s1\.000,00/)
   })
 
-  it('asks for the value and the reason', async () => {
+  it('asks for the value', async () => {
     const wrapper = await render()
 
     await submit()
@@ -83,7 +101,6 @@ describe('AdjustBalanceDialog', () => {
   it('refuses an adjustment of zero', async () => {
     const wrapper = await render()
     await type('value', '0')
-    await type('name', 'Arredondamento')
 
     await submit()
 
@@ -91,14 +108,13 @@ describe('AdjustBalanceDialog', () => {
     expect(document.body.textContent).toContain('O ajuste não pode ser zero.')
   })
 
-  it('emits the adjustment with the sign and the reason', async () => {
+  it('emits the adjustment with the sign', async () => {
     const wrapper = await render()
-    await type('value', '0.03')
-    await type('name', 'Arredondamento')
+    await type('value', '3')
 
     await submit()
 
-    expect(wrapper.emitted('adjust')).toEqual([[wallet, { value: 0.03, name: 'Arredondamento' }]])
+    expect(wrapper.emitted('adjust')).toEqual([[wallet, { value: 0.03 }]])
   })
 
   it('emits close from the cancel button and from dismissing', async () => {

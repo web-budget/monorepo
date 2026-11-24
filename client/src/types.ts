@@ -154,6 +154,7 @@ export interface WalletListView {
   agency: string | null
   number: string | null
   active: boolean
+  lastEntryOn?: string | null
 }
 
 export interface CardCreateForm {
@@ -186,8 +187,11 @@ export interface CardView {
 export interface CardListView {
   id: string
   name: string
+  lastFourDigits: string
+  invoicePaymentDay: number
   active: boolean
   flag: string | null
+  wallet: WalletListView | null
 }
 
 export interface CostCenterCreateForm {
@@ -368,7 +372,8 @@ export interface PaymentView {
   discount: number
   valuePaid: number
   wallet: { id: string; name: string } | null
-  card: { id: string; name: string } | null
+  card: { id: string; name: string; lastFourDigits?: string } | null
+  invoice?: { id: string; status: InvoiceStatus } | null
 }
 
 export interface MovementView {
@@ -384,7 +389,11 @@ export interface MovementView {
   financialPeriod: MovementFinancialPeriodView
   description: string | null
   payment: PaymentView | null
-  invoice?: { id: string; status: InvoiceStatus; card: { id: string; name: string } } | null
+  invoice?: {
+    id: string
+    status: InvoiceStatus
+    card: { id: string; name: string; lastFourDigits: string }
+  } | null
   recurringMovement?: { id: string; name: string; card: { id: string; name: string } | null } | null
 }
 
@@ -397,8 +406,9 @@ export interface MovementListView {
   status: MovementStatus
   overdue: boolean
   paymentMethod?: 'WALLET' | 'CARD'
-  classification: MovementClassificationView
-  costCenter: MovementCostCenterView
+  invoicePayment?: boolean
+  classification: MovementClassificationView | null
+  costCenter: MovementCostCenterView | null
   financialPeriod: MovementFinancialPeriodView
 }
 
@@ -461,7 +471,26 @@ export interface WalletEntryView {
   previousBalance: number
   resultingBalance: number
   financialPeriod: { id: string; name: string } | null
-  reference: { type: 'MOVEMENT' | 'TRANSFER'; id: string } | null
+  reference: WalletEntryReference | null
+  wallet?: { id: string; name: string }
+}
+
+export interface WalletEntryReference {
+  type: 'MOVEMENT' | 'TRANSFER'
+  id: string
+  returnTransfer?: boolean | null
+  returnable?: boolean | null
+}
+
+export interface StatementTotal {
+  total: number
+  count: number
+}
+
+export interface StatementSummary {
+  credits: StatementTotal
+  debits: StatementTotal
+  lastEntryOn: string | null
 }
 
 export interface StatementQuery {
@@ -480,7 +509,7 @@ export interface StatementQuery {
 
 export interface AdjustmentForm {
   value: number
-  name: string
+  name?: string
 }
 
 export interface TransferForm {
@@ -526,12 +555,21 @@ export type InvoiceStatus = 'OPEN' | 'CLOSED' | 'PAID'
 
 export type InvoiceStatusFilter = InvoiceStatus | 'ALL'
 
+export interface InvoicePaymentView {
+  id: string
+  name: string
+  value: number
+}
+
 export interface InvoiceView {
   id: string
   status: InvoiceStatus
   value: number
-  card: { id: string; name: string }
+  purchaseCount: number
+  dueDate?: string | null
+  card: { id: string; name: string; lastFourDigits: string }
   financialPeriod: MovementFinancialPeriodView
+  payment?: InvoicePaymentView | null
 }
 
 export interface InvoiceQuery {
@@ -548,8 +586,10 @@ export interface CardPurchaseListView {
   name: string
   purchasedOn: string
   value: number
-  card: { id: string; name: string }
+  card: { id: string; name: string; lastFourDigits: string }
   invoice: { id: string; status: InvoiceStatus }
+  classification: MovementClassificationView
+  costCenter: MovementCostCenterView
 }
 
 export interface CardPurchaseQuery {
@@ -582,7 +622,7 @@ export interface CardPurchaseView {
   name: string
   purchasedOn: string
   value: number
-  card: { id: string; name: string }
+  card: { id: string; name: string; lastFourDigits: string }
   invoice: { id: string; status: InvoiceStatus }
   financialPeriod: MovementFinancialPeriodView
   classification: MovementClassificationView

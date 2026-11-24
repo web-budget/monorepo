@@ -1,6 +1,6 @@
 import { toTypedSchema } from '@/schemas/typedSchema'
 import { z } from 'zod'
-import { blankToNull, optionalNumberSchema } from '@/schemas/fields'
+import { optionalNumberSchema } from '@/schemas/fields'
 import type {
   CardPurchaseCreateForm,
   CardPurchaseUpdateForm,
@@ -28,6 +28,9 @@ export const cardPurchaseSchema = z
     const required = (path: string) =>
       context.addIssue({ code: 'custom', path: [path], params: { i18n: 'required' } })
     if (!values.installmentPurchase) {
+      if (!values.purchasedOn) {
+        required('purchasedOn')
+      }
       if (values.value == null) {
         required('value')
       }
@@ -65,7 +68,7 @@ export function cardPurchaseFormDefaults() {
 export function toCardPurchaseCreateForm(values: CardPurchaseFormValues): CardPurchaseCreateForm {
   return {
     name: values.name,
-    purchasedOn: blankToNull(values.purchasedOn),
+    purchasedOn: values.purchasedOn as string,
     value: values.value as number,
     card: values.card,
     financialPeriod: values.financialPeriod,
@@ -94,7 +97,7 @@ export function toInstallmentRecurringForm(
 export function toCardPurchaseUpdateForm(values: CardPurchaseFormValues): CardPurchaseUpdateForm {
   return {
     name: values.name,
-    purchasedOn: blankToNull(values.purchasedOn),
+    purchasedOn: values.purchasedOn as string,
     value: values.value as number,
     classification: values.classification,
     costCenter: values.costCenter,

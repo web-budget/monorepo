@@ -265,6 +265,27 @@ describe('MovementListView', () => {
       expect(wrapper.find('tbody tr').text()).toContain('Pago no cartão')
     })
 
+    it('marks an invoice payment with the invoice badge and leaves its cost center and classification empty', async () => {
+      const invoicePayment: MovementListView = {
+        ...movements[0]!,
+        name: 'Pagamento de fatura, Visa',
+        classification: null,
+        costCenter: null,
+        invoicePayment: true,
+      }
+      const { wrapper } = await render(
+        undefined,
+        [november, october],
+        [invoicePayment, movements[1]!],
+      )
+
+      const rows = wrapper.findAll('tbody tr')
+      expect(rows[0]!.find('td').text()).toBe('Pagamento de fatura, Visa fatura')
+      expect(rows[0]!.findAll('td')[2]!.text()).toBe('')
+      expect(rows[0]!.findAll('td')[3]!.text()).toBe('')
+      expect(rows[1]!.find('td').find('[data-slot="badge"]').exists()).toBe(false)
+    })
+
     it('uses the compact layout on the phone', async () => {
       useCompactViewport(true)
       const { wrapper } = await render()

@@ -63,6 +63,7 @@ function openCalendar(event: FocusEvent) {
           :name="name"
           :model-value="value"
           rows="4"
+          :placeholder="placeholder"
           :disabled="disabled"
           @update:model-value="handleChange($event, errors.length > 0)"
           @blur="handleBlur"

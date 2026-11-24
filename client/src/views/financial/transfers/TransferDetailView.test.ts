@@ -55,7 +55,8 @@ describe('TransferDetailView', () => {
     expect(wrapper.find('h1').text()).toBe('Conta corrente → Poupança')
     expect(wrapper.text()).toContain('Aluguel')
     expect(wrapper.text()).toMatch(/R\$\s500,00/)
-    expect(wrapper.text()).toContain('Ainda não devolvida')
+    expect(wrapper.text()).not.toContain('Devolução')
+    expect(wrapper.text()).not.toContain('Inativo')
     expect(wrapper.find('a[href="/financial/statement?wallet=w-1"]').text()).toBe('Ver no extrato')
     expect(buttonWithText(wrapper, 'Devolver')).toBeDefined()
     expect(wrapper.text()).not.toContain('Remover')
@@ -68,8 +69,7 @@ describe('TransferDetailView', () => {
     })
 
     expect(wrapper.text()).toContain('Devolvida')
-    expect(wrapper.find('a[href="/transfers/t-2/detail"]').exists()).toBe(true)
-    expect(wrapper.text()).not.toContain('Ainda não devolvida')
+    expect(wrapper.find('a[href="/transfers/t-2/detail"]').text()).toBe('Devolvida em 21/11/2026')
     expect(() => buttonWithText(wrapper, 'Devolver')).toThrow('no button "Devolver"')
   })
 
@@ -79,7 +79,9 @@ describe('TransferDetailView', () => {
       returnOf: { id: 't-0', createdOn: '2026-11-19T09:00:00' },
     })
 
-    expect(wrapper.find('a[href="/transfers/t-0/detail"]').exists()).toBe(true)
+    expect(wrapper.find('a[href="/transfers/t-0/detail"]').text()).toBe(
+      'Devolve a transferência de 19/11/2026',
+    )
     expect(wrapper.text()).toContain('Devolução')
   })
 
@@ -96,7 +98,7 @@ describe('TransferDetailView', () => {
 
     expect(transfersApi.giveBack).toHaveBeenCalledWith('t-1')
     expect(toast.success).toHaveBeenCalledWith('Transferência devolvida', {
-      description: 'O dinheiro voltou de Poupança para Conta corrente.',
+      description: 'As duas carteiras ganharam uma linha no extrato.',
       duration: 4000,
     })
     expect(dialog.props('transfer')).toBeNull()
