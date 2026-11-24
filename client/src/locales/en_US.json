@@ -312,7 +312,7 @@
   },
   "module-home": {
     "description": {
-      "financial": "Entries, invoices and period closing.",
+      "financial": "Entries, cards, recurring items and the closing of each period.",
       "registration": "Choose what to register or look up.",
       "configuration": "User accounts, access areas and integrations."
     },
@@ -324,12 +324,18 @@
       "card": "Credit and debit cards linked to wallets.",
       "classification": "Income and expense categories for entries.",
       "cost-center": "A hierarchy to group where the money is spent.",
-      "financial-period": "Create, edit and follow the periods.",
+      "financial-period": "Create, close and reopen periods.",
       "users": "Accounts, access areas and approvals.",
       "integrations": "Connections with banks and external services.",
       "movement": "Income and expenses of the period.",
       "transfer": "Money that moves between wallets.",
       "statement": "Balance changes of each wallet."
+    },
+    "attention": {
+      "overdue": "{count} overdue | {count} overdue",
+      "closed-invoice": "{count} closed to pay | {count} closed to pay",
+      "expired": "{count} expired | {count} expired",
+      "pending": "{period} pending"
     }
   },
   "action-button": {

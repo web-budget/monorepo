@@ -1,7 +1,9 @@
 import { onMounted, ref } from 'vue'
 
-export function useModuleCounts(sources: Record<string, () => Promise<number | null>>) {
-  const counts = ref<Record<string, number | null>>({})
+export function useModuleCounts<T extends number | string = number>(
+  sources: Record<string, () => Promise<T | null>>,
+) {
+  const counts = ref<Record<string, T | null>>({})
 
   onMounted(() =>
     Promise.all(

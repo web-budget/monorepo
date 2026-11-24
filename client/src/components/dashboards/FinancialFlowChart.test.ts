@@ -12,6 +12,7 @@ vi.mock('vue-chartjs', () => ({
     props: {
       data: { type: Object, default: undefined },
       options: { type: Object, default: undefined },
+      plugins: { type: Array, default: undefined },
     },
     setup: () => () => h('canvas'),
   }),
@@ -46,9 +47,7 @@ const periods: FinancialFlowPeriod[] = [
 
 const tokens: Record<string, string> = {
   '--income': 'rgb(0, 128, 0)',
-  '--income-muted': 'rgb(200, 240, 200)',
   '--expense': 'rgb(200, 0, 0)',
-  '--expense-muted': 'rgb(250, 220, 220)',
   '--border': 'rgb(220, 220, 220)',
   '--muted-foreground': 'rgb(100, 100, 100)',
   '--font-mono': 'IBM Plex Mono',
@@ -76,47 +75,84 @@ describe('FinancialFlowChart', () => {
     document.documentElement.removeAttribute('style')
   })
 
-  it('draws a revenue and an expense bar for each period, labelled by the month', () => {
+  it('draws the twelve months of the year, with the periods in the month they end', () => {
     const { bar } = render()
 
     const data = bar().props('data')
-    expect(data.labels).toHaveLength(2)
-    expect(data.labels[0]).toMatch(/set/i)
-    expect(data.labels[1]).toMatch(/out/i)
+    expect(data.labels).toEqual([
+      'jan',
+      'fev',
+      'mar',
+      'abr',
+      'mai',
+      'jun',
+      'jul',
+      'ago',
+      'set',
+      'out',
+      'nov',
+      'dez',
+    ])
     expect(data.datasets.map((dataset: { label: string }) => dataset.label)).toEqual([
       'Receitas',
       'Despesas',
     ])
-    expect(data.datasets[0].data).toEqual([1000, 800])
-    expect(data.datasets[1].data).toEqual([400, 300])
+    expect(data.datasets[0].data).toEqual([0, 0, 0, 0, 0, 0, 0, 0, 1000, 800, 0, 0])
+    expect(data.datasets[1].data).toEqual([0, 0, 0, 0, 0, 0, 0, 0, 400, 300, 0, 0])
   })
 
-  it('takes the colors from the tokens, with the provisional period lighter and dashed', () => {
+  it('takes the colors from the tokens, with the provisional period at 45% of the color', () => {
     const { bar } = render()
 
     const [revenues, expenses] = bar().props('data').datasets
-    expect(revenues.backgroundColor).toEqual([tokens['--income'], tokens['--income-muted']])
-    expect(expenses.backgroundColor).toEqual([tokens['--expense'], tokens['--expense-muted']])
+    expect(revenues.backgroundColor[8]).toBe(tokens['--income'])
+    expect(revenues.backgroundColor[9]).toBe('color-mix(in oklch, rgb(0, 128, 0) 45%, transparent)')
+    expect(expenses.backgroundColor[8]).toBe(tokens['--expense'])
+    expect(expenses.backgroundColor[9]).toBe('color-mix(in oklch, rgb(200, 0, 0) 45%, transparent)')
+    expect(revenues.hoverBackgroundColor).toEqual(revenues.backgroundColor)
     expect(revenues.borderColor).toBe(tokens['--income'])
     expect(expenses.borderColor).toBe(tokens['--expense'])
-    expect(revenues.borderWidth).toEqual([0, 1.5])
-    expect(revenues.borderDash).toEqual([4, 3])
   })
 
-  it('formats the axis in money with the mono font and names the period in the tooltip', () => {
+  it('draws a round axis in plain numbers, with the mono font, scaled to the chart width', () => {
     const { bar } = render()
 
-    const options = bar().props('options')
-    expect(options.scales.y.ticks.font.family).toBe('IBM Plex Mono')
-    expect(options.scales.y.grid.color).toBe(tokens['--border'])
-    expect(options.scales.x.ticks.color).toBe(tokens['--muted-foreground'])
-    expect(options.scales.y.ticks.callback(1500)).toMatch(/R\$\s*1\.500,00/)
-    const { callbacks } = options.plugins.tooltip
-    expect(callbacks.title([{ dataIndex: 1 }])).toBe('Outubro')
-    expect(callbacks.label({ dataset: { label: 'Receitas' }, raw: 800 })).toMatch(
+    const { y, x } = bar().props('options').scales
+    expect(y.min).toBe(0)
+    expect(y.max).toBe(1000)
+    expect(y.ticks.stepSize).toBe(250)
+    expect(y.ticks.font.family).toBe('IBM Plex Mono')
+    expect(y.ticks.callback(1500)).toBe('1.500')
+    expect(y.grid.color).toBe(tokens['--border'])
+    expect(x.ticks.color).toBe(tokens['--muted-foreground'])
+    expect(x.ticks.font.size({ chart: { width: 720 } })).toBe(12)
+    expect(y.ticks.font.size({ chart: { width: 720 } })).toBe(11)
+    expect(x.ticks.font.size({ chart: { width: 200 } })).toBe(10)
+    expect(x.ticks.font.size({ chart: { width: 2000 } })).toBe(16)
+  })
+
+  it('marks the empty months for the plugin and names the period in the tooltip', () => {
+    const { bar } = render()
+
+    const { plugins } = bar().props('options')
+    expect(plugins.flowMarks).toEqual({
+      empty: [0, 1, 2, 3, 4, 5, 6, 7, 10, 11],
+      provisional: [9],
+      color: tokens['--muted-foreground'],
+      font: 'IBM Plex Mono',
+    })
+    expect(plugins.tooltip.callbacks.title([{ dataIndex: 9 }])).toBe('Outubro')
+    expect(plugins.tooltip.callbacks.title([{ dataIndex: 0 }])).toBe('jan')
+    expect(plugins.tooltip.callbacks.label({ dataset: { label: 'Receitas' }, raw: 800 })).toMatch(
       /^Receitas: R\$\s*800,00$/,
     )
-    expect(options.plugins.legend.display).toBe(false)
+    expect(plugins.legend.display).toBe(false)
+  })
+
+  it('registers the plugin that draws the empty months', () => {
+    const { bar } = render()
+
+    expect(bar().props('plugins')).toEqual([expect.objectContaining({ id: 'flowMarks' })])
   })
 
   it('explains the three kinds of bar in its own legend', () => {
