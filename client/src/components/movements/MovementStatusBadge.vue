@@ -16,7 +16,7 @@ const days = computed(() => daysOverdue(props.dueDate))
 </script>
 
 <template>
-  <Badge v-if="overdue" variant="pending">
+  <Badge v-if="overdue" variant="highlight">
     <Clock />
     {{
       days > 0 ? $t('movement.status.overdue-days', { days }, days) : $t('movement.status.overdue')

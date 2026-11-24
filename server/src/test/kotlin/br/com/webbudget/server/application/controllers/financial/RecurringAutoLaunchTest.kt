@@ -127,7 +127,7 @@ class RecurringAutoLaunchTest : BaseIntegrationTest() {
     }
 
     private fun createPeriod(name: String, startingAt: String, endingAt: String): ResponseSpec = restTestClient.post()
-        .uri("/private/v1/registration/financial-periods")
+        .uri("/private/v1/financial/financial-periods")
         .contentType(MediaType.APPLICATION_JSON)
         .body("""{"name": "$name", "startingAt": "$startingAt", "endingAt": "$endingAt", "revenuesGoal": 10, "expensesGoal": 5}""")
         .exchange()

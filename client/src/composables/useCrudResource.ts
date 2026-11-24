@@ -42,12 +42,12 @@ export function useCrudResource<L extends { id: string }, V, C, U, S extends str
     })
   }
 
-  async function count(status: S): Promise<number | null> {
+  async function count(status: S, keepSearch = false): Promise<number | null> {
     try {
       const query = toPageQuery({
         ...pageRequest.value,
         status,
-        filterText: '',
+        filterText: keepSearch ? pageRequest.value.filterText : '',
         current: 0,
         size: 1,
       })

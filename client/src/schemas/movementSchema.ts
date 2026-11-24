@@ -10,6 +10,10 @@ import type {
 } from '@/types'
 import { formatLocalDate } from '@/utils/localDate'
 
+export const PAYMENT_METHODS = ['WALLET', 'CARD'] as const
+
+export type PaymentMethod = (typeof PAYMENT_METHODS)[number]
+
 export const MOVEMENT_TYPES = ['EXPENSE', 'INCOME'] as const
 
 function discountBelowValue(
@@ -34,14 +38,17 @@ export const movementSchema = z
     description: z.string().nullish(),
     paid: z.boolean(),
     paidOn: z.string().nullish(),
+    via: z.enum(PAYMENT_METHODS).default('WALLET'),
     wallet: z.string().nullish(),
+    card: z.string().nullish(),
     discount: optionalNumberSchema(z.number().min(0)),
   })
   .superRefine((values, context) => {
     if (!values.paid) {
       return
     }
-    for (const field of ['paidOn', 'wallet'] as const) {
+    const destination = values.type === 'EXPENSE' && values.via === 'CARD' ? 'card' : 'wallet'
+    for (const field of ['paidOn', destination] as const) {
       if (!values[field]) {
         context.addIssue({ code: 'custom', path: [field], params: { i18n: 'required' } })
       }
@@ -54,12 +61,13 @@ export const movementFormSchema = toTypedSchema(movementSchema)
 export type MovementFormValues = z.infer<typeof movementSchema>
 
 export function movementFormDefaults() {
-  return { type: 'EXPENSE' as MovementType, paid: false, paidOn: formatLocalDate(new Date()) }
+  return {
+    type: 'EXPENSE' as MovementType,
+    paid: false,
+    paidOn: formatLocalDate(new Date()),
+    via: 'WALLET' as PaymentMethod,
+  }
 }
-
-export const PAYMENT_METHODS = ['WALLET', 'CARD'] as const
-
-export type PaymentMethod = (typeof PAYMENT_METHODS)[number]
 
 export function createPaymentSchema(movementValue: () => number) {
   return toTypedSchema(
@@ -106,14 +114,15 @@ export function toMovementCreateForm(values: MovementFormValues): MovementCreate
     costCenter: values.costCenter,
     classification: values.classification,
     description: blankToNull(values.description),
-    payment:
-      values.paid && values.wallet
-        ? toPaymentForm({
-            paidOn: values.paidOn ?? '',
-            wallet: values.wallet,
-            discount: values.discount,
-          })
-        : null,
+    payment: values.paid
+      ? toPaymentForm({
+          paidOn: values.paidOn ?? '',
+          via: values.type === 'EXPENSE' ? values.via : 'WALLET',
+          wallet: values.wallet,
+          card: values.card,
+          discount: values.discount,
+        })
+      : null,
   }
 }
 

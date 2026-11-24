@@ -432,7 +432,8 @@
     "footer": {
       "until": " até ",
       "total": ", total ",
-      "range": "{first}–{last} de {total}"
+      "range": "{first}–{last} de {total}",
+      "range-noun": "{first}–{last} de {total} {noun}"
     },
     "pagination": {
       "rows-per-page": "Linhas por página",
@@ -899,7 +900,7 @@
       "found": "{count} carteira encontrada para “{query}” | {count} carteiras encontradas para “{query}”"
     },
     "remove": {
-      "title": "Remover a carteira “{name}”?",
+      "title": "Excluir a carteira “{name}”?",
       "description": "Não dá para desfazer."
     },
     "toast": {
@@ -907,7 +908,7 @@
       "created-detail": "“{name}” já aparece nos lançamentos.",
       "updated": "Alterações salvas",
       "updated-detail": "“{name}” foi atualizada.",
-      "removed": "Carteira removida",
+      "removed": "Carteira excluída",
       "removed-detail": "“{name}” saiu da lista."
     },
     "sections": {
@@ -956,7 +957,7 @@
       "found": "{count} cartão encontrado para “{query}” | {count} cartões encontrados para “{query}”"
     },
     "remove": {
-      "title": "Remover o cartão “{name}”?",
+      "title": "Excluir o cartão “{name}”?",
       "description": "Não dá para desfazer."
     },
     "toast": {
@@ -964,7 +965,7 @@
       "created-detail": "“{name}” já aparece nos lançamentos.",
       "updated": "Alterações salvas",
       "updated-detail": "“{name}” foi atualizado.",
-      "removed": "Cartão removido",
+      "removed": "Cartão excluído",
       "removed-detail": "“{name}” saiu da lista."
     },
     "sections": {
@@ -981,15 +982,20 @@
       "placeholder": "Nome"
     },
     "table-columns": {
-      "name": "Nome",
+      "name": "Período",
       "starting-at": "Início",
       "ending-at": "Fim",
-      "status": "Status"
+      "status": "Situação",
+      "revenues-goal": "Meta de receita",
+      "expenses-goal": "Meta de despesa",
+      "result": "Resultado (R$)"
     },
     "status": {
       "open": "Aberto",
       "closed": "Encerrado",
-      "expired": "Aberto · expirado"
+      "expired": "Aberto · expirado",
+      "expired-short": "expirado",
+      "closed-short": "encerrado"
     },
     "options": {
       "all": "Todos",
@@ -997,15 +1003,19 @@
       "closed": "Encerrados"
     },
     "form": {
-      "new": "Novo período financeiro",
-      "editing": "Editando período financeiro",
-      "detailing": "Detalhando período financeiro",
+      "new": "Criando",
+      "editing": "Editando",
+      "detailing": "Detalhando",
+      "title-new": "Novo período",
+      "title-editing": "Editar nome e metas",
       "deleting": "Excluindo período financeiro",
       "name": "Nome",
-      "starting-at": "Início",
-      "ending-at": "Fim",
-      "expenses-goal": "Meta de despesas",
-      "revenues-goal": "Meta de receitas"
+      "starting-at": "Data inicial",
+      "ending-at": "Data final",
+      "expenses-goal": "Meta de despesa",
+      "revenues-goal": "Meta de receita",
+      "name-example": "Ex.: Janeiro de 2027",
+      "status": "Situação"
     },
     "errors": {
       "overlapping-dates": "Data de início e fim estão sobrepondo com outro período financeiro existente",
@@ -1014,31 +1024,37 @@
     },
     "list": {
       "description": "Intervalos de datas dos lançamentos.",
-      "empty-title": "Nenhum período financeiro ainda",
-      "empty-description": "Crie um período financeiro para começar a registrar os lançamentos.",
+      "empty-title": "Nenhum período criado",
+      "empty-description": "Nada é lançado sem um período aberto. Crie o primeiro.",
       "plural": "os períodos financeiros",
       "found": "{count} período financeiro encontrado para “{query}” | {count} períodos financeiros encontrados para “{query}”",
-      "expired-notice": "{count} período expirado: {names}. Ainda aceita lançamentos. | {count} períodos expirados: {names}. Ainda aceitam lançamentos."
+      "expired-notice": {
+        "title": "{count} período expirado: {names} | {count} períodos expirados: {names}",
+        "description": "Ainda aceita lançamentos. | Ainda aceitam lançamentos."
+      },
+      "noun": "período | períodos",
+      "tabs-note": "Resultado só existe depois do fechamento.",
+      "provisional": "provisório",
+      "edit": "Editar nome e metas"
     },
     "remove": {
-      "title": "Remover o período financeiro “{name}”?",
+      "title": "Excluir o período financeiro “{name}”?",
       "description": "Não dá para desfazer."
     },
     "toast": {
-      "created": "Período financeiro criado",
+      "created": "Período criado",
       "created-detail": "“{name}” já aceita lançamentos. | “{name}” já aceita lançamentos. 1 recorrente lançado. | “{name}” já aceita lançamentos. {count} recorrentes lançados.",
       "updated": "Alterações salvas",
       "updated-detail": "“{name}” foi atualizado.",
-      "removed": "Período financeiro removido",
+      "removed": "Período financeiro excluído",
       "removed-detail": "“{name}” saiu da lista."
     },
     "sections": {
       "identification": "Identificação",
-      "identification-help": "Como o período aparece nos lançamentos.",
       "dates": "Datas",
-      "dates-help": "As datas não mudam depois de criado.",
+      "dates-help": "Sem sobreposição com outro período.",
       "goals": "Metas",
-      "goals-help": "Valores previstos de receitas e despesas no período.",
+      "goals-help": "Opcionais.",
       "result": "Resultado provisório",
       "result-closed": "Resultado",
       "movements": "Movimentos"
@@ -1050,6 +1066,11 @@
     },
     "actions": {
       "view-movements": "Ver movimentos"
+    },
+    "detail": {
+      "launched": "Lançados",
+      "open": "Em aberto",
+      "paid": "Pagos"
     }
   },
   "classification": {
@@ -1087,7 +1108,7 @@
       "found": "{count} classificação encontrada para “{query}” | {count} classificações encontradas para “{query}”"
     },
     "remove": {
-      "title": "Remover a classificação “{name}”?",
+      "title": "Excluir a classificação “{name}”?",
       "description": "Não dá para desfazer."
     },
     "toast": {
@@ -1095,7 +1116,7 @@
       "created-detail": "“{name}” já aparece nos lançamentos.",
       "updated": "Alterações salvas",
       "updated-detail": "“{name}” foi atualizada.",
-      "removed": "Classificação removida",
+      "removed": "Classificação excluída",
       "removed-detail": "“{name}” saiu da lista."
     },
     "sections": {
@@ -1137,7 +1158,7 @@
       "found": "{count} centro de custo encontrado para “{query}” | {count} centros de custo encontrados para “{query}”"
     },
     "remove": {
-      "title": "Remover o centro de custo “{name}”?",
+      "title": "Excluir o centro de custo “{name}”?",
       "description": "Não dá para desfazer."
     },
     "toast": {
@@ -1145,7 +1166,7 @@
       "created-detail": "“{name}” já aparece nos lançamentos.",
       "updated": "Alterações salvas",
       "updated-detail": "“{name}” foi atualizado.",
-      "removed": "Centro de custo removido",
+      "removed": "Centro de custo excluído",
       "removed-detail": "“{name}” saiu da lista."
     },
     "sections": {
@@ -1209,7 +1230,7 @@
     "status": "Situação",
     "actions": {
       "edit": "Editar",
-      "remove": "Remover",
+      "remove": "Excluir",
       "more": "Mais ações"
     },
     "discard": {
@@ -1237,7 +1258,7 @@
   "movement": {
     "title": "Movimentos",
     "search": {
-      "placeholder": "Nome"
+      "placeholder": "Nome, centro de custo ou classificação"
     },
     "actions": {
       "details": "Detalhes",
@@ -1245,13 +1266,17 @@
       "pay": "Pagar",
       "receive": "Receber",
       "edit": "Editar",
-      "undo": "Desfazer pagamento"
+      "undo": "Desfazer pagamento",
+      "view-statement": "Ver no extrato",
+      "view-invoice": "Ver na fatura"
     },
     "table-columns": {
       "name": "Nome",
       "due-date": "Vencimento",
       "value": "Valor (R$)",
-      "status": "Situação"
+      "status": "Situação",
+      "cost-center": "Centro de custo",
+      "classification": "Classificação"
     },
     "status": {
       "open": "Em aberto",
@@ -1288,8 +1313,7 @@
       "all-classifications": "Todas",
       "overdue": "Só vencidos",
       "clear": "Limpar",
-      "clear-count": "Limpar ({count})",
-      "invoices": "Pagamentos de fatura"
+      "clear-count": "Limpar ({count})"
     },
     "summary": {
       "received": "Recebido",
@@ -1297,16 +1321,29 @@
       "paid": "Pago",
       "paid-note": "Despesas pagas",
       "result": "Resultado",
-      "result-note": "Receitas − despesas"
+      "result-note": "Receitas − despesas",
+      "to-pay": "A pagar",
+      "overdue-count": "{count} vencido | {count} vencidos",
+      "nothing-overdue": "Nada vencido"
     },
-    "expired-notice": "{name} expirou em {date} e continua aberto. Ainda aceita lançamentos.",
+    "expired-notice": {
+      "title": "{name} expirou em {date} e continua aberto",
+      "description": "Ainda aceita lançamentos."
+    },
     "list": {
       "description": "Receitas e despesas de {period}.",
       "description-all": "Receitas e despesas de todos os períodos.",
-      "empty-title": "Nenhum movimento ainda",
+      "empty-title": "Nenhum movimento em {period}",
       "empty-description": "Lance a primeira receita ou despesa do período.",
       "plural": "os movimentos",
-      "found": "{count} movimento encontrado para “{query}” | {count} movimentos encontrados para “{query}”"
+      "found": "{count} movimento encontrado para “{query}” | {count} movimentos encontrados para “{query}”",
+      "noun": "movimento | movimentos",
+      "empty-title-all": "Nenhum movimento ainda",
+      "error-description": "O servidor não respondeu. Seus filtros continuam na URL.",
+      "no-result-query": "Nenhum movimento encontrado para “{query}”",
+      "no-result-filter": "Nenhum movimento com esses filtros",
+      "no-result-hint": "Mude os filtros ou limpe a busca.",
+      "no-result-action": "Limpar filtros"
     },
     "remove": {
       "title": "Excluir “{name}”?",
@@ -1316,13 +1353,16 @@
       "removed": "Movimento excluído",
       "removed-detail": "“{name}” saiu da lista.",
       "created": "Movimento lançado",
-      "created-detail": "“{name}” já aparece no período.",
+      "created-detail": "Ele aparece em aberto no período.",
       "updated": "Alterações salvas",
-      "updated-detail": "“{name}” foi atualizado.",
       "paid": "Pagamento registrado",
-      "paid-detail": "“{name}” foi pago, com linha nova no extrato.",
+      "paid-detail": "Saiu de {wallet}, linha nova no extrato.",
       "payment-undone": "Pagamento desfeito",
-      "payment-undone-detail": "“{name}” voltou para em aberto e o estorno está no extrato."
+      "payment-undone-detail": "O estorno já está no extrato e o movimento voltou para em aberto.",
+      "created-paid-detail": "Lançado já pago: o valor saiu da carteira.",
+      "received": "Recebimento registrado",
+      "received-detail": "Entrou em {wallet}, linha nova no extrato.",
+      "paid-on-card-detail": "Entrou na fatura de {card}."
     },
     "form": {
       "new": "Lançando",
@@ -1338,21 +1378,40 @@
       "period-hint": "Só períodos abertos.",
       "cost-center": "Centro de custo",
       "classification": "Classificação",
-      "description": "Descrição",
       "paid": "Lançar já pago",
       "paid-on": "Data do pagamento",
       "wallet": "Carteira",
       "discount": "Desconto",
       "discount-hint": "Opcional.",
       "submit-post": "Lançar",
-      "submit-post-paid": "Lançar e pagar"
+      "submit-post-paid": "Lançar e pagar",
+      "title-new": "Novo movimento",
+      "title-edit": "Editar movimento",
+      "name-example": {
+        "INCOME": "Ex.: Salário de dezembro",
+        "EXPENSE": "Ex.: Conta de água"
+      },
+      "value-hint": "Zero ou mais.",
+      "wallet-option": "{name} · saldo {balance}",
+      "paid-by": "Pago por",
+      "card": "Cartão",
+      "card-hint": "Entra na fatura aberta do período.",
+      "no-open-invoice": "Não há fatura aberta de {card} em {period}",
+      "no-open-invoice-hint": "Nada é lançado. Escolha outro período ou cartão.",
+      "classification-of": {
+        "INCOME": "Classificação de receita",
+        "EXPENSE": "Classificação de despesa"
+      }
     },
     "sections": {
       "identification": "Identificação",
       "payment": "Pagamento",
       "type": "Tipo",
       "classification": "Classificação",
-      "classification-help": "Só aparecem classificações do tipo escolhido.",
+      "classification-help": {
+        "INCOME": "Só aparecem classificações de receita.",
+        "EXPENSE": "Só aparecem classificações de despesa."
+      },
       "payment-help": "Opcional.",
       "invoice": "Fatura"
     },
@@ -1364,7 +1423,6 @@
       "period": "Período",
       "cost-center": "Centro de custo",
       "classification": "Classificação",
-      "description": "Descrição",
       "no-payment": "Sem pagamento.",
       "paid-on": "Data",
       "movement-value": "Valor do movimento",
@@ -1379,15 +1437,17 @@
       "invoice-status": "Situação da fatura",
       "invoice": "Fatura",
       "invoice-link": "Abrir a fatura",
-      "recurring": "Recorrente"
+      "recurring": "Recorrente",
+      "discount-none": "---"
     },
     "notices": {
       "paid": "Pago: não se edita nem se exclui",
       "paid-description": "Desfaça o pagamento para alterar.",
-      "closed": "Período encerrado: {name}",
+      "closed": "Período encerrado em {name}",
       "closed-description": "Congelado. Reabra o período para desfazer.",
       "overdue": "Venceu em {date}",
-      "overdue-description": "Em aberto há {days} dia. | Em aberto há {days} dias."
+      "overdue-description": "Em aberto há {days} dia. | Em aberto há {days} dias.",
+      "closed-action": "Ver períodos"
     },
     "menu": "Movimentos",
     "pay": {
@@ -1402,20 +1462,22 @@
       "amount-paid": "Valor pago",
       "amount-received": "Valor recebido",
       "balance-after": "Saldo depois",
-      "confirm-pay": "Pagar",
-      "confirm-receive": "Receber",
       "method": {
-        "label": "Pagar com",
+        "label": "Pago por",
         "WALLET": "Carteira",
-        "CARD": "Cartão"
+        "CARD": "Cartão de crédito"
       },
       "card": "Cartão",
-      "card-note": "A despesa entra como compra na fatura aberta do cartão, no período do movimento."
+      "confirm": "Confirmar",
+      "invoice": "Fatura"
     },
     "undo": {
       "title": "Desfazer o pagamento de “{name}”?",
-      "description": "O valor volta para a carteira como estorno e o movimento volta para “Em aberto”.",
-      "confirm": "Desfazer"
+      "confirm": "Desfazer",
+      "description-wallet": "O valor volta para {wallet} como {reversal}. O movimento volta para “Em aberto”.",
+      "reversal-word": "estorno",
+      "description-card": "A compra sai da fatura de {card}. O movimento volta para “Em aberto”.",
+      "reversal": "Estorno de {amount}"
     }
   },
   "transfer": {
@@ -1615,11 +1677,11 @@
       "created-detail": "“{name}” entrou na fatura aberta do cartão.",
       "updated": "Alterações salvas",
       "updated-detail": "“{name}” foi atualizada.",
-      "removed": "Compra removida",
+      "removed": "Compra excluída",
       "removed-detail": "“{name}” saiu da fatura."
     },
     "remove": {
-      "title": "Remover a compra “{name}”?",
+      "title": "Excluir a compra “{name}”?",
       "description": "Ela sai da fatura e do gasto por centro de custo. Não dá para desfazer."
     }
   }

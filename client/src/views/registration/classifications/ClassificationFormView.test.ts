@@ -55,7 +55,7 @@ describe('ClassificationFormView', () => {
     expect(document.activeElement).toBe(field(wrapper, 'name').element)
   })
 
-  it('creates a classification and goes to its detail', async () => {
+  it('creates a classification and stays on the cleared form', async () => {
     vi.mocked(classificationsApi.create).mockResolvedValue('c-9')
     const { wrapper, router } = await mountView(ClassificationFormView, 'classifications')
 
@@ -72,8 +72,9 @@ describe('ClassificationFormView', () => {
       description: '“Salary” já aparece nos lançamentos.',
       duration: 4000,
     })
-    expect(router.currentRoute.value.name).toBe('classifications.detail')
-    expect(router.currentRoute.value.params.id).toBe('c-9')
+    expect(router.currentRoute.value.name).not.toBe('classifications.detail')
+    expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('')
+    expect(document.activeElement).toBe(field(wrapper, 'name').element)
   })
 
   it('sends no description when the field is left empty', async () => {

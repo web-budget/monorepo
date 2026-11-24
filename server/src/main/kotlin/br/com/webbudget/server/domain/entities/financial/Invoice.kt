@@ -14,11 +14,20 @@ class CardReference(
     val invoicePaymentDay: Int
 )
 
+class InvoicePayment(
+    val externalId: UUID,
+    val name: String,
+    val value: BigDecimal,
+    val dueDate: LocalDate
+)
+
 class Invoice(
     val card: CardReference,
     val financialPeriod: FinancialPeriodReference,
     var status: Status = Status.OPEN,
-    var value: BigDecimal = BigDecimal.ZERO
+    var value: BigDecimal = BigDecimal.ZERO,
+    val purchaseCount: Int = 0,
+    val payment: InvoicePayment? = null
 ) : PersistentEntity() {
 
     fun isOpen(): Boolean = status == Status.OPEN

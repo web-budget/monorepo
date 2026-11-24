@@ -4,6 +4,7 @@ import br.com.webbudget.server.application.payloads.financial.CardPurchaseCreate
 import br.com.webbudget.server.application.payloads.financial.CardPurchaseListView
 import br.com.webbudget.server.application.payloads.financial.CardPurchaseUpdateForm
 import br.com.webbudget.server.application.payloads.financial.CardPurchaseView
+import br.com.webbudget.server.application.payloads.financial.InvoicePaymentView
 import br.com.webbudget.server.application.payloads.financial.InvoiceSummaryView
 import br.com.webbudget.server.application.payloads.financial.InvoiceView
 import br.com.webbudget.server.application.payloads.financial.MovementClassificationView
@@ -55,15 +56,28 @@ class CardPurchaseMapper(
         value = purchase.value,
         card = mapToCardView(purchase.card),
         invoice = mapToSummary(purchase.invoice!!),
-        recurringMovement = purchase.recurring?.let { mapToRecurringView(it) }
+        recurringMovement = purchase.recurring?.let { mapToRecurringView(it) },
+        classification = MovementClassificationView(
+            purchase.classification.externalId,
+            purchase.classification.name,
+            purchase.classification.type
+        ),
+        costCenter = MovementCostCenterView(
+            purchase.costCenter.externalId,
+            purchase.costCenter.name,
+            purchase.costCenter.fullName
+        )
     )
 
     fun mapToView(invoice: Invoice): InvoiceView = InvoiceView(
         id = invoice.externalId!!,
         status = invoice.status.name,
         value = invoice.value,
+        purchaseCount = invoice.purchaseCount,
+        dueDate = invoice.payment?.dueDate,
         card = mapToCardView(invoice.card),
-        financialPeriod = mapToPeriodView(invoice.financialPeriod)
+        financialPeriod = mapToPeriodView(invoice.financialPeriod),
+        payment = invoice.payment?.let { InvoicePaymentView(it.externalId, it.name, it.value) }
     )
 
     fun mapToDomain(form: CardPurchaseCreateForm): CardPurchase = CardPurchase(

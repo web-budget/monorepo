@@ -432,7 +432,8 @@
     "footer": {
       "until": " to ",
       "total": ", total ",
-      "range": "{first}–{last} of {total}"
+      "range": "{first}–{last} of {total}",
+      "range-noun": "{first}–{last} of {total} {noun}"
     },
     "pagination": {
       "rows-per-page": "Rows per page",
@@ -899,7 +900,7 @@
       "found": "{count} wallet found for “{query}” | {count} wallets found for “{query}”"
     },
     "remove": {
-      "title": "Remove the wallet “{name}”?",
+      "title": "Delete the wallet “{name}”?",
       "description": "This cannot be undone."
     },
     "toast": {
@@ -907,7 +908,7 @@
       "created-detail": "“{name}” now shows up in entries.",
       "updated": "Changes saved",
       "updated-detail": "“{name}” was updated.",
-      "removed": "Wallet removed",
+      "removed": "Wallet deleted",
       "removed-detail": "“{name}” left the list."
     },
     "sections": {
@@ -956,7 +957,7 @@
       "found": "{count} card found for “{query}” | {count} cards found for “{query}”"
     },
     "remove": {
-      "title": "Remove the card “{name}”?",
+      "title": "Delete the card “{name}”?",
       "description": "This cannot be undone."
     },
     "toast": {
@@ -964,7 +965,7 @@
       "created-detail": "“{name}” now shows up in entries.",
       "updated": "Changes saved",
       "updated-detail": "“{name}” was updated.",
-      "removed": "Card removed",
+      "removed": "Card deleted",
       "removed-detail": "“{name}” left the list."
     },
     "sections": {
@@ -981,15 +982,20 @@
       "placeholder": "Name"
     },
     "table-columns": {
-      "name": "Name",
+      "name": "Period",
       "starting-at": "Start",
       "ending-at": "End",
-      "status": "Status"
+      "status": "Status",
+      "revenues-goal": "Revenue goal",
+      "expenses-goal": "Expense goal",
+      "result": "Result (R$)"
     },
     "status": {
       "open": "Open",
       "closed": "Closed",
-      "expired": "Open · expired"
+      "expired": "Open · expired",
+      "expired-short": "expired",
+      "closed-short": "closed"
     },
     "options": {
       "all": "All",
@@ -997,15 +1003,19 @@
       "closed": "Closed"
     },
     "form": {
-      "new": "New financial period",
-      "editing": "Editing financial period",
-      "detailing": "Financial period details",
+      "new": "Creating",
+      "editing": "Editing",
+      "detailing": "Viewing",
+      "title-new": "New period",
+      "title-editing": "Edit name and goals",
       "deleting": "Deleting financial period",
       "name": "Name",
-      "starting-at": "Start",
-      "ending-at": "End",
-      "expenses-goal": "Expenses goal",
-      "revenues-goal": "Income goal"
+      "starting-at": "Start date",
+      "ending-at": "End date",
+      "expenses-goal": "Expense goal",
+      "revenues-goal": "Revenue goal",
+      "name-example": "E.g.: January 2027",
+      "status": "Status"
     },
     "errors": {
       "overlapping-dates": "The start and end dates overlap with another existing financial period",
@@ -1014,31 +1024,37 @@
     },
     "list": {
       "description": "Date ranges for postings.",
-      "empty-title": "No financial periods yet",
-      "empty-description": "Create a financial period to start recording entries.",
+      "empty-title": "No period created",
+      "empty-description": "Nothing is posted without an open period. Create the first one.",
       "plural": "financial periods",
       "found": "{count} financial period found for “{query}” | {count} financial periods found for “{query}”",
-      "expired-notice": "{count} expired period: {names}. It still accepts postings. | {count} expired periods: {names}. They still accept postings."
+      "expired-notice": {
+        "title": "{count} expired period: {names} | {count} expired periods: {names}",
+        "description": "It still accepts postings. | They still accept postings."
+      },
+      "noun": "period | periods",
+      "tabs-note": "The result only exists after closing.",
+      "provisional": "provisional",
+      "edit": "Edit name and goals"
     },
     "remove": {
-      "title": "Remove the financial period “{name}”?",
+      "title": "Delete the financial period “{name}”?",
       "description": "This cannot be undone."
     },
     "toast": {
-      "created": "Financial period created",
+      "created": "Period created",
       "created-detail": "“{name}” now accepts entries. | “{name}” now accepts entries. 1 recurring movement launched. | “{name}” now accepts entries. {count} recurring movements launched.",
       "updated": "Changes saved",
       "updated-detail": "“{name}” was updated.",
-      "removed": "Financial period removed",
+      "removed": "Financial period deleted",
       "removed-detail": "“{name}” left the list."
     },
     "sections": {
       "identification": "Identification",
-      "identification-help": "How the period appears in entries.",
       "dates": "Dates",
-      "dates-help": "The dates do not change after creation.",
+      "dates-help": "No overlap with another period.",
       "goals": "Goals",
-      "goals-help": "Expected income and expense amounts for the period.",
+      "goals-help": "Optional.",
       "result": "Provisional result",
       "result-closed": "Result",
       "movements": "Movements"
@@ -1050,6 +1066,11 @@
     },
     "actions": {
       "view-movements": "View movements"
+    },
+    "detail": {
+      "launched": "Posted",
+      "open": "Open",
+      "paid": "Paid"
     }
   },
   "classification": {
@@ -1087,7 +1108,7 @@
       "found": "{count} classification found for “{query}” | {count} classifications found for “{query}”"
     },
     "remove": {
-      "title": "Remove the classification “{name}”?",
+      "title": "Delete the classification “{name}”?",
       "description": "This cannot be undone."
     },
     "toast": {
@@ -1095,7 +1116,7 @@
       "created-detail": "“{name}” now shows up in entries.",
       "updated": "Changes saved",
       "updated-detail": "“{name}” was updated.",
-      "removed": "Classification removed",
+      "removed": "Classification deleted",
       "removed-detail": "“{name}” left the list."
     },
     "sections": {
@@ -1137,7 +1158,7 @@
       "found": "{count} cost center found for “{query}” | {count} cost centers found for “{query}”"
     },
     "remove": {
-      "title": "Remove the cost center “{name}”?",
+      "title": "Delete the cost center “{name}”?",
       "description": "This cannot be undone."
     },
     "toast": {
@@ -1145,7 +1166,7 @@
       "created-detail": "“{name}” now shows up in entries.",
       "updated": "Changes saved",
       "updated-detail": "“{name}” was updated.",
-      "removed": "Cost center removed",
+      "removed": "Cost center deleted",
       "removed-detail": "“{name}” left the list."
     },
     "sections": {
@@ -1209,7 +1230,7 @@
     "status": "Status",
     "actions": {
       "edit": "Edit",
-      "remove": "Remove",
+      "remove": "Delete",
       "more": "More actions"
     },
     "discard": {
@@ -1237,7 +1258,7 @@
   "movement": {
     "title": "Movements",
     "search": {
-      "placeholder": "Name"
+      "placeholder": "Name, cost center or classification"
     },
     "actions": {
       "details": "Details",
@@ -1245,13 +1266,17 @@
       "pay": "Pay",
       "receive": "Receive",
       "edit": "Edit",
-      "undo": "Undo payment"
+      "undo": "Undo payment",
+      "view-statement": "View on statement",
+      "view-invoice": "View on invoice"
     },
     "table-columns": {
       "name": "Name",
       "due-date": "Due date",
       "value": "Value (R$)",
-      "status": "Status"
+      "status": "Status",
+      "cost-center": "Cost center",
+      "classification": "Classification"
     },
     "status": {
       "open": "Open",
@@ -1288,8 +1313,7 @@
       "all-classifications": "All",
       "overdue": "Overdue only",
       "clear": "Clear",
-      "clear-count": "Clear ({count})",
-      "invoices": "Invoice payments"
+      "clear-count": "Clear ({count})"
     },
     "summary": {
       "received": "Received",
@@ -1297,16 +1321,29 @@
       "paid": "Paid",
       "paid-note": "Paid expenses",
       "result": "Result",
-      "result-note": "Income − expenses"
+      "result-note": "Income − expenses",
+      "to-pay": "To pay",
+      "overdue-count": "{count} overdue | {count} overdue",
+      "nothing-overdue": "Nothing overdue"
     },
-    "expired-notice": "{name} expired on {date} and is still open. It still accepts postings.",
+    "expired-notice": {
+      "title": "{name} expired on {date} and is still open",
+      "description": "It still accepts postings."
+    },
     "list": {
       "description": "Income and expenses of {period}.",
       "description-all": "Income and expenses of all periods.",
-      "empty-title": "No movements yet",
+      "empty-title": "No movements in {period}",
       "empty-description": "Post the first income or expense of the period.",
       "plural": "the movements",
-      "found": "{count} movement found for “{query}” | {count} movements found for “{query}”"
+      "found": "{count} movement found for “{query}” | {count} movements found for “{query}”",
+      "noun": "movement | movements",
+      "empty-title-all": "No movements yet",
+      "error-description": "The server did not respond. Your filters stay in the URL.",
+      "no-result-query": "No movements found for “{query}”",
+      "no-result-filter": "No movements with these filters",
+      "no-result-hint": "Change the filters or clear the search.",
+      "no-result-action": "Clear filters"
     },
     "remove": {
       "title": "Delete “{name}”?",
@@ -1316,13 +1353,16 @@
       "removed": "Movement deleted",
       "removed-detail": "“{name}” left the list.",
       "created": "Movement posted",
-      "created-detail": "“{name}” now shows in the period.",
+      "created-detail": "It shows up as open in the period.",
       "updated": "Changes saved",
-      "updated-detail": "“{name}” was updated.",
       "paid": "Payment recorded",
-      "paid-detail": "“{name}” was paid, with a new line in the statement.",
+      "paid-detail": "It left {wallet}, new line on the statement.",
       "payment-undone": "Payment undone",
-      "payment-undone-detail": "“{name}” is open again and the reversal is in the statement."
+      "payment-undone-detail": "The reversal is already on the statement and the movement is open again.",
+      "created-paid-detail": "Posted already paid: the money left the wallet.",
+      "received": "Receipt registered",
+      "received-detail": "It entered {wallet}, new line on the statement.",
+      "paid-on-card-detail": "It entered the invoice of {card}."
     },
     "form": {
       "new": "Posting",
@@ -1338,21 +1378,40 @@
       "period-hint": "Open periods only.",
       "cost-center": "Cost center",
       "classification": "Classification",
-      "description": "Description",
       "paid": "Post as already paid",
       "paid-on": "Payment date",
       "wallet": "Wallet",
       "discount": "Discount",
       "discount-hint": "Optional.",
       "submit-post": "Post",
-      "submit-post-paid": "Post and pay"
+      "submit-post-paid": "Post and pay",
+      "title-new": "New movement",
+      "title-edit": "Edit movement",
+      "name-example": {
+        "INCOME": "E.g.: December salary",
+        "EXPENSE": "E.g.: Water bill"
+      },
+      "value-hint": "Zero or more.",
+      "wallet-option": "{name} · balance {balance}",
+      "paid-by": "Paid by",
+      "card": "Card",
+      "card-hint": "It goes into the open invoice of the period.",
+      "no-open-invoice": "There is no open invoice for {card} in {period}",
+      "no-open-invoice-hint": "Nothing is posted. Choose another period or card.",
+      "classification-of": {
+        "INCOME": "Income classification",
+        "EXPENSE": "Expense classification"
+      }
     },
     "sections": {
       "identification": "Identification",
       "payment": "Payment",
       "type": "Type",
       "classification": "Classification",
-      "classification-help": "Only classifications of the chosen type appear.",
+      "classification-help": {
+        "INCOME": "Only income classifications show up.",
+        "EXPENSE": "Only expense classifications show up."
+      },
       "payment-help": "Optional.",
       "invoice": "Invoice"
     },
@@ -1364,7 +1423,6 @@
       "period": "Period",
       "cost-center": "Cost center",
       "classification": "Classification",
-      "description": "Description",
       "no-payment": "No payment.",
       "paid-on": "Date",
       "movement-value": "Movement value",
@@ -1379,15 +1437,17 @@
       "invoice-status": "Invoice status",
       "invoice": "Invoice",
       "invoice-link": "Open the invoice",
-      "recurring": "Recurring"
+      "recurring": "Recurring",
+      "discount-none": "---"
     },
     "notices": {
       "paid": "Paid: it cannot be edited or deleted",
       "paid-description": "Undo the payment to change it.",
-      "closed": "Closed period: {name}",
+      "closed": "Period closed on {name}",
       "closed-description": "Frozen. Reopen the period to undo.",
       "overdue": "Was due on {date}",
-      "overdue-description": "Open for {days} day. | Open for {days} days."
+      "overdue-description": "Open for {days} day. | Open for {days} days.",
+      "closed-action": "See periods"
     },
     "menu": "Movements",
     "pay": {
@@ -1402,20 +1462,22 @@
       "amount-paid": "Amount paid",
       "amount-received": "Amount received",
       "balance-after": "Balance after",
-      "confirm-pay": "Pay",
-      "confirm-receive": "Receive",
       "method": {
-        "label": "Pay with",
+        "label": "Paid by",
         "WALLET": "Wallet",
-        "CARD": "Card"
+        "CARD": "Credit card"
       },
       "card": "Card",
-      "card-note": "The expense goes in as a purchase on the open invoice of the card, in the period of the movement."
+      "confirm": "Confirm",
+      "invoice": "Invoice"
     },
     "undo": {
       "title": "Undo the payment of “{name}”?",
-      "description": "The amount goes back to the wallet as a reversal and the movement goes back to “Open”.",
-      "confirm": "Undo"
+      "confirm": "Undo",
+      "description-wallet": "The money goes back to {wallet} as a {reversal}. The movement goes back to “Open”.",
+      "reversal-word": "reversal",
+      "description-card": "The purchase leaves the invoice of {card}. The movement goes back to “Open”.",
+      "reversal": "Reversal of {amount}"
     }
   },
   "transfer": {
@@ -1615,11 +1677,11 @@
       "created-detail": "“{name}” went into the open invoice of the card.",
       "updated": "Changes saved",
       "updated-detail": "“{name}” was updated.",
-      "removed": "Purchase removed",
+      "removed": "Purchase deleted",
       "removed-detail": "“{name}” left the invoice."
     },
     "remove": {
-      "title": "Remove the purchase “{name}”?",
+      "title": "Delete the purchase “{name}”?",
       "description": "It leaves the invoice and the spending by cost center. This cannot be undone."
     }
   }

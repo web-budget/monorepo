@@ -6,7 +6,16 @@ import { useWalletsStore } from './wallets'
 
 vi.mock('@/api/wallets')
 
-const row: WalletListView = { id: 'w-1', name: 'Main', type: 'PERSONAL', bank: null, active: true }
+const row: WalletListView = {
+  id: 'w-1',
+  name: 'Main',
+  type: 'PERSONAL',
+  bank: null,
+  currentBalance: 0,
+  agency: null,
+  number: null,
+  active: true,
+}
 const view: WalletView = {
   ...row,
   currentBalance: 120.5,

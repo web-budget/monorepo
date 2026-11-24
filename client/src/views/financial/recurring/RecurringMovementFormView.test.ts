@@ -125,7 +125,7 @@ describe('RecurringMovementFormView', () => {
     expect(wrapper.text()).toContain('Campo obrigatório')
   })
 
-  it('creates an installment expense with a suggested card and opens its detail', async () => {
+  it('creates an installment expense with a suggested card and stays on the cleared form', async () => {
     const { wrapper, router } = await render()
     vi.mocked(recurringMovementsApi.create).mockResolvedValue('r-9')
     await fillBasics(wrapper)
@@ -153,8 +153,8 @@ describe('RecurringMovementFormView', () => {
       description: '“Celular novo” já pode ser lançado.',
       duration: 4000,
     })
-    expect(router.currentRoute.value.name).toBe('recurring-movements.detail')
-    expect(router.currentRoute.value.params.id).toBe('r-9')
+    expect(router.currentRoute.value.name).not.toBe('recurring-movements.detail')
+    expect((wrapper.find('[name="name"]').element as HTMLInputElement).value).toBe('')
   })
 
   it('does not accept a current installment past the last one', async () => {

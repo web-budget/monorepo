@@ -26,8 +26,26 @@ vi.mock('vue-sonner', () => ({
 }))
 
 const wallets: WalletListView[] = [
-  { id: 'w-1', name: 'Main', type: 'BANK_ACCOUNT', bank: 'ACME', active: true },
-  { id: 'w-2', name: 'Cash', type: 'PERSONAL', bank: 'Ignored', active: false },
+  {
+    id: 'w-1',
+    name: 'Main',
+    type: 'BANK_ACCOUNT',
+    bank: 'ACME',
+    currentBalance: 0,
+    agency: null,
+    number: null,
+    active: true,
+  },
+  {
+    id: 'w-2',
+    name: 'Cash',
+    type: 'PERSONAL',
+    bank: 'Ignored',
+    currentBalance: 0,
+    agency: null,
+    number: null,
+    active: false,
+  },
 ]
 
 const COUNTS: Record<string, number> = { ACTIVE: 4, INACTIVE: 1, ALL: 5 }
@@ -432,9 +450,9 @@ describe('WalletListView', () => {
       vi.mocked(walletsApi.remove).mockResolvedValue(undefined)
       const dialog = useConfirmDialog()
 
-      await chooseRowAction(wrapper, 0, 'Remover')
+      await chooseRowAction(wrapper, 0, 'Excluir')
 
-      expect(dialog.state.options.title).toBe('Remover a carteira “Main”?')
+      expect(dialog.state.options.title).toBe('Excluir a carteira “Main”?')
       expect(dialog.state.options.description).toBe('Não dá para desfazer.')
       expect(walletsApi.remove).not.toHaveBeenCalled()
 
@@ -443,7 +461,7 @@ describe('WalletListView', () => {
 
       expect(walletsApi.remove).toHaveBeenCalledWith('w-1')
       expect(wrapper.findAll('tbody tr')).toHaveLength(1)
-      expect(toast.success).toHaveBeenCalledWith('Carteira removida', {
+      expect(toast.success).toHaveBeenCalledWith('Carteira excluída', {
         description: '“Main” saiu da lista.',
         duration: 4000,
       })
@@ -455,7 +473,7 @@ describe('WalletListView', () => {
       serve(wallets.slice(1), 1, { ACTIVE: 3, INACTIVE: 1, ALL: 4 })
       const dialog = useConfirmDialog()
 
-      await chooseRowAction(wrapper, 0, 'Remover')
+      await chooseRowAction(wrapper, 0, 'Excluir')
       dialog.accept()
       await flushPromises()
 
@@ -466,7 +484,7 @@ describe('WalletListView', () => {
       const { wrapper } = await render()
       const dialog = useConfirmDialog()
 
-      await chooseRowAction(wrapper, 0, 'Remover')
+      await chooseRowAction(wrapper, 0, 'Excluir')
       dialog.cancel()
       await flushPromises()
 
@@ -481,7 +499,7 @@ describe('WalletListView', () => {
       )
       const dialog = useConfirmDialog()
 
-      await chooseRowAction(wrapper, 0, 'Remover')
+      await chooseRowAction(wrapper, 0, 'Excluir')
       dialog.accept()
       await flushPromises()
 

@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.util.UUID
 
 @RestController
@@ -33,6 +34,16 @@ class FinancialPeriodResultController(
         val revenues = paid[Movement.Type.INCOME] ?: BigDecimal.ZERO
         val expenses = paid[Movement.Type.EXPENSE] ?: BigDecimal.ZERO
 
-        return ResponseEntity.ok(FinancialPeriodResultView(revenues, expenses, revenues.subtract(expenses)))
+        val open = movementRepository.sumOpenExpenses(financialPeriod.id, LocalDate.now())
+
+        return ResponseEntity.ok(
+            FinancialPeriodResultView(
+                revenues = revenues,
+                expenses = expenses,
+                result = revenues.subtract(expenses),
+                toPay = open.total,
+                overdueExpenses = open.overdueCount
+            )
+        )
     }
 }
