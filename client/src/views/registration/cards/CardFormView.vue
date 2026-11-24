@@ -53,7 +53,7 @@ const walletOptions = computed(() => {
     value: wallet.id,
     label: wallet.name,
   }))
-  const current = store.card?.wallet
+  const current = updating.value ? store.card?.wallet : undefined
   return current && !wallets.some((wallet) => wallet.value === current.id)
     ? [...wallets, { value: current.id, label: current.name }]
     : wallets

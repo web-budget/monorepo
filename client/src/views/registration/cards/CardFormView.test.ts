@@ -263,6 +263,20 @@ describe('CardFormView', () => {
     expect(selects(wrapper)[1]!.props('modelValue')).toBe('w-1')
   })
 
+  it('does not offer the wallet of a card seen before when creating a new one', async () => {
+    const { wrapper } = await mountView(
+      CardFormView,
+      'cards',
+      {},
+      {
+        cards: {
+          card: { ...card, wallet: { ...wallet, id: 'w-9', name: 'Old wallet', active: false } },
+        },
+      },
+    )
+
+    expect(options(wrapper, 1)).toEqual([{ value: 'w-1', label: 'Main' }])
+  })
   it('saves the changes of a card and its status, and goes to the detail', async () => {
     vi.mocked(cardsApi.findById).mockResolvedValue({ ...card, wallet: null })
     vi.mocked(cardsApi.update).mockResolvedValue(card)
