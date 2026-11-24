@@ -51,7 +51,7 @@ const parentOptions = computed(() =>
 
 <template>
   <FormCard
-    :title="updating ? $t('cost-center.form.editing') : $t('cost-center.form.new')"
+    :title="updating ? $t('cost-center.form.title-editing') : $t('cost-center.form.title-new')"
     :description="updating ? form.values.name : undefined"
     :loading="loadingRecord"
     :submitting="submitting"

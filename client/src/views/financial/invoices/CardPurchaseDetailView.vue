@@ -7,10 +7,12 @@ import DateTimeDisplay from '@/components/common/DateTimeDisplay.vue'
 import DetailCard from '@/components/common/DetailCard.vue'
 import DetailField from '@/components/common/DetailField.vue'
 import DetailSection from '@/components/common/DetailSection.vue'
+import PurchaseInstallmentBadge from '@/components/invoices/PurchaseInstallmentBadge.vue'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { useCrudDetail } from '@/composables/useCrudDetail'
 import { useCardPurchasesStore } from '@/stores/cardPurchases'
+import { purchaseDisplayName } from '@/utils/invoices'
 
 const props = defineProps<{ id: string }>()
 
@@ -33,10 +35,13 @@ const editable = computed(
 
 <template>
   <DetailCard
-    :title="purchase?.name ?? $t('card-purchase.form.detailing')"
+    :title="purchase ? purchaseDisplayName(purchase) : $t('card-purchase.form.detailing')"
     :messages="messages"
     readonly
   >
+    <template v-if="purchase" #badge>
+      <PurchaseInstallmentBadge :recurring-movement="purchase.recurringMovement" />
+    </template>
     <template v-if="purchase" #footer>
       <Button as-child type="button" variant="outline">
         <RouterLink :to="{ name: 'invoices.detail', params: { id: purchase.invoice.id } }">

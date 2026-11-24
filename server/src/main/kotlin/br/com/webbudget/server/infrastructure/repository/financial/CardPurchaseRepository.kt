@@ -4,6 +4,7 @@ import br.com.webbudget.server.domain.entities.financial.CardPurchase
 import br.com.webbudget.server.domain.entities.financial.Invoice
 import br.com.webbudget.server.domain.entities.financial.PurchaseRecurring
 import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
+import br.com.webbudget.server.infrastructure.repository.containsIgnoringAccents
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.financial.tables.references.CARD_PURCHASES
@@ -56,7 +57,7 @@ class CardPurchaseRepository(
 
         val condition = DSL.and(
             listOfNotNull(
-                criteria.text?.let { purchases.NAME.containsIgnoreCase(it) },
+                criteria.text?.let { purchases.NAME.containsIgnoringAccents(it) },
                 criteria.card?.let { cards.EXTERNAL_ID.eq(it) },
                 criteria.invoice?.let { invoices.EXTERNAL_ID.eq(it) },
                 criteria.financialPeriod?.let { financialPeriods.EXTERNAL_ID.eq(it) },

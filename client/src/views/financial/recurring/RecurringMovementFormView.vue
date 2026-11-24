@@ -87,7 +87,11 @@ onMounted(() => run(options.load))
 
 <template>
   <FormCard
-    :title="updating ? $t('recurrent-movement.form.editing') : $t('recurrent-movement.form.new')"
+    :title="
+      updating
+        ? $t('recurrent-movement.form.title-editing')
+        : $t('recurrent-movement.form.title-new')
+    "
     :description="updating ? form.values.name : undefined"
     :loading="loadingRecord"
     :submitting="submitting"

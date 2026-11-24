@@ -166,6 +166,35 @@ describe('InvoiceDetailView', () => {
     ])
   })
 
+  it('badges the purchases born from a recurring with the installment or "recorrente"', async () => {
+    const { wrapper } = await render({}, [
+      {
+        ...purchases[0]!,
+        name: 'Celular novo 10/12',
+        recurringMovement: { id: 'r-1', name: 'Celular novo', installment: 10, installments: 12 },
+      },
+      {
+        ...purchases[1]!,
+        recurringMovement: { id: 'r-2', name: 'Streaming', installment: 4, installments: null },
+      },
+      { ...purchases[0]!, id: 'cp-3', name: 'Padaria' },
+    ])
+
+    const rows = wrapper.findAll('tbody tr')
+    expect(rows.map((row) => row.findAll('td')[1]!.text())).toEqual([
+      'Celular novo 10/12',
+      'Posto recorrente',
+      'Padaria',
+    ])
+    expect(rows.map((row) => row.find('[data-slot="installment"]').exists())).toEqual([
+      true,
+      true,
+      false,
+    ])
+    expect(rows[0]!.find('[data-slot="installment"]').text()).toBe('10/12')
+    expect(rows[1]!.find('[data-slot="installment"]').text()).toBe('recorrente')
+  })
+
   it('says when there are no purchases and offers the first one while the invoice is open', async () => {
     const { wrapper } = await render({}, [])
 

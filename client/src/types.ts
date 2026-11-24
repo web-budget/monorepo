@@ -634,6 +634,13 @@ export interface InvoiceQuery {
   sort?: string
 }
 
+export interface PurchaseRecurringView {
+  id: string
+  name: string
+  installment: number
+  installments: number | null
+}
+
 export interface CardPurchaseListView {
   id: string
   name: string
@@ -643,6 +650,7 @@ export interface CardPurchaseListView {
   invoice: { id: string; status: InvoiceStatus }
   classification: MovementClassificationView
   costCenter: MovementCostCenterView
+  recurringMovement?: PurchaseRecurringView | null
 }
 
 export interface CardPurchaseQuery {
@@ -681,6 +689,7 @@ export interface CardPurchaseView {
   classification: MovementClassificationView
   costCenter: MovementCostCenterView
   movement: string | null
+  recurringMovement?: PurchaseRecurringView | null
 }
 
 export type RecurringValueKind = 'FIXED' | 'VARIABLE'

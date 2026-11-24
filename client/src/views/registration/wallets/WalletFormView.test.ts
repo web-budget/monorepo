@@ -342,7 +342,7 @@ describe('WalletFormView', () => {
       const { wrapper } = await mountView(WalletFormView, 'wallets', { id: 'w-1' })
 
       expect(walletsApi.findById).toHaveBeenCalledWith('w-1')
-      expect(wrapper.find('h1').text()).toBe('Editando carteira')
+      expect(wrapper.find('h1').text()).toBe('Editar carteira')
       expect(wrapper.find('[data-slot="page-description"]').text()).toBe('Main')
       expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('Main')
       expect((field(wrapper, 'bank').element as HTMLInputElement).value).toBe('ACME')

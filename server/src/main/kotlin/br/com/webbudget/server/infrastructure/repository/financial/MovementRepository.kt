@@ -6,6 +6,7 @@ import br.com.webbudget.server.domain.entities.financial.Movement
 import br.com.webbudget.server.domain.entities.financial.Payment
 import br.com.webbudget.server.domain.entities.financial.RecurringMovementReference
 import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
+import br.com.webbudget.server.infrastructure.repository.containsIgnoringAccents
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.financial.tables.references.INVOICES
@@ -62,9 +63,9 @@ class MovementRepository(
             listOfNotNull(
                 filter.text?.let { text ->
                     DSL.or(
-                        movements.NAME.containsIgnoreCase(text),
-                        costCenters.NAME.containsIgnoreCase(text),
-                        classifications.NAME.containsIgnoreCase(text)
+                        movements.NAME.containsIgnoringAccents(text),
+                        costCenters.NAME.containsIgnoringAccents(text),
+                        classifications.NAME.containsIgnoringAccents(text)
                     )
                 },
                 filter.type?.let { type -> movements.TYPE.eq(type.name) },

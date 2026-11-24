@@ -36,9 +36,9 @@ class PagingTest {
     fun `should sort by the name in both directions and break ties from the newest to the oldest`() {
 
         assertThat(render(PageRequest.of(0, 10, Sort.by(Sort.Order.asc("name")))))
-            .containsExactly("name asc", "id desc")
+            .containsExactly("lower(unaccent(name)) asc", "id desc")
         assertThat(render(PageRequest.of(0, 10, Sort.by(Sort.Order.desc("name")))))
-            .containsExactly("name desc", "id desc")
+            .containsExactly("lower(unaccent(name)) desc", "id desc")
     }
 
     @Test
