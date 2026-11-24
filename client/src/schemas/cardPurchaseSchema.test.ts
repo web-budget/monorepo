@@ -4,6 +4,7 @@ import {
   toCardPurchaseCreateForm,
   toCardPurchaseFormValues,
   toCardPurchaseUpdateForm,
+  toInstallmentRecurringForm,
 } from '@/schemas/cardPurchaseSchema'
 import type { CardPurchaseView } from '@/types'
 
@@ -11,10 +12,25 @@ const values = {
   card: 'c-1',
   financialPeriod: 'p-1',
   name: 'Mercado',
-  purchasedOn: ' ',
+  purchasedOn: '2026-11-02',
   value: 10,
   costCenter: 'cc-1',
   classification: 'cl-1',
+  installmentPurchase: false,
+  installments: null,
+}
+
+const installmentValues = {
+  ...values,
+  value: null,
+  installmentPurchase: true,
+  installments: 12,
+  installmentValue: 249.9,
+}
+
+function issuePaths(input: unknown) {
+  const result = cardPurchaseSchema.safeParse(input)
+  return result.success ? [] : result.error.issues.map((issue) => issue.path.join('.'))
 }
 
 describe('cardPurchaseSchema', () => {
@@ -22,24 +38,65 @@ describe('cardPurchaseSchema', () => {
     expect(cardPurchaseSchema.safeParse(values).success).toBe(true)
     expect(cardPurchaseSchema.safeParse({ ...values, value: 0 }).success).toBe(false)
     expect(cardPurchaseSchema.safeParse({ ...values, card: '' }).success).toBe(false)
+    expect(cardPurchaseSchema.safeParse({ ...values, purchasedOn: '' }).success).toBe(false)
   })
 
-  it('sends a blank date as null and keeps only what each call takes', () => {
+  it('needs the date and the value of a plain purchase but not of an installment plan', () => {
+    expect(issuePaths({ ...values, purchasedOn: null })).toEqual(['purchasedOn'])
+    expect(issuePaths({ ...values, purchasedOn: '' })).toEqual(['purchasedOn'])
+    expect(issuePaths({ ...values, value: null })).toEqual(['value'])
+    expect(issuePaths({ ...values, value: undefined })).toEqual(['value'])
+    expect(cardPurchaseSchema.safeParse({ ...installmentValues, purchasedOn: null }).success).toBe(
+      true,
+    )
+  })
+
+  it('needs the installments and the value of each one for an installment plan', () => {
+    expect(issuePaths({ ...installmentValues, installments: null })).toEqual(['installments'])
+    expect(issuePaths({ ...installmentValues, installments: 1 })).toEqual(['installments'])
+    expect(issuePaths({ ...installmentValues, installmentValue: null })).toEqual([
+      'installmentValue',
+    ])
+    expect(issuePaths({ ...installmentValues, installmentValue: undefined })).toEqual([
+      'installmentValue',
+    ])
+  })
+
+  it('ignores the installments of a plain purchase', () => {
+    expect(cardPurchaseSchema.safeParse({ ...values, installments: 1 }).success).toBe(true)
+  })
+
+  it('keeps only what each call takes', () => {
     expect(toCardPurchaseCreateForm(values)).toEqual({
       name: 'Mercado',
-      purchasedOn: null,
+      purchasedOn: '2026-11-02',
       value: 10,
       card: 'c-1',
       financialPeriod: 'p-1',
       classification: 'cl-1',
       costCenter: 'cc-1',
     })
-    expect(toCardPurchaseUpdateForm({ ...values, purchasedOn: '2026-11-02' })).toEqual({
+    expect(toCardPurchaseUpdateForm(values)).toEqual({
       name: 'Mercado',
       purchasedOn: '2026-11-02',
       value: 10,
       classification: 'cl-1',
       costCenter: 'cc-1',
+    })
+  })
+
+  it('turns an installment plan into a fixed recurring expense on the card', () => {
+    expect(toInstallmentRecurringForm(installmentValues)).toEqual({
+      name: 'Mercado',
+      type: 'EXPENSE',
+      valueKind: 'FIXED',
+      value: 249.9,
+      installments: 12,
+      firstInstallment: 1,
+      autoLaunch: true,
+      classification: 'cl-1',
+      costCenter: 'cc-1',
+      card: 'c-1',
     })
   })
 
@@ -54,6 +111,15 @@ describe('cardPurchaseSchema', () => {
       classification: { id: 'cl-1' },
     } as CardPurchaseView
 
-    expect(toCardPurchaseFormValues(purchase)).toEqual({ ...values, purchasedOn: '2026-11-02' })
+    expect(toCardPurchaseFormValues(purchase)).toEqual({
+      card: 'c-1',
+      financialPeriod: 'p-1',
+      name: 'Mercado',
+      purchasedOn: '2026-11-02',
+      value: 10,
+      costCenter: 'cc-1',
+      classification: 'cl-1',
+      installmentPurchase: false,
+    })
   })
 })

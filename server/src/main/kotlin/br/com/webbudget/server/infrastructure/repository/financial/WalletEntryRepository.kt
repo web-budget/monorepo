@@ -4,6 +4,7 @@ import br.com.webbudget.server.domain.entities.financial.StatementLine
 import br.com.webbudget.server.domain.entities.financial.StatementSummary
 import br.com.webbudget.server.domain.entities.financial.StatementTotal
 import br.com.webbudget.server.domain.entities.financial.WalletEntry
+import br.com.webbudget.server.infrastructure.repository.containsIgnoringAccents
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.financial.tables.references.MOVEMENTS
@@ -144,7 +145,7 @@ class WalletEntryRepository(
             origins?.takeIf { it.isNotEmpty() }
                 ?.let { origins -> entries.ORIGIN.`in`(origins.map(WalletEntry.Origin::name)) },
             direction?.let { entries.DIRECTION.eq(it.name) },
-            text?.let { entries.NAME.containsIgnoreCase(it) },
+            text?.let { entries.NAME.containsIgnoringAccents(it) },
             minValue?.let { entries.VALUE.ge(it) },
             maxValue?.let { entries.VALUE.le(it) }
         )

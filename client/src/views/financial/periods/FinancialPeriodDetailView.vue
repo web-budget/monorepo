@@ -1,15 +1,18 @@
 <script setup lang="ts">
-import { ReceiptText } from 'lucide-vue-next'
+import { Lock, LockOpen, ReceiptText } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
 import DateTimeDisplay from '@/components/common/DateTimeDisplay.vue'
 import DetailCard from '@/components/common/DetailCard.vue'
 import DetailField from '@/components/common/DetailField.vue'
 import DetailSection from '@/components/common/DetailSection.vue'
 import PeriodStatusBadge from '@/components/listing/PeriodStatusBadge.vue'
+import ReopenPeriodDialog from '@/components/periods/ReopenPeriodDialog.vue'
 import { Button } from '@/components/ui/button'
 import { useCrudDetail } from '@/composables/useCrudDetail'
+import { useReopenPeriod } from '@/composables/useReopenPeriod'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { useFinancialPeriodsStore } from '@/stores/financialPeriods'
 import type { FinancialPeriodResultView } from '@/types'
@@ -32,7 +35,9 @@ const extraErrors = useServerErrors()
 const periodResult = ref<FinancialPeriodResultView>()
 const movementCounts = ref<{ launched: number; open: number; paid: number }>()
 
-onMounted(async () => {
+const router = useRouter()
+
+async function loadExtras() {
   await extraErrors.run(async () => {
     const [result, counts] = await Promise.all([
       store.findResult(props.id),
@@ -41,13 +46,26 @@ onMounted(async () => {
     periodResult.value = result
     movementCounts.value = counts
   })
-})
+}
+
+async function reload() {
+  await extraErrors.run(() => store.findOne(props.id))
+  await loadExtras()
+}
+
+const reopening = useReopenPeriod(reload)
+
+function closePeriod() {
+  return router.push({ name: 'closing', query: { period: props.id } })
+}
+
+onMounted(loadExtras)
 </script>
 
 <template>
   <DetailCard
     :title="financialPeriod?.name ?? $t('financial-period.form.detailing')"
-    :messages="[...messages, ...extraErrors.messages.value]"
+    :messages="[...messages, ...extraErrors.messages.value, ...reopening.messages.value]"
     readonly
     @edit="changeToUpdate"
     @delete="remove"
@@ -60,6 +78,22 @@ onMounted(async () => {
         <RouterLink :to="{ path: '/financial/movements', query: { period: id } }">
           <ReceiptText />{{ $t('financial-period.actions.view-movements') }}
         </RouterLink>
+      </Button>
+      <Button
+        v-if="financialPeriod.status === 'OPEN'"
+        type="button"
+        variant="outline"
+        @click="closePeriod()"
+      >
+        <Lock />{{ $t('period-closing.actions.close') }}
+      </Button>
+      <Button
+        v-else-if="financialPeriod.reopenable"
+        type="button"
+        variant="outline"
+        @click="reopening.open(financialPeriod)"
+      >
+        <LockOpen />{{ $t('period-closing.actions.reopen') }}
       </Button>
     </template>
     <template v-if="financialPeriod">
@@ -131,5 +165,11 @@ onMounted(async () => {
         />
       </DetailSection>
     </template>
+    <ReopenPeriodDialog
+      :period="reopening.target.value"
+      :loading="reopening.loading.value"
+      @close="reopening.close()"
+      @confirm="reopening.confirm()"
+    />
   </DetailCard>
 </template>

@@ -12,7 +12,10 @@ vi.mock('@/api/invoices')
 vi.mock('@/api/movements')
 vi.mock('@/api/periodResults')
 
-const summary = { canClose: true } as ClosingSummaryView
+const summary = {
+  canClose: true,
+  invoices: [{ id: 'i-1' }],
+} as ClosingSummaryView
 const result = {
   revenues: 1,
   expenses: 1,
@@ -34,12 +37,7 @@ function serveLoad(movementIds = ['m-1', 'm-2']) {
   vi.mocked(financialPeriodsApi.findClosing).mockResolvedValue(summary)
   vi.mocked(financialPeriodsApi.findResult).mockResolvedValue(result)
   vi.mocked(periodResultsApi.findAccumulated).mockResolvedValue(accumulated)
-  vi.mocked(movementsApi.findAll).mockImplementation((query) =>
-    Promise.resolve(
-      page(query.invoicePayments ? [{ id: 'm-2' }] : movementIds.map((id) => ({ id }))),
-    ),
-  )
-  vi.mocked(invoicesApi.findAll).mockResolvedValue(page([{ id: 'i-1' }]))
+  vi.mocked(movementsApi.findAll).mockResolvedValue(page(movementIds.map((id) => ({ id }))))
 }
 
 describe('usePeriodClosingStore', () => {
@@ -58,7 +56,6 @@ describe('usePeriodClosingStore', () => {
     expect(store.result).toEqual(result)
     expect(store.accumulated).toEqual(accumulated)
     expect(store.pendencies.map((movement) => movement.id)).toEqual(['m-1', 'm-2'])
-    expect(store.invoicePaymentIds).toEqual(['m-2'])
     expect(store.invoices.map((invoice) => invoice.id)).toEqual(['i-1'])
     expect(movementsApi.findAll).toHaveBeenCalledWith({
       statuses: ['OPEN'],
@@ -66,7 +63,6 @@ describe('usePeriodClosingStore', () => {
       size: 100,
       sort: 'dueDate,asc',
     })
-    expect(invoicesApi.findAll).toHaveBeenCalledWith({ financialPeriod: 'p-1', size: 100 })
     expect(store.loading).toBe(false)
   })
 
@@ -107,6 +103,5 @@ describe('usePeriodClosingStore', () => {
     expect(store.accumulated).toBeNull()
     expect(store.pendencies).toEqual([])
     expect(store.invoices).toEqual([])
-    expect(store.invoicePaymentIds).toEqual([])
   })
 })

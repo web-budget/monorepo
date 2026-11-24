@@ -72,25 +72,10 @@ describe('PageBreadcrumb', () => {
     expect(wrapper.findAll('li[data-slot="breadcrumb-item"]')).toHaveLength(1)
   })
 
-  it('shows only the last two levels on a phone', async () => {
+  it('keeps the whole trail on a phone', async () => {
     const wrapper = await render('/registration/deep/leaf')
 
-    const items = wrapper.findAll('li[data-slot="breadcrumb-item"]')
-    const separators = wrapper.findAll('li[data-slot="breadcrumb-separator"]')
-    expect(items.map((item) => item.classes().includes('max-md:hidden'))).toEqual([
-      true,
-      false,
-      false,
-    ])
-    expect(separators.map((separator) => separator.classes().includes('max-md:hidden'))).toEqual([
-      true,
-      false,
-    ])
-  })
-
-  it('keeps a trail of two levels whole on a phone', async () => {
-    const wrapper = await render('/registration/wallets')
-
+    expect(wrapper.findAll('li[data-slot="breadcrumb-item"]')).toHaveLength(3)
     expect(wrapper.html()).not.toContain('max-md:hidden')
   })
 })

@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { Check, Circle, Lock, TriangleAlert } from 'lucide-vue-next'
+import {
+  ArrowRight,
+  Banknote,
+  CircleAlert,
+  CircleCheck,
+  CircleDashed,
+  Lock,
+  Plus,
+} from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -10,7 +18,6 @@ import PageContainer from '@/components/common/PageContainer.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import FilterSelect from '@/components/forms/FilterSelect.vue'
 import ServerErrorAlert from '@/components/forms/ServerErrorAlert.vue'
-import InvoiceStatusBadge from '@/components/invoices/InvoiceStatusBadge.vue'
 import CloseInvoiceDialog from '@/components/invoices/CloseInvoiceDialog.vue'
 import PeriodStatusBadge from '@/components/listing/PeriodStatusBadge.vue'
 import PayMovementDialog from '@/components/movements/PayMovementDialog.vue'
@@ -30,14 +37,14 @@ import {
 } from '@/components/ui/table'
 import { useActiveCards } from '@/composables/useActiveCards'
 import { useActiveWallets } from '@/composables/useActiveWallets'
-import { useCloseInvoice } from '@/composables/useCloseInvoice'
+import { useCloseClosingInvoice } from '@/composables/useCloseClosingInvoice'
 import { useMovementActions } from '@/composables/useMovementActions'
 import { useMovementFilterOptions } from '@/composables/useMovementFilterOptions'
 import { useNotification } from '@/composables/useNotification'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { usePeriodClosingStore } from '@/stores/periodClosing'
-import type { ClosingPeriodView, MovementListView } from '@/types'
-import { defaultClosingPeriod } from '@/utils/periods'
+import type { ClosingInvoiceView, ClosingPeriodView, MovementListView } from '@/types'
+import { defaultClosingPeriod, monthOf } from '@/utils/periods'
 import { queryValue } from '@/utils/queryValue'
 
 const { t, n } = useI18n()
@@ -46,8 +53,7 @@ const router = useRouter()
 const { showSuccess } = useNotification()
 
 const store = usePeriodClosingStore()
-const { summary, result, accumulated, pendencies, invoicePaymentIds, invoices, loading } =
-  storeToRefs(store)
+const { summary, result, accumulated, pendencies, invoices, loading } = storeToRefs(store)
 
 const options = useMovementFilterOptions()
 const activeWallets = useActiveWallets()
@@ -70,7 +76,7 @@ const periodChoices = computed(() =>
   openPeriods.value.map((period) => ({
     value: period.id,
     label: period.expired
-      ? `${period.name} · ${t('financial-period.status.expired')}`
+      ? `${period.name} · ${t('financial-period.status.expired-short')}`
       : period.name,
   })),
 )
@@ -80,7 +86,7 @@ function reload() {
 }
 
 const actions = useMovementActions(reload)
-const closeInvoice = useCloseInvoice(reload)
+const closeInvoice = useCloseClosingInvoice(reload)
 
 async function choose(id: string) {
   selectedId.value = id
@@ -113,20 +119,26 @@ watch(
   },
 )
 
-const hasPendencies = computed(() => (summary.value?.openMovements.count ?? 0) > 0)
-const checklist = computed(() => [
-  { key: 'pendencies', done: !hasPendencies.value },
-  { key: 'invoices', done: (summary.value?.openInvoices.length ?? 0) === 0 },
-  { key: 'next-period', done: summary.value?.nextOpenPeriod != null },
-])
-const noNextPeriod = computed(() => summary.value !== null && summary.value.nextOpenPeriod === null)
-
-function isInvoicePayment(movement: MovementListView) {
-  return invoicePaymentIds.value.includes(movement.id)
-}
+const noNextPeriod = computed(() => summary.value != null && summary.value.nextOpenPeriod == null)
+const pendenciesDone = computed(() => pendencies.value.length === 0)
+const blockingInvoices = computed(() => summary.value?.openInvoices.length ?? 0)
+const nextPeriodDone = computed(() => !noNextPeriod.value || pendenciesDone.value)
+const ready = computed(() => summary.value?.canClose === true && !loading.value)
 
 function signedValue(movement: MovementListView) {
   return movement.type === 'INCOME' ? movement.value : -movement.value
+}
+
+function signOf(value: number) {
+  return value < 0 ? 'expense' : 'income'
+}
+
+function payLabel(movement: MovementListView) {
+  return t(movement.type === 'INCOME' ? 'movement.actions.receive' : 'movement.actions.pay')
+}
+
+function openMovement(movement: MovementListView) {
+  return router.push({ name: 'movements.detail', params: { id: movement.id } })
 }
 
 function openPay(movement: MovementListView) {
@@ -135,7 +147,7 @@ function openPay(movement: MovementListView) {
     name: movement.name,
     type: movement.type,
     value: movement.value,
-    invoicePayment: isInvoicePayment(movement),
+    invoicePayment: movement.invoicePayment,
   })
 }
 
@@ -150,19 +162,15 @@ async function move(movement: { id: string; name: string }, target: ClosingPerio
   }
 }
 
-function invoiceNote(invoice: { id: string }, status: string) {
-  if (summary.value?.openInvoices.some((blocking) => blocking.id === invoice.id)) {
-    return 'blocking'
+function invoiceNote(invoice: ClosingInvoiceView) {
+  if (invoice.status === 'OPEN') {
+    return invoice.purchaseCount > 0 ? 'blocking' : 'empty'
   }
-  if (summary.value?.emptyInvoices.some((empty) => empty.id === invoice.id)) {
-    return 'empty'
-  }
-  return status === 'CLOSED' ? 'payment' : status === 'PAID' ? 'paid' : null
+  return invoice.status === 'CLOSED' ? 'payment' : 'paid'
 }
 
-function openCloseInvoice(invoice: { id: string }) {
-  const blocking = summary.value!.openInvoices.find((candidate) => candidate.id === invoice.id)!
-  return closeInvoice.open(blocking, selected.value!)
+function openCloseInvoice(invoice: ClosingInvoiceView) {
+  return closeInvoice.open(invoice, selected.value!)
 }
 
 async function closePeriod() {
@@ -213,169 +221,246 @@ function createPeriod() {
         ...closeInvoice.messages.value,
       ]"
     />
-    <div class="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_280px]">
+    <FilterSelect
+      class="w-80 max-w-full"
+      :label="$t('period-closing.period')"
+      :options="periodChoices"
+      :model-value="selectedId"
+      @update:model-value="choose"
+    />
+    <div class="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
       <div class="grid gap-5">
-        <div class="max-w-sm">
-          <FilterSelect
-            :label="$t('period-closing.period')"
-            :none-label="$t('period-closing.none')"
-            :options="periodChoices"
-            :model-value="selectedId"
-            @update:model-value="choose"
-          />
-        </div>
-        <div
-          v-if="result && accumulated"
-          class="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
-          data-slot="summary"
-        >
-          <Card class="gap-1 p-4">
-            <span class="text-muted-foreground text-xs">{{
-              $t('period-closing.summary.revenues')
-            }}</span>
-            <CurrencyDisplay :value="result.revenues" signed class="text-xl font-semibold" />
-            <span class="text-muted-foreground text-xs">{{
-              $t('period-closing.summary.revenues-note')
-            }}</span>
-          </Card>
-          <Card class="gap-1 p-4">
-            <span class="text-muted-foreground text-xs">{{
-              $t('period-closing.summary.expenses')
-            }}</span>
-            <CurrencyDisplay :value="-result.expenses" signed class="text-xl font-semibold" />
-            <span class="text-muted-foreground text-xs">{{
-              $t('period-closing.summary.expenses-note')
-            }}</span>
-          </Card>
-          <Card class="gap-1 p-4">
-            <span class="text-muted-foreground text-xs">{{
-              $t('period-closing.summary.result')
-            }}</span>
-            <CurrencyDisplay :value="result.result" signed class="text-xl font-semibold" />
-            <span class="text-muted-foreground text-xs">{{
-              $t('period-closing.summary.result-note')
-            }}</span>
-          </Card>
-          <Card class="gap-1 p-4">
-            <span class="text-muted-foreground text-xs">{{
-              $t('period-closing.summary.accumulated')
-            }}</span>
-            <CurrencyDisplay
-              :value="accumulated.accumulated"
-              signed
-              class="text-xl font-semibold"
-            />
-            <span class="text-muted-foreground text-xs">{{
-              $t('period-closing.summary.accumulated-note')
-            }}</span>
-          </Card>
-        </div>
-        <Card class="gap-0 py-0" data-slot="pendencies">
-          <div class="border-b p-5">
-            <h2 class="text-base font-semibold">{{ $t('period-closing.pendencies.title') }}</h2>
-            <p class="text-muted-foreground text-sm">{{ $t('period-closing.pendencies.hint') }}</p>
+        <section v-if="result && accumulated" class="grid gap-3" data-slot="summary">
+          <h2 class="text-base font-semibold">{{ $t('period-closing.summary.title') }}</h2>
+          <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
+            <Card class="gap-1 p-4">
+              <span class="text-muted-foreground text-xs">{{
+                $t('period-closing.summary.revenues')
+              }}</span>
+              <CurrencyDisplay
+                :value="result.revenues"
+                sign="income"
+                glued
+                class="text-xl font-semibold tracking-tight"
+              />
+              <span class="text-muted-foreground text-xs">{{
+                $t('period-closing.summary.revenues-note')
+              }}</span>
+            </Card>
+            <Card class="gap-1 p-4">
+              <span class="text-muted-foreground text-xs">{{
+                $t('period-closing.summary.expenses')
+              }}</span>
+              <CurrencyDisplay
+                :value="result.expenses"
+                sign="expense"
+                glued
+                class="text-xl font-semibold tracking-tight"
+              />
+              <span class="text-muted-foreground text-xs">{{
+                $t('period-closing.summary.expenses-note')
+              }}</span>
+            </Card>
+            <Card class="gap-1 p-4">
+              <span class="text-muted-foreground text-xs">{{
+                $t('period-closing.summary.result')
+              }}</span>
+              <CurrencyDisplay
+                :value="result.result"
+                :sign="signOf(result.result)"
+                glued
+                neutral
+                class="text-xl font-semibold tracking-tight"
+              />
+              <span class="text-muted-foreground text-xs">{{
+                $t('period-closing.summary.result-note')
+              }}</span>
+            </Card>
+            <Card class="gap-1 p-4">
+              <span class="text-muted-foreground text-xs">{{
+                $t('period-closing.summary.accumulated')
+              }}</span>
+              <CurrencyDisplay
+                :value="accumulated.accumulated"
+                :sign="signOf(accumulated.accumulated)"
+                glued
+                neutral
+                class="text-xl font-semibold tracking-tight"
+              />
+              <span class="text-muted-foreground text-xs">{{
+                $t('period-closing.summary.accumulated-note')
+              }}</span>
+            </Card>
           </div>
-          <Alert
-            v-if="noNextPeriod"
-            variant="destructive"
-            class="m-5 mb-0"
-            data-slot="no-next-period"
-          >
-            <TriangleAlert />
-            <AlertTitle>
-              {{ $t('period-closing.pendencies.no-next', { name: selected?.name }) }}
-            </AlertTitle>
-            <AlertDescription class="flex flex-wrap items-center gap-3">
-              {{ $t('period-closing.pendencies.no-next-hint') }}
-              <Button type="button" size="sm" variant="outline" @click="createPeriod()">
-                {{ $t('period-closing.pendencies.create-period') }}
-              </Button>
-            </AlertDescription>
-          </Alert>
-          <p
-            v-if="pendencies.length === 0"
-            class="text-muted-foreground p-5 text-sm"
+        </section>
+        <Card class="gap-0 py-0" data-slot="pendencies">
+          <div class="flex flex-wrap items-start justify-between gap-3 border-b p-5">
+            <div class="grid gap-0.5">
+              <h2 class="text-base font-semibold">{{ $t('period-closing.pendencies.title') }}</h2>
+              <p class="text-muted-foreground text-sm">
+                {{ $t('period-closing.pendencies.hint') }}
+              </p>
+            </div>
+            <Badge v-if="!pendenciesDone" variant="highlight" data-slot="remaining">
+              {{ $t('period-closing.pendencies.remaining', pendencies.length) }}
+            </Badge>
+            <Badge v-else variant="approved" data-slot="resolved">
+              {{ $t('period-closing.pendencies.resolved') }}
+            </Badge>
+          </div>
+          <div
+            v-if="pendenciesDone"
+            class="grid justify-items-center gap-1 px-6 py-10 text-center"
             data-slot="no-pendencies"
           >
-            {{ $t('period-closing.pendencies.none') }}
-          </p>
-          <Table v-else>
-            <TableHeader>
-              <TableRow>
-                <TableHead>{{ $t('period-closing.pendencies.movement') }}</TableHead>
-                <TableHead>{{ $t('period-closing.pendencies.due-date') }}</TableHead>
-                <TableHead class="text-right">{{
-                  $t('period-closing.pendencies.value')
-                }}</TableHead>
-                <TableHead />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              <TableRow
+            <CircleCheck class="text-income size-6" />
+            <p class="font-medium">{{ $t('period-closing.pendencies.none-title') }}</p>
+            <p class="text-muted-foreground text-sm">{{ $t('period-closing.pendencies.none') }}</p>
+          </div>
+          <template v-else>
+            <div v-if="noNextPeriod" class="p-5 pb-0">
+              <Alert variant="destructive" data-slot="no-next-period">
+                <CircleAlert />
+                <AlertTitle>
+                  {{ $t('period-closing.pendencies.no-next', { name: selected?.name }) }}
+                </AlertTitle>
+                <AlertDescription class="grid gap-2">
+                  {{ $t('period-closing.pendencies.no-next-hint') }}
+                  <span class="flex flex-wrap gap-2">
+                    <Button type="button" size="sm" variant="outline" @click="createPeriod()">
+                      <Plus />{{ $t('period-closing.pendencies.create-period') }}
+                    </Button>
+                  </span>
+                </AlertDescription>
+              </Alert>
+            </div>
+            <Table class="hidden md:table">
+              <TableHeader>
+                <TableRow>
+                  <TableHead>{{ $t('period-closing.pendencies.movement') }}</TableHead>
+                  <TableHead>{{ $t('period-closing.pendencies.due-date') }}</TableHead>
+                  <TableHead class="text-right">{{
+                    $t('period-closing.pendencies.value')
+                  }}</TableHead>
+                  <TableHead class="text-right">{{
+                    $t('period-closing.pendencies.actions')
+                  }}</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow
+                  v-for="movement in pendencies"
+                  :key="movement.id"
+                  class="cursor-pointer"
+                  data-state="selected"
+                  @click="openMovement(movement)"
+                >
+                  <TableCell>
+                    <span class="inline-flex items-center gap-2">
+                      <RouterLink
+                        :to="{ name: 'movements.detail', params: { id: movement.id } }"
+                        class="font-medium hover:underline"
+                        @click.stop
+                      >
+                        {{ movement.name }}
+                      </RouterLink>
+                      <Badge v-if="movement.invoicePayment" variant="outline">
+                        {{ $t('period-closing.pendencies.invoice') }}
+                      </Badge>
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <span class="inline-flex items-center gap-2">
+                      <DateTimeDisplay
+                        fix-time
+                        :value="movement.dueDate"
+                        class="font-mono tabular-nums"
+                      />
+                      <Badge v-if="movement.overdue" variant="highlight">
+                        {{ $t('period-closing.pendencies.overdue') }}
+                      </Badge>
+                    </span>
+                  </TableCell>
+                  <TableCell class="text-right">
+                    <CurrencyDisplay :value="signedValue(movement)" signed glued bare />
+                  </TableCell>
+                  <TableCell>
+                    <span class="flex flex-wrap justify-end gap-2">
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        @click.stop="openPay(movement)"
+                      >
+                        <Banknote />{{ payLabel(movement) }}
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        :disabled="noNextPeriod"
+                        :title="
+                          noNextPeriod ? $t('period-closing.pendencies.move-disabled') : undefined
+                        "
+                        @click.stop="moving = movement"
+                      >
+                        <ArrowRight />{{ $t('period-closing.pendencies.move') }}
+                      </Button>
+                    </span>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+            <div class="grid md:hidden">
+              <div
                 v-for="movement in pendencies"
                 :key="movement.id"
-                :data-state="movement.overdue ? 'selected' : undefined"
+                class="grid cursor-pointer gap-1.5 border-b px-3.5 py-3 shadow-[inset_3px_0_0_var(--highlight)] last:border-b-0"
+                data-slot="pendency-card"
+                @click="openMovement(movement)"
               >
-                <TableCell>
-                  <span class="inline-flex items-center gap-2">
+                <div class="flex items-start justify-between gap-3">
+                  <span class="inline-flex flex-wrap items-center gap-2 font-medium">
                     {{ movement.name }}
-                    <Badge v-if="isInvoicePayment(movement)" variant="outline">
+                    <Badge v-if="movement.invoicePayment" variant="outline">
                       {{ $t('period-closing.pendencies.invoice') }}
                     </Badge>
                   </span>
-                </TableCell>
-                <TableCell>
-                  <span class="inline-flex items-center gap-2">
-                    <DateTimeDisplay
-                      fix-time
-                      :value="movement.dueDate"
-                      class="font-mono tabular-nums"
-                    />
-                    <Badge v-if="movement.overdue" variant="pending">
-                      {{ $t('period-closing.pendencies.overdue') }}
-                    </Badge>
-                  </span>
-                </TableCell>
-                <TableCell class="text-right">
-                  <CurrencyDisplay :value="signedValue(movement)" signed />
-                </TableCell>
-                <TableCell class="text-right">
-                  <span class="inline-flex gap-2">
-                    <Button type="button" size="sm" variant="outline" @click="openPay(movement)">
-                      {{
-                        $t(
-                          movement.type === 'INCOME'
-                            ? 'movement.actions.receive'
-                            : 'movement.actions.pay',
-                        )
-                      }}
-                    </Button>
-                    <Button
-                      type="button"
-                      size="sm"
-                      variant="outline"
-                      :disabled="noNextPeriod"
-                      :title="
-                        noNextPeriod ? $t('period-closing.pendencies.move-disabled') : undefined
-                      "
-                      @click="moving = movement"
-                    >
-                      {{ $t('period-closing.pendencies.move') }}
-                    </Button>
-                  </span>
-                </TableCell>
-              </TableRow>
-            </TableBody>
-          </Table>
+                  <CurrencyDisplay :value="signedValue(movement)" signed glued bare />
+                </div>
+                <div class="text-muted-foreground text-xs">
+                  {{ $t('period-closing.pendencies.due-on') }}
+                  <DateTimeDisplay fix-time :value="movement.dueDate" />
+                  <template v-if="movement.overdue">
+                    · {{ $t('period-closing.pendencies.overdue') }}
+                  </template>
+                </div>
+                <div class="flex flex-wrap gap-2">
+                  <Button type="button" size="sm" variant="outline" @click.stop="openPay(movement)">
+                    <Banknote />{{ payLabel(movement) }}
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    :disabled="noNextPeriod"
+                    @click.stop="moving = movement"
+                  >
+                    <ArrowRight />{{ $t('period-closing.pendencies.move') }}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </template>
         </Card>
         <Card class="gap-0 py-0" data-slot="invoices">
-          <div class="border-b p-5">
+          <div class="grid gap-0.5 border-b p-5">
             <h2 class="text-base font-semibold">{{ $t('period-closing.invoices.title') }}</h2>
             <p class="text-muted-foreground text-sm">{{ $t('period-closing.invoices.hint') }}</p>
           </div>
           <p
             v-if="invoices.length === 0"
-            class="text-muted-foreground p-5 text-sm"
+            class="text-muted-foreground px-5 py-6 text-center text-sm"
             data-slot="no-invoices"
           >
             {{ $t('period-closing.invoices.none') }}
@@ -384,49 +469,116 @@ function createPeriod() {
             <li
               v-for="invoice in invoices"
               :key="invoice.id"
-              class="flex flex-wrap items-center gap-x-4 gap-y-2 p-4"
+              class="flex flex-wrap items-center justify-between gap-3 px-5 py-3"
             >
-              <span class="min-w-32 font-medium">{{ invoice.card.name }}</span>
-              <InvoiceStatusBadge :status="invoice.status" />
-              <CurrencyDisplay :value="invoice.value" />
-              <span
-                v-if="invoiceNote(invoice, invoice.status)"
-                class="text-muted-foreground inline-flex items-center gap-1 text-xs"
-                :data-note="invoiceNote(invoice, invoice.status)"
-              >
-                <Lock v-if="invoiceNote(invoice, invoice.status) === 'blocking'" class="size-3" />
-                {{ $t(`period-closing.invoices.note.${invoiceNote(invoice, invoice.status)}`) }}
-              </span>
-              <Button
-                v-if="invoiceNote(invoice, invoice.status) === 'blocking'"
-                type="button"
-                size="sm"
-                class="ml-auto"
-                @click="openCloseInvoice(invoice)"
-              >
-                {{ $t('period-closing.invoices.close') }}
-              </Button>
+              <div class="grid min-w-0 gap-0.5">
+                <span class="font-medium">
+                  {{ invoice.card.name }}
+                  <span class="text-muted-foreground font-mono text-xs"
+                    >••{{ invoice.card.lastFourDigits }}</span
+                  >
+                </span>
+                <span class="text-muted-foreground text-xs">
+                  {{ $t('period-closing.invoices.purchases', invoice.purchaseCount) }} ·
+                  {{ $t(`credit-card-invoice.status.${invoice.status}`) }}
+                </span>
+              </div>
+              <div class="flex flex-wrap items-center gap-3">
+                <Badge
+                  v-if="invoiceNote(invoice) === 'blocking'"
+                  variant="highlight"
+                  data-note="blocking"
+                >
+                  <Lock />{{ $t('period-closing.invoices.note.blocking') }}
+                </Badge>
+                <Badge
+                  v-else-if="invoiceNote(invoice) === 'paid'"
+                  variant="approved"
+                  data-note="paid"
+                >
+                  {{ $t('period-closing.invoices.note.paid') }}
+                </Badge>
+                <Badge v-else variant="neutral" :data-note="invoiceNote(invoice)">
+                  {{ $t(`period-closing.invoices.note.${invoiceNote(invoice)}`) }}
+                </Badge>
+                <CurrencyDisplay :value="invoice.value" bare />
+                <Button
+                  v-if="invoiceNote(invoice) === 'blocking'"
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  @click="openCloseInvoice(invoice)"
+                >
+                  <Lock />{{ $t('period-closing.invoices.close') }}
+                </Button>
+              </div>
             </li>
           </ul>
         </Card>
       </div>
-      <Card class="gap-3 p-5" data-slot="checklist">
-        <h2 class="text-base font-semibold">{{ $t('period-closing.checklist.title') }}</h2>
-        <ul class="grid gap-2 text-sm">
-          <li
-            v-for="item in checklist"
-            :key="item.key"
-            class="flex items-center gap-2"
-            :data-done="item.done"
-          >
-            <Check v-if="item.done" class="text-income size-4" />
-            <Circle v-else class="text-muted-foreground size-4" />
-            {{ $t(`period-closing.checklist.${item.key}`) }}
+      <Card class="content-start gap-4 p-4 lg:sticky lg:top-0" data-slot="checklist">
+        <p class="text-muted-foreground text-[11px] font-medium tracking-wider uppercase">
+          {{ $t('period-closing.checklist.title') }}
+        </p>
+        <ul class="grid gap-3">
+          <li class="flex gap-2.5" :data-done="pendenciesDone">
+            <CircleCheck v-if="pendenciesDone" class="text-income mt-0.5 size-4 shrink-0" />
+            <CircleDashed v-else class="text-highlight-foreground mt-0.5 size-4 shrink-0" />
+            <span class="grid gap-0.5">
+              <span :class="['text-sm', !pendenciesDone && 'font-medium']">{{
+                $t('period-closing.checklist.pendencies')
+              }}</span>
+              <span class="text-muted-foreground text-xs">
+                {{
+                  pendenciesDone
+                    ? $t('period-closing.checklist.pendencies-done')
+                    : $t('period-closing.checklist.pendencies-open', pendencies.length)
+                }}
+              </span>
+            </span>
+          </li>
+          <li class="flex gap-2.5" :data-done="blockingInvoices === 0">
+            <CircleCheck v-if="blockingInvoices === 0" class="text-income mt-0.5 size-4 shrink-0" />
+            <CircleDashed v-else class="text-highlight-foreground mt-0.5 size-4 shrink-0" />
+            <span class="grid gap-0.5">
+              <span :class="['text-sm', blockingInvoices > 0 && 'font-medium']">{{
+                $t('period-closing.checklist.invoices')
+              }}</span>
+              <span class="text-muted-foreground text-xs">
+                {{
+                  blockingInvoices === 0
+                    ? $t('period-closing.checklist.invoices-done')
+                    : $t('period-closing.checklist.invoices-open', blockingInvoices)
+                }}
+              </span>
+            </span>
+          </li>
+          <li class="flex gap-2.5" :data-done="nextPeriodDone">
+            <CircleCheck v-if="nextPeriodDone" class="text-income mt-0.5 size-4 shrink-0" />
+            <CircleDashed v-else class="text-highlight-foreground mt-0.5 size-4 shrink-0" />
+            <span class="grid gap-0.5">
+              <span :class="['text-sm', !nextPeriodDone && 'font-medium']">{{
+                $t('period-closing.checklist.next-period')
+              }}</span>
+              <span class="text-muted-foreground text-xs">
+                {{
+                  summary?.nextOpenPeriod?.name ??
+                  $t('period-closing.checklist.next-period-missing')
+                }}
+              </span>
+            </span>
           </li>
         </ul>
-        <Button type="button" :disabled="!summary?.canClose || loading" @click="closing = true">
-          <Lock />{{ $t('period-closing.checklist.close', { name: selected?.name }) }}
-        </Button>
+        <div class="grid gap-2 border-t pt-4">
+          <Button type="button" class="w-full" :disabled="!ready" @click="closing = true">
+            <Lock />{{ $t('period-closing.checklist.close', { name: monthOf(selected?.name) }) }}
+          </Button>
+          <p class="text-muted-foreground text-xs">
+            {{
+              ready ? $t('period-closing.checklist.ready') : $t('period-closing.checklist.blocked')
+            }}
+          </p>
+        </div>
       </Card>
     </div>
     <MoveMovementDialog

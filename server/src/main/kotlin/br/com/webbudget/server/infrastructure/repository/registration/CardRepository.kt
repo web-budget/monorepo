@@ -2,6 +2,7 @@ package br.com.webbudget.server.infrastructure.repository.registration
 
 import br.com.webbudget.server.domain.entities.registration.Card
 import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
+import br.com.webbudget.server.infrastructure.repository.containsIgnoringAccents
 import br.com.webbudget.server.infrastructure.repository.excluding
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
@@ -43,10 +44,10 @@ class CardRepository(
 
         val textCondition = filter?.let { text ->
             DSL.or(
-                cards.NAME.containsIgnoreCase(text),
-                cards.LAST_FOUR_DIGITS.containsIgnoreCase(text),
-                cards.FLAG.containsIgnoreCase(text),
-                wallets.NAME.containsIgnoreCase(text)
+                cards.NAME.containsIgnoringAccents(text),
+                cards.LAST_FOUR_DIGITS.containsIgnoringAccents(text),
+                cards.FLAG.containsIgnoringAccents(text),
+                wallets.NAME.containsIgnoringAccents(text)
             )
         }
 

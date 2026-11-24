@@ -38,58 +38,58 @@ watch(
     :messages="[...messages, ...giveBack.messages.value]"
     readonly
   >
-    <template #extra-actions>
-      <Button v-if="transfer" as-child variant="outline">
+    <template v-if="transfer && (transfer.returnOf || transfer.returnedBy)" #badge>
+      <Badge variant="neutral">
+        {{ $t(transfer.returnOf ? 'transfer.status.is-return' : 'transfer.status.returned') }}
+      </Badge>
+    </template>
+    <template v-if="transfer" #footer>
+      <Button as-child variant="outline">
         <RouterLink
           :to="{ path: '/financial/statement', query: { wallet: transfer.fromWallet.id } }"
         >
           <ScrollText />{{ $t('transfer.actions.view-statement') }}
         </RouterLink>
       </Button>
-      <Button v-if="transfer?.returnable" type="button" @click="giveBack.open(transfer)">
+      <Button
+        v-if="transfer.returnable"
+        type="button"
+        variant="outline"
+        @click="giveBack.open(transfer)"
+      >
         <Undo2 />{{ $t('transfer.actions.give-back') }}
       </Button>
     </template>
-    <template v-if="transfer && (transfer.returnOf || transfer.returnedBy)" #badge>
-      <Badge variant="neutral">
-        {{ $t(transfer.returnOf ? 'transfer.status.is-return' : 'transfer.status.returned') }}
-      </Badge>
-    </template>
     <template v-if="transfer">
-      <DetailSection :title="$t('transfer.sections.identification')" columns="md:grid-cols-3">
+      <DetailSection :title="$t('transfer.sections.identification')">
         <DetailField :label="$t('transfer.detail.created-on')" mono>
-          <DateTimeDisplay :value="transfer.createdOn" />
+          <DateTimeDisplay with-time :value="transfer.createdOn" />
         </DetailField>
-        <DetailField :label="$t('transfer.detail.value')">
-          <CurrencyDisplay :value="transfer.value" />
+        <DetailField :label="$t('transfer.detail.value')" mono>
+          <CurrencyDisplay :value="transfer.value" class="text-base font-semibold" />
         </DetailField>
         <DetailField :label="$t('transfer.detail.from')" :value="transfer.fromWallet.name" />
         <DetailField :label="$t('transfer.detail.to')" :value="transfer.toWallet.name" />
         <DetailField :label="$t('transfer.detail.note')" :value="transfer.description" wide />
       </DetailSection>
-      <DetailSection :title="$t('transfer.sections.return')">
-        <DetailField v-if="transfer.returnOf" :label="$t('transfer.detail.return-of')">
-          <RouterLink
-            :to="{ name: 'transfers.detail', params: { id: transfer.returnOf.id } }"
-            class="underline underline-offset-2"
-          >
-            <DateTimeDisplay :value="transfer.returnOf.createdOn" />
-          </RouterLink>
-        </DetailField>
-        <DetailField v-if="transfer.returnedBy" :label="$t('transfer.detail.returned-by')">
-          <RouterLink
-            :to="{ name: 'transfers.detail', params: { id: transfer.returnedBy.id } }"
-            class="underline underline-offset-2"
-          >
-            <DateTimeDisplay :value="transfer.returnedBy.createdOn" />
-          </RouterLink>
-        </DetailField>
-        <DetailField
-          v-if="transfer.returnable"
-          :label="$t('transfer.detail.return-state')"
-          :value="$t('transfer.detail.not-returned')"
-        />
-      </DetailSection>
+      <section
+        v-if="transfer.returnOf || transfer.returnedBy"
+        class="grid gap-3 border-b p-5 md:grid-cols-[220px_minmax(0,1fr)] md:gap-8"
+      >
+        <h2 class="text-base font-semibold">{{ $t('transfer.sections.return') }}</h2>
+        <RouterLink
+          :to="{
+            name: 'transfers.detail',
+            params: { id: (transfer.returnOf ?? transfer.returnedBy)!.id },
+          }"
+          class="text-primary w-fit text-sm hover:underline"
+        >
+          {{
+            transfer.returnOf ? $t('transfer.detail.return-of') : $t('transfer.detail.returned-by')
+          }}
+          <DateTimeDisplay :value="(transfer.returnOf ?? transfer.returnedBy)!.createdOn" />
+        </RouterLink>
+      </section>
     </template>
   </DetailCard>
   <GiveBackDialog

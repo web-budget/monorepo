@@ -164,6 +164,7 @@ export interface WalletListView {
   agency: string | null
   number: string | null
   active: boolean
+  lastEntryOn?: string | null
 }
 
 export interface CardCreateForm {
@@ -196,8 +197,11 @@ export interface CardView {
 export interface CardListView {
   id: string
   name: string
+  lastFourDigits: string
+  invoicePaymentDay: number
   active: boolean
   flag: string | null
+  wallet: WalletListView | null
 }
 
 export interface CostCenterCreateForm {
@@ -290,6 +294,7 @@ export interface FinancialPeriodView {
   endingAt: string
   status: FinancialPeriodStatus
   expired: boolean
+  reopenable: boolean
   revenuesGoal: number | null
   expensesGoal: number | null
 }
@@ -301,6 +306,7 @@ export interface FinancialPeriodListView {
   endingAt: string
   status: FinancialPeriodStatus
   expired: boolean
+  reopenable: boolean
   revenuesGoal?: number | null
   expensesGoal?: number | null
 }
@@ -323,12 +329,15 @@ export interface ClosingPeriodView {
 
 export interface ClosingInvoiceView {
   id: string
-  card: { id: string; name: string }
+  card: { id: string; name: string; lastFourDigits: string }
   value: number
+  purchaseCount: number
+  status: InvoiceStatus
 }
 
 export interface ClosingSummaryView {
   openMovements: { count: number; income: number; expense: number }
+  invoices: ClosingInvoiceView[]
   openInvoices: ClosingInvoiceView[]
   emptyInvoices: ClosingInvoiceView[]
   nextOpenPeriod: ClosingPeriodView | null
@@ -426,7 +435,8 @@ export interface PaymentView {
   discount: number
   valuePaid: number
   wallet: { id: string; name: string } | null
-  card: { id: string; name: string } | null
+  card: { id: string; name: string; lastFourDigits?: string } | null
+  invoice?: { id: string; status: InvoiceStatus } | null
 }
 
 export interface MovementView {
@@ -442,7 +452,11 @@ export interface MovementView {
   financialPeriod: MovementFinancialPeriodView
   description: string | null
   payment: PaymentView | null
-  invoice?: { id: string; status: InvoiceStatus; card: { id: string; name: string } } | null
+  invoice?: {
+    id: string
+    status: InvoiceStatus
+    card: { id: string; name: string; lastFourDigits: string }
+  } | null
   recurringMovement?: { id: string; name: string; card: { id: string; name: string } | null } | null
 }
 
@@ -455,8 +469,9 @@ export interface MovementListView {
   status: MovementStatus
   overdue: boolean
   paymentMethod?: 'WALLET' | 'CARD'
-  classification: MovementClassificationView
-  costCenter: MovementCostCenterView
+  invoicePayment?: boolean
+  classification: MovementClassificationView | null
+  costCenter: MovementCostCenterView | null
   financialPeriod: MovementFinancialPeriodView
 }
 
@@ -519,7 +534,26 @@ export interface WalletEntryView {
   previousBalance: number
   resultingBalance: number
   financialPeriod: { id: string; name: string } | null
-  reference: { type: 'MOVEMENT' | 'TRANSFER'; id: string } | null
+  reference: WalletEntryReference | null
+  wallet?: { id: string; name: string }
+}
+
+export interface WalletEntryReference {
+  type: 'MOVEMENT' | 'TRANSFER'
+  id: string
+  returnTransfer?: boolean | null
+  returnable?: boolean | null
+}
+
+export interface StatementTotal {
+  total: number
+  count: number
+}
+
+export interface StatementSummary {
+  credits: StatementTotal
+  debits: StatementTotal
+  lastEntryOn: string | null
 }
 
 export interface StatementQuery {
@@ -538,7 +572,7 @@ export interface StatementQuery {
 
 export interface AdjustmentForm {
   value: number
-  name: string
+  name?: string
 }
 
 export interface TransferForm {
@@ -584,12 +618,21 @@ export type InvoiceStatus = 'OPEN' | 'CLOSED' | 'PAID'
 
 export type InvoiceStatusFilter = InvoiceStatus | 'ALL'
 
+export interface InvoicePaymentView {
+  id: string
+  name: string
+  value: number
+}
+
 export interface InvoiceView {
   id: string
   status: InvoiceStatus
   value: number
-  card: { id: string; name: string }
+  purchaseCount: number
+  dueDate?: string | null
+  card: { id: string; name: string; lastFourDigits: string }
   financialPeriod: MovementFinancialPeriodView
+  payment?: InvoicePaymentView | null
 }
 
 export interface InvoiceQuery {
@@ -601,13 +644,23 @@ export interface InvoiceQuery {
   sort?: string
 }
 
+export interface PurchaseRecurringView {
+  id: string
+  name: string
+  installment: number
+  installments: number | null
+}
+
 export interface CardPurchaseListView {
   id: string
   name: string
   purchasedOn: string
   value: number
-  card: { id: string; name: string }
+  card: { id: string; name: string; lastFourDigits: string }
   invoice: { id: string; status: InvoiceStatus }
+  classification: MovementClassificationView
+  costCenter: MovementCostCenterView
+  recurringMovement?: PurchaseRecurringView | null
 }
 
 export interface CardPurchaseQuery {
@@ -640,12 +693,13 @@ export interface CardPurchaseView {
   name: string
   purchasedOn: string
   value: number
-  card: { id: string; name: string }
+  card: { id: string; name: string; lastFourDigits: string }
   invoice: { id: string; status: InvoiceStatus }
   financialPeriod: MovementFinancialPeriodView
   classification: MovementClassificationView
   costCenter: MovementCostCenterView
   movement: string | null
+  recurringMovement?: PurchaseRecurringView | null
 }
 
 export type RecurringValueKind = 'FIXED' | 'VARIABLE'
@@ -659,17 +713,18 @@ export interface RecurringMovementView {
   valueKind: RecurringValueKind
   value: number
   suggestedValue: number
-  installments: number | null
+  installments?: number | null
   firstInstallment: number
-  launchedInstallments: number | null
-  nextInstallment: number | null
+  launchedInstallments?: number | null
+  nextInstallment?: number | null
   finished: boolean
+  ended: boolean
   autoLaunch: boolean
   active: boolean
   classification: MovementClassificationView
   costCenter: MovementCostCenterView
-  card: { id: string; name: string } | null
-  launchedInPeriod: string | null
+  card?: { id: string; name: string; lastFourDigits: string } | null
+  launchedInPeriod?: string | null
   createdOn: string
 }
 
@@ -701,18 +756,48 @@ export interface RecurringValueForm {
   reason: string | null
 }
 
+export interface RecurringValuePeriodView {
+  id: string
+  name: string
+  startingAt: string
+}
+
 export interface RecurringValueView {
   value: number
-  reason: string | null
+  reason?: string | null
   validFrom: string
+  validFromPeriod?: RecurringValuePeriodView | null
+  current: boolean
+}
+
+export interface RecurringLaunchEntryView {
+  financialPeriod: RecurringValuePeriodView
+  installment: number
+  movement: string
+  value: number
+  status: string
+  valuePaid?: number | null
+}
+
+export interface CreationPreviewRecurringView {
+  id: string
+  name: string
+  type: MovementType
+  value: number
+  installment?: number | null
+  installments?: number | null
+}
+
+export interface FinancialPeriodCreationPreview {
+  recurringMovements: CreationPreviewRecurringView[]
+  invoices: { id: string; name: string; lastFourDigits: string }[]
 }
 
 export interface RecurringMovementQuery {
   filter?: string
   type?: MovementType
   valueKinds?: RecurringValueKind[]
-  active?: boolean
-  finished?: boolean
+  ended?: boolean
   cards?: string[]
   financialPeriod?: string
   page?: number

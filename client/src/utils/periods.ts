@@ -19,3 +19,7 @@ export function oldestExpired(
     .filter((period) => period.status === 'OPEN' && period.expired)
     .sort((first, second) => first.endingAt.localeCompare(second.endingAt))[0]
 }
+
+export function monthOf(name: string | undefined): string {
+  return (name ?? '').split(' de ')[0]!
+}

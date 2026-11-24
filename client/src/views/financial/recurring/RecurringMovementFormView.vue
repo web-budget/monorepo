@@ -1,21 +1,22 @@
 <script setup lang="ts">
+import { ArrowDownLeft, ArrowUpRight } from 'lucide-vue-next'
 import { useForm } from 'vee-validate'
 import { computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
+import ChoiceCardsField from '@/components/forms/ChoiceCardsField.vue'
 import FormCard from '@/components/forms/FormCard.vue'
 import FormSection from '@/components/forms/FormSection.vue'
 import InputField from '@/components/forms/InputField.vue'
 import MoneyField from '@/components/forms/MoneyField.vue'
+import RadioOptionsField from '@/components/forms/RadioOptionsField.vue'
+import SegmentedField from '@/components/forms/SegmentedField.vue'
 import SelectField from '@/components/forms/SelectField.vue'
 import StatusSection from '@/components/forms/StatusSection.vue'
 import StatusToggle from '@/components/forms/StatusToggle.vue'
 import { Badge } from '@/components/ui/badge'
-import { useActiveCards } from '@/composables/useActiveCards'
 import { useCrudForm } from '@/composables/useCrudForm'
 import { useMovementFilterOptions } from '@/composables/useMovementFilterOptions'
-import { MOVEMENT_TYPES } from '@/schemas/movementSchema'
 import {
-  NO_CARD,
   RECURRING_VALUE_KINDS,
   recurringMovementFormDefaults,
   recurringMovementFormSchema,
@@ -31,7 +32,6 @@ const { t } = useI18n()
 
 const store = useRecurringMovementsStore()
 const options = useMovementFilterOptions()
-const activeCards = useActiveCards()
 
 const form = useForm({
   validationSchema: recurringMovementFormSchema,
@@ -52,18 +52,24 @@ const { messages, fields, submitting, loadingRecord, dirty, changeToList, onSubm
   })
 
 const updating = computed(() => props.id !== undefined)
-const expense = computed(() => form.values.type === 'EXPENSE')
+const income = computed(() => form.values.type === 'INCOME')
 const variable = computed(() => form.values.valueKind === 'VARIABLE')
 
-const typeChoices = computed(() =>
-  MOVEMENT_TYPES.map((type) => ({ value: type, label: t(`movement.type.${type}`) })),
-)
+const typeChoices = computed(() => [
+  { value: 'EXPENSE', label: t('movement.type.expense'), icon: ArrowUpRight },
+  { value: 'INCOME', label: t('movement.type.income'), icon: ArrowDownLeft },
+])
 const valueKindChoices = computed(() =>
   RECURRING_VALUE_KINDS.map((kind) => ({
     value: kind,
     label: t(`recurrent-movement.value-kind.${kind}`),
+    description: t(`recurrent-movement.form.value-kind-description.${kind}`),
   })),
 )
+const repetitionChoices = computed(() => [
+  { value: false, label: t('recurrent-movement.form.installments-heading') },
+  { value: true, label: t('recurrent-movement.form.indefinite') },
+])
 const costCenterChoices = computed(() =>
   options.costCenters.value.map((costCenter) => ({
     value: costCenter.id,
@@ -75,21 +81,17 @@ const classificationChoices = computed(() =>
     .filter((classification) => classification.type === form.values.type)
     .map((classification) => ({ value: classification.id, label: classification.name })),
 )
-const cardChoices = computed(() => [
-  { value: NO_CARD, label: t('recurrent-movement.form.no-card') },
-  ...activeCards.cards.value.map((card) => ({ value: card.id, label: card.name })),
-])
 
-onMounted(() =>
-  run(async () => {
-    await Promise.all([options.load(), activeCards.load()])
-  }),
-)
+onMounted(() => run(options.load))
 </script>
 
 <template>
   <FormCard
-    :title="updating ? $t('recurrent-movement.form.editing') : $t('recurrent-movement.form.new')"
+    :title="
+      updating
+        ? $t('recurrent-movement.form.title-editing')
+        : $t('recurrent-movement.form.title-new')
+    "
     :description="updating ? form.values.name : undefined"
     :loading="loadingRecord"
     :submitting="submitting"
@@ -110,19 +112,18 @@ onMounted(() =>
       :title="$t('recurrent-movement.sections.type')"
       :description="updating ? $t('recurrent-movement.form.type-hint') : undefined"
     >
-      <Badge v-if="updating" :variant="expense ? 'neutral' : 'approved'">
-        {{ $t(`movement.type.${form.values.type}`) }}
+      <Badge v-if="updating" :variant="income ? 'approved' : 'neutral'">
+        {{ $t(`movement.type.${income ? 'income' : 'expense'}`) }}
       </Badge>
-      <SelectField
-        v-else
-        name="type"
-        :label="$t('recurrent-movement.form.type')"
-        :options="typeChoices"
-        required
-      />
+      <SegmentedField v-else name="type" :options="typeChoices" />
     </FormSection>
     <FormSection :title="$t('recurrent-movement.sections.identification')">
-      <InputField name="name" :label="$t('recurrent-movement.form.name')" required />
+      <InputField
+        name="name"
+        :label="$t('recurrent-movement.form.name')"
+        :placeholder="$t(`recurrent-movement.form.name-example.${income ? 'income' : 'expense'}`)"
+        required
+      />
       <MoneyField
         v-if="!updating"
         name="value"
@@ -147,26 +148,24 @@ onMounted(() =>
         required
       />
     </FormSection>
-    <FormSection
-      :title="$t('recurrent-movement.sections.value-kind')"
-      :description="$t('recurrent-movement.form.value-kind-hint')"
-    >
-      <SelectField
+    <FormSection :title="$t('recurrent-movement.sections.value-kind')">
+      <ChoiceCardsField
         name="valueKind"
+        class="md:col-span-2"
         :label="$t('recurrent-movement.form.value-kind')"
         :options="valueKindChoices"
         :disabled="updating"
-        required
       />
     </FormSection>
     <FormSection
       :title="$t('recurrent-movement.sections.repetition')"
       :description="$t('recurrent-movement.form.repetition-hint')"
     >
-      <StatusToggle
+      <RadioOptionsField
         name="indefinite"
-        :label="$t('recurrent-movement.form.indefinite')"
-        :heading="$t('recurrent-movement.form.installments-heading')"
+        class="md:col-span-2"
+        :label="$t('recurrent-movement.sections.repetition')"
+        :options="repetitionChoices"
       />
       <template v-if="!form.values.indefinite">
         <InputField
@@ -181,28 +180,18 @@ onMounted(() =>
           name="firstInstallment"
           type="number"
           :label="$t('recurrent-movement.form.first-installment')"
+          :hint="$t('recurrent-movement.form.first-installment-hint')"
           mono
+          required
         />
       </template>
-    </FormSection>
-    <FormSection
-      v-if="expense"
-      :title="$t('recurrent-movement.sections.card')"
-      :description="$t('recurrent-movement.form.card-hint')"
-    >
-      <SelectField
-        name="card"
-        :label="$t('recurrent-movement.form.card')"
-        :options="cardChoices"
-        :placeholder="$t('recurrent-movement.form.no-card')"
-      />
     </FormSection>
     <FormSection :title="$t('recurrent-movement.sections.launch')">
       <StatusToggle
         name="autoLaunch"
         :label="$t('recurrent-movement.form.auto-launch')"
         :hint="$t('recurrent-movement.form.auto-launch-hint')"
-        :heading="$t('recurrent-movement.sections.launch')"
+        heading=""
       />
     </FormSection>
   </FormCard>

@@ -11,6 +11,7 @@ defineProps<{ title: string; description?: string }>()
           data-slot="page-title"
         >
           {{ title }}
+          <slot name="title-extra" />
         </h1>
         <slot name="badge" />
       </div>

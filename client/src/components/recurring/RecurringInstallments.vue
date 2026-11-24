@@ -11,11 +11,11 @@ const progress = computed(() => installmentProgress(props.recurringMovement))
 </script>
 
 <template>
-  <span v-if="progress" class="inline-flex flex-col gap-1" data-slot="installments">
+  <span v-if="progress" class="inline-flex items-center gap-2" data-slot="installments">
     <span class="font-mono tabular-nums">{{ progress.current }}/{{ progress.total }}</span>
-    <span class="bg-secondary h-1 w-20 overflow-hidden rounded-full" aria-hidden="true">
+    <span class="bg-muted h-1.5 w-12 overflow-hidden rounded-sm" aria-hidden="true">
       <span
-        class="bg-primary block h-full"
+        class="bg-primary block h-full rounded-sm"
         data-slot="installments-bar"
         :style="{ width: `${progress.percentage}%` }"
       />

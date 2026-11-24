@@ -64,7 +64,8 @@ describe('TransferFormView', () => {
   it('shows the title, the sections and asks for the required fields', async () => {
     const { wrapper } = await render()
 
-    expect(wrapper.find('h1').text()).toBe('Transferindo')
+    expect(wrapper.find('h1').text()).toBe('Nova transferência')
+    expect(wrapper.find('[name="description"]').attributes('placeholder')).toBe('Opcional')
     expect(wrapper.findAll('h2').map((title) => title.text())).toEqual(['Carteiras', 'Valor'])
     expect(wrapper.find('button[type="submit"]').text()).toBe('Transferir')
 
@@ -83,8 +84,8 @@ describe('TransferFormView', () => {
     await flushPromises()
 
     const statement = wrapper.find('[data-slot="transfer-statement"]').text()
-    expect(statement).toMatch(/Conta corrente[\s\S]*Saldo depois\s*R\$\s500,00/)
-    expect(statement).toMatch(/Poupança[\s\S]*Saldo depois\s*R\$\s550,00/)
+    expect(statement).toMatch(/Conta corrente[\s\S]*Saldo posterior\s*R\$\s500,00/)
+    expect(statement).toMatch(/Poupança[\s\S]*Saldo posterior\s*R\$\s550,00/)
   })
 
   it('transfers and goes to the detail of the new transfer', async () => {
@@ -104,7 +105,7 @@ describe('TransferFormView', () => {
       description: 'Aluguel',
     })
     expect(toast.success).toHaveBeenCalledWith('Transferência feita', {
-      description: 'De Conta corrente para Poupança.',
+      description: 'As duas carteiras ganharam uma linha no extrato.',
       duration: 4000,
     })
     expect(router.currentRoute.value.name).toBe('transfers.detail')
