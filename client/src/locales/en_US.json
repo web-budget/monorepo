@@ -325,7 +325,7 @@
       "credit-card-invoice": "Purchases of each card by period.",
       "period-closing": "Settle pending items and record the result.",
       "wallet": "Bank accounts, investments and cash.",
-      "card": "Credit and debit cards linked to wallets.",
+      "card": "Credit cards.",
       "classification": "Income and expense categories for entries.",
       "cost-center": "A hierarchy to group where the money is spent.",
       "financial-period": "Create, edit and follow the periods.",
@@ -624,13 +624,20 @@
       "total": "Invoice total",
       "purchases": "Purchases",
       "due-date": "Due date",
-      "no-purchases": "No purchases on this invoice"
+      "no-purchases": "No purchases on this invoice",
+      "payment-bar": "Invoice payment:"
     },
     "list": {
       "description": "Purchases of each card by period.",
       "empty-title": "No invoices in this period",
       "empty-description": "Create a period to generate the invoices.",
-      "plural": "the invoices"
+      "plural": "the invoices",
+      "noun": "invoice | invoices",
+      "empty-action": "Create",
+      "error-description": "The server did not respond. Your filters stay in the URL.",
+      "no-result-filter": "No invoices with these filters",
+      "no-result-hint": "Change the filters or clear the search.",
+      "no-result-action": "Clear filters"
     },
     "options": {
       "all": "All",
@@ -648,7 +655,10 @@
       "card": "Card",
       "period": "Period",
       "value": "Total (R$)",
-      "status": "Status"
+      "status": "Status",
+      "purchases": "Purchases",
+      "due-date": "Due date",
+      "actions": "Actions"
     },
     "status": {
       "OPEN": "Open",
@@ -661,13 +671,18 @@
     "purchases": {
       "date": "Date",
       "name": "Purchase",
-      "value": "Value (R$)"
+      "value": "Value (R$)",
+      "cost-center": "Cost center",
+      "classification": "Classification",
+      "recurring": "recurring"
     },
     "actions": {
       "close": "Close invoice",
       "view-payment": "View invoice payment",
       "delete-payment": "Delete invoice payment",
-      "new-purchase": "New purchase"
+      "new-purchase": "New purchase",
+      "import": "Import invoice",
+      "open": "Open invoice"
     },
     "close": {
       "title": "Close the {period} invoice of {card}?",
@@ -677,7 +692,8 @@
       "payment": "Invoice payment",
       "due-date": "Due date",
       "wallet": "Wallet suggested when paying",
-      "confirm": "Close invoice"
+      "confirm": "Close invoice",
+      "help": "The wallet is chosen when paying."
     },
     "delete-payment": {
       "title": "Delete the invoice payment?",
@@ -689,6 +705,25 @@
       "closed-detail": "Invoice payment of {value} generated, open.",
       "reopened": "Invoice reopened",
       "reopened-detail": "The invoice payment was deleted."
+    },
+    "due-date-open": "after closing",
+    "import": {
+      "breadcrumb": "Importing",
+      "title": "Import invoice",
+      "description": "Upload the CSV or OFX, classify and save.",
+      "steps": {
+        "upload": "Upload",
+        "processing": "Processing",
+        "draft": "Draft"
+      },
+      "card": "Card",
+      "period": "Invoice period",
+      "period-hint": "The card invoice must be open in this period.",
+      "drop": "Drag the invoice file or click to choose",
+      "formats": "CSV or OFX, up to 5 MB.",
+      "send": "Upload file",
+      "recent": "Recent imports",
+      "recent-empty": "No imports yet."
     }
   },
   "period-closing": {
@@ -764,16 +799,20 @@
     "title": "Cards",
     "menu": "Cards",
     "search": {
-      "placeholder": "Name, last 4 digits or network"
+      "placeholder": "Name, last digits, network or wallet"
     },
     "table-columns": {
       "name": "Name",
-      "flag": "Network"
+      "flag": "Network",
+      "last-digits": "Last digits",
+      "invoice-payment-day": "Invoice payment day",
+      "wallet": "Wallet that pays the invoice",
+      "status": "Status"
     },
     "form": {
-      "new": "New card",
-      "editing": "Editing card",
-      "detailing": "Card details",
+      "new": "Creating",
+      "editing": "Editing",
+      "detailing": "Viewing",
       "deleting": "Deleting card",
       "name": "Name",
       "flag": "Network",
@@ -783,14 +822,27 @@
       "wallet-search-empty": "No wallets found",
       "wallet-search-placeholder": "Type the name",
       "active-label": "Active",
-      "active-hint": "Deactivate to remove from listings"
+      "active-hint": "Deactivate to remove from listings",
+      "title-new": "New card",
+      "title-edit": "Edit card",
+      "description": "Credit cards only. Fields with * are required.",
+      "name-example": "E.g.: Visa Platinum",
+      "last-four-digits-example": "0000",
+      "wallet-hint": "Suggested when paying; you can change it on the spot.",
+      "wallet-placeholder": "No suggested wallet"
     },
     "list": {
       "description": "Credit cards.",
-      "empty-title": "No cards yet",
-      "empty-description": "Register the credit cards you use. Purchases go to the invoice.",
+      "empty-title": "No cards registered",
+      "empty-description": "Register the first card.",
       "plural": "cards",
-      "found": "{count} card found for “{query}” | {count} cards found for “{query}”"
+      "found": "{count} card found for “{query}” | {count} cards found for “{query}”",
+      "noun": "card | cards",
+      "error-description": "The server did not respond. Your filters stay in the URL.",
+      "no-result-query": "No cards found for “{query}”",
+      "no-result-filter": "No cards with these filters",
+      "no-result-hint": "Change the filters or clear the search.",
+      "no-result-action": "Clear filters"
     },
     "remove": {
       "title": "Delete the card “{name}”?",
@@ -798,7 +850,7 @@
     },
     "toast": {
       "created": "Card created",
-      "created-detail": "“{name}” now shows up in entries.",
+      "created-detail": "It gets an open invoice in every open period.",
       "updated": "Changes saved",
       "updated-detail": "“{name}” was updated.",
       "removed": "Card deleted",
@@ -806,9 +858,16 @@
     },
     "sections": {
       "identification": "Identification",
-      "identification-help": "How the card appears in entries.",
       "invoice": "Invoice",
-      "invoice-help": "Used as a suggestion when paying the closed invoice. The wallet is suggested when paying and can be changed then."
+      "invoice-help": "Used as a suggestion when paying the closed invoice."
+    },
+    "actions": {
+      "view-invoices": "View invoices"
+    },
+    "detail": {
+      "last-digits": "Last digits",
+      "invoice-payment-day": "Payment day",
+      "wallet": "Wallet that pays"
     }
   },
   "financial-period": {
@@ -1102,7 +1161,8 @@
       "edit": "Edit",
       "undo": "Undo payment",
       "view-statement": "View on statement",
-      "view-invoice": "View on invoice"
+      "view-invoice": "View on invoice",
+      "view-the-invoice": "View the invoice"
     },
     "table-columns": {
       "name": "Name",
@@ -1246,8 +1306,7 @@
         "INCOME": "Only income classifications show up.",
         "EXPENSE": "Only expense classifications show up."
       },
-      "payment-help": "Optional.",
-      "invoice": "Invoice"
+      "payment-help": "Optional."
     },
     "detail": {
       "name": "Name",
@@ -1267,10 +1326,6 @@
       "card": "Card",
       "method-wallet": "Wallet",
       "method-card": "Credit card",
-      "invoice-card": "Card",
-      "invoice-status": "Invoice status",
-      "invoice": "Invoice",
-      "invoice-link": "Open the invoice",
       "discount-none": "---"
     },
     "notices": {
@@ -1311,6 +1366,9 @@
       "reversal-word": "reversal",
       "description-card": "The purchase leaves the invoice of {card}. The movement goes back to “Open”.",
       "reversal": "Reversal of {amount}"
+    },
+    "badge": {
+      "invoice": "invoice"
     }
   },
   "transfer": {
@@ -1474,8 +1532,8 @@
     "menu": "Card purchases",
     "form": {
       "new": "Posting purchase",
-      "editing": "Editing purchase",
-      "detailing": "Detailing purchase",
+      "editing": "Editing",
+      "detailing": "Viewing",
       "submit": "Post purchase",
       "card": "Card",
       "period": "Invoice period",
@@ -1483,23 +1541,26 @@
       "purchased-on": "Purchase date",
       "value": "Value",
       "cost-center": "Cost center",
-      "classification": "Expense classification"
+      "classification": "Expense classification",
+      "title-new": "New card purchase",
+      "name-example": "E.g.: Neighborhood market",
+      "period-hint": "Open periods only.",
+      "classification-hint": "Expense classifications only.",
+      "expired-suffix": "expired",
+      "title-edit": "Edit purchase"
     },
     "sections": {
       "card": "Card and period",
-      "card-help": "Open periods only.",
-      "purchase": "Purchase",
-      "classification": "Classification"
+      "purchase": "Purchase"
     },
     "detail": {
       "value": "Value",
-      "purchased-on": "Purchase date",
-      "card": "Card",
+      "purchased-on": "Date",
       "invoice": "Invoice",
-      "invoice-link": "{period} invoice",
-      "period": "Period",
+      "invoice-link": "{card}, {period}",
       "cost-center": "Cost center",
-      "classification": "Classification"
+      "classification": "Classification",
+      "name": "Name"
     },
     "notices": {
       "movement": "This purchase came from a card payment and cannot be changed here.",
@@ -1507,7 +1568,7 @@
     },
     "toast": {
       "created": "Purchase posted",
-      "created-detail": "“{name}” went into the open invoice of the card.",
+      "created-detail": "It went into the open invoice of the card.",
       "updated": "Changes saved",
       "updated-detail": "“{name}” was updated.",
       "removed": "Purchase deleted",
@@ -1516,6 +1577,15 @@
     "remove": {
       "title": "Delete the purchase “{name}”?",
       "description": "It leaves the invoice and the spending by cost center. This cannot be undone."
+    },
+    "actions": {
+      "view-invoice": "View invoice"
+    },
+    "closed-invoice": {
+      "title": "The {period} invoice of {card} is closed",
+      "description": "Nothing was posted.",
+      "action": "View the invoice",
+      "title-missing": "There is no open invoice for {card} in {period}"
     }
   }
 }

@@ -481,11 +481,17 @@ onMounted(async () => {
         @table-sorted="onTableSorted"
         @row-selected="changeToDetail"
       >
+        <template #cell-name="{ item }">
+          {{ item.name }}
+          <Badge v-if="item.invoicePayment" variant="outline" class="ml-1">
+            {{ $t('movement.badge.invoice') }}
+          </Badge>
+        </template>
         <template #cell-dueDate="{ item }">
           <DateTimeDisplay fix-time :value="item.dueDate" class="font-mono tabular-nums" />
         </template>
-        <template #cell-costCenter="{ item }">{{ item.costCenter.name }}</template>
-        <template #cell-classification="{ item }">{{ item.classification.name }}</template>
+        <template #cell-costCenter="{ item }">{{ item.costCenter?.name }}</template>
+        <template #cell-classification="{ item }">{{ item.classification?.name }}</template>
         <template #cell-value="{ item }">
           <span class="inline-flex items-center justify-end gap-1">
             <component

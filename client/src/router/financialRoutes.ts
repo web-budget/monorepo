@@ -67,6 +67,12 @@ export const financialRoutes: RouteRecordRaw[] = [
             meta: { breadcrumb: 'credit-card-invoice.detail.breadcrumb' },
             component: () => import('@/views/financial/invoices/InvoiceDetailView.vue'),
           },
+          {
+            path: 'import',
+            name: 'invoices.import',
+            meta: { breadcrumb: 'credit-card-invoice.import.breadcrumb' },
+            component: () => import('@/views/financial/invoices/InvoiceImportView.vue'),
+          },
           { path: 'purchases', name: 'purchases', redirect: { name: 'invoices' } },
           {
             path: 'purchases/create',

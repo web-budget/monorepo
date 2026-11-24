@@ -9,6 +9,8 @@ function render(props: {
   query?: string
   message?: string
   creatable?: boolean
+  outlineAction?: boolean
+  copy?: { emptyAction?: string }
 }) {
   return mount(ListState, {
     props: { entity: 'wallet', icon: Wallet, ...props },
@@ -81,5 +83,14 @@ describe('ListState', () => {
     const wrapper = render({ kind: 'error' })
 
     expect(wrapper.text()).toContain('Confira sua conexão e tente de novo.')
+  })
+  it('can name the action of an empty list and show it as a small outline button without the plus', () => {
+    const wrapper = render({ kind: 'empty', outlineAction: true, copy: { emptyAction: 'Novo' } })
+
+    const button = wrapper.find('button')
+    expect(button.text()).toBe('Novo')
+    expect(button.attributes('data-variant')).toBe('outline')
+    expect(button.attributes('data-size')).toBe('sm')
+    expect(button.find('svg').exists()).toBe(false)
   })
 })

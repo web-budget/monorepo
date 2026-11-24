@@ -186,8 +186,11 @@ export interface CardView {
 export interface CardListView {
   id: string
   name: string
+  lastFourDigits: string
+  invoicePaymentDay: number
   active: boolean
   flag: string | null
+  wallet: WalletListView | null
 }
 
 export interface CostCenterCreateForm {
@@ -368,7 +371,8 @@ export interface PaymentView {
   discount: number
   valuePaid: number
   wallet: { id: string; name: string } | null
-  card: { id: string; name: string } | null
+  card: { id: string; name: string; lastFourDigits?: string } | null
+  invoice?: { id: string; status: InvoiceStatus } | null
 }
 
 export interface MovementView {
@@ -384,7 +388,11 @@ export interface MovementView {
   financialPeriod: MovementFinancialPeriodView
   description: string | null
   payment: PaymentView | null
-  invoice?: { id: string; status: InvoiceStatus; card: { id: string; name: string } } | null
+  invoice?: {
+    id: string
+    status: InvoiceStatus
+    card: { id: string; name: string; lastFourDigits: string }
+  } | null
 }
 
 export interface MovementListView {
@@ -396,8 +404,9 @@ export interface MovementListView {
   status: MovementStatus
   overdue: boolean
   paymentMethod?: 'WALLET' | 'CARD'
-  classification: MovementClassificationView
-  costCenter: MovementCostCenterView
+  invoicePayment?: boolean
+  classification: MovementClassificationView | null
+  costCenter: MovementCostCenterView | null
   financialPeriod: MovementFinancialPeriodView
 }
 
@@ -525,12 +534,21 @@ export type InvoiceStatus = 'OPEN' | 'CLOSED' | 'PAID'
 
 export type InvoiceStatusFilter = InvoiceStatus | 'ALL'
 
+export interface InvoicePaymentView {
+  id: string
+  name: string
+  value: number
+}
+
 export interface InvoiceView {
   id: string
   status: InvoiceStatus
   value: number
-  card: { id: string; name: string }
+  purchaseCount: number
+  dueDate?: string | null
+  card: { id: string; name: string; lastFourDigits: string }
   financialPeriod: MovementFinancialPeriodView
+  payment?: InvoicePaymentView | null
 }
 
 export interface InvoiceQuery {
@@ -547,8 +565,10 @@ export interface CardPurchaseListView {
   name: string
   purchasedOn: string
   value: number
-  card: { id: string; name: string }
+  card: { id: string; name: string; lastFourDigits: string }
   invoice: { id: string; status: InvoiceStatus }
+  classification: MovementClassificationView
+  costCenter: MovementCostCenterView
 }
 
 export interface CardPurchaseQuery {
@@ -581,7 +601,7 @@ export interface CardPurchaseView {
   name: string
   purchasedOn: string
   value: number
-  card: { id: string; name: string }
+  card: { id: string; name: string; lastFourDigits: string }
   invoice: { id: string; status: InvoiceStatus }
   financialPeriod: MovementFinancialPeriodView
   classification: MovementClassificationView

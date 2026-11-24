@@ -32,7 +32,7 @@ const selected = computed({
   <div :class="['grid min-w-0 content-start gap-2', props.class]">
     <Label>{{ label }}</Label>
     <Select v-model="selected">
-      <SelectTrigger class="w-full" :aria-label="label">
+      <SelectTrigger class="w-full min-w-0" :aria-label="label">
         <SelectValue />
       </SelectTrigger>
       <SelectContent>
