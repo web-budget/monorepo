@@ -69,6 +69,8 @@ const props = withDefaults(
     feminineStatus?: boolean
     sortedField?: string
     sortedOrder?: 'asc' | 'desc'
+    noun?: string
+    defaultSortField?: string
   }>(),
   {
     columns: () => [],
@@ -83,6 +85,8 @@ const props = withDefaults(
     feminineStatus: false,
     sortedField: undefined,
     sortedOrder: undefined,
+    noun: undefined,
+    defaultSortField: DEFAULT_SORT_FIELD,
   },
 )
 
@@ -118,6 +122,7 @@ watch(
   { immediate: true },
 )
 
+const hasCustomDefaultSort = computed(() => props.defaultSortField !== DEFAULT_SORT_FIELD)
 const hasActions = computed(() => slots.actions !== undefined)
 const columnCount = computed(
   () => props.columns.length + (props.showStatus ? 1 : 0) + (hasActions.value ? 1 : 0),
@@ -130,6 +135,12 @@ const lastRecord = computed(() =>
 )
 const showPageSize = computed(() => props.totalElements > MINIMUM_PAGE_SIZE)
 const linkedField = computed(() => props.linkField ?? props.columns[0]?.field ?? '')
+const compactCards = computed(() => props.columns.some((column) => column.mobile !== undefined))
+const titleColumn = computed(
+  () => props.columns.find((column) => column.mobile === 'title')?.field ?? linkedField.value,
+)
+const valueColumn = computed(() => props.columns.find((column) => column.mobile === 'value'))
+const lineColumns = computed(() => props.columns.filter((column) => column.mobile === 'line'))
 const secondaryColumns = computed(() =>
   props.columns.filter((column) => column.field !== linkedField.value),
 )
@@ -183,6 +194,8 @@ function toggleSort(field: string) {
     sortDirection.value = 'asc'
   } else if (sortDirection.value === 'asc') {
     sortDirection.value = 'desc'
+  } else if (hasCustomDefaultSort.value) {
+    sortDirection.value = 'asc'
   } else {
     sortField.value = null
     sortDirection.value = null
@@ -297,6 +310,85 @@ function changePageSize(value: unknown) {
       </Table>
     </Card>
 
+    <Card
+      v-else-if="compactCards"
+      class="gap-0 overflow-hidden py-0"
+      data-slot="items-cards"
+      data-layout="compact"
+    >
+      <template v-if="props.loading && props.data.length === 0">
+        <div
+          v-for="row in 3"
+          :key="row"
+          class="grid gap-2 border-b px-3.5 py-3 last:border-b-0"
+          :aria-label="$t('items-table.state.loading')"
+        >
+          <Skeleton class="h-4 w-40" />
+          <Skeleton class="h-3.5 w-24" />
+        </div>
+      </template>
+      <div
+        v-for="(item, index) in props.data"
+        v-else
+        :key="item.id"
+        :class="
+          cn(
+            'grid cursor-pointer gap-1.5 border-b px-3.5 py-3 last:border-b-0',
+            isMarked(item) && 'shadow-[inset_3px_0_0_var(--highlight)]',
+          )
+        "
+        @click="emit('rowSelected', { data: item, index })"
+      >
+        <div class="flex items-start justify-between gap-3">
+          <div class="min-w-0 font-medium">
+            <RouterLink
+              v-if="props.detailRoute !== undefined"
+              :to="detailTarget(item)"
+              @click.stop
+            >
+              <slot
+                :name="`cell-${titleColumn}`"
+                :item="item"
+                :value="cellValue(item, titleColumn)"
+              >
+                {{ cellValue(item, titleColumn) }}
+              </slot>
+            </RouterLink>
+            <slot
+              v-else
+              :name="`cell-${titleColumn}`"
+              :item="item"
+              :value="cellValue(item, titleColumn)"
+            >
+              {{ cellValue(item, titleColumn) }}
+            </slot>
+          </div>
+          <div class="flex shrink-0 items-center gap-1" @click.stop>
+            <slot
+              v-if="valueColumn"
+              :name="`cell-${valueColumn.field}`"
+              :item="item"
+              :value="cellValue(item, valueColumn.field)"
+            >
+              {{ cellValue(item, valueColumn.field) }}
+            </slot>
+            <slot name="actions" :item="item" />
+          </div>
+        </div>
+        <div
+          v-if="lineColumns.length > 0"
+          class="text-muted-foreground flex flex-wrap items-center gap-x-3 gap-y-1 text-xs"
+        >
+          <span v-for="column in lineColumns" :key="column.field">
+            <template v-if="column.mobileLabel !== false">{{ column.header }}: </template>
+            <slot :name="`cell-${column.field}`" :item="item" :value="cellValue(item, column.field)">
+              {{ cellValue(item, column.field) }}
+            </slot>
+          </span>
+        </div>
+      </div>
+    </Card>
+
     <div v-else class="grid gap-2" data-slot="items-cards">
       <template v-if="props.loading && props.data.length === 0">
         <Card
@@ -382,10 +474,11 @@ function changePageSize(value: unknown) {
       <span class="font-mono tabular-nums">
         {{
           props.summary ??
-          $t('items-table.footer.range', {
+          $t(props.noun ? 'items-table.footer.range-noun' : 'items-table.footer.range', {
             first: firstRecord,
             last: lastRecord,
             total: props.totalElements,
+            noun: props.noun,
           })
         }}
       </span>

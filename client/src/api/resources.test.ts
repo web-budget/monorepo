@@ -176,7 +176,7 @@ describe.each([
   [
     'financialPeriodsApi',
     financialPeriodsApi as unknown as CrudResource,
-    '/registration/financial-periods',
+    '/financial/financial-periods',
   ],
 ])('%s', (_name, resource, path) => {
   it('lists a page with the query as parameters', async () => {

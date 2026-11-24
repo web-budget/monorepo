@@ -9,12 +9,23 @@ import {
 } from '@/utils/pageRequest'
 import { queryValue } from '@/utils/queryValue'
 
+const DEFAULT_SORT: DefaultSort = {
+  sortField: DEFAULT_SORT_FIELD,
+  direction: DEFAULT_SORT_DIRECTION,
+}
+
 export const LIST_QUERY_KEYS = ['filter', 'status', 'page', 'size', 'sort'] as const
 
 export interface ListQuerySettings<S extends string> {
   initialStatus: S
   statuses: readonly S[]
   sortFields: readonly string[]
+  defaultSort?: DefaultSort
+}
+
+export interface DefaultSort {
+  sortField: string
+  direction: SortDirection
 }
 
 export type ExtraQuery = Record<string, string>
@@ -55,12 +66,14 @@ const SORT_DIRECTIONS: readonly SortDirection[] = ['asc', 'desc']
 function parseSort(
   text: string,
   sortFields: readonly string[],
+  fallback: DefaultSort,
 ): Pick<PageRequest, 'sortField' | 'direction'> {
   const [sortField = '', directionText, ...rest] = text.split(',')
   const direction = SORT_DIRECTIONS.find((candidate) => candidate === directionText)
-  const knownField = sortField === DEFAULT_SORT_FIELD || sortFields.includes(sortField)
+  const knownField =
+    sortField === DEFAULT_SORT_FIELD || sortField === fallback.sortField || sortFields.includes(sortField)
   if (!knownField || direction === undefined || rest.length > 0) {
-    return { sortField: DEFAULT_SORT_FIELD, direction: DEFAULT_SORT_DIRECTION }
+    return { ...fallback }
   }
   return { sortField, direction }
 }
@@ -74,7 +87,7 @@ export function parseListQuery<S extends string>(
     status: parseStatus(queryValue(query.status), settings),
     current: parsePage(queryValue(query.page)),
     size: parseSize(queryValue(query.size)),
-    ...parseSort(queryValue(query.sort), settings.sortFields),
+    ...parseSort(queryValue(query.sort), settings.sortFields, settings.defaultSort ?? DEFAULT_SORT),
   }
 }
 
@@ -84,6 +97,7 @@ export function buildListQuery<S extends string>(
   initialStatus: S,
   extra: ExtraQuery = {},
   extraKeys: readonly string[] = [],
+  defaultSort: DefaultSort = DEFAULT_SORT,
 ): LocationQuery {
   const query: LocationQuery = { ...baseQuery }
   for (const key of [...LIST_QUERY_KEYS, ...extraKeys]) {
@@ -106,7 +120,7 @@ export function buildListQuery<S extends string>(
   if (state.size !== DEFAULT_PAGE_SIZE) {
     query.size = String(state.size)
   }
-  if (state.sortField !== DEFAULT_SORT_FIELD || state.direction !== DEFAULT_SORT_DIRECTION) {
+  if (state.sortField !== defaultSort.sortField || state.direction !== defaultSort.direction) {
     query.sort = `${state.sortField},${state.direction}`
   }
   return query

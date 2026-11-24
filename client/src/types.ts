@@ -287,12 +287,16 @@ export interface FinancialPeriodListView {
   endingAt: string
   status: FinancialPeriodStatus
   expired: boolean
+  revenuesGoal?: number | null
+  expensesGoal?: number | null
 }
 
 export interface FinancialPeriodResultView {
   revenues: number
   expenses: number
   result: number
+  toPay: number
+  overdueExpenses: number
 }
 
 export type Language = 'PT_BR' | 'EN_US'
@@ -387,6 +391,9 @@ export interface MovementListView {
   dueDate: string
   status: MovementStatus
   overdue: boolean
+  paymentMethod?: 'WALLET' | 'CARD'
+  classification: MovementClassificationView
+  costCenter: MovementCostCenterView
   financialPeriod: MovementFinancialPeriodView
 }
 

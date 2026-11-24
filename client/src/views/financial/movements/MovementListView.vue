@@ -16,7 +16,8 @@ import SearchControls from '@/components/listing/SearchControls.vue'
 import MovementRowActions from '@/components/movements/MovementRowActions.vue'
 import PayMovementDialog from '@/components/movements/PayMovementDialog.vue'
 import MovementStatusBadge from '@/components/movements/MovementStatusBadge.vue'
-import { Alert, AlertTitle } from '@/components/ui/alert'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Label } from '@/components/ui/label'
@@ -82,7 +83,6 @@ const {
   busy,
   counts,
   search,
-  clearSearch,
   reload,
   onPageChange,
   onTableSorted,
@@ -95,7 +95,9 @@ const {
   entity: 'movement',
   initialStatus: 'ALL',
   statuses: ['ALL', 'OPEN', 'PAID'],
-  sortFields: ['name', 'dueDate', 'value', 'status'],
+  sortFields: ['name', 'dueDate', 'costCenter', 'value', 'status'],
+  defaultSort: { sortField: 'dueDate', direction: 'asc' },
+  countsFollowFilters: true,
   pageRequest,
   pageResponse,
   loading,
@@ -109,7 +111,6 @@ const {
       ...values,
       type: values.type === 'INCOME' || values.type === 'EXPENSE' ? values.type : '',
       overdue: values.overdue === 'true' ? 'true' : '',
-      invoices: values.invoices === 'true' ? 'true' : '',
     }),
   },
 })
@@ -132,12 +133,19 @@ const selectedPeriod = computed(() =>
   filterOptions.periods.value.find((period) => period.id === filters.value.period),
 )
 
+function periodLabel(period: { name: string; expired: boolean; status: string }) {
+  if (period.expired) {
+    return `${period.name} · ${t('financial-period.status.expired-short')}`
+  }
+  return period.status === 'CLOSED'
+    ? `${period.name} · ${t('financial-period.status.closed-short')}`
+    : period.name
+}
+
 const periodChoices = computed(() =>
   filterOptions.periods.value.map((period) => ({
     value: period.id,
-    label: period.expired
-      ? `${period.name} · ${t('financial-period.status.expired')}`
-      : period.name,
+    label: periodLabel(period),
   })),
 )
 
@@ -172,22 +180,47 @@ const description = computed(() =>
 )
 
 const activeFilters = computed(() => {
-  const narrowed = ['type', 'costCenter', 'classification', 'overdue', 'invoices'].filter(
+  const narrowed = ['type', 'costCenter', 'classification', 'overdue'].filter(
     (key) => filters.value[key],
   ).length
   return narrowed + (filters.value.period === defaultPeriodId.value ? 0 : 1)
 })
 
 const columns = computed(() => [
-  { field: 'name', header: t('movement.table-columns.name'), sortable: true },
-  { field: 'dueDate', header: t('movement.table-columns.due-date'), sortable: true },
+  { field: 'name', header: t('movement.table-columns.name'), sortable: true, mobile: 'title' as const },
+  {
+    field: 'dueDate',
+    header: t('movement.table-columns.due-date'),
+    sortable: true,
+    mobile: 'line' as const,
+  },
+  {
+    field: 'costCenter',
+    header: t('movement.table-columns.cost-center'),
+    sortable: true,
+    mobile: 'line' as const,
+    mobileLabel: false,
+  },
+  {
+    field: 'classification',
+    header: t('movement.table-columns.classification'),
+    mobile: 'line' as const,
+    mobileLabel: false,
+  },
   {
     field: 'value',
     header: t('movement.table-columns.value'),
     sortable: true,
     align: 'end' as const,
+    mobile: 'value' as const,
   },
-  { field: 'status', header: t('movement.table-columns.status'), sortable: true },
+  {
+    field: 'status',
+    header: t('movement.table-columns.status'),
+    sortable: true,
+    mobile: 'line' as const,
+    mobileLabel: false,
+  },
 ])
 
 function changeFilter(key: string, value: string) {
@@ -212,6 +245,24 @@ function changePeriod(value: string) {
 function clearFilters() {
   filters.value = { period: defaultPeriodId.value ?? ALL_PERIODS }
   return search()
+}
+
+const listCopy = computed(() => ({
+  emptyTitle: selectedPeriod.value
+    ? t('movement.list.empty-title', { period: selectedPeriod.value.name })
+    : t('movement.list.empty-title-all'),
+  emptyDescription: t('movement.list.empty-description'),
+  errorDescription: t('movement.list.error-description'),
+  noResultQuery: t('movement.list.no-result-query', { query: pageRequest.value.filterText }),
+  noResultFilter: t('movement.list.no-result-filter'),
+  noResultHint: t('movement.list.no-result-hint'),
+  noResultAction: t('movement.list.no-result-action'),
+}))
+
+function clearListFilters() {
+  pageRequest.value.filterText = ''
+  pageRequest.value.status = 'ALL'
+  return clearFilters()
 }
 
 function signedValue(item: MovementListView) {
@@ -245,111 +296,143 @@ onMounted(async () => {
         <Button type="button" @click="changeToAdd()"> <Plus />{{ $t('form.create') }} </Button>
       </template>
     </PageHeader>
-    <div class="grid gap-3">
+    <div class="grid gap-4">
       <Alert v-if="selectedPeriod?.expired" variant="attention" data-slot="expired-notice">
         <Clock />
         <AlertTitle>
           {{
-            $t('movement.expired-notice', {
+            $t('movement.expired-notice.title', {
               name: selectedPeriod.name,
               date: $d(new Date(`${selectedPeriod.endingAt}T00:00:00`), 'short'),
             })
           }}
         </AlertTitle>
+        <AlertDescription>{{ $t('movement.expired-notice.description') }}</AlertDescription>
       </Alert>
-      <div v-if="periodResult" class="grid grid-cols-1 gap-3 sm:grid-cols-3" data-slot="summary">
+      <div v-if="periodResult" class="grid grid-cols-2 gap-3 md:grid-cols-4" data-slot="summary">
         <Card class="gap-1 p-4">
           <span class="text-muted-foreground text-xs">{{ $t('movement.summary.received') }}</span>
-          <CurrencyDisplay :value="periodResult.revenues" signed class="text-xl font-semibold" />
+          <CurrencyDisplay
+            :value="periodResult.revenues"
+            signed
+            glued
+            class="text-xl font-semibold tracking-tight"
+          />
           <span class="text-muted-foreground text-xs">
             {{ $t('movement.summary.received-note') }}
           </span>
         </Card>
         <Card class="gap-1 p-4">
           <span class="text-muted-foreground text-xs">{{ $t('movement.summary.paid') }}</span>
-          <CurrencyDisplay :value="-periodResult.expenses" signed class="text-xl font-semibold" />
+          <CurrencyDisplay
+            :value="-periodResult.expenses"
+            signed
+            glued
+            class="text-xl font-semibold tracking-tight"
+          />
           <span class="text-muted-foreground text-xs">{{ $t('movement.summary.paid-note') }}</span>
         </Card>
         <Card class="gap-1 p-4">
           <span class="text-muted-foreground text-xs">{{ $t('movement.summary.result') }}</span>
-          <CurrencyDisplay :value="periodResult.result" signed class="text-xl font-semibold" />
+          <CurrencyDisplay
+            :value="periodResult.result"
+            signed
+            glued
+            neutral
+            class="text-xl font-semibold tracking-tight"
+          />
           <span class="text-muted-foreground text-xs">{{
             $t('movement.summary.result-note')
           }}</span>
         </Card>
+        <Card class="gap-1 p-4" data-slot="to-pay">
+          <span class="text-muted-foreground text-xs">{{ $t('movement.summary.to-pay') }}</span>
+          <CurrencyDisplay
+            :value="-periodResult.toPay"
+            signed
+            glued
+            class="text-xl font-semibold tracking-tight"
+          />
+          <span class="text-muted-foreground flex h-5 items-center text-xs">
+            <Badge v-if="periodResult.overdueExpenses > 0" variant="highlight">
+              {{
+                $t(
+                  'movement.summary.overdue-count',
+                  { count: periodResult.overdueExpenses },
+                  periodResult.overdueExpenses,
+                )
+              }}
+            </Badge>
+            <template v-else>{{ $t('movement.summary.nothing-overdue') }}</template>
+          </span>
+        </Card>
       </div>
-      <SearchControls
-        v-model:status="pageRequest.status"
-        v-model:filter="pageRequest.filterText"
-        :placeholder="$t('movement.search.placeholder')"
-        :status-options="statusOptions"
-        :counts="counts"
-        @on-filter-change="search()"
-        @on-filter-reset="search()"
-      />
-      <div
-        class="grid grid-cols-2 items-end gap-3 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto_auto_auto]"
-        data-slot="filters"
-      >
-        <FilterSelect
-          class="col-span-2 lg:col-span-1"
-          :label="$t('movement.filters.period')"
-          :none-label="$t('movement.filters.all-periods')"
-          :options="periodChoices"
-          :model-value="filters.period === ALL_PERIODS ? '' : (filters.period ?? '')"
-          @update:model-value="changePeriod"
+      <Card class="grid gap-4 p-4" data-slot="filter-card">
+        <SearchControls
+          v-model:status="pageRequest.status"
+          v-model:filter="pageRequest.filterText"
+          :placeholder="$t('movement.search.placeholder')"
+          :status-options="statusOptions"
+          :counts="counts"
+          @on-filter-change="search()"
+          @on-filter-reset="search()"
         />
-        <FilterSelect
-          :label="$t('movement.filters.type')"
-          :none-label="$t('movement.filters.all-types')"
-          :options="typeChoices"
-          :model-value="filters.type ?? ''"
-          @update:model-value="(value: string) => changeFilter('type', value)"
-        />
-        <FilterSelect
-          :label="$t('movement.filters.cost-center')"
-          :none-label="$t('movement.filters.all-cost-centers')"
-          :options="costCenterChoices"
-          :model-value="filters.costCenter ?? ''"
-          @update:model-value="(value: string) => changeFilter('costCenter', value)"
-        />
-        <FilterSelect
-          :label="classificationLabel"
-          :none-label="$t('movement.filters.all-classifications')"
-          :options="classificationChoices"
-          :model-value="filters.classification ?? ''"
-          @update:model-value="(value: string) => changeFilter('classification', value)"
-        />
-        <div class="flex h-9 items-center gap-2.5 self-end">
-          <Switch
-            id="movement-overdue"
-            :model-value="filters.overdue === 'true'"
-            @update:model-value="(value: boolean) => changeFilter('overdue', value ? 'true' : '')"
-          />
-          <Label for="movement-overdue">{{ $t('movement.filters.overdue') }}</Label>
-        </div>
-        <div class="flex h-9 items-center gap-2.5 self-end">
-          <Switch
-            id="movement-invoices"
-            :model-value="filters.invoices === 'true'"
-            @update:model-value="(value: boolean) => changeFilter('invoices', value ? 'true' : '')"
-          />
-          <Label for="movement-invoices">{{ $t('movement.filters.invoices') }}</Label>
-        </div>
-        <Button
-          type="button"
-          variant="ghost"
-          :disabled="activeFilters === 0"
-          @click="clearFilters()"
+        <div
+          class="border-border grid grid-cols-2 items-end gap-3 border-t pt-4 lg:grid-cols-[repeat(4,minmax(0,1fr))_auto_auto]"
+          data-slot="filters"
         >
-          <X />
-          {{
-            activeFilters > 0
-              ? $t('movement.filters.clear-count', { count: activeFilters })
-              : $t('movement.filters.clear')
-          }}
-        </Button>
-      </div>
+          <FilterSelect
+            class="col-span-2 lg:col-span-1"
+            :label="$t('movement.filters.period')"
+            :none-label="$t('movement.filters.all-periods')"
+            :options="periodChoices"
+            :model-value="filters.period === ALL_PERIODS ? '' : (filters.period ?? '')"
+            @update:model-value="changePeriod"
+          />
+          <FilterSelect
+            :label="$t('movement.filters.type')"
+            :none-label="$t('movement.filters.all-types')"
+            :options="typeChoices"
+            :model-value="filters.type ?? ''"
+            @update:model-value="(value: string) => changeFilter('type', value)"
+          />
+          <FilterSelect
+            :label="$t('movement.filters.cost-center')"
+            :none-label="$t('movement.filters.all-cost-centers')"
+            :options="costCenterChoices"
+            :model-value="filters.costCenter ?? ''"
+            @update:model-value="(value: string) => changeFilter('costCenter', value)"
+          />
+          <FilterSelect
+            :label="classificationLabel"
+            :none-label="$t('movement.filters.all-classifications')"
+            :options="classificationChoices"
+            :model-value="filters.classification ?? ''"
+            @update:model-value="(value: string) => changeFilter('classification', value)"
+          />
+          <div class="flex h-9 items-center gap-2.5 self-end">
+            <Switch
+              id="movement-overdue"
+              :model-value="filters.overdue === 'true'"
+              @update:model-value="(value: boolean) => changeFilter('overdue', value ? 'true' : '')"
+            />
+            <Label for="movement-overdue">{{ $t('movement.filters.overdue') }}</Label>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            :disabled="activeFilters === 0"
+            @click="clearFilters()"
+          >
+            <X />
+            {{
+              activeFilters > 0
+                ? $t('movement.filters.clear-count', { count: activeFilters })
+                : $t('movement.filters.clear')
+            }}
+          </Button>
+        </div>
+      </Card>
       <ServerErrorAlert
         :messages="[
           ...messages,
@@ -366,8 +449,9 @@ onMounted(async () => {
         :icon="ReceiptText"
         :query="pageRequest.filterText"
         :message="loadMessages[0]"
+        :copy="listCopy"
         @create="changeToAdd()"
-        @clear="clearSearch()"
+        @clear="clearListFilters()"
         @retry="reload()"
       />
       <ItemsTable
@@ -375,7 +459,9 @@ onMounted(async () => {
         :data="pageResponse.content"
         :total-elements="pageResponse.totalElements"
         :summary="searchSummary"
+        :noun="$t('movement.list.noun', pageResponse.totalElements)"
         :columns="columns"
+        default-sort-field="dueDate"
         :show-status="false"
         :marked-row="(item: MovementListView) => item.overdue"
         :loading="busy"
@@ -391,13 +477,15 @@ onMounted(async () => {
         <template #cell-dueDate="{ item }">
           <DateTimeDisplay fix-time :value="item.dueDate" class="font-mono tabular-nums" />
         </template>
+        <template #cell-costCenter="{ item }">{{ item.costCenter.name }}</template>
+        <template #cell-classification="{ item }">{{ item.classification.name }}</template>
         <template #cell-value="{ item }">
           <span class="inline-flex items-center justify-end gap-1">
             <component
               :is="item.type === 'INCOME' ? ArrowDownLeft : ArrowUpRight"
               :class="['size-3.5', item.type === 'INCOME' ? 'text-income' : 'text-expense']"
             />
-            <CurrencyDisplay :value="signedValue(item)" signed />
+            <CurrencyDisplay :value="signedValue(item)" signed glued bare />
           </span>
         </template>
         <template #cell-status="{ item }">
@@ -405,6 +493,7 @@ onMounted(async () => {
             :status="item.status"
             :overdue="item.overdue"
             :due-date="item.dueDate"
+            :on-card="item.paymentMethod === 'CARD'"
           />
         </template>
         <template #actions="{ item }">

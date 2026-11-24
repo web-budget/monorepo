@@ -428,7 +428,8 @@
     "footer": {
       "until": " to ",
       "total": ", total ",
-      "range": "{first}–{last} of {total}"
+      "range": "{first}–{last} of {total}",
+      "range-noun": "{first}–{last} of {total} {noun}"
     },
     "pagination": {
       "rows-per-page": "Rows per page",
@@ -825,7 +826,9 @@
     "status": {
       "open": "Open",
       "closed": "Closed",
-      "expired": "Open · expired"
+      "expired": "Open · expired",
+      "expired-short": "expired",
+      "closed-short": "closed"
     },
     "options": {
       "all": "All",
@@ -1044,7 +1047,7 @@
     "status": "Status",
     "actions": {
       "edit": "Edit",
-      "remove": "Remove",
+      "remove": "Delete",
       "more": "More actions"
     },
     "discard": {
@@ -1072,7 +1075,7 @@
   "movement": {
     "title": "Movements",
     "search": {
-      "placeholder": "Name"
+      "placeholder": "Name, cost center or classification"
     },
     "actions": {
       "details": "Details",
@@ -1086,7 +1089,9 @@
       "name": "Name",
       "due-date": "Due date",
       "value": "Value (R$)",
-      "status": "Status"
+      "status": "Status",
+      "cost-center": "Cost center",
+      "classification": "Classification"
     },
     "status": {
       "open": "Open",
@@ -1123,8 +1128,7 @@
       "all-classifications": "All",
       "overdue": "Overdue only",
       "clear": "Clear",
-      "clear-count": "Clear ({count})",
-      "invoices": "Invoice payments"
+      "clear-count": "Clear ({count})"
     },
     "summary": {
       "received": "Received",
@@ -1132,16 +1136,29 @@
       "paid": "Paid",
       "paid-note": "Paid expenses",
       "result": "Result",
-      "result-note": "Income − expenses"
+      "result-note": "Income − expenses",
+      "to-pay": "To pay",
+      "overdue-count": "{count} overdue | {count} overdue",
+      "nothing-overdue": "Nothing overdue"
     },
-    "expired-notice": "{name} expired on {date} and is still open. It still accepts postings.",
+    "expired-notice": {
+      "title": "{name} expired on {date} and is still open",
+      "description": "It still accepts postings."
+    },
     "list": {
       "description": "Income and expenses of {period}.",
       "description-all": "Income and expenses of all periods.",
-      "empty-title": "No movements yet",
+      "empty-title": "No movements in {period}",
       "empty-description": "Post the first income or expense of the period.",
       "plural": "the movements",
-      "found": "{count} movement found for “{query}” | {count} movements found for “{query}”"
+      "found": "{count} movement found for “{query}” | {count} movements found for “{query}”",
+      "noun": "movement | movements",
+      "empty-title-all": "No movements yet",
+      "error-description": "The server did not respond. Your filters stay in the URL.",
+      "no-result-query": "No movements found for “{query}”",
+      "no-result-filter": "No movements with these filters",
+      "no-result-hint": "Change the filters or clear the search.",
+      "no-result-action": "Clear filters"
     },
     "remove": {
       "title": "Delete “{name}”?",

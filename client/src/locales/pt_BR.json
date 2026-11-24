@@ -428,7 +428,8 @@
     "footer": {
       "until": " até ",
       "total": ", total ",
-      "range": "{first}–{last} de {total}"
+      "range": "{first}–{last} de {total}",
+      "range-noun": "{first}–{last} de {total} {noun}"
     },
     "pagination": {
       "rows-per-page": "Linhas por página",
@@ -825,7 +826,9 @@
     "status": {
       "open": "Aberto",
       "closed": "Encerrado",
-      "expired": "Aberto · expirado"
+      "expired": "Aberto · expirado",
+      "expired-short": "expirado",
+      "closed-short": "encerrado"
     },
     "options": {
       "all": "Todos",
@@ -1044,7 +1047,7 @@
     "status": "Situação",
     "actions": {
       "edit": "Editar",
-      "remove": "Remover",
+      "remove": "Excluir",
       "more": "Mais ações"
     },
     "discard": {
@@ -1072,7 +1075,7 @@
   "movement": {
     "title": "Movimentos",
     "search": {
-      "placeholder": "Nome"
+      "placeholder": "Nome, centro de custo ou classificação"
     },
     "actions": {
       "details": "Detalhes",
@@ -1086,7 +1089,9 @@
       "name": "Nome",
       "due-date": "Vencimento",
       "value": "Valor (R$)",
-      "status": "Situação"
+      "status": "Situação",
+      "cost-center": "Centro de custo",
+      "classification": "Classificação"
     },
     "status": {
       "open": "Em aberto",
@@ -1123,8 +1128,7 @@
       "all-classifications": "Todas",
       "overdue": "Só vencidos",
       "clear": "Limpar",
-      "clear-count": "Limpar ({count})",
-      "invoices": "Pagamentos de fatura"
+      "clear-count": "Limpar ({count})"
     },
     "summary": {
       "received": "Recebido",
@@ -1132,16 +1136,29 @@
       "paid": "Pago",
       "paid-note": "Despesas pagas",
       "result": "Resultado",
-      "result-note": "Receitas − despesas"
+      "result-note": "Receitas − despesas",
+      "to-pay": "A pagar",
+      "overdue-count": "{count} vencido | {count} vencidos",
+      "nothing-overdue": "Nada vencido"
     },
-    "expired-notice": "{name} expirou em {date} e continua aberto. Ainda aceita lançamentos.",
+    "expired-notice": {
+      "title": "{name} expirou em {date} e continua aberto",
+      "description": "Ainda aceita lançamentos."
+    },
     "list": {
       "description": "Receitas e despesas de {period}.",
       "description-all": "Receitas e despesas de todos os períodos.",
-      "empty-title": "Nenhum movimento ainda",
+      "empty-title": "Nenhum movimento em {period}",
       "empty-description": "Lance a primeira receita ou despesa do período.",
       "plural": "os movimentos",
-      "found": "{count} movimento encontrado para “{query}” | {count} movimentos encontrados para “{query}”"
+      "found": "{count} movimento encontrado para “{query}” | {count} movimentos encontrados para “{query}”",
+      "noun": "movimento | movimentos",
+      "empty-title-all": "Nenhum movimento ainda",
+      "error-description": "O servidor não respondeu. Seus filtros continuam na URL.",
+      "no-result-query": "Nenhum movimento encontrado para “{query}”",
+      "no-result-filter": "Nenhum movimento com esses filtros",
+      "no-result-hint": "Mude os filtros ou limpe a busca.",
+      "no-result-action": "Limpar filtros"
     },
     "remove": {
       "title": "Excluir “{name}”?",

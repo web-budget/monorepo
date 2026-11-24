@@ -3,7 +3,7 @@ import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import { useNotification } from '@/composables/useNotification'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { useMovementsStore } from '@/stores/movements'
-import type { MovementType, PaymentForm } from '@/types'
+import type { MovementType, MovementView, PaymentForm } from '@/types'
 import i18n from '@/locales'
 
 interface MovementTarget {
@@ -31,9 +31,24 @@ export function useMovementActions(reload: () => Promise<unknown> | unknown) {
   }
 
   async function pay(target: MovementTarget, form: PaymentForm) {
-    if (await run(() => store.pay(target.id, form))) {
+    let paid: MovementView | undefined
+    const done = await run(async () => {
+      paid = await store.pay(target.id, form)
+    })
+    if (done) {
       closePay()
-      showSuccess('movement.toast.paid', 'movement.toast.paid-detail', true, { name: target.name })
+      const income = target.type === 'INCOME'
+      const onCard = paid?.payment?.card != null
+      showSuccess(
+        income ? 'movement.toast.received' : 'movement.toast.paid',
+        onCard
+          ? 'movement.toast.paid-on-card-detail'
+          : income
+            ? 'movement.toast.received-detail'
+            : 'movement.toast.paid-detail',
+        true,
+        { wallet: paid?.payment?.wallet?.name, card: paid?.payment?.card?.name },
+      )
       await reload()
     }
   }
@@ -47,9 +62,7 @@ export function useMovementActions(reload: () => Promise<unknown> | unknown) {
       confirmLabel: t('movement.undo.confirm'),
     })
     if (confirmed && (await run(() => store.undoPayment(target.id)))) {
-      showSuccess('movement.toast.payment-undone', 'movement.toast.payment-undone-detail', true, {
-        name: target.name,
-      })
+      showSuccess('movement.toast.payment-undone', 'movement.toast.payment-undone-detail')
       await reload()
     }
   }
