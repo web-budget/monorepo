@@ -3,7 +3,6 @@ import { Plus, Tags } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
-import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
 import PageContainer from '@/components/common/PageContainer.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import ServerErrorAlert from '@/components/forms/ServerErrorAlert.vue'
@@ -43,7 +42,7 @@ const {
   entity: 'classification',
   initialStatus: 'ACTIVE',
   statuses: FEMININE_STATUS_OPTIONS.map((option) => option.value),
-  sortFields: ['name', 'type', 'budget', 'active'],
+  sortFields: ['name', 'type', 'active'],
   pageRequest,
   pageResponse,
   loading,
@@ -55,12 +54,6 @@ const {
 const columns = computed(() => [
   { field: 'name', header: t('classification.table-columns.name'), sortable: true },
   { field: 'type', header: t('classification.table-columns.type'), sortable: true },
-  {
-    field: 'budget',
-    header: t('classification.table-columns.budget'),
-    sortable: true,
-    align: 'end' as const,
-  },
 ])
 </script>
 
@@ -114,7 +107,6 @@ const columns = computed(() => [
         @row-selected="changeToDetail"
       >
         <template #cell-type="{ item }">{{ $t(typeKey('classification', item.type)) }}</template>
-        <template #cell-budget="{ item }"><CurrencyDisplay :value="item.budget" /></template>
         <template #actions="{ item }">
           <ActionButtons @on-edit="changeToUpdate(item.id)" @on-delete="remove(item)" />
         </template>

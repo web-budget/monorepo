@@ -63,6 +63,8 @@ class ListingSortOrderTest : BaseIntegrationTest() {
         assertNames("/registration/cards", "", "XP Infinite", "Itau Personalite")
         assertNames("/registration/cards", "sort=name,asc", "Itau Personalite", "XP Infinite")
         assertNames("/registration/cards", "sort=name,desc", "XP Infinite", "Itau Personalite")
+        assertNames("/registration/cards", "sort=invoicePaymentDay,asc", "XP Infinite", "Itau Personalite")
+        assertNames("/registration/cards", "sort=invoicePaymentDay,desc", "Itau Personalite", "XP Infinite")
     }
 
     @Test
@@ -87,23 +89,57 @@ class ListingSortOrderTest : BaseIntegrationTest() {
     @Sql("/sql/registration/clear-tables.sql", "/sql/registration/create-financial-periods.sql")
     fun `should list the financial periods from the newest to the oldest by default`() {
 
-        assertNames("/registration/financial-periods", "status=ALL", "07/2024", "06/2024", "08/2024")
-        assertNames("/registration/financial-periods", "status=ALL&sort=name,asc", "06/2024", "07/2024", "08/2024")
-        assertNames("/registration/financial-periods", "status=ALL&sort=name,desc", "08/2024", "07/2024", "06/2024")
+        assertNames("/financial/financial-periods", "status=ALL", "07/2024", "06/2024", "08/2024")
+        assertNames("/financial/financial-periods", "status=ALL&sort=name,asc", "06/2024", "07/2024", "08/2024")
+        assertNames("/financial/financial-periods", "status=ALL&sort=name,desc", "08/2024", "07/2024", "06/2024")
     }
 
     @Test
     @Sql(
         "/sql/financial/clear-tables.sql",
         "/sql/financial/create-registration-data.sql",
-        "/sql/financial/create-period-movements.sql"
+        "/sql/financial/create-movements.sql"
     )
     @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
-    fun `should list the period movements from the newest to the oldest by default`() {
+    fun `should list the movements from the newest to the oldest by default`() {
 
-        assertNames("/financial/period-movements", "", "Groceries", "Salary", "Gym")
-        assertNames("/financial/period-movements", "sort=name,asc", "Groceries", "Gym", "Salary")
-        assertNames("/financial/period-movements", "sort=name,desc", "Salary", "Gym", "Groceries")
+        assertNames("/financial/movements", "", "Groceries", "Salary", "Gym")
+        assertNames("/financial/movements", "sort=name,asc", "Groceries", "Gym", "Salary")
+        assertNames("/financial/movements", "sort=name,desc", "Salary", "Gym", "Groceries")
+        assertNames("/financial/movements", "sort=costCenter,asc", "Gym", "Groceries", "Salary")
+        assertNames("/financial/movements", "sort=costCenter,desc", "Groceries", "Salary", "Gym")
+    }
+
+    @Test
+    @Sql(
+        "/sql/financial/clear-tables.sql",
+        "/sql/financial/create-registration-data.sql",
+        "/sql/financial/create-movements.sql",
+        "/sql/financial/create-wallet-entries.sql"
+    )
+    @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
+    fun `should list the wallet statement from the newest to the oldest by default`() {
+
+        val path = "/financial/wallets/7e1b6f3a-2c4d-4b8e-9a10-5d3f0c9b7a01/statement"
+
+        assertNames(path, "", "Rounding", "Financial test other wallet", "Rent", "Deposit")
+        assertNames(path, "sort=name,asc", "Deposit", "Financial test other wallet", "Rent", "Rounding")
+        assertNames(path, "sort=name,desc", "Rounding", "Rent", "Financial test other wallet", "Deposit")
+    }
+
+    @Test
+    @Sql(
+        "/sql/financial/clear-tables.sql",
+        "/sql/financial/create-registration-data.sql",
+        "/sql/financial/create-invoices.sql",
+        "/sql/financial/create-card-purchases.sql"
+    )
+    @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
+    fun `should list the card purchases from the newest to the oldest by default`() {
+
+        assertNames("/financial/card-purchases", "", "Books", "Cinema", "Pizza")
+        assertNames("/financial/card-purchases", "sort=name,asc", "Books", "Cinema", "Pizza")
+        assertNames("/financial/card-purchases", "sort=name,desc", "Pizza", "Cinema", "Books")
     }
 
     @Test
@@ -115,9 +151,57 @@ class ListingSortOrderTest : BaseIntegrationTest() {
     @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
     fun `should list the recurring movements from the newest to the oldest by default`() {
 
-        assertNames("/financial/recurring-movements", "", "Pilates", "Gym")
-        assertNames("/financial/recurring-movements", "sort=name,asc", "Gym", "Pilates")
-        assertNames("/financial/recurring-movements", "sort=name,desc", "Pilates", "Gym")
+        assertNames("/financial/recurring-movements", "", "Salary", "Phone", "Electricity", "Streaming")
+        assertNames("/financial/recurring-movements", "sort=name,asc", "Electricity", "Phone", "Salary", "Streaming")
+        assertNames("/financial/recurring-movements", "sort=name,desc", "Streaming", "Salary", "Phone", "Electricity")
+        assertNames("/financial/recurring-movements", "sort=valueKind,asc", "Salary", "Phone", "Streaming", "Electricity")
+        assertNames("/financial/recurring-movements", "sort=valueKind,desc", "Electricity", "Salary", "Phone", "Streaming")
+    }
+
+    @Test
+    @Sql(
+        "/sql/financial/clear-tables.sql",
+        "/sql/financial/create-registration-data.sql",
+        "/sql/financial/create-period-results.sql"
+    )
+    @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
+    fun `should list the period results from the newest to the oldest by default`() {
+
+        assertNames(
+            "/financial/period-results",
+            "",
+            "Financial test 12/2024", "Financial test 08/2024", "Financial test 07/2024"
+        )
+        assertNames(
+            "/financial/period-results",
+            "sort=name,asc",
+            "Financial test 07/2024", "Financial test 08/2024", "Financial test 12/2024"
+        )
+        assertNames(
+            "/financial/period-results",
+            "sort=name,desc",
+            "Financial test 12/2024", "Financial test 08/2024", "Financial test 07/2024"
+        )
+    }
+
+    @Test
+    @Sql(
+        "/sql/financial/clear-tables.sql",
+        "/sql/financial/create-registration-data.sql",
+        "/sql/financial/create-movements.sql",
+        "/sql/financial/create-wallet-entries.sql",
+        "/sql/financial/create-transfers.sql"
+    )
+    @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
+    fun `should list the transfers by the transfer date, newest first, and ignore the name sort`() {
+
+        val newest = "0b6e0c4a-6f3e-4c55-8a39-0d3c1c1f9a02"
+        val middle = "0b6e0c4a-6f3e-4c55-8a39-0d3c1c1f9a01"
+        val oldest = "0b6e0c4a-6f3e-4c55-8a39-0d3c1c1f9a03"
+
+        assertIds("/financial/transfers", "", newest, middle, oldest)
+        assertIds("/financial/transfers", "sort=name,asc", newest, middle, oldest)
+        assertIds("/financial/transfers", "sort=createdOn,asc", oldest, middle, newest)
     }
 
     @Test
@@ -129,7 +213,13 @@ class ListingSortOrderTest : BaseIntegrationTest() {
         assertNames("/administration/users", "sort=name,desc", "User", "Other User", "Administrador")
     }
 
-    private fun assertNames(path: String, query: String, vararg expected: String) {
+    private fun assertNames(path: String, query: String, vararg expected: String) =
+        assertProperty("name", path, query, *expected)
+
+    private fun assertIds(path: String, query: String, vararg expected: String) =
+        assertProperty("id", path, query, *expected)
+
+    private fun assertProperty(property: String, path: String, query: String, vararg expected: String) {
 
         val names = mutableListOf<String>()
 
@@ -140,7 +230,7 @@ class ListingSortOrderTest : BaseIntegrationTest() {
             .expectBody(Map::class.java)
             .value { body ->
                 @Suppress("UNCHECKED_CAST")
-                (body!!["content"] as List<Map<String, Any?>>).mapTo(names) { it["name"] as String }
+                (body!!["content"] as List<Map<String, Any?>>).mapTo(names) { it[property] as String }
             }
 
         assertThat(names).containsExactly(*expected)

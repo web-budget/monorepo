@@ -1,18 +1,25 @@
 <script setup lang="ts">
-import { Badge, type BadgeVariants } from '@/components/ui/badge'
+import { Clock, Lock } from 'lucide-vue-next'
+import { computed } from 'vue'
+import { Badge } from '@/components/ui/badge'
 import type { FinancialPeriodStatus } from '@/types'
 
-defineProps<{ status: FinancialPeriodStatus }>()
+const props = defineProps<{ status: FinancialPeriodStatus; expired?: boolean }>()
 
-const statusVariants: Record<FinancialPeriodStatus, BadgeVariants['variant']> = {
-  ACTIVE: 'approved',
-  ENDED: 'pending',
-  ACCOUNTED: 'neutral',
-}
+const key = computed(() => {
+  if (props.status === 'CLOSED') {
+    return 'closed'
+  }
+  return props.expired ? 'expired' : 'open'
+})
 </script>
 
 <template>
-  <Badge :variant="statusVariants[status]">
-    {{ $t(`financial-period.status.${status.toLowerCase()}`) }}
+  <Badge v-if="key === 'closed'" variant="neutral">
+    <Lock />{{ $t('financial-period.status.closed') }}
   </Badge>
+  <Badge v-else-if="key === 'expired'" variant="highlight">
+    <Clock />{{ $t('financial-period.status.expired') }}
+  </Badge>
+  <Badge v-else variant="approved">{{ $t('financial-period.status.open') }}</Badge>
 </template>

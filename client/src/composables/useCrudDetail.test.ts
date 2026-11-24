@@ -39,7 +39,7 @@ describe('useCrudDetail', () => {
     const dialog = useConfirmDialog()
 
     const removal = removeRecord()
-    expect(dialog.state.options.title).toBe('Remover a carteira “”?')
+    expect(dialog.state.options.title).toBe('Excluir a carteira “”?')
     dialog.accept()
     await removal
 

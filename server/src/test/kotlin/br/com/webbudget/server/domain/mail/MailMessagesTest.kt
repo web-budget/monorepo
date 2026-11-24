@@ -33,7 +33,9 @@ class MailMessagesTest {
             "account-activation.self-registration",
             "account-activation.administrator-created",
             "recover-password",
-            "user-pending-approval"
+            "user-pending-approval",
+            "due-date-daily",
+            "due-date-weekly"
         )
 
         listOf("messages.properties", "messages_en_US.properties").map { load(it) }.forEach { messages ->

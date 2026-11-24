@@ -39,12 +39,14 @@ class CardRepository(
     fun findAll(filter: String?, active: Boolean?, pageable: Pageable): PagedModel<Card> {
 
         val cards = CARDS.`as`("cards")
+        val wallets = WALLETS.`as`("wallets")
 
         val textCondition = filter?.let { text ->
             DSL.or(
                 cards.NAME.containsIgnoreCase(text),
                 cards.LAST_FOUR_DIGITS.containsIgnoreCase(text),
-                cards.FLAG.containsIgnoreCase(text)
+                cards.FLAG.containsIgnoreCase(text),
+                wallets.NAME.containsIgnoreCase(text)
             )
         }
 
@@ -53,33 +55,34 @@ class CardRepository(
         val sortable = mapOf(
             "name" to cards.NAME,
             "lastFourDigits" to cards.LAST_FOUR_DIGITS,
-            "type" to cards.TYPE,
             "active" to cards.ACTIVE,
             "invoicePaymentDay" to cards.INVOICE_PAYMENT_DAY,
             "flag" to cards.FLAG,
             "createdOn" to cards.CREATED_ON
         )
 
-        val content = dsl.selectFrom(cards)
+        val content = dsl.select()
+            .from(cards)
+            .leftJoin(wallets).on(wallets.ID.eq(cards.ID_WALLET))
             .where(condition)
             .orderBy(pageable.toOrderBy(sortable, cards.CREATED_ON, cards.ID))
             .limit(pageable.pageSize)
             .offset(pageable.offset)
-            .fetch { record -> record.toCard() }
+            .fetch { record ->
+                val wallet = record.get(wallets.ID)?.let { record.into(wallets).toWallet() }
+                record.into(cards).toCard(wallet)
+            }
 
-        val total = dsl.fetchCount(cards, condition)
+        val total = dsl.fetchCount(
+            dsl.selectOne().from(cards).leftJoin(wallets).on(wallets.ID.eq(cards.ID_WALLET)).where(condition)
+        )
 
         return pagedModelOf(content, pageable, total.toLong())
     }
 
-    fun existsByTypeAndLastFourDigits(
-        type: Card.Type,
-        lastFourDigits: String,
-        excludingExternalId: UUID? = null
-    ): Boolean = dsl.fetchExists(
+    fun existsByLastFourDigits(lastFourDigits: String, excludingExternalId: UUID? = null): Boolean = dsl.fetchExists(
         dsl.selectOne().from(CARDS)
-            .where(CARDS.TYPE.eq(type.name))
-            .and(CARDS.LAST_FOUR_DIGITS.eq(lastFourDigits))
+            .where(CARDS.LAST_FOUR_DIGITS.eq(lastFourDigits))
             .and(CARDS.EXTERNAL_ID.excluding(excludingExternalId))
     )
 
@@ -91,7 +94,6 @@ class CardRepository(
             .set(CARDS.ACTIVE, card.active)
             .set(CARDS.NAME, card.name)
             .set(CARDS.LAST_FOUR_DIGITS, card.lastFourDigits)
-            .set(CARDS.TYPE, card.type.name)
             .set(CARDS.INVOICE_PAYMENT_DAY, card.invoicePaymentDay)
             .set(CARDS.FLAG, card.flag)
             .set(CARDS.ID_WALLET, card.wallet?.id)
@@ -107,7 +109,6 @@ class CardRepository(
             .set(CARDS.ACTIVE, card.active)
             .set(CARDS.NAME, card.name)
             .set(CARDS.LAST_FOUR_DIGITS, card.lastFourDigits)
-            .set(CARDS.TYPE, card.type.name)
             .set(CARDS.INVOICE_PAYMENT_DAY, card.invoicePaymentDay)
             .set(CARDS.FLAG, card.flag)
             .set(CARDS.ID_WALLET, card.wallet?.id)

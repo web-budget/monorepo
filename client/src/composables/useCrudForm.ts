@@ -1,10 +1,9 @@
 import type { FormContext, GenericObject } from 'vee-validate'
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
-import { useConfirmDialog } from '@/composables/useConfirmDialog'
+import { useDiscardGuard } from '@/composables/useDiscardGuard'
 import { useNotification } from '@/composables/useNotification'
 import { useServerErrors } from '@/composables/useServerErrors'
-import { isPublicRoute } from '@/router/publicRoutes'
 
 type Resettable<Values extends GenericObject, Output extends GenericObject> = NonNullable<
   Parameters<FormContext<Values, Output>['resetForm']>[0]
@@ -21,6 +20,9 @@ interface CrudFormOptions<Values extends GenericObject, Output extends GenericOb
   update: (id: string, values: Output) => Promise<unknown>
   confirm?: (updating: boolean) => Promise<boolean>
   detailAfterUpdate?: boolean
+  successDetail?: (updating: boolean, values: Output) => string | undefined
+  createDefaults?: () => Promise<Resettable<Values, Output>>
+  toastParams?: () => Record<string, unknown>
 }
 
 const FIRST_CONTROL = 'form fieldset :is(input, textarea, button[role="combobox"]):not([disabled])'
@@ -37,12 +39,10 @@ export function useCrudForm<Values extends GenericObject, Output extends Generic
   options: CrudFormOptions<Values, Output, Entity>,
 ) {
   const router = useRouter()
-  const { confirmDiscard } = useConfirmDialog()
   const { showSuccess } = useNotification()
   const { messages, fields, clearFields, run } = useServerErrors()
 
   const submitting = ref(false)
-  const saved = ref(false)
   const loadingRecord = ref(false)
   const dirty = computed(() => options.form.meta.value.dirty)
 
@@ -65,9 +65,24 @@ export function useCrudForm<Values extends GenericObject, Output extends Generic
     return typeof value === 'string' ? value : ''
   }
 
+  const { saved } = useDiscardGuard(() => dirty.value, recordName)
+
+  async function createDefaults() {
+    try {
+      return await options.createDefaults?.()
+    } catch {
+      return undefined
+    }
+  }
+
+  async function resetToDefaults() {
+    const values = await createDefaults()
+    options.form.resetForm(values ? { values } : undefined)
+  }
+
   async function finish(updatedId: string | undefined) {
     if (updatedId === undefined) {
-      options.form.resetForm()
+      await resetToDefaults()
       return
     }
     if (!options.detailAfterUpdate) {
@@ -90,8 +105,12 @@ export function useCrudForm<Values extends GenericObject, Output extends Generic
       await options.create(values)
     }
     const kind = updating ? 'updated' : 'created'
-    showSuccess(`${options.entity}.toast.${kind}`, `${options.entity}.toast.${kind}-detail`, true, {
+    const detail = options.successDetail
+      ? options.successDetail(updating, values)
+      : `${options.entity}.toast.${kind}-detail`
+    showSuccess(`${options.entity}.toast.${kind}`, detail, true, {
       name: recordName(),
+      ...options.toastParams?.(),
     })
     await finish(id)
     return !updating
@@ -115,13 +134,6 @@ export function useCrudForm<Values extends GenericObject, Output extends Generic
     () => nextTick(focusFirstInvalidControl),
   )
 
-  const removeGuard = router.beforeEach((to) => {
-    if (saved.value || !dirty.value || isPublicRoute(to)) {
-      return true
-    }
-    return confirmDiscard(recordName())
-  })
-
   watch(() => options.form.values, clearFields, { deep: true })
 
   onMounted(() => {
@@ -129,9 +141,10 @@ export function useCrudForm<Values extends GenericObject, Output extends Generic
     if (id !== undefined) {
       return run(() => load(id))
     }
+    if (options.createDefaults) {
+      return resetToDefaults()
+    }
   })
-
-  onBeforeUnmount(removeGuard)
 
   return { messages, fields, submitting, loadingRecord, dirty, changeToList, onSubmit, run }
 }

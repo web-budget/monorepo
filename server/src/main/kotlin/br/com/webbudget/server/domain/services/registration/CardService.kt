@@ -5,14 +5,18 @@ import br.com.webbudget.server.domain.validators.OnCreateValidation
 import br.com.webbudget.server.domain.validators.OnUpdateValidation
 import br.com.webbudget.server.domain.validators.registration.CardValidator
 import br.com.webbudget.server.infrastructure.repository.registration.CardRepository
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
+
+data class CardSaved(val cardId: Long, val active: Boolean)
 
 @Service
 @Transactional(readOnly = true)
 class CardService(
     private val cardRepository: CardRepository,
+    private val eventPublisher: ApplicationEventPublisher,
     @OnCreateValidation
     private val creationValidators: List<CardValidator>,
     @OnUpdateValidation
@@ -24,7 +28,11 @@ class CardService(
 
         creationValidators.forEach { it.validate(card) }
 
-        return cardRepository.insert(card).externalId!!
+        val created = cardRepository.insert(card)
+
+        eventPublisher.publishEvent(CardSaved(created.id!!, created.active))
+
+        return created.externalId!!
     }
 
     @Transactional
@@ -32,7 +40,11 @@ class CardService(
 
         updateValidators.forEach { it.validate(card) }
 
-        return cardRepository.update(card)
+        val updated = cardRepository.update(card)
+
+        eventPublisher.publishEvent(CardSaved(updated.id!!, updated.active))
+
+        return updated
     }
 
     @Transactional

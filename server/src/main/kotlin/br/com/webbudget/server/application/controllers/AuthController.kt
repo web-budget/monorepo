@@ -2,9 +2,11 @@ package br.com.webbudget.server.application.controllers
 
 import br.com.webbudget.server.application.payloads.AuthConfigView
 import br.com.webbudget.server.application.payloads.GoogleLinkForm
+import br.com.webbudget.server.application.payloads.DueDateNoticesForm
 import br.com.webbudget.server.application.payloads.LanguageForm
 import br.com.webbudget.server.application.payloads.LoginForm
 import br.com.webbudget.server.application.payloads.LoginStepView
+import br.com.webbudget.server.application.payloads.ProfileForm
 import br.com.webbudget.server.application.payloads.RegisterForm
 import br.com.webbudget.server.application.payloads.SessionView
 import br.com.webbudget.server.application.payloads.TotpEnrollForm
@@ -157,9 +159,17 @@ class AuthController(
     @GetMapping("/session")
     fun session(): ResponseEntity<SessionView> = ResponseEntity.ok(SessionView.from(authService.currentSession()))
 
+    @PatchMapping("/profile")
+    fun changeProfile(@RequestBody @Valid form: ProfileForm): ResponseEntity<SessionView> =
+        ResponseEntity.ok(SessionView.from(authService.changeName(form.name!!)))
+
     @PatchMapping("/language")
     fun changeLanguage(@RequestBody @Valid form: LanguageForm): ResponseEntity<SessionView> =
         ResponseEntity.ok(SessionView.from(authService.changeLanguage(form.language!!)))
+
+    @PatchMapping("/due-date-notices")
+    fun changeDueDateNotices(@RequestBody @Valid form: DueDateNoticesForm): ResponseEntity<SessionView> =
+        ResponseEntity.ok(SessionView.from(authService.changeDueDateNotices(form.enabled!!)))
 
     @PostMapping("/logout")
     fun logout(request: HttpServletRequest): ResponseEntity<Void> {

@@ -138,14 +138,14 @@ describe('CostCenterListView', () => {
     vi.mocked(costCentersApi.remove).mockResolvedValue(undefined)
     const dialog = useConfirmDialog()
 
-    await chooseRowAction(wrapper, 1, 'Remover')
-    expect(dialog.state.options.title).toBe('Remover o centro de custo “Kitchen”?')
+    await chooseRowAction(wrapper, 1, 'Excluir')
+    expect(dialog.state.options.title).toBe('Excluir o centro de custo “Kitchen”?')
     dialog.accept()
     await flushPromises()
 
     expect(costCentersApi.remove).toHaveBeenCalledWith('cc-2')
     expect(wrapper.findAll('tbody tr')).toHaveLength(1)
-    expect(toast.success).toHaveBeenCalledWith('Centro de custo removido', {
+    expect(toast.success).toHaveBeenCalledWith('Centro de custo excluído', {
       description: '“Kitchen” saiu da lista.',
       duration: 4000,
     })
@@ -154,7 +154,7 @@ describe('CostCenterListView', () => {
   it('keeps the cost center when the removal is not confirmed', async () => {
     const { wrapper } = await render()
 
-    await chooseRowAction(wrapper, 0, 'Remover')
+    await chooseRowAction(wrapper, 0, 'Excluir')
     useConfirmDialog().cancel()
     await flushPromises()
 
@@ -168,7 +168,7 @@ describe('CostCenterListView', () => {
       problem(400, { error: 'data-integrity-violation' }),
     )
 
-    await chooseRowAction(wrapper, 0, 'Remover')
+    await chooseRowAction(wrapper, 0, 'Excluir')
     useConfirmDialog().accept()
     await flushPromises()
 

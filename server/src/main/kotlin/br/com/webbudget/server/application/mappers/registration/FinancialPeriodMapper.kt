@@ -6,26 +6,34 @@ import br.com.webbudget.server.application.payloads.registration.FinancialPeriod
 import br.com.webbudget.server.application.payloads.registration.FinancialPeriodView
 import br.com.webbudget.server.domain.entities.registration.FinancialPeriod
 import org.springframework.stereotype.Component
+import java.time.LocalDate
+import java.util.UUID
 
 @Component
 class FinancialPeriodMapper {
 
-    fun mapToView(financialPeriod: FinancialPeriod): FinancialPeriodView = FinancialPeriodView(
+    fun mapToView(financialPeriod: FinancialPeriod, lastClosed: UUID?): FinancialPeriodView = FinancialPeriodView(
         id = financialPeriod.externalId!!,
         name = financialPeriod.name,
         startingAt = financialPeriod.startingAt,
         endingAt = financialPeriod.endingAt,
         status = financialPeriod.status.name,
+        expired = financialPeriod.isExpired(LocalDate.now()),
+        reopenable = financialPeriod.externalId == lastClosed,
         expensesGoal = financialPeriod.expensesGoal,
         revenuesGoal = financialPeriod.revenuesGoal
     )
 
-    fun mapToListView(financialPeriod: FinancialPeriod): FinancialPeriodListView = FinancialPeriodListView(
+    fun mapToListView(financialPeriod: FinancialPeriod, lastClosed: UUID?): FinancialPeriodListView = FinancialPeriodListView(
         id = financialPeriod.externalId!!,
         name = financialPeriod.name,
         startingAt = financialPeriod.startingAt,
         endingAt = financialPeriod.endingAt,
-        status = financialPeriod.status.name
+        status = financialPeriod.status.name,
+        expired = financialPeriod.isExpired(LocalDate.now()),
+        reopenable = financialPeriod.externalId == lastClosed,
+        revenuesGoal = financialPeriod.revenuesGoal,
+        expensesGoal = financialPeriod.expensesGoal
     )
 
     fun mapToDomain(form: FinancialPeriodCreateForm): FinancialPeriod = FinancialPeriod(

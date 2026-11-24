@@ -16,7 +16,7 @@ class CreditCardInvoicePaymentDayValidator : CardValidator {
 
         val paymentDay = value.invoicePaymentDay
 
-        if (value.type == Card.Type.CREDIT && (paymentDay == null || paymentDay !in VALID_DAYS)) {
+        if (paymentDay !in VALID_DAYS) {
             throw DomainException(
                 "Credit card has invalid invoice payment day",
                 INVALID_INVOICE_PAYMENT_DAY,

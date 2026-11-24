@@ -1,15 +1,18 @@
 import { apiClient } from './client'
 import { createdId } from './createdId'
 import type {
+  FinancialPeriodCreation,
   FinancialPeriodListView,
+  FinancialPeriodResultView,
   FinancialPeriodView,
   FinancialPeriodCreateForm,
+  ClosingSummaryView,
   FinancialPeriodUpdateForm,
   PagedResponse,
   PageQuery,
 } from '@/types'
 
-const PATH = '/registration/financial-periods'
+const PATH = '/financial/financial-periods'
 
 export const financialPeriodsApi = {
   findAll(query: PageQuery): Promise<PagedResponse<FinancialPeriodListView>> {
@@ -22,8 +25,13 @@ export const financialPeriodsApi = {
     return apiClient.get<FinancialPeriodView>(`${PATH}/${id}`).then((r) => r.data)
   },
 
-  create(form: FinancialPeriodCreateForm): Promise<string> {
-    return apiClient.post(PATH, form).then(createdId)
+  create(form: FinancialPeriodCreateForm): Promise<FinancialPeriodCreation> {
+    return apiClient
+      .post<Pick<FinancialPeriodCreation, 'recurringLaunch'>>(PATH, form)
+      .then((r) => ({
+        id: createdId(r),
+        recurringLaunch: r.data.recurringLaunch,
+      }))
   },
 
   update(id: string, form: FinancialPeriodUpdateForm): Promise<FinancialPeriodView> {
@@ -32,5 +40,27 @@ export const financialPeriodsApi = {
 
   remove(id: string): Promise<void> {
     return apiClient.delete(`${PATH}/${id}`).then(() => undefined)
+  },
+
+  findClosing(id: string): Promise<ClosingSummaryView> {
+    return apiClient
+      .get<ClosingSummaryView>(`/financial/financial-periods/${id}/closing`)
+      .then((r) => r.data)
+  },
+
+  close(id: string): Promise<FinancialPeriodResultView> {
+    return apiClient
+      .patch<FinancialPeriodResultView>(`/financial/financial-periods/${id}/close`)
+      .then((r) => r.data)
+  },
+
+  reopen(id: string): Promise<void> {
+    return apiClient.patch(`/financial/financial-periods/${id}/reopen`).then(() => undefined)
+  },
+
+  findResult(id: string): Promise<FinancialPeriodResultView> {
+    return apiClient
+      .get<FinancialPeriodResultView>(`/financial/financial-periods/${id}/result`)
+      .then((r) => r.data)
   },
 }

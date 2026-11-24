@@ -20,7 +20,6 @@
         "number": "Account number \"{value}\" is already in use"
       },
       "card": {
-        "type": "Type is already in use",
         "last-four-digits": "Last digits \"{value}\" are already in use"
       },
       "classification": {
@@ -29,7 +28,9 @@
       "user": {
         "email": "Email \"{value}\" is already in use"
       },
-      "invalid-user-status-transition": "The account changed status while the screen was open. Refresh the list."
+      "invalid-user-status-transition": "The account changed status while the screen was open. Refresh the list.",
+      "transfer-already-returned": "The transfer was already returned.",
+      "transfer-is-a-return": "A return cannot be returned."
     },
     "unprocessable-entity": {
       "title": "Request failed",
@@ -43,12 +44,42 @@
       "budget-limit-exceeded": "The budget available in the cost center for the selected type is R${available-budget}",
       "overlapping-start-end-dates": "There is already a financial period that covers the selected start and end dates",
       "start-date-after-end-date": "The start date must be before the end date",
-      "debit-card-without-wallet": "The debit card must be linked to a wallet",
       "invalid-invoice-payment-day": "{payment-day} is not a valid day of the month, use something between 1 and 30",
       "financial-period-not-open": "The financial period is not open and cannot be modified",
       "accounted-period-movement": "The movement belongs to an accounted period and cannot be changed",
       "invalid-token": "Invalid or expired token",
-      "self-action-not-allowed": "This action does not apply to your own account"
+      "self-action-not-allowed": "This action does not apply to your own account",
+      "movement-already-paid": "The movement is already paid and cannot be changed",
+      "movement-not-paid": "The movement has no payment",
+      "classification-type-mismatch": "The classification is not of the same type as the movement",
+      "inactive-classification": "The classification is inactive. If it belongs to a recurring movement, fix or deactivate the recurring movement.",
+      "inactive-cost-center": "The cost center is inactive",
+      "inactive-wallet": "The wallet is inactive",
+      "invalid-discount": "The discount must be between zero and the value, never equal to it",
+      "payment-date-in-future": "The payment date cannot be in the future",
+      "wallet-has-entries": "The wallet has statement entries and cannot be deleted",
+      "transfer-between-same-wallet": "Origin and destination must be different wallets",
+      "invalid-adjustment-value": "The adjustment value cannot be zero",
+      "no-open-invoice": "There is no open invoice for this card in the chosen period. Nothing was posted.",
+      "invoice-not-open": "The invoice is not open and accepts no changes",
+      "invoice-without-purchases": "The invoice has no purchases; it only closes, zeroed, when the period closes",
+      "purchase-bound-to-movement": "The purchase came from a card payment and cannot be changed here",
+      "invoice-payment-not-payable-by-card": "An invoice payment cannot be paid on a card",
+      "invoice-payment-locked": "The invoice payment cannot be changed",
+      "card-payment-only-for-expenses": "Only expenses can be paid on a card",
+      "payment-requires-wallet-or-card": "Choose the wallet or the card of the payment",
+      "no-open-period-after": "There is no open period after the period of the movement",
+      "move-target-same-period": "The movement is already in that period",
+      "move-target-not-open": "The target period is not open",
+      "invoice-payment-moved": "An invoice payment outside the period of its invoice cannot be deleted. Move it back or reopen the period",
+      "financial-period-with-open-movements": "The period still has open movements",
+      "financial-period-with-open-invoices": "The period still has an open invoice with purchases",
+      "financial-period-not-closed": "The period is not closed",
+      "only-the-last-closed-period-can-be-reopened": "Only the last closed period can be reopened",
+      "recurring-movement-with-launches": "The recurring movement already has launches and cannot be deleted. Deactivate it to stop launching.",
+      "card-recurring-must-be-expense": "Only an expense can have a suggested card",
+      "inactive-card": "The card is inactive",
+      "launch-value-only-for-variable": "Only a variable recurring movement takes a value when launched"
     },
     "not-found": {
       "detail": "Not found",
@@ -273,7 +304,11 @@
     "financial": "Financial",
     "configuration": "Settings",
     "registration": "Registrations",
-    "dashboards": "Dashboards"
+    "dashboards": "Dashboards",
+    "financial-daily": "Day to day",
+    "financial-period": "Period",
+    "home": "Home",
+    "sections": "Sections"
   },
   "dashboards": {
     "overview": "Overview",
@@ -300,17 +335,19 @@
       "configuration": "User accounts, access areas and integrations."
     },
     "items": {
-      "period-movement": "Income and expenses recorded in the financial period.",
-      "recurrent-movement": "Entries that repeat every month.",
-      "credit-card-invoice": "Open and closed invoices of each card.",
-      "period-closing": "Closes the period and accounts the balance.",
+      "recurrent-movement": "Post movements and purchases every period.",
+      "credit-card-invoice": "Purchases of each card by period.",
+      "period-closing": "Settle pending items and record the result.",
       "wallet": "Bank accounts, investments and cash.",
       "card": "Credit and debit cards linked to wallets.",
       "classification": "Income and expense categories for entries.",
       "cost-center": "A hierarchy to group where the money is spent.",
-      "financial-period": "Time ranges with income and expense goals.",
+      "financial-period": "Create, edit and follow the periods.",
       "users": "Accounts, access areas and approvals.",
-      "integrations": "Connections with banks and external services."
+      "integrations": "Connections with banks and external services.",
+      "movement": "Income and expenses of the period.",
+      "transfer": "Money that moves between wallets.",
+      "statement": "Balance changes of each wallet."
     }
   },
   "action-button": {
@@ -405,7 +442,8 @@
     "footer": {
       "until": " to ",
       "total": ", total ",
-      "range": "{first}–{last} of {total}"
+      "range": "{first}–{last} of {total}",
+      "range-noun": "{first}–{last} of {total} {noun}"
     },
     "pagination": {
       "rows-per-page": "Rows per page",
@@ -587,21 +625,329 @@
       "roles": "Access areas"
     }
   },
-  "period-movement": {
-    "title": "Period movements",
-    "menu": "Period movements"
-  },
   "recurrent-movement": {
-    "title": "Recurring movements",
-    "menu": "Recurring movements"
+    "title": "Recurring",
+    "menu": "Recurring",
+    "list": {
+      "description": "Templates that launch movements and purchases every period.",
+      "create": "New recurring",
+      "empty-title": "No recurring movements yet",
+      "empty-description": "Create a template to launch the rent, the internet bill or an installment purchase every period.",
+      "plural": "the recurring movements",
+      "found": "{count} recurring movement found for “{query}” | {count} recurring movements found for “{query}”",
+      "launch": "Launch in batch"
+    },
+    "search": {
+      "placeholder": "Name, cost center or classification"
+    },
+    "status-tabs": {
+      "active": "Active",
+      "finished": "Finished"
+    },
+    "filters": {
+      "type": "Type",
+      "all-types": "All",
+      "incomes": "Incomes",
+      "expenses": "Expenses",
+      "clear": "Clear"
+    },
+    "table-columns": {
+      "name": "Name",
+      "value": "Value (R$)",
+      "value-kind": "Value type",
+      "installments": "Installments",
+      "launch": "Launch",
+      "situation": "Status"
+    },
+    "last-value": "last",
+    "value-kind": {
+      "FIXED": "Fixed",
+      "VARIABLE": "Variable"
+    },
+    "installments": {
+      "indefinite": "Indefinite"
+    },
+    "launch": {
+      "auto": "Automatic",
+      "manual": "Manual",
+      "breadcrumb": "Launching",
+      "title": "Launch recurring movements",
+      "description": "Choose the recurring movements and launch them at once.",
+      "period": "Period",
+      "period-none": "None",
+      "due-hint": "Due on {date}.",
+      "no-open-period": "There is no open period",
+      "no-open-period-hint": "Create a period to launch the recurring movements.",
+      "create-period": "Create period",
+      "select": "Select {name}",
+      "value-of": "Value of {name}",
+      "available": "Available",
+      "launched": "Already launched",
+      "selected": "{count} selected | {count} selected",
+      "effect": "effect on the period",
+      "submit": "Launch {count} recurring movement | Launch {count} recurring movements"
+    },
+    "status": {
+      "active": "Active",
+      "finished": "Finished",
+      "inactive": "Inactive"
+    },
+    "actions": {
+      "details": "Details",
+      "edit": "Edit",
+      "readjust": "Readjust value",
+      "remove": "Delete"
+    },
+    "readjust": {
+      "title": "Readjust “{name}”",
+      "description": "Valid from the next launch.",
+      "value": "New value",
+      "current": "Current value",
+      "reason": "Reason",
+      "confirm": "Readjust"
+    },
+    "remove": {
+      "title": "Delete “{name}”?",
+      "description": "Only a recurring movement without launches can be deleted. This cannot be undone."
+    },
+    "toast": {
+      "created": "Recurring movement created",
+      "created-detail": "“{name}” is ready to be launched.",
+      "updated": "Changes saved",
+      "updated-detail": "“{name}” was updated.",
+      "removed": "Recurring movement deleted",
+      "removed-detail": "“{name}” left the list.",
+      "readjusted": "Value readjusted",
+      "readjusted-detail": "The new value of “{name}” is valid from the next launch.",
+      "launched": "Recurring movements launched",
+      "launched-detail": "{count} entry created in {period}. | {count} entries created in {period}.",
+      "skipped": "Some recurring movements were left out"
+    },
+    "form": {
+      "new": "Creating",
+      "editing": "Editing",
+      "detailing": "Detailing",
+      "type": "Type",
+      "type-hint": "The type does not change once created.",
+      "name": "Name",
+      "value": "Value",
+      "suggested-value": "Suggested value",
+      "value-note": "To change the value, use Readjust value in the detail.",
+      "cost-center": "Cost center",
+      "classification-of-type": {
+        "INCOME": "Income classification",
+        "EXPENSE": "Expense classification"
+      },
+      "value-kind": "Type of value",
+      "value-kind-hint": "A fixed one always launches the current value; a variable one suggests the last paid value and takes another one when launched.",
+      "repetition-hint": "The recurring movement ends by itself after the last installment.",
+      "installments-heading": "Number of installments",
+      "indefinite": "Indefinite term",
+      "installments": "Installments",
+      "first-installment": "Current installment",
+      "card": "Suggested card",
+      "card-hint": "It only suggests the card when paying.",
+      "no-card": "None",
+      "auto-launch": "Launch automatically when the period is created",
+      "auto-launch-hint": "Due on the last day of the period.",
+      "active-label": "Active",
+      "active-hint": "Deactivate to stop launching"
+    },
+    "sections": {
+      "type": "Type",
+      "identification": "Identification",
+      "value-kind": "Type of value",
+      "repetition": "Repetition",
+      "card": "Suggested card",
+      "launch": "Launch",
+      "value-and-repetition": "Value and repetition",
+      "history": "Value history"
+    },
+    "detail": {
+      "name": "Name",
+      "type": "Type",
+      "cost-center": "Cost center",
+      "classification": "Classification",
+      "card": "Suggested card",
+      "current-value": "Current value",
+      "value-kind": "Value type",
+      "installments": "Installments",
+      "launch": "Launch",
+      "due": "Due date",
+      "due-last-day": "Last day of the period"
+    },
+    "history": {
+      "valid-from": "Valid from",
+      "value": "Value (R$)",
+      "reason": "Reason",
+      "current": "current",
+      "suggested": "Value suggested on the next launch:"
+    },
+    "skipped": {
+      "inactive": "inactive",
+      "finished": "finished",
+      "already-launched-in-period": "already launched in the period"
+    }
   },
   "credit-card-invoice": {
-    "title": "Credit card invoice",
-    "menu": "Credit card invoice"
+    "title": "Card invoice",
+    "menu": "Card invoice",
+    "detail": {
+      "title": "Detailing invoice",
+      "breadcrumb": "Detailing",
+      "total": "Invoice total",
+      "purchases": "Purchases",
+      "due-date": "Due date",
+      "no-purchases": "No purchases on this invoice"
+    },
+    "list": {
+      "description": "Purchases of each card by period.",
+      "empty-title": "No invoices in this period",
+      "empty-description": "Create a period to generate the invoices.",
+      "plural": "the invoices"
+    },
+    "options": {
+      "all": "All",
+      "open": "Open",
+      "closed": "Closed",
+      "paid": "Paid"
+    },
+    "filters": {
+      "period": "Period",
+      "all-periods": "All",
+      "card": "Card",
+      "all-cards": "All"
+    },
+    "table-columns": {
+      "card": "Card",
+      "period": "Period",
+      "value": "Total (R$)",
+      "status": "Status"
+    },
+    "status": {
+      "OPEN": "Open",
+      "CLOSED": "Closed",
+      "PAID": "Paid"
+    },
+    "sections": {
+      "purchases": "Purchases"
+    },
+    "purchases": {
+      "date": "Date",
+      "name": "Purchase",
+      "value": "Value (R$)"
+    },
+    "actions": {
+      "close": "Close invoice",
+      "view-payment": "View invoice payment",
+      "delete-payment": "Delete invoice payment",
+      "new-purchase": "New purchase"
+    },
+    "close": {
+      "title": "Close the {period} invoice of {card}?",
+      "description": "Generates the invoice payment and closes the invoice to new purchases.",
+      "description-empty": "An invoice without purchases closes with a zero value.",
+      "purchases": "Purchases",
+      "payment": "Invoice payment",
+      "due-date": "Due date",
+      "wallet": "Wallet suggested when paying",
+      "confirm": "Close invoice"
+    },
+    "delete-payment": {
+      "title": "Delete the invoice payment?",
+      "description": "Deleting the payment reopens the invoice of {card}.",
+      "confirm": "Delete and reopen"
+    },
+    "toast": {
+      "closed": "Invoice closed",
+      "closed-detail": "Invoice payment of {value} generated, open.",
+      "reopened": "Invoice reopened",
+      "reopened-detail": "The invoice payment was deleted."
+    }
   },
   "period-closing": {
-    "title": "Period closing",
-    "menu": "Period closing"
+    "title": "Closing",
+    "menu": "Closing",
+    "breadcrumb": "Closing",
+    "title-of": "Closing of {name}",
+    "description": "Settle the pending items and record the result.",
+    "period": "Period to close",
+    "none": "None",
+    "summary": {
+      "revenues": "Paid revenues",
+      "revenues-note": "Only what was received",
+      "expenses": "Paid expenses",
+      "expenses-note": "Includes paid invoice payments",
+      "result": "Result",
+      "result-note": "Revenues − expenses",
+      "accumulated": "Accumulated",
+      "accumulated-note": "Closed ones plus the provisional of the open ones"
+    },
+    "pendencies": {
+      "title": "Pending items",
+      "hint": "Pay or move to another open period.",
+      "none": "No pending items",
+      "movement": "Movement",
+      "due-date": "Due date",
+      "value": "Value (R$)",
+      "invoice": "invoice",
+      "overdue": "overdue",
+      "move": "Move",
+      "move-disabled": "Create an open period to be able to move.",
+      "no-next": "There is no open period after {name}",
+      "no-next-hint": "Pay everything or create a period to move to.",
+      "create-period": "Create period"
+    },
+    "invoices": {
+      "title": "Invoices",
+      "hint": "An open invoice with purchases blocks the closing.",
+      "none": "No invoices in this period",
+      "close": "Close invoice",
+      "note": {
+        "blocking": "Blocks the closing",
+        "empty": "Closes by itself with zero value",
+        "payment": "Invoice payment in the pending items",
+        "paid": "Paid"
+      }
+    },
+    "checklist": {
+      "title": "To close",
+      "pendencies": "Pending items settled",
+      "invoices": "Invoices settled",
+      "next-period": "Next period open",
+      "close": "Close {name}"
+    },
+    "move": {
+      "title": "Move “{name}”",
+      "description": "The movement goes to another open period.",
+      "period": "Period",
+      "none": "Choose a period",
+      "expired": "expired",
+      "confirm": "Move"
+    },
+    "close": {
+      "title": "Close {name}?",
+      "description": "Records the result and freezes the period.",
+      "confirm": "Close period"
+    },
+    "reopen": {
+      "title": "Reopen {name}?",
+      "description": "The recorded result is erased and the period accepts entries again. Invoices closed by themselves reopen.",
+      "confirm": "Reopen",
+      "only-last": "Only the last closed period can be reopened"
+    },
+    "actions": {
+      "close": "Close period",
+      "close-named": "Close {name}",
+      "reopen": "Reopen"
+    },
+    "toast": {
+      "moved": "Movement moved",
+      "moved-detail": "“{name}” went to {period}.",
+      "closed": "{name} closed",
+      "closed-detail": "Result {result} recorded. Empty invoices closed with zero value.",
+      "reopened": "Period reopened"
+    }
   },
   "wallet": {
     "title": "Wallets",
@@ -644,7 +990,7 @@
       "found": "{count} wallet found for “{query}” | {count} wallets found for “{query}”"
     },
     "remove": {
-      "title": "Remove the wallet “{name}”?",
+      "title": "Delete the wallet “{name}”?",
       "description": "This cannot be undone."
     },
     "toast": {
@@ -652,7 +998,7 @@
       "created-detail": "“{name}” now shows up in entries.",
       "updated": "Changes saved",
       "updated-detail": "“{name}” was updated.",
-      "removed": "Wallet removed",
+      "removed": "Wallet deleted",
       "removed-detail": "“{name}” left the list."
     },
     "sections": {
@@ -661,6 +1007,11 @@
       "bank": "Bank details",
       "bank-help": "Shown for Bank account and Investment.",
       "balance": "Balance"
+    },
+    "actions": {
+      "view-statement": "View statement",
+      "adjust-balance": "Adjust balance",
+      "transfer": "Transfer"
     }
   },
   "card": {
@@ -671,12 +1022,7 @@
     },
     "table-columns": {
       "name": "Name",
-      "type": "Type",
       "flag": "Network"
-    },
-    "type": {
-      "debit": "Debit",
-      "credit": "Credit"
     },
     "form": {
       "new": "New card",
@@ -684,27 +1030,24 @@
       "detailing": "Card details",
       "deleting": "Deleting card",
       "name": "Name",
-      "type": "Type",
       "flag": "Network",
       "last-four-digits": "Last 4 digits",
-      "wallet": "Wallet",
-      "invoice-payment-day": "Due day",
-      "type-placeholder": "Select a type",
+      "wallet": "Wallet that pays the invoice",
+      "invoice-payment-day": "Invoice payment day",
       "wallet-search-empty": "No wallets found",
       "wallet-search-placeholder": "Type the name",
       "active-label": "Active",
-      "active-hint": "Deactivate to remove from listings",
-      "type-hint": "The type does not change after creation."
+      "active-hint": "Deactivate to remove from listings"
     },
     "list": {
-      "description": "Credit and debit cards used in entries.",
+      "description": "Credit cards.",
       "empty-title": "No cards yet",
-      "empty-description": "Register the cards you use. Debit cards draw from a wallet; credit cards go to the invoice.",
+      "empty-description": "Register the credit cards you use. Purchases go to the invoice.",
       "plural": "cards",
       "found": "{count} card found for “{query}” | {count} cards found for “{query}”"
     },
     "remove": {
-      "title": "Remove the card “{name}”?",
+      "title": "Delete the card “{name}”?",
       "description": "This cannot be undone."
     },
     "toast": {
@@ -712,50 +1055,57 @@
       "created-detail": "“{name}” now shows up in entries.",
       "updated": "Changes saved",
       "updated-detail": "“{name}” was updated.",
-      "removed": "Card removed",
+      "removed": "Card deleted",
       "removed-detail": "“{name}” left the list."
     },
     "sections": {
       "identification": "Identification",
       "identification-help": "How the card appears in entries.",
-      "wallet": "Wallet",
-      "wallet-help": "The debit card draws from this wallet.",
       "invoice": "Invoice",
-      "invoice-help": "Day of the month the credit card invoice is due."
+      "invoice-help": "Used as a suggestion when paying the closed invoice. The wallet is suggested when paying and can be changed then."
     }
   },
   "financial-period": {
-    "title": "Financial periods",
-    "menu": "Financial periods",
+    "title": "Periods",
+    "menu": "Periods",
     "search": {
       "placeholder": "Name"
     },
     "table-columns": {
-      "name": "Name",
+      "name": "Period",
       "starting-at": "Start",
       "ending-at": "End",
-      "status": "Status"
+      "status": "Status",
+      "revenues-goal": "Revenue goal",
+      "expenses-goal": "Expense goal",
+      "result": "Result (R$)"
     },
     "status": {
-      "active": "Active",
-      "ended": "Ended",
-      "accounted": "Accounted"
+      "open": "Open",
+      "closed": "Closed",
+      "expired": "Open · expired",
+      "expired-short": "expired",
+      "closed-short": "closed"
     },
     "options": {
       "all": "All",
       "open": "Open",
-      "accounted": "Accounted"
+      "closed": "Closed"
     },
     "form": {
-      "new": "New financial period",
-      "editing": "Editing financial period",
-      "detailing": "Financial period details",
+      "new": "Creating",
+      "editing": "Editing",
+      "detailing": "Viewing",
+      "title-new": "New period",
+      "title-editing": "Edit name and goals",
       "deleting": "Deleting financial period",
       "name": "Name",
-      "starting-at": "Start",
-      "ending-at": "End",
-      "expenses-goal": "Expenses goal",
-      "revenues-goal": "Income goal"
+      "starting-at": "Start date",
+      "ending-at": "End date",
+      "expenses-goal": "Expense goal",
+      "revenues-goal": "Revenue goal",
+      "name-example": "E.g.: January 2027",
+      "status": "Status"
     },
     "errors": {
       "overlapping-dates": "The start and end dates overlap with another existing financial period",
@@ -763,31 +1113,55 @@
       "period-not-open": "The financial period is not open and cannot be changed or deleted"
     },
     "list": {
-      "description": "The periods in which entries are closed and accounted.",
-      "empty-title": "No financial periods yet",
-      "empty-description": "Create a financial period to start recording entries.",
+      "description": "Date ranges for postings.",
+      "empty-title": "No period created",
+      "empty-description": "Nothing is posted without an open period. Create the first one.",
       "plural": "financial periods",
-      "found": "{count} financial period found for “{query}” | {count} financial periods found for “{query}”"
+      "found": "{count} financial period found for “{query}” | {count} financial periods found for “{query}”",
+      "expired-notice": {
+        "title": "{count} expired period: {names} | {count} expired periods: {names}",
+        "description": "It still accepts postings. | They still accept postings."
+      },
+      "noun": "period | periods",
+      "tabs-note": "The result only exists after closing.",
+      "provisional": "provisional",
+      "edit": "Edit name and goals"
     },
     "remove": {
-      "title": "Remove the financial period “{name}”?",
+      "title": "Delete the financial period “{name}”?",
       "description": "This cannot be undone."
     },
     "toast": {
-      "created": "Financial period created",
-      "created-detail": "“{name}” now accepts entries.",
+      "created": "Period created",
+      "created-detail": "“{name}” now accepts entries. | “{name}” now accepts entries. 1 recurring movement launched. | “{name}” now accepts entries. {count} recurring movements launched.",
       "updated": "Changes saved",
       "updated-detail": "“{name}” was updated.",
-      "removed": "Financial period removed",
+      "removed": "Financial period deleted",
       "removed-detail": "“{name}” left the list."
     },
     "sections": {
       "identification": "Identification",
-      "identification-help": "How the period appears in entries.",
       "dates": "Dates",
-      "dates-help": "The dates do not change after creation.",
+      "dates-help": "No overlap with another period.",
       "goals": "Goals",
-      "goals-help": "Expected income and expense amounts for the period."
+      "goals-help": "Optional.",
+      "result": "Provisional result",
+      "result-closed": "Result",
+      "movements": "Movements"
+    },
+    "result": {
+      "revenues": "Revenues",
+      "expenses": "Expenses",
+      "result": "Result",
+      "provisional": "provisional"
+    },
+    "actions": {
+      "view-movements": "View movements"
+    },
+    "detail": {
+      "launched": "Posted",
+      "open": "Open",
+      "paid": "Paid"
     }
   },
   "classification": {
@@ -798,8 +1172,7 @@
     },
     "table-columns": {
       "name": "Name",
-      "type": "Type",
-      "budget": "Budget"
+      "type": "Type"
     },
     "type": {
       "income": "Income",
@@ -813,7 +1186,6 @@
       "name": "Name",
       "description": "Description",
       "type": "Type",
-      "budget": "Budget",
       "type-placeholder": "Select a type",
       "active-label": "Active",
       "active-hint": "Deactivate to remove from listings",
@@ -827,7 +1199,7 @@
       "found": "{count} classification found for “{query}” | {count} classifications found for “{query}”"
     },
     "remove": {
-      "title": "Remove the classification “{name}”?",
+      "title": "Delete the classification “{name}”?",
       "description": "This cannot be undone."
     },
     "toast": {
@@ -835,14 +1207,12 @@
       "created-detail": "“{name}” now shows up in entries.",
       "updated": "Changes saved",
       "updated-detail": "“{name}” was updated.",
-      "removed": "Classification removed",
+      "removed": "Classification deleted",
       "removed-detail": "“{name}” left the list."
     },
     "sections": {
       "identification": "Identification",
-      "identification-help": "How the classification appears in entries.",
-      "budget": "Budget",
-      "budget-help": "Optional limit for what is classified here."
+      "identification-help": "How the classification appears in entries."
     }
   },
   "cost-center": {
@@ -879,7 +1249,7 @@
       "found": "{count} cost center found for “{query}” | {count} cost centers found for “{query}”"
     },
     "remove": {
-      "title": "Remove the cost center “{name}”?",
+      "title": "Delete the cost center “{name}”?",
       "description": "This cannot be undone."
     },
     "toast": {
@@ -887,7 +1257,7 @@
       "created-detail": "“{name}” now shows up in entries.",
       "updated": "Changes saved",
       "updated-detail": "“{name}” was updated.",
-      "removed": "Cost center removed",
+      "removed": "Cost center deleted",
       "removed-detail": "“{name}” left the list."
     },
     "sections": {
@@ -917,7 +1287,8 @@
     "theme-system": "System",
     "language": "Language",
     "language-pt-BR": "Portuguese (Brazil)",
-    "language-en-US": "English (United States)"
+    "language-en-US": "English (United States)",
+    "profile": "Profile"
   },
   "confirm": {
     "title": "Confirmation"
@@ -938,7 +1309,11 @@
     "number-min": "The minimum value is {minimum}",
     "number-max": "The maximum value is {maximum}",
     "end-before-start": "The end date cannot be before the start date",
-    "roles-required": "Choose at least one area."
+    "roles-required": "Choose at least one area.",
+    "discount-too-high": "The discount must be lower than the value.",
+    "adjustment-not-zero": "The adjustment cannot be zero.",
+    "transfer-same-wallet": "Origin and destination must be different wallets.",
+    "first-installment-after-last": "The current installment cannot pass the number of installments."
   },
   "crud": {
     "required-hint": "Fields with * are required.",
@@ -947,7 +1322,7 @@
     "status": "Status",
     "actions": {
       "edit": "Edit",
-      "remove": "Remove",
+      "remove": "Delete",
       "more": "More actions"
     },
     "discard": {
@@ -970,6 +1345,467 @@
         "description": "The server did not respond. Check your connection and try again.",
         "retry": "Try again"
       }
+    }
+  },
+  "movement": {
+    "title": "Movements",
+    "search": {
+      "placeholder": "Name, cost center or classification"
+    },
+    "actions": {
+      "details": "Details",
+      "remove": "Delete",
+      "pay": "Pay",
+      "receive": "Receive",
+      "edit": "Edit",
+      "undo": "Undo payment",
+      "view-statement": "View on statement",
+      "view-invoice": "View on invoice"
+    },
+    "table-columns": {
+      "name": "Name",
+      "due-date": "Due date",
+      "value": "Value (R$)",
+      "status": "Status",
+      "cost-center": "Cost center",
+      "classification": "Classification"
+    },
+    "status": {
+      "open": "Open",
+      "paid": "Paid",
+      "overdue": "Overdue",
+      "overdue-days": "Overdue for {days} day | Overdue for {days} days",
+      "paid-on-card": "Paid on card"
+    },
+    "options": {
+      "all": "All",
+      "open": "Open",
+      "paid": "Paid"
+    },
+    "type": {
+      "income": "Income",
+      "expense": "Expense",
+      "INCOME": "Income",
+      "EXPENSE": "Expense"
+    },
+    "filters": {
+      "period": "Period",
+      "all-periods": "All periods",
+      "type": "Type",
+      "all-types": "All types",
+      "incomes": "Income",
+      "expenses": "Expenses",
+      "cost-center": "Cost center",
+      "all-cost-centers": "All",
+      "classification": "Classification",
+      "classification-of-type": {
+        "INCOME": "Income classification",
+        "EXPENSE": "Expense classification"
+      },
+      "all-classifications": "All",
+      "overdue": "Overdue only",
+      "clear": "Clear",
+      "clear-count": "Clear ({count})"
+    },
+    "summary": {
+      "received": "Received",
+      "received-note": "Paid income",
+      "paid": "Paid",
+      "paid-note": "Paid expenses",
+      "result": "Result",
+      "result-note": "Income − expenses",
+      "to-pay": "To pay",
+      "overdue-count": "{count} overdue | {count} overdue",
+      "nothing-overdue": "Nothing overdue"
+    },
+    "expired-notice": {
+      "title": "{name} expired on {date} and is still open",
+      "description": "It still accepts postings."
+    },
+    "list": {
+      "description": "Income and expenses of {period}.",
+      "description-all": "Income and expenses of all periods.",
+      "empty-title": "No movements in {period}",
+      "empty-description": "Post the first income or expense of the period.",
+      "plural": "the movements",
+      "found": "{count} movement found for “{query}” | {count} movements found for “{query}”",
+      "noun": "movement | movements",
+      "empty-title-all": "No movements yet",
+      "error-description": "The server did not respond. Your filters stay in the URL.",
+      "no-result-query": "No movements found for “{query}”",
+      "no-result-filter": "No movements with these filters",
+      "no-result-hint": "Change the filters or clear the search.",
+      "no-result-action": "Clear filters"
+    },
+    "remove": {
+      "title": "Delete “{name}”?",
+      "description": "This cannot be undone."
+    },
+    "toast": {
+      "removed": "Movement deleted",
+      "removed-detail": "“{name}” left the list.",
+      "created": "Movement posted",
+      "created-detail": "It shows up as open in the period.",
+      "updated": "Changes saved",
+      "paid": "Payment recorded",
+      "paid-detail": "It left {wallet}, new line on the statement.",
+      "payment-undone": "Payment undone",
+      "payment-undone-detail": "The reversal is already on the statement and the movement is open again.",
+      "created-paid-detail": "Posted already paid: the money left the wallet.",
+      "received": "Receipt registered",
+      "received-detail": "It entered {wallet}, new line on the statement.",
+      "paid-on-card-detail": "It entered the invoice of {card}."
+    },
+    "form": {
+      "new": "Posting",
+      "editing": "Editing",
+      "detailing": "Viewing",
+      "name": "Name",
+      "type": "Type",
+      "type-hint": "The type does not change once posted.",
+      "value": "Value",
+      "due-date": "Due date",
+      "due-date-hint": "Optional. Empty means today.",
+      "period": "Period",
+      "period-hint": "Open periods only.",
+      "cost-center": "Cost center",
+      "classification": "Classification",
+      "paid": "Post as already paid",
+      "paid-on": "Payment date",
+      "wallet": "Wallet",
+      "discount": "Discount",
+      "discount-hint": "Optional.",
+      "submit-post": "Post",
+      "submit-post-paid": "Post and pay",
+      "title-new": "New movement",
+      "title-edit": "Edit movement",
+      "name-example": {
+        "INCOME": "E.g.: December salary",
+        "EXPENSE": "E.g.: Water bill"
+      },
+      "value-hint": "Zero or more.",
+      "wallet-option": "{name} · balance {balance}",
+      "paid-by": "Paid by",
+      "card": "Card",
+      "card-hint": "It goes into the open invoice of the period.",
+      "no-open-invoice": "There is no open invoice for {card} in {period}",
+      "no-open-invoice-hint": "Nothing is posted. Choose another period or card.",
+      "classification-of": {
+        "INCOME": "Income classification",
+        "EXPENSE": "Expense classification"
+      }
+    },
+    "sections": {
+      "identification": "Identification",
+      "payment": "Payment",
+      "type": "Type",
+      "classification": "Classification",
+      "classification-help": {
+        "INCOME": "Only income classifications show up.",
+        "EXPENSE": "Only expense classifications show up."
+      },
+      "payment-help": "Optional.",
+      "invoice": "Invoice"
+    },
+    "detail": {
+      "name": "Name",
+      "type": "Type",
+      "value": "Value",
+      "due-date": "Due date",
+      "period": "Period",
+      "cost-center": "Cost center",
+      "classification": "Classification",
+      "no-payment": "No payment.",
+      "paid-on": "Date",
+      "movement-value": "Movement value",
+      "discount": "Discount",
+      "value-paid": "Amount paid",
+      "method": "Method",
+      "wallet": "Wallet",
+      "card": "Card",
+      "method-wallet": "Wallet",
+      "method-card": "Credit card",
+      "invoice-card": "Card",
+      "invoice-status": "Invoice status",
+      "invoice": "Invoice",
+      "invoice-link": "Open the invoice",
+      "recurring": "Recurring",
+      "discount-none": "---"
+    },
+    "notices": {
+      "paid": "Paid: it cannot be edited or deleted",
+      "paid-description": "Undo the payment to change it.",
+      "closed": "Period closed on {name}",
+      "closed-description": "Frozen. Reopen the period to undo.",
+      "overdue": "Was due on {date}",
+      "overdue-description": "Open for {days} day. | Open for {days} days.",
+      "closed-action": "See periods"
+    },
+    "menu": "Movements",
+    "pay": {
+      "title-pay": "Pay “{name}”",
+      "title-receive": "Receive “{name}”",
+      "paid-on": "Payment date",
+      "wallet": "Wallet",
+      "discount": "Discount",
+      "wallet-balance": "Wallet balance",
+      "movement-value": "Movement value",
+      "discount-value": "Discount",
+      "amount-paid": "Amount paid",
+      "amount-received": "Amount received",
+      "balance-after": "Balance after",
+      "method": {
+        "label": "Paid by",
+        "WALLET": "Wallet",
+        "CARD": "Credit card"
+      },
+      "card": "Card",
+      "confirm": "Confirm",
+      "invoice": "Invoice"
+    },
+    "undo": {
+      "title": "Undo the payment of “{name}”?",
+      "confirm": "Undo",
+      "description-wallet": "The money goes back to {wallet} as a {reversal}. The movement goes back to “Open”.",
+      "reversal-word": "reversal",
+      "description-card": "The purchase leaves the invoice of {card}. The movement goes back to “Open”.",
+      "reversal": "Reversal of {amount}"
+    }
+  },
+  "transfer": {
+    "title": "Transfers",
+    "menu": "Transfers",
+    "form": {
+      "new": "Transferring",
+      "detailing": "Detailing",
+      "description": "Move money from one wallet to another. It does not change the period result.",
+      "from": "From",
+      "to": "To",
+      "value": "Value",
+      "note": "Note",
+      "submit": "Transfer"
+    },
+    "sections": {
+      "wallets": "Wallets",
+      "wallets-help": "Active wallets only, and the two must be different.",
+      "value": "Value",
+      "identification": "Identification",
+      "return": "Return"
+    },
+    "statement": {
+      "title": "Transfer statement",
+      "from": "Origin",
+      "to": "Destination",
+      "before": "Previous balance",
+      "debit": "Debit",
+      "credit": "Credit",
+      "after": "Balance after"
+    },
+    "toast": {
+      "created": "Transfer made",
+      "created-detail": "From {from} to {to}.",
+      "returned": "Transfer returned",
+      "returned-detail": "The money went back from {from} to {to}."
+    },
+    "detail": {
+      "created-on": "Date and time",
+      "value": "Value",
+      "from": "From",
+      "to": "To",
+      "note": "Note",
+      "return-of": "Return of the transfer of",
+      "returned-by": "Returned on",
+      "return-state": "Status",
+      "not-returned": "Not returned yet"
+    },
+    "status": {
+      "returned": "Returned",
+      "is-return": "Return",
+      "return-of": "Return of {date}"
+    },
+    "actions": {
+      "view-statement": "View in statement",
+      "give-back": "Return",
+      "details": "View details"
+    },
+    "give-back": {
+      "title": "Return the transfer from {from} to {to}?",
+      "description": "The money goes back to the origin wallet in a new transfer.",
+      "value": "Returned value",
+      "confirm": "Return"
+    },
+    "list": {
+      "description": "Money that changed wallets, newest first.",
+      "empty-title": "No transfers yet",
+      "empty-description": "Transfer money from one wallet to another.",
+      "plural": "the transfers"
+    },
+    "search": {
+      "placeholder": "Origin wallet, destination wallet or note"
+    },
+    "filters": {
+      "wallet": "Wallet",
+      "all-wallets": "All",
+      "from": "From",
+      "to": "To",
+      "clear": "Clear"
+    },
+    "table-columns": {
+      "created-on": "Date and time",
+      "from": "From",
+      "to": "To",
+      "value": "Value (R$)",
+      "note": "Note",
+      "status": "Status"
+    }
+  },
+  "statement": {
+    "title": "Statement",
+    "menu": "Statement",
+    "description": "Balance changes of {name}.",
+    "balance": "Current balance",
+    "inactive": "inactive",
+    "search": {
+      "placeholder": "Entry name"
+    },
+    "options": {
+      "all": "All",
+      "credit": "Credits",
+      "debit": "Debits"
+    },
+    "filters": {
+      "wallet": "Wallet",
+      "from": "From",
+      "to": "To",
+      "period": "Financial period",
+      "all-periods": "All",
+      "origin": "Operation",
+      "all-origins": "All",
+      "min": "Minimum value",
+      "max": "Maximum value",
+      "clear": "Clear"
+    },
+    "origin": {
+      "INCOME": "Income",
+      "EXPENSE": "Expense",
+      "REVERSAL": "Reversal",
+      "ADJUSTMENT": "Adjustment",
+      "TRANSFER": "Transfer",
+      "INVOICE_PAYMENT": "Invoice payment"
+    },
+    "table-columns": {
+      "created-on": "Date and time",
+      "origin": "Operation",
+      "name": "Entry",
+      "value": "Value (R$)",
+      "previous-balance": "Previous balance",
+      "resulting-balance": "Current balance",
+      "reference": "Origin"
+    },
+    "open-origin": "Open the origin of {name}",
+    "list": {
+      "empty-title": "No entries yet",
+      "empty-description": "Post an income to give this wallet a balance.",
+      "plural": "the statement"
+    },
+    "actions": {
+      "adjust": "Adjust balance",
+      "transfer": "Transfer"
+    },
+    "adjust": {
+      "title": "Adjust the balance of {name}",
+      "description": "For rounding cents. It does not count in the result.",
+      "value": "Adjustment value",
+      "value-hint": "Positive credits, negative debits.",
+      "reason": "Reason",
+      "wallet-balance": "Wallet balance",
+      "adjustment": "Adjustment",
+      "balance-after": "Balance after",
+      "confirm": "Adjust"
+    },
+    "toast": {
+      "adjusted": "Balance adjusted",
+      "adjusted-detail": "The adjustment of {name} is in the statement and does not count in the result."
+    }
+  },
+  "card-purchase": {
+    "title": "Card purchases",
+    "menu": "Card purchases",
+    "form": {
+      "new": "Posting purchase",
+      "editing": "Editing purchase",
+      "detailing": "Detailing purchase",
+      "submit": "Post purchase",
+      "card": "Card",
+      "period": "Invoice period",
+      "name": "Name",
+      "purchased-on": "Purchase date",
+      "value": "Value",
+      "cost-center": "Cost center",
+      "classification": "Expense classification"
+    },
+    "sections": {
+      "card": "Card and period",
+      "card-help": "Open periods only.",
+      "purchase": "Purchase",
+      "classification": "Classification"
+    },
+    "detail": {
+      "value": "Value",
+      "purchased-on": "Purchase date",
+      "card": "Card",
+      "invoice": "Invoice",
+      "invoice-link": "{period} invoice",
+      "period": "Period",
+      "cost-center": "Cost center",
+      "classification": "Classification"
+    },
+    "notices": {
+      "movement": "This purchase came from a card payment and cannot be changed here.",
+      "movement-link": "View the movement"
+    },
+    "toast": {
+      "created": "Purchase posted",
+      "created-detail": "“{name}” went into the open invoice of the card.",
+      "updated": "Changes saved",
+      "updated-detail": "“{name}” was updated.",
+      "removed": "Purchase deleted",
+      "removed-detail": "“{name}” left the invoice."
+    },
+    "remove": {
+      "title": "Delete the purchase “{name}”?",
+      "description": "It leaves the invoice and the spending by cost center. This cannot be undone."
+    }
+  },
+  "profile": {
+    "breadcrumb": "Editing profile",
+    "title": "Profile",
+    "description": "Your data and notices.",
+    "data-hint": "The e-mail does not change.",
+    "sections": {
+      "data": "Data",
+      "notices": "Due date notices"
+    },
+    "form": {
+      "name": "Name",
+      "email": "E-mail",
+      "language": "Language",
+      "notices": "Receive the due date notices by e-mail",
+      "notices-on": "On.",
+      "notices-off": "Off."
+    },
+    "languages": {
+      "pt-BR": "Português (Brasil)",
+      "en-US": "English"
+    },
+    "notices": {
+      "daily": "Daily: one e-mail a day, only when something falls due that day.",
+      "weekly": "Weekly: every Friday, a summary of the due dates of the next week. With no due dates, nothing is sent."
+    },
+    "toast": {
+      "saved": "Profile saved",
+      "notices-on": "The due date notices are still on.",
+      "notices-off": "The due date notices were turned off."
     }
   }
 }

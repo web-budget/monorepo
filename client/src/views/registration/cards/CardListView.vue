@@ -14,7 +14,6 @@ import { MASCULINE_STATUS_OPTIONS } from '@/components/listing/statusOptions'
 import { Button } from '@/components/ui/button'
 import { useCrudList } from '@/composables/useCrudList'
 import { useCardsStore } from '@/stores/cards'
-import { typeKey } from '@/utils/typeLabels'
 
 const { t } = useI18n()
 
@@ -42,7 +41,7 @@ const {
   entity: 'card',
   initialStatus: 'ACTIVE',
   statuses: MASCULINE_STATUS_OPTIONS.map((option) => option.value),
-  sortFields: ['name', 'flag', 'type', 'active'],
+  sortFields: ['name', 'flag', 'active'],
   pageRequest,
   pageResponse,
   loading,
@@ -54,7 +53,6 @@ const {
 const columns = computed(() => [
   { field: 'name', header: t('card.table-columns.name'), sortable: true },
   { field: 'flag', header: t('card.table-columns.flag'), sortable: true },
-  { field: 'type', header: t('card.table-columns.type'), sortable: true },
 ])
 </script>
 
@@ -103,7 +101,6 @@ const columns = computed(() => [
         @table-sorted="onTableSorted"
         @row-selected="changeToDetail"
       >
-        <template #cell-type="{ item }">{{ $t(typeKey('card', item.type)) }}</template>
         <template #actions="{ item }">
           <ActionButtons @on-edit="changeToUpdate(item.id)" @on-delete="remove(item)" />
         </template>

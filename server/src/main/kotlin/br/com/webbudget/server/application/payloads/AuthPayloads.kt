@@ -64,9 +64,21 @@ data class GoogleLinkForm(
     val totpCode: String? = null
 )
 
+data class ProfileForm(
+    @field:NotBlank(message = IS_NULL_OR_BLANK)
+    @field:Size(max = MAX_NAME_LENGTH, message = MAX_CHARS)
+    @field:Pattern(regexp = "[^\\p{Cc}\\p{Zl}\\p{Zp}]*", message = HAS_CONTROL_CHARACTERS)
+    val name: String?
+)
+
 data class LanguageForm(
     @field:NotNull(message = IS_NULL)
     val language: Language?
+)
+
+data class DueDateNoticesForm(
+    @field:NotNull(message = IS_NULL)
+    val enabled: Boolean?
 )
 
 data class AuthConfigView(
@@ -135,6 +147,7 @@ data class SessionView(
     val email: String,
     val status: UserStatus,
     val language: Language,
+    val dueDateNotices: Boolean,
     val roles: List<String>
 ) {
 
@@ -145,6 +158,7 @@ data class SessionView(
             email = user.email,
             status = user.status,
             language = user.language,
+            dueDateNotices = user.dueDateNotices,
             roles = user.roles.sorted()
         )
     }

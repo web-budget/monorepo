@@ -20,7 +20,6 @@
         "number": "Número de conta \"{value}\" já esta em uso"
       },
       "card": {
-        "type": "Tipo já esta em uso",
         "last-four-digits": "Últimos dígitos \"{value}\" já esta em uso"
       },
       "classification": {
@@ -29,7 +28,9 @@
       "user": {
         "email": "Email \"{value}\" já esta em uso"
       },
-      "invalid-user-status-transition": "A conta mudou de status enquanto a tela estava aberta. Atualize a lista."
+      "invalid-user-status-transition": "A conta mudou de status enquanto a tela estava aberta. Atualize a lista.",
+      "transfer-already-returned": "A transferência já foi devolvida.",
+      "transfer-is-a-return": "Uma devolução não se devolve."
     },
     "unprocessable-entity": {
       "title": "Falha na requisição",
@@ -43,12 +44,42 @@
       "budget-limit-exceeded": "O orçamento disponível no centro de custo para o tipo selecionado é ${available-budget}",
       "overlapping-start-end-dates": "Já existe um período financeiro que compreende a data de inicio e fim selecionada",
       "start-date-after-end-date": "Data de início precisa ser antes da data de fim",
-      "debit-card-without-wallet": "O cartão de débito deve estar vinculado a uma carteira",
       "invalid-invoice-payment-day": "{payment-day} não é um dia do mês válido, use algo entre 1 e 30",
       "financial-period-not-open": "O período financeiro não esta aberto e não pode receber modificações",
       "accounted-period-movement": "O movimento pertence a um período contabilizado e não pode ser alterado",
       "invalid-token": "Token inválido ou expirado",
-      "self-action-not-allowed": "Esta ação não vale para a sua própria conta"
+      "self-action-not-allowed": "Esta ação não vale para a sua própria conta",
+      "movement-already-paid": "O movimento já foi pago e não pode ser alterado",
+      "movement-not-paid": "O movimento não tem pagamento",
+      "classification-type-mismatch": "A classificação não é do mesmo tipo do movimento",
+      "inactive-classification": "A classificação está inativa. Se ela é de um recorrente, corrija ou desative o recorrente.",
+      "inactive-cost-center": "O centro de custo está inativo",
+      "inactive-wallet": "A carteira está inativa",
+      "invalid-discount": "O desconto precisa estar entre zero e o valor, sem chegar nele",
+      "payment-date-in-future": "A data do pagamento não pode ser futura",
+      "wallet-has-entries": "A carteira tem lançamentos no extrato e não pode ser excluída",
+      "transfer-between-same-wallet": "Origem e destino precisam ser carteiras diferentes",
+      "invalid-adjustment-value": "O valor do ajuste não pode ser zero",
+      "no-open-invoice": "Não há fatura aberta para esse cartão no período escolhido. Nada foi lançado.",
+      "invoice-not-open": "A fatura não está aberta e não aceita mudanças",
+      "invoice-without-purchases": "A fatura não tem compras; ela só fecha, zerada, no fechamento do período",
+      "purchase-bound-to-movement": "A compra veio de um pagamento no cartão e não pode ser alterada aqui",
+      "invoice-payment-not-payable-by-card": "O pagamento de fatura não se paga no cartão",
+      "invoice-payment-locked": "O pagamento de fatura não pode ser alterado",
+      "card-payment-only-for-expenses": "Só despesa se paga no cartão",
+      "payment-requires-wallet-or-card": "Escolha a carteira ou o cartão do pagamento",
+      "no-open-period-after": "Não há período aberto depois do período do movimento",
+      "move-target-same-period": "O movimento já está nesse período",
+      "move-target-not-open": "O período de destino não está aberto",
+      "invoice-payment-moved": "O pagamento de fatura fora do período da fatura não se exclui. Mova-o de volta ou reabra o período",
+      "financial-period-with-open-movements": "O período ainda tem movimentos em aberto",
+      "financial-period-with-open-invoices": "O período ainda tem fatura aberta com compras",
+      "financial-period-not-closed": "O período não está encerrado",
+      "only-the-last-closed-period-can-be-reopened": "Só o último período encerrado reabre",
+      "recurring-movement-with-launches": "O recorrente já tem lançamentos e não pode ser excluído. Desative-o para parar de lançar.",
+      "card-recurring-must-be-expense": "Só a despesa pode ter cartão sugerido",
+      "inactive-card": "O cartão está inativo",
+      "launch-value-only-for-variable": "Só o recorrente variável aceita um valor no lançamento"
     },
     "not-found": {
       "detail": "Não encontrado",
@@ -273,7 +304,11 @@
     "financial": "Financeiro",
     "configuration": "Configurações",
     "registration": "Cadastros",
-    "dashboards": "Dashboards"
+    "dashboards": "Dashboards",
+    "financial-daily": "Dia a dia",
+    "financial-period": "Período",
+    "home": "Início",
+    "sections": "Seções"
   },
   "dashboards": {
     "overview": "Visão geral",
@@ -300,17 +335,19 @@
       "configuration": "Contas de usuários, áreas de acesso e integrações."
     },
     "items": {
-      "period-movement": "Receitas e despesas lançadas no período financeiro.",
-      "recurrent-movement": "Lançamentos que se repetem todo mês.",
-      "credit-card-invoice": "Faturas abertas e fechadas de cada cartão.",
-      "period-closing": "Encerra o período e contabiliza o saldo.",
+      "recurrent-movement": "Lançam movimentos e compras a cada período.",
+      "credit-card-invoice": "Compras de cada cartão por período.",
+      "period-closing": "Resolver pendências e gravar o resultado.",
       "wallet": "Contas bancárias, investimentos e dinheiro em espécie.",
       "card": "Cartões de crédito e débito ligados às carteiras.",
       "classification": "Categorias de receita e despesa dos lançamentos.",
       "cost-center": "Hierarquia para agrupar onde o dinheiro é gasto.",
-      "financial-period": "Intervalos de tempo com metas de receita e despesa.",
+      "financial-period": "Criar, editar e acompanhar os períodos.",
       "users": "Contas, áreas de acesso e aprovações.",
-      "integrations": "Conexões com bancos e serviços externos."
+      "integrations": "Conexões com bancos e serviços externos.",
+      "movement": "Receitas e despesas do período.",
+      "transfer": "Dinheiro que muda de carteira.",
+      "statement": "Mudanças de saldo de cada carteira."
     }
   },
   "action-button": {
@@ -405,7 +442,8 @@
     "footer": {
       "until": " até ",
       "total": ", total ",
-      "range": "{first}–{last} de {total}"
+      "range": "{first}–{last} de {total}",
+      "range-noun": "{first}–{last} de {total} {noun}"
     },
     "pagination": {
       "rows-per-page": "Linhas por página",
@@ -587,21 +625,329 @@
       "roles": "Áreas de acesso"
     }
   },
-  "period-movement": {
-    "title": "Movimentos do período",
-    "menu": "Movimentos do período"
-  },
   "recurrent-movement": {
-    "title": "Movimentos recorrentes",
-    "menu": "Movimentos recorrentes"
+    "title": "Recorrentes",
+    "menu": "Recorrentes",
+    "list": {
+      "description": "Modelos que lançam movimentos e compras a cada período.",
+      "create": "Novo recorrente",
+      "empty-title": "Nenhum recorrente ainda",
+      "empty-description": "Cadastre um modelo para lançar o aluguel, a internet ou uma compra parcelada a cada período.",
+      "plural": "os recorrentes",
+      "found": "{count} recorrente encontrado para “{query}” | {count} recorrentes encontrados para “{query}”",
+      "launch": "Lançar em lote"
+    },
+    "search": {
+      "placeholder": "Nome, centro de custo ou classificação"
+    },
+    "status-tabs": {
+      "active": "Ativos",
+      "finished": "Encerrados"
+    },
+    "filters": {
+      "type": "Tipo",
+      "all-types": "Todas",
+      "incomes": "Receitas",
+      "expenses": "Despesas",
+      "clear": "Limpar"
+    },
+    "table-columns": {
+      "name": "Nome",
+      "value": "Valor (R$)",
+      "value-kind": "Tipo de valor",
+      "installments": "Parcelas",
+      "launch": "Lançamento",
+      "situation": "Situação"
+    },
+    "last-value": "último",
+    "value-kind": {
+      "FIXED": "Fixo",
+      "VARIABLE": "Variável"
+    },
+    "installments": {
+      "indefinite": "Indeterminado"
+    },
+    "launch": {
+      "auto": "Automático",
+      "manual": "Manual",
+      "breadcrumb": "Lançando",
+      "title": "Lançar recorrentes",
+      "description": "Escolha os recorrentes e lance de uma vez.",
+      "period": "Período",
+      "period-none": "Nenhum",
+      "due-hint": "Vencem em {date}.",
+      "no-open-period": "Não há período aberto",
+      "no-open-period-hint": "Crie um período para lançar os recorrentes.",
+      "create-period": "Criar período",
+      "select": "Selecionar {name}",
+      "value-of": "Valor de {name}",
+      "available": "Disponível",
+      "launched": "Já lançado",
+      "selected": "{count} selecionado | {count} selecionados",
+      "effect": "efeito no período",
+      "submit": "Lançar {count} recorrente | Lançar {count} recorrentes"
+    },
+    "status": {
+      "active": "Ativo",
+      "finished": "Encerrado",
+      "inactive": "Inativo"
+    },
+    "actions": {
+      "details": "Detalhes",
+      "edit": "Editar",
+      "readjust": "Reajustar valor",
+      "remove": "Excluir"
+    },
+    "readjust": {
+      "title": "Reajustar “{name}”",
+      "description": "Vale a partir do próximo lançamento.",
+      "value": "Novo valor",
+      "current": "Valor atual",
+      "reason": "Motivo",
+      "confirm": "Reajustar"
+    },
+    "remove": {
+      "title": "Excluir “{name}”?",
+      "description": "Só dá para excluir um recorrente sem lançamentos. Não dá para desfazer."
+    },
+    "toast": {
+      "created": "Recorrente criado",
+      "created-detail": "“{name}” já pode ser lançado.",
+      "updated": "Alterações salvas",
+      "updated-detail": "“{name}” foi atualizado.",
+      "removed": "Recorrente excluído",
+      "removed-detail": "“{name}” saiu da lista.",
+      "readjusted": "Valor reajustado",
+      "readjusted-detail": "O novo valor de “{name}” vale a partir do próximo lançamento.",
+      "launched": "Recorrentes lançados",
+      "launched-detail": "{count} lançamento criado em {period}. | {count} lançamentos criados em {period}.",
+      "skipped": "Alguns recorrentes não entraram"
+    },
+    "form": {
+      "new": "Criando",
+      "editing": "Editando",
+      "detailing": "Detalhando",
+      "type": "Tipo",
+      "type-hint": "O tipo não muda depois de criado.",
+      "name": "Nome",
+      "value": "Valor",
+      "suggested-value": "Valor sugerido",
+      "value-note": "Para mudar o valor, use Reajustar valor no detalhe.",
+      "cost-center": "Centro de custo",
+      "classification-of-type": {
+        "INCOME": "Classificação de receita",
+        "EXPENSE": "Classificação de despesa"
+      },
+      "value-kind": "Modalidade",
+      "value-kind-hint": "O fixo lança sempre o valor atual; o variável sugere o último valor pago e aceita outro no lançamento.",
+      "repetition-hint": "O recorrente termina sozinho depois da última parcela.",
+      "installments-heading": "Número de parcelas",
+      "indefinite": "Prazo indeterminado",
+      "installments": "Parcelas",
+      "first-installment": "Parcela atual",
+      "card": "Cartão sugerido",
+      "card-hint": "Só sugere o cartão na hora de pagar.",
+      "no-card": "Nenhum",
+      "auto-launch": "Lançar automaticamente ao criar o período",
+      "auto-launch-hint": "Vence no último dia do período.",
+      "active-label": "Ativo",
+      "active-hint": "Inativar para parar de lançar"
+    },
+    "sections": {
+      "type": "Tipo",
+      "identification": "Identificação",
+      "value-kind": "Modalidade",
+      "repetition": "Repetição",
+      "card": "Cartão sugerido",
+      "launch": "Lançamento",
+      "value-and-repetition": "Valor e repetição",
+      "history": "Histórico de valores"
+    },
+    "detail": {
+      "name": "Nome",
+      "type": "Tipo",
+      "cost-center": "Centro de custo",
+      "classification": "Classificação",
+      "card": "Cartão sugerido",
+      "current-value": "Valor atual",
+      "value-kind": "Tipo de valor",
+      "installments": "Parcelas",
+      "launch": "Lançamento",
+      "due": "Vencimento",
+      "due-last-day": "Último dia do período"
+    },
+    "history": {
+      "valid-from": "Vale a partir de",
+      "value": "Valor (R$)",
+      "reason": "Motivo",
+      "current": "vigente",
+      "suggested": "Valor sugerido no próximo lançamento:"
+    },
+    "skipped": {
+      "inactive": "inativo",
+      "finished": "encerrado",
+      "already-launched-in-period": "já lançado no período"
+    }
   },
   "credit-card-invoice": {
-    "title": "Fatura do cartão de crédito",
-    "menu": "Fatura do cartão de crédito"
+    "title": "Fatura do cartão",
+    "menu": "Fatura do cartão",
+    "detail": {
+      "title": "Detalhando fatura",
+      "breadcrumb": "Detalhando",
+      "total": "Total da fatura",
+      "purchases": "Compras",
+      "due-date": "Vencimento",
+      "no-purchases": "Nenhuma compra nesta fatura"
+    },
+    "list": {
+      "description": "Compras de cada cartão por período.",
+      "empty-title": "Nenhuma fatura neste período",
+      "empty-description": "Crie um período para gerar as faturas.",
+      "plural": "as faturas"
+    },
+    "options": {
+      "all": "Todas",
+      "open": "Abertas",
+      "closed": "Fechadas",
+      "paid": "Pagas"
+    },
+    "filters": {
+      "period": "Período",
+      "all-periods": "Todos",
+      "card": "Cartão",
+      "all-cards": "Todos"
+    },
+    "table-columns": {
+      "card": "Cartão",
+      "period": "Período",
+      "value": "Total (R$)",
+      "status": "Situação"
+    },
+    "status": {
+      "OPEN": "Aberta",
+      "CLOSED": "Fechada",
+      "PAID": "Paga"
+    },
+    "sections": {
+      "purchases": "Compras"
+    },
+    "purchases": {
+      "date": "Data",
+      "name": "Compra",
+      "value": "Valor (R$)"
+    },
+    "actions": {
+      "close": "Fechar fatura",
+      "view-payment": "Ver pagamento de fatura",
+      "delete-payment": "Excluir pagamento de fatura",
+      "new-purchase": "Nova compra"
+    },
+    "close": {
+      "title": "Fechar a fatura de {period}, {card}?",
+      "description": "Gera o pagamento de fatura e fecha a fatura para novas compras.",
+      "description-empty": "Fatura sem compras fecha com valor zero.",
+      "purchases": "Compras",
+      "payment": "Pagamento de fatura",
+      "due-date": "Vencimento",
+      "wallet": "Carteira sugerida ao pagar",
+      "confirm": "Fechar fatura"
+    },
+    "delete-payment": {
+      "title": "Excluir o pagamento de fatura?",
+      "description": "Excluir o pagamento reabre a fatura de {card}.",
+      "confirm": "Excluir e reabrir"
+    },
+    "toast": {
+      "closed": "Fatura fechada",
+      "closed-detail": "Pagamento de fatura de {value} gerado, em aberto.",
+      "reopened": "Fatura reaberta",
+      "reopened-detail": "O pagamento de fatura foi excluído."
+    }
   },
   "period-closing": {
-    "title": "Encerramento do período",
-    "menu": "Encerramento do período"
+    "title": "Fechamento",
+    "menu": "Fechamento",
+    "breadcrumb": "Fechando",
+    "title-of": "Fechamento de {name}",
+    "description": "Resolva as pendências e grave o resultado.",
+    "period": "Período a fechar",
+    "none": "Nenhum",
+    "summary": {
+      "revenues": "Receitas pagas",
+      "revenues-note": "Só o que foi recebido",
+      "expenses": "Despesas pagas",
+      "expenses-note": "Inclui pagamentos de fatura pagos",
+      "result": "Resultado",
+      "result-note": "Receitas − despesas",
+      "accumulated": "Acumulado",
+      "accumulated-note": "Fechados mais provisório dos abertos"
+    },
+    "pendencies": {
+      "title": "Pendências",
+      "hint": "Pague ou mova para outro período aberto.",
+      "none": "Nenhuma pendência",
+      "movement": "Movimento",
+      "due-date": "Vencimento",
+      "value": "Valor (R$)",
+      "invoice": "fatura",
+      "overdue": "vencido",
+      "move": "Mover",
+      "move-disabled": "Crie um período aberto para poder mover.",
+      "no-next": "Não há período aberto depois de {name}",
+      "no-next-hint": "Pague tudo ou crie um período para mover.",
+      "create-period": "Criar período"
+    },
+    "invoices": {
+      "title": "Faturas",
+      "hint": "Fatura aberta com compras bloqueia o fechamento.",
+      "none": "Nenhuma fatura neste período",
+      "close": "Fechar fatura",
+      "note": {
+        "blocking": "Bloqueia o fechamento",
+        "empty": "Fecha sozinha com valor zero",
+        "payment": "Pagamento de fatura nas pendências",
+        "paid": "Paga"
+      }
+    },
+    "checklist": {
+      "title": "Para fechar",
+      "pendencies": "Pendências resolvidas",
+      "invoices": "Faturas resolvidas",
+      "next-period": "Período seguinte aberto",
+      "close": "Fechar {name}"
+    },
+    "move": {
+      "title": "Mover “{name}”",
+      "description": "O movimento vai para outro período aberto.",
+      "period": "Período",
+      "none": "Escolha um período",
+      "expired": "expirado",
+      "confirm": "Mover"
+    },
+    "close": {
+      "title": "Fechar {name}?",
+      "description": "Grava o resultado e congela o período.",
+      "confirm": "Fechar período"
+    },
+    "reopen": {
+      "title": "Reabrir {name}?",
+      "description": "O resultado gravado é apagado e o período volta a aceitar lançamentos. Faturas fechadas sozinhas reabrem.",
+      "confirm": "Reabrir",
+      "only-last": "Só o último período encerrado reabre"
+    },
+    "actions": {
+      "close": "Fechar período",
+      "close-named": "Fechar {name}",
+      "reopen": "Reabrir"
+    },
+    "toast": {
+      "moved": "Movimento movido",
+      "moved-detail": "“{name}” foi para {period}.",
+      "closed": "{name} encerrado",
+      "closed-detail": "Resultado {result} gravado. Faturas vazias fecharam com valor zero.",
+      "reopened": "Período reaberto"
+    }
   },
   "wallet": {
     "title": "Carteiras",
@@ -644,7 +990,7 @@
       "found": "{count} carteira encontrada para “{query}” | {count} carteiras encontradas para “{query}”"
     },
     "remove": {
-      "title": "Remover a carteira “{name}”?",
+      "title": "Excluir a carteira “{name}”?",
       "description": "Não dá para desfazer."
     },
     "toast": {
@@ -652,7 +998,7 @@
       "created-detail": "“{name}” já aparece nos lançamentos.",
       "updated": "Alterações salvas",
       "updated-detail": "“{name}” foi atualizada.",
-      "removed": "Carteira removida",
+      "removed": "Carteira excluída",
       "removed-detail": "“{name}” saiu da lista."
     },
     "sections": {
@@ -661,6 +1007,11 @@
       "bank": "Dados do banco",
       "bank-help": "Aparece para Conta bancária e Investimento.",
       "balance": "Saldo"
+    },
+    "actions": {
+      "view-statement": "Ver extrato",
+      "adjust-balance": "Ajustar saldo",
+      "transfer": "Transferir"
     }
   },
   "card": {
@@ -671,12 +1022,7 @@
     },
     "table-columns": {
       "name": "Nome",
-      "type": "Tipo",
       "flag": "Bandeira"
-    },
-    "type": {
-      "debit": "Débito",
-      "credit": "Crédito"
     },
     "form": {
       "new": "Novo cartão",
@@ -684,27 +1030,24 @@
       "detailing": "Detalhando cartão",
       "deleting": "Excluindo cartão",
       "name": "Nome",
-      "type": "Tipo",
       "flag": "Bandeira",
       "last-four-digits": "Últimos 4 dígitos",
-      "wallet": "Carteira",
-      "invoice-payment-day": "Dia do vencimento",
-      "type-placeholder": "Selecione um tipo",
+      "wallet": "Carteira que paga a fatura",
+      "invoice-payment-day": "Dia do pagamento da fatura",
       "wallet-search-empty": "Nenhuma carteira encontrada",
       "wallet-search-placeholder": "Digite o nome",
       "active-label": "Ativo",
-      "active-hint": "Inativar para remover das listagens",
-      "type-hint": "O tipo não muda depois de criado."
+      "active-hint": "Inativar para remover das listagens"
     },
     "list": {
-      "description": "Cartões de crédito e débito usados nos lançamentos.",
+      "description": "Cartões de crédito.",
       "empty-title": "Nenhum cartão ainda",
-      "empty-description": "Cadastre os cartões que você usa. Os de débito saem de uma carteira; os de crédito entram na fatura.",
+      "empty-description": "Cadastre os cartões de crédito que você usa. As compras entram na fatura.",
       "plural": "os cartões",
       "found": "{count} cartão encontrado para “{query}” | {count} cartões encontrados para “{query}”"
     },
     "remove": {
-      "title": "Remover o cartão “{name}”?",
+      "title": "Excluir o cartão “{name}”?",
       "description": "Não dá para desfazer."
     },
     "toast": {
@@ -712,50 +1055,57 @@
       "created-detail": "“{name}” já aparece nos lançamentos.",
       "updated": "Alterações salvas",
       "updated-detail": "“{name}” foi atualizado.",
-      "removed": "Cartão removido",
+      "removed": "Cartão excluído",
       "removed-detail": "“{name}” saiu da lista."
     },
     "sections": {
       "identification": "Identificação",
       "identification-help": "Como o cartão aparece nos lançamentos.",
-      "wallet": "Carteira",
-      "wallet-help": "O cartão de débito sai desta carteira.",
       "invoice": "Fatura",
-      "invoice-help": "Dia do mês em que a fatura do cartão de crédito vence."
+      "invoice-help": "Usados como sugestão ao pagar a fatura fechada. A carteira vem sugerida ao pagar; dá para trocar na hora."
     }
   },
   "financial-period": {
-    "title": "Períodos financeiros",
-    "menu": "Períodos financeiros",
+    "title": "Períodos",
+    "menu": "Períodos",
     "search": {
       "placeholder": "Nome"
     },
     "table-columns": {
-      "name": "Nome",
+      "name": "Período",
       "starting-at": "Início",
       "ending-at": "Fim",
-      "status": "Status"
+      "status": "Situação",
+      "revenues-goal": "Meta de receita",
+      "expenses-goal": "Meta de despesa",
+      "result": "Resultado (R$)"
     },
     "status": {
-      "active": "Ativo",
-      "ended": "Encerrado",
-      "accounted": "Contabilizado"
+      "open": "Aberto",
+      "closed": "Encerrado",
+      "expired": "Aberto · expirado",
+      "expired-short": "expirado",
+      "closed-short": "encerrado"
     },
     "options": {
       "all": "Todos",
       "open": "Abertos",
-      "accounted": "Contabilizados"
+      "closed": "Encerrados"
     },
     "form": {
-      "new": "Novo período financeiro",
-      "editing": "Editando período financeiro",
-      "detailing": "Detalhando período financeiro",
+      "new": "Criando",
+      "editing": "Editando",
+      "detailing": "Detalhando",
+      "title-new": "Novo período",
+      "title-editing": "Editar nome e metas",
       "deleting": "Excluindo período financeiro",
       "name": "Nome",
-      "starting-at": "Início",
-      "ending-at": "Fim",
-      "expenses-goal": "Meta de despesas",
-      "revenues-goal": "Meta de receitas"
+      "starting-at": "Data inicial",
+      "ending-at": "Data final",
+      "expenses-goal": "Meta de despesa",
+      "revenues-goal": "Meta de receita",
+      "name-example": "Ex.: Janeiro de 2027",
+      "status": "Situação"
     },
     "errors": {
       "overlapping-dates": "Data de início e fim estão sobrepondo com outro período financeiro existente",
@@ -763,31 +1113,55 @@
       "period-not-open": "Período financeiro não está aberto e não pode ser alterado ou excluído"
     },
     "list": {
-      "description": "Os períodos em que os lançamentos são fechados e contabilizados.",
-      "empty-title": "Nenhum período financeiro ainda",
-      "empty-description": "Crie um período financeiro para começar a registrar os lançamentos.",
+      "description": "Intervalos de datas dos lançamentos.",
+      "empty-title": "Nenhum período criado",
+      "empty-description": "Nada é lançado sem um período aberto. Crie o primeiro.",
       "plural": "os períodos financeiros",
-      "found": "{count} período financeiro encontrado para “{query}” | {count} períodos financeiros encontrados para “{query}”"
+      "found": "{count} período financeiro encontrado para “{query}” | {count} períodos financeiros encontrados para “{query}”",
+      "expired-notice": {
+        "title": "{count} período expirado: {names} | {count} períodos expirados: {names}",
+        "description": "Ainda aceita lançamentos. | Ainda aceitam lançamentos."
+      },
+      "noun": "período | períodos",
+      "tabs-note": "Resultado só existe depois do fechamento.",
+      "provisional": "provisório",
+      "edit": "Editar nome e metas"
     },
     "remove": {
-      "title": "Remover o período financeiro “{name}”?",
+      "title": "Excluir o período financeiro “{name}”?",
       "description": "Não dá para desfazer."
     },
     "toast": {
-      "created": "Período financeiro criado",
-      "created-detail": "“{name}” já aceita lançamentos.",
+      "created": "Período criado",
+      "created-detail": "“{name}” já aceita lançamentos. | “{name}” já aceita lançamentos. 1 recorrente lançado. | “{name}” já aceita lançamentos. {count} recorrentes lançados.",
       "updated": "Alterações salvas",
       "updated-detail": "“{name}” foi atualizado.",
-      "removed": "Período financeiro removido",
+      "removed": "Período financeiro excluído",
       "removed-detail": "“{name}” saiu da lista."
     },
     "sections": {
       "identification": "Identificação",
-      "identification-help": "Como o período aparece nos lançamentos.",
       "dates": "Datas",
-      "dates-help": "As datas não mudam depois de criado.",
+      "dates-help": "Sem sobreposição com outro período.",
       "goals": "Metas",
-      "goals-help": "Valores previstos de receitas e despesas no período."
+      "goals-help": "Opcionais.",
+      "result": "Resultado provisório",
+      "result-closed": "Resultado",
+      "movements": "Movimentos"
+    },
+    "result": {
+      "revenues": "Receitas",
+      "expenses": "Despesas",
+      "result": "Resultado",
+      "provisional": "provisório"
+    },
+    "actions": {
+      "view-movements": "Ver movimentos"
+    },
+    "detail": {
+      "launched": "Lançados",
+      "open": "Em aberto",
+      "paid": "Pagos"
     }
   },
   "classification": {
@@ -798,8 +1172,7 @@
     },
     "table-columns": {
       "name": "Nome",
-      "type": "Tipo",
-      "budget": "Orçamento"
+      "type": "Tipo"
     },
     "type": {
       "income": "Receita",
@@ -813,7 +1186,6 @@
       "name": "Nome",
       "description": "Descrição",
       "type": "Tipo",
-      "budget": "Orçamento",
       "type-placeholder": "Selecione um tipo",
       "active-label": "Ativa",
       "active-hint": "Inativar para remover das listagens",
@@ -827,7 +1199,7 @@
       "found": "{count} classificação encontrada para “{query}” | {count} classificações encontradas para “{query}”"
     },
     "remove": {
-      "title": "Remover a classificação “{name}”?",
+      "title": "Excluir a classificação “{name}”?",
       "description": "Não dá para desfazer."
     },
     "toast": {
@@ -835,14 +1207,12 @@
       "created-detail": "“{name}” já aparece nos lançamentos.",
       "updated": "Alterações salvas",
       "updated-detail": "“{name}” foi atualizada.",
-      "removed": "Classificação removida",
+      "removed": "Classificação excluída",
       "removed-detail": "“{name}” saiu da lista."
     },
     "sections": {
       "identification": "Identificação",
-      "identification-help": "Como a classificação aparece nos lançamentos.",
-      "budget": "Orçamento",
-      "budget-help": "Limite opcional para o que for classificado aqui."
+      "identification-help": "Como a classificação aparece nos lançamentos."
     }
   },
   "cost-center": {
@@ -879,7 +1249,7 @@
       "found": "{count} centro de custo encontrado para “{query}” | {count} centros de custo encontrados para “{query}”"
     },
     "remove": {
-      "title": "Remover o centro de custo “{name}”?",
+      "title": "Excluir o centro de custo “{name}”?",
       "description": "Não dá para desfazer."
     },
     "toast": {
@@ -887,7 +1257,7 @@
       "created-detail": "“{name}” já aparece nos lançamentos.",
       "updated": "Alterações salvas",
       "updated-detail": "“{name}” foi atualizado.",
-      "removed": "Centro de custo removido",
+      "removed": "Centro de custo excluído",
       "removed-detail": "“{name}” saiu da lista."
     },
     "sections": {
@@ -917,7 +1287,8 @@
     "theme-system": "Sistema",
     "language": "Idioma",
     "language-pt-BR": "Português (Brasil)",
-    "language-en-US": "Inglês (Estados Unidos)"
+    "language-en-US": "Inglês (Estados Unidos)",
+    "profile": "Perfil"
   },
   "confirm": {
     "title": "Confirmação"
@@ -938,7 +1309,11 @@
     "number-min": "O valor mínimo é {minimum}",
     "number-max": "O valor máximo é {maximum}",
     "end-before-start": "A data de fim não pode ser anterior à data de início",
-    "roles-required": "Escolha pelo menos uma área."
+    "roles-required": "Escolha pelo menos uma área.",
+    "discount-too-high": "O desconto precisa ser menor que o valor.",
+    "adjustment-not-zero": "O ajuste não pode ser zero.",
+    "transfer-same-wallet": "Origem e destino precisam ser carteiras diferentes.",
+    "first-installment-after-last": "A parcela atual não pode passar do número de parcelas."
   },
   "crud": {
     "required-hint": "Campos com * são obrigatórios.",
@@ -947,7 +1322,7 @@
     "status": "Situação",
     "actions": {
       "edit": "Editar",
-      "remove": "Remover",
+      "remove": "Excluir",
       "more": "Mais ações"
     },
     "discard": {
@@ -970,6 +1345,467 @@
         "description": "O servidor não respondeu. Confira sua conexão e tente de novo.",
         "retry": "Tentar de novo"
       }
+    }
+  },
+  "movement": {
+    "title": "Movimentos",
+    "search": {
+      "placeholder": "Nome, centro de custo ou classificação"
+    },
+    "actions": {
+      "details": "Detalhes",
+      "remove": "Excluir",
+      "pay": "Pagar",
+      "receive": "Receber",
+      "edit": "Editar",
+      "undo": "Desfazer pagamento",
+      "view-statement": "Ver no extrato",
+      "view-invoice": "Ver na fatura"
+    },
+    "table-columns": {
+      "name": "Nome",
+      "due-date": "Vencimento",
+      "value": "Valor (R$)",
+      "status": "Situação",
+      "cost-center": "Centro de custo",
+      "classification": "Classificação"
+    },
+    "status": {
+      "open": "Em aberto",
+      "paid": "Pago",
+      "overdue": "Vencido",
+      "overdue-days": "Vencido há {days} dia | Vencido há {days} dias",
+      "paid-on-card": "Pago no cartão"
+    },
+    "options": {
+      "all": "Todos",
+      "open": "Em aberto",
+      "paid": "Pagos"
+    },
+    "type": {
+      "income": "Receita",
+      "expense": "Despesa",
+      "INCOME": "Receita",
+      "EXPENSE": "Despesa"
+    },
+    "filters": {
+      "period": "Período",
+      "all-periods": "Todos os períodos",
+      "type": "Tipo",
+      "all-types": "Todos os tipos",
+      "incomes": "Receitas",
+      "expenses": "Despesas",
+      "cost-center": "Centro de custo",
+      "all-cost-centers": "Todos",
+      "classification": "Classificação",
+      "classification-of-type": {
+        "INCOME": "Classificação de receita",
+        "EXPENSE": "Classificação de despesa"
+      },
+      "all-classifications": "Todas",
+      "overdue": "Só vencidos",
+      "clear": "Limpar",
+      "clear-count": "Limpar ({count})"
+    },
+    "summary": {
+      "received": "Recebido",
+      "received-note": "Receitas pagas",
+      "paid": "Pago",
+      "paid-note": "Despesas pagas",
+      "result": "Resultado",
+      "result-note": "Receitas − despesas",
+      "to-pay": "A pagar",
+      "overdue-count": "{count} vencido | {count} vencidos",
+      "nothing-overdue": "Nada vencido"
+    },
+    "expired-notice": {
+      "title": "{name} expirou em {date} e continua aberto",
+      "description": "Ainda aceita lançamentos."
+    },
+    "list": {
+      "description": "Receitas e despesas de {period}.",
+      "description-all": "Receitas e despesas de todos os períodos.",
+      "empty-title": "Nenhum movimento em {period}",
+      "empty-description": "Lance a primeira receita ou despesa do período.",
+      "plural": "os movimentos",
+      "found": "{count} movimento encontrado para “{query}” | {count} movimentos encontrados para “{query}”",
+      "noun": "movimento | movimentos",
+      "empty-title-all": "Nenhum movimento ainda",
+      "error-description": "O servidor não respondeu. Seus filtros continuam na URL.",
+      "no-result-query": "Nenhum movimento encontrado para “{query}”",
+      "no-result-filter": "Nenhum movimento com esses filtros",
+      "no-result-hint": "Mude os filtros ou limpe a busca.",
+      "no-result-action": "Limpar filtros"
+    },
+    "remove": {
+      "title": "Excluir “{name}”?",
+      "description": "Não dá para desfazer."
+    },
+    "toast": {
+      "removed": "Movimento excluído",
+      "removed-detail": "“{name}” saiu da lista.",
+      "created": "Movimento lançado",
+      "created-detail": "Ele aparece em aberto no período.",
+      "updated": "Alterações salvas",
+      "paid": "Pagamento registrado",
+      "paid-detail": "Saiu de {wallet}, linha nova no extrato.",
+      "payment-undone": "Pagamento desfeito",
+      "payment-undone-detail": "O estorno já está no extrato e o movimento voltou para em aberto.",
+      "created-paid-detail": "Lançado já pago: o valor saiu da carteira.",
+      "received": "Recebimento registrado",
+      "received-detail": "Entrou em {wallet}, linha nova no extrato.",
+      "paid-on-card-detail": "Entrou na fatura de {card}."
+    },
+    "form": {
+      "new": "Lançando",
+      "editing": "Editando",
+      "detailing": "Detalhando",
+      "name": "Nome",
+      "type": "Tipo",
+      "type-hint": "O tipo não muda depois de lançado.",
+      "value": "Valor",
+      "due-date": "Vencimento",
+      "due-date-hint": "Opcional. Vazio vale hoje.",
+      "period": "Período",
+      "period-hint": "Só períodos abertos.",
+      "cost-center": "Centro de custo",
+      "classification": "Classificação",
+      "paid": "Lançar já pago",
+      "paid-on": "Data do pagamento",
+      "wallet": "Carteira",
+      "discount": "Desconto",
+      "discount-hint": "Opcional.",
+      "submit-post": "Lançar",
+      "submit-post-paid": "Lançar e pagar",
+      "title-new": "Novo movimento",
+      "title-edit": "Editar movimento",
+      "name-example": {
+        "INCOME": "Ex.: Salário de dezembro",
+        "EXPENSE": "Ex.: Conta de água"
+      },
+      "value-hint": "Zero ou mais.",
+      "wallet-option": "{name} · saldo {balance}",
+      "paid-by": "Pago por",
+      "card": "Cartão",
+      "card-hint": "Entra na fatura aberta do período.",
+      "no-open-invoice": "Não há fatura aberta de {card} em {period}",
+      "no-open-invoice-hint": "Nada é lançado. Escolha outro período ou cartão.",
+      "classification-of": {
+        "INCOME": "Classificação de receita",
+        "EXPENSE": "Classificação de despesa"
+      }
+    },
+    "sections": {
+      "identification": "Identificação",
+      "payment": "Pagamento",
+      "type": "Tipo",
+      "classification": "Classificação",
+      "classification-help": {
+        "INCOME": "Só aparecem classificações de receita.",
+        "EXPENSE": "Só aparecem classificações de despesa."
+      },
+      "payment-help": "Opcional.",
+      "invoice": "Fatura"
+    },
+    "detail": {
+      "name": "Nome",
+      "type": "Tipo",
+      "value": "Valor",
+      "due-date": "Vencimento",
+      "period": "Período",
+      "cost-center": "Centro de custo",
+      "classification": "Classificação",
+      "no-payment": "Sem pagamento.",
+      "paid-on": "Data",
+      "movement-value": "Valor do movimento",
+      "discount": "Desconto",
+      "value-paid": "Valor pago",
+      "method": "Forma",
+      "wallet": "Carteira",
+      "card": "Cartão",
+      "method-wallet": "Carteira",
+      "method-card": "Cartão de crédito",
+      "invoice-card": "Cartão",
+      "invoice-status": "Situação da fatura",
+      "invoice": "Fatura",
+      "invoice-link": "Abrir a fatura",
+      "recurring": "Recorrente",
+      "discount-none": "---"
+    },
+    "notices": {
+      "paid": "Pago: não se edita nem se exclui",
+      "paid-description": "Desfaça o pagamento para alterar.",
+      "closed": "Período encerrado em {name}",
+      "closed-description": "Congelado. Reabra o período para desfazer.",
+      "overdue": "Venceu em {date}",
+      "overdue-description": "Em aberto há {days} dia. | Em aberto há {days} dias.",
+      "closed-action": "Ver períodos"
+    },
+    "menu": "Movimentos",
+    "pay": {
+      "title-pay": "Pagar “{name}”",
+      "title-receive": "Receber “{name}”",
+      "paid-on": "Data do pagamento",
+      "wallet": "Carteira",
+      "discount": "Desconto",
+      "wallet-balance": "Saldo da carteira",
+      "movement-value": "Valor do movimento",
+      "discount-value": "Desconto",
+      "amount-paid": "Valor pago",
+      "amount-received": "Valor recebido",
+      "balance-after": "Saldo depois",
+      "method": {
+        "label": "Pago por",
+        "WALLET": "Carteira",
+        "CARD": "Cartão de crédito"
+      },
+      "card": "Cartão",
+      "confirm": "Confirmar",
+      "invoice": "Fatura"
+    },
+    "undo": {
+      "title": "Desfazer o pagamento de “{name}”?",
+      "confirm": "Desfazer",
+      "description-wallet": "O valor volta para {wallet} como {reversal}. O movimento volta para “Em aberto”.",
+      "reversal-word": "estorno",
+      "description-card": "A compra sai da fatura de {card}. O movimento volta para “Em aberto”.",
+      "reversal": "Estorno de {amount}"
+    }
+  },
+  "transfer": {
+    "title": "Transferências",
+    "menu": "Transferências",
+    "form": {
+      "new": "Transferindo",
+      "detailing": "Detalhando",
+      "description": "Mova dinheiro de uma carteira para outra. Não muda o resultado do período.",
+      "from": "De",
+      "to": "Para",
+      "value": "Valor",
+      "note": "Observação",
+      "submit": "Transferir"
+    },
+    "sections": {
+      "wallets": "Carteiras",
+      "wallets-help": "Só carteiras ativas, e as duas precisam ser diferentes.",
+      "value": "Valor",
+      "identification": "Identificação",
+      "return": "Devolução"
+    },
+    "statement": {
+      "title": "Extrato da transferência",
+      "from": "Origem",
+      "to": "Destino",
+      "before": "Saldo anterior",
+      "debit": "Débito",
+      "credit": "Crédito",
+      "after": "Saldo depois"
+    },
+    "toast": {
+      "created": "Transferência feita",
+      "created-detail": "De {from} para {to}.",
+      "returned": "Transferência devolvida",
+      "returned-detail": "O dinheiro voltou de {from} para {to}."
+    },
+    "detail": {
+      "created-on": "Data e hora",
+      "value": "Valor",
+      "from": "De",
+      "to": "Para",
+      "note": "Observação",
+      "return-of": "Devolução da transferência de",
+      "returned-by": "Devolvida em",
+      "return-state": "Situação",
+      "not-returned": "Ainda não devolvida"
+    },
+    "status": {
+      "returned": "Devolvida",
+      "is-return": "Devolução",
+      "return-of": "Devolução de {date}"
+    },
+    "actions": {
+      "view-statement": "Ver no extrato",
+      "give-back": "Devolver",
+      "details": "Ver detalhes"
+    },
+    "give-back": {
+      "title": "Devolver a transferência de {from} para {to}?",
+      "description": "O dinheiro volta para a carteira de origem em uma nova transferência.",
+      "value": "Valor devolvido",
+      "confirm": "Devolver"
+    },
+    "list": {
+      "description": "Dinheiro que mudou de carteira, da mais recente para a mais antiga.",
+      "empty-title": "Nenhuma transferência ainda",
+      "empty-description": "Transfira dinheiro de uma carteira para outra.",
+      "plural": "as transferências"
+    },
+    "search": {
+      "placeholder": "Carteira de origem, carteira de destino ou observação"
+    },
+    "filters": {
+      "wallet": "Carteira",
+      "all-wallets": "Todas",
+      "from": "De",
+      "to": "Até",
+      "clear": "Limpar"
+    },
+    "table-columns": {
+      "created-on": "Data e hora",
+      "from": "De",
+      "to": "Para",
+      "value": "Valor (R$)",
+      "note": "Observação",
+      "status": "Situação"
+    }
+  },
+  "statement": {
+    "title": "Extrato",
+    "menu": "Extrato",
+    "description": "Mudanças de saldo de {name}.",
+    "balance": "Saldo atual",
+    "inactive": "inativa",
+    "search": {
+      "placeholder": "Nome do lançamento"
+    },
+    "options": {
+      "all": "Todos",
+      "credit": "Créditos",
+      "debit": "Débitos"
+    },
+    "filters": {
+      "wallet": "Carteira",
+      "from": "De",
+      "to": "Até",
+      "period": "Período financeiro",
+      "all-periods": "Todos",
+      "origin": "Operação",
+      "all-origins": "Todas",
+      "min": "Valor mínimo",
+      "max": "Valor máximo",
+      "clear": "Limpar"
+    },
+    "origin": {
+      "INCOME": "Receita",
+      "EXPENSE": "Despesa",
+      "REVERSAL": "Estorno",
+      "ADJUSTMENT": "Ajuste",
+      "TRANSFER": "Transferência",
+      "INVOICE_PAYMENT": "Pagamento de fatura"
+    },
+    "table-columns": {
+      "created-on": "Data e hora",
+      "origin": "Operação",
+      "name": "Lançamento",
+      "value": "Valor (R$)",
+      "previous-balance": "Saldo anterior",
+      "resulting-balance": "Saldo atual",
+      "reference": "Origem"
+    },
+    "open-origin": "Abrir a origem de {name}",
+    "list": {
+      "empty-title": "Sem lançamentos ainda",
+      "empty-description": "Lance uma receita para dar saldo a esta carteira.",
+      "plural": "o extrato"
+    },
+    "actions": {
+      "adjust": "Ajustar saldo",
+      "transfer": "Transferir"
+    },
+    "adjust": {
+      "title": "Ajustar o saldo de {name}",
+      "description": "Para centavos de arredondamento. Não entra no resultado.",
+      "value": "Valor do ajuste",
+      "value-hint": "Positivo credita, negativo debita.",
+      "reason": "Motivo",
+      "wallet-balance": "Saldo da carteira",
+      "adjustment": "Ajuste",
+      "balance-after": "Saldo depois",
+      "confirm": "Ajustar"
+    },
+    "toast": {
+      "adjusted": "Saldo ajustado",
+      "adjusted-detail": "O ajuste de {name} já está no extrato e não entra no resultado."
+    }
+  },
+  "card-purchase": {
+    "title": "Compras no cartão",
+    "menu": "Compras no cartão",
+    "form": {
+      "new": "Lançando compra",
+      "editing": "Editando compra",
+      "detailing": "Detalhando compra",
+      "submit": "Lançar compra",
+      "card": "Cartão",
+      "period": "Período da fatura",
+      "name": "Nome",
+      "purchased-on": "Data da compra",
+      "value": "Valor",
+      "cost-center": "Centro de custo",
+      "classification": "Classificação de despesa"
+    },
+    "sections": {
+      "card": "Cartão e período",
+      "card-help": "Só períodos abertos.",
+      "purchase": "Compra",
+      "classification": "Classificação"
+    },
+    "detail": {
+      "value": "Valor",
+      "purchased-on": "Data da compra",
+      "card": "Cartão",
+      "invoice": "Fatura",
+      "invoice-link": "Fatura de {period}",
+      "period": "Período",
+      "cost-center": "Centro de custo",
+      "classification": "Classificação"
+    },
+    "notices": {
+      "movement": "Esta compra veio de um pagamento no cartão e não se altera aqui.",
+      "movement-link": "Ver o movimento"
+    },
+    "toast": {
+      "created": "Compra lançada",
+      "created-detail": "“{name}” entrou na fatura aberta do cartão.",
+      "updated": "Alterações salvas",
+      "updated-detail": "“{name}” foi atualizada.",
+      "removed": "Compra excluída",
+      "removed-detail": "“{name}” saiu da fatura."
+    },
+    "remove": {
+      "title": "Excluir a compra “{name}”?",
+      "description": "Ela sai da fatura e do gasto por centro de custo. Não dá para desfazer."
+    }
+  },
+  "profile": {
+    "breadcrumb": "Editando perfil",
+    "title": "Perfil",
+    "description": "Seus dados e avisos.",
+    "data-hint": "O e-mail não muda.",
+    "sections": {
+      "data": "Dados",
+      "notices": "Avisos de vencimento"
+    },
+    "form": {
+      "name": "Nome",
+      "email": "E-mail",
+      "language": "Idioma",
+      "notices": "Receber os avisos de vencimento por e-mail",
+      "notices-on": "Ligado.",
+      "notices-off": "Desligado."
+    },
+    "languages": {
+      "pt-BR": "Português (Brasil)",
+      "en-US": "English"
+    },
+    "notices": {
+      "daily": "Diário: um e-mail por dia, só quando algo vence naquele dia.",
+      "weekly": "Semanal: toda sexta, um resumo dos vencimentos da semana seguinte. Sem vencimentos, nada é enviado."
+    },
+    "toast": {
+      "saved": "Perfil salvo",
+      "notices-on": "Os avisos de vencimento continuam ligados.",
+      "notices-off": "Os avisos de vencimento foram desligados."
     }
   }
 }

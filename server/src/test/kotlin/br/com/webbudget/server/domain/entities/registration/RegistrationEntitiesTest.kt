@@ -23,13 +23,23 @@ class RegistrationEntitiesTest {
     }
 
     @Test
-    fun `should consider only active and ended periods as open`() {
+    fun `should consider only the open status as open`() {
 
         fun period(status: FinancialPeriod.Status) =
             FinancialPeriod("Period", LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 31), status)
 
-        assertThat(period(FinancialPeriod.Status.ACTIVE).isOpen()).isTrue()
-        assertThat(period(FinancialPeriod.Status.ENDED).isOpen()).isTrue()
-        assertThat(period(FinancialPeriod.Status.ACCOUNTED).isOpen()).isFalse()
+        assertThat(period(FinancialPeriod.Status.OPEN).isOpen()).isTrue()
+        assertThat(period(FinancialPeriod.Status.CLOSED).isOpen()).isFalse()
+    }
+
+    @Test
+    fun `should expire only an open period whose end date has passed`() {
+
+        fun period(status: FinancialPeriod.Status) =
+            FinancialPeriod("Period", LocalDate.of(2024, 1, 1), LocalDate.of(2024, 1, 31), status)
+
+        assertThat(period(FinancialPeriod.Status.OPEN).isExpired(LocalDate.of(2024, 1, 31))).isFalse()
+        assertThat(period(FinancialPeriod.Status.OPEN).isExpired(LocalDate.of(2024, 2, 1))).isTrue()
+        assertThat(period(FinancialPeriod.Status.CLOSED).isExpired(LocalDate.of(2024, 2, 1))).isFalse()
     }
 }

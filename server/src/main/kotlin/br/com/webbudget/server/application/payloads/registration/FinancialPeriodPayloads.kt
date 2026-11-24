@@ -1,5 +1,6 @@
 package br.com.webbudget.server.application.payloads.registration
 
+import br.com.webbudget.server.application.payloads.financial.RecurringLaunchView
 import br.com.webbudget.server.application.payloads.ErrorCodes.IS_NULL
 import br.com.webbudget.server.application.payloads.ErrorCodes.IS_NULL_OR_BLANK
 import br.com.webbudget.server.domain.entities.registration.FinancialPeriod.Status
@@ -33,6 +34,8 @@ data class FinancialPeriodView(
     val startingAt: LocalDate,
     val endingAt: LocalDate,
     val status: String,
+    val expired: Boolean,
+    val reopenable: Boolean,
     val revenuesGoal: BigDecimal?,
     val expensesGoal: BigDecimal?
 )
@@ -42,16 +45,24 @@ data class FinancialPeriodListView(
     val name: String,
     val startingAt: LocalDate,
     val endingAt: LocalDate,
-    val status: String
+    val status: String,
+    val expired: Boolean,
+    val reopenable: Boolean,
+    val revenuesGoal: BigDecimal?,
+    val expensesGoal: BigDecimal?
 )
 
 enum class FinancialPeriodStatusFilter(val statuses: List<Status>) {
-    OPEN(listOf(Status.ACTIVE, Status.ENDED)),
-    ALL(Status.entries),
-    ACCOUNTED(listOf(Status.ACCOUNTED))
+    OPEN(listOf(Status.OPEN)),
+    CLOSED(listOf(Status.CLOSED)),
+    ALL(Status.entries)
 }
 
 data class FinancialPeriodFilter(
     val filter: String?,
     val status: FinancialPeriodStatusFilter?
+)
+
+data class FinancialPeriodCreatedView(
+    val recurringLaunch: RecurringLaunchView?
 )

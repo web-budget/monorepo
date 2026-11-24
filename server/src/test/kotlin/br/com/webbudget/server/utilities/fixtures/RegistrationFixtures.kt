@@ -48,9 +48,8 @@ fun createClassification(
     name: String = "Classification",
     type: Classification.Type = Classification.Type.INCOME,
     active: Boolean = true,
-    budget: BigDecimal? = BigDecimal.ONE,
     description: String = "Some description"
-) = Classification(name, type, active, budget, description)
+) = Classification(name, type, active, description)
     .apply {
         this.id = id
         this.externalId = externalId
@@ -61,12 +60,11 @@ fun createCard(
     externalId: UUID? = UUID.randomUUID(),
     name: String = "Card",
     lastFourDigits: String = "1234",
-    invoicePaymentDay: Int? = 1,
-    type: Card.Type = Card.Type.CREDIT,
+    invoicePaymentDay: Int = 1,
     active: Boolean = true,
     flag: String = "Flag",
     wallet: Wallet? = null
-) = Card(name, lastFourDigits, type, active, invoicePaymentDay, flag, wallet)
+) = Card(name, lastFourDigits, invoicePaymentDay, active, flag, wallet)
     .apply {
         this.id = id
         this.externalId = externalId
@@ -78,7 +76,7 @@ fun createFinancialPeriod(
     name: String = "Financial Period",
     startingAt: LocalDate = LocalDate.now(),
     endingAt: LocalDate = LocalDate.now().plusDays(15),
-    status: FinancialPeriod.Status = FinancialPeriod.Status.ACTIVE,
+    status: FinancialPeriod.Status = FinancialPeriod.Status.OPEN,
     expensesGoal: BigDecimal = BigDecimal.ONE,
     revenuesGoal: BigDecimal = BigDecimal.TEN
 ) = FinancialPeriod(name, startingAt, endingAt, status, expensesGoal, revenuesGoal)

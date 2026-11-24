@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <changeSet id="22-1200-1" author="${claude}">
+        <sql>
+            ALTER TABLE administration.users
+                ADD COLUMN due_date_notices boolean NOT NULL DEFAULT true;
+        </sql>
+        <rollback>
+            <sql>ALTER TABLE administration.users DROP COLUMN due_date_notices;</sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

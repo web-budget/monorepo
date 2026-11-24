@@ -21,11 +21,19 @@ const card: CardView = {
   id: 'k-1',
   name: 'Daily',
   lastFourDigits: '4321',
-  type: 'DEBIT',
   active: true,
   flag: 'Elo',
-  wallet: { id: 'w-1', name: 'Main', type: 'BANK_ACCOUNT', bank: 'ACME', active: true },
-  invoicePaymentDay: null,
+  wallet: {
+    id: 'w-1',
+    name: 'Main',
+    type: 'BANK_ACCOUNT',
+    bank: 'ACME',
+    currentBalance: 0,
+    agency: null,
+    number: null,
+    active: true,
+  },
+  invoicePaymentDay: 10,
 }
 
 async function render(view: CardView = card) {
@@ -39,33 +47,26 @@ describe('CardDetailView', () => {
     document.body.replaceChildren()
   })
 
-  it('shows a debit card with its wallet', async () => {
+  it('shows a card with its invoice day and wallet', async () => {
     const { wrapper } = await render()
 
     expect(cardsApi.findById).toHaveBeenCalledWith('k-1')
     expect(wrapper.find('h1').text()).toBe('Daily')
     expect(wrapper.find('[data-slot="page-description"]').exists()).toBe(false)
     expect(wrapper.text()).toContain('Ativo')
-    expect(wrapper.findAll('h2').map((title) => title.text())).toEqual([
-      'Identificação',
-      'Carteira',
-    ])
-    expect(wrapper.text()).toContain('Débito')
+    expect(wrapper.findAll('h2').map((title) => title.text())).toEqual(['Identificação', 'Fatura'])
     expect(wrapper.text()).toContain('Main')
     expect(wrapper.text()).toContain('4321')
     expect(wrapper.text()).toContain('Elo')
   })
 
-  it('shows the invoice day of a credit card and a placeholder without wallet', async () => {
+  it('shows a placeholder when the card has no wallet', async () => {
     const { wrapper } = await render({
       ...card,
-      type: 'CREDIT',
       wallet: null,
-      invoicePaymentDay: 10,
     })
 
-    expect(wrapper.findAll('h2').map((title) => title.text())).toEqual(['Identificação', 'Fatura'])
-    expect(wrapper.text()).toContain('Crédito')
+    expect(wrapper.text()).toContain('---')
     expect(wrapper.text()).toContain('10')
   })
 
@@ -83,13 +84,13 @@ describe('CardDetailView', () => {
     vi.mocked(cardsApi.remove).mockResolvedValue(undefined)
     const dialog = useConfirmDialog()
 
-    await buttonWithText(wrapper, 'Remover').trigger('click')
-    expect(dialog.state.options.title).toBe('Remover o cartão “Daily”?')
+    await buttonWithText(wrapper, 'Excluir').trigger('click')
+    expect(dialog.state.options.title).toBe('Excluir o cartão “Daily”?')
     dialog.accept()
     await flushPromises()
 
     expect(cardsApi.remove).toHaveBeenCalledWith('k-1')
-    expect(toast.success).toHaveBeenCalledWith('Cartão removido', {
+    expect(toast.success).toHaveBeenCalledWith('Cartão excluído', {
       description: '“Daily” saiu da lista.',
       duration: 4000,
     })
@@ -99,7 +100,7 @@ describe('CardDetailView', () => {
   it('does nothing when the removal is not confirmed', async () => {
     const { wrapper, router } = await render()
 
-    await buttonWithText(wrapper, 'Remover').trigger('click')
+    await buttonWithText(wrapper, 'Excluir').trigger('click')
     useConfirmDialog().cancel()
     await flushPromises()
 
@@ -113,7 +114,7 @@ describe('CardDetailView', () => {
       problem(400, { error: 'data-integrity-violation' }),
     )
 
-    await buttonWithText(wrapper, 'Remover').trigger('click')
+    await buttonWithText(wrapper, 'Excluir').trigger('click')
     useConfirmDialog().accept()
     await flushPromises()
 

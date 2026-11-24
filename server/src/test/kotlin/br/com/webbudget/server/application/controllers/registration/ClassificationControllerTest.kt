@@ -42,7 +42,7 @@ class ClassificationControllerTest : BaseIntegrationTest() {
     fun `should list the classifications paged and sorted`() {
 
         restTestClient.get()
-            .uri("$ENDPOINT_URL?page=1&size=3&sort=budget,desc")
+            .uri("$ENDPOINT_URL?page=1&size=3&sort=name,desc")
             .exchange()
             .expectStatus().isOk
             .expectBody()
@@ -114,7 +114,7 @@ class ClassificationControllerTest : BaseIntegrationTest() {
             .jsonPath("$.id").isEqualTo(SALES_ID)
             .jsonPath("$.name").isEqualTo("Vendas")
             .jsonPath("$.type").isEqualTo("INCOME")
-            .jsonPath("$.budget").isEqualTo(3500.00)
+            .jsonPath("$.budget").doesNotExist()
             .jsonPath("$.description").isEqualTo("Receita com vendas")
             .jsonPath("$.active").isEqualTo(true)
     }
@@ -134,7 +134,7 @@ class ClassificationControllerTest : BaseIntegrationTest() {
         restTestClient.post()
             .uri(ENDPOINT_URL)
             .contentType(MediaType.APPLICATION_JSON)
-            .body("""{"name": "Salary", "type": "INCOME", "budget": 100.5, "description": "Monthly"}""")
+            .body("""{"name": "Salary", "type": "INCOME", "description": "Monthly"}""")
             .exchange()
             .expectStatus().isCreated
             .expectHeader().value("Location") { location ->
@@ -145,7 +145,6 @@ class ClassificationControllerTest : BaseIntegrationTest() {
         val created = classificationRepository.findAll("Salary", null, PageRequest.of(0, 1)).content.single()
 
         assertThat(created.active).isTrue()
-        assertThat(created.budget).isEqualByComparingTo("100.5")
         assertThat(created.version).isEqualTo(0.toShort())
     }
 
@@ -182,12 +181,11 @@ class ClassificationControllerTest : BaseIntegrationTest() {
         restTestClient.put()
             .uri("$ENDPOINT_URL/$SALES_ID")
             .contentType(MediaType.APPLICATION_JSON)
-            .body("""{"name": "Vendas", "budget": 10, "description": "Changed", "active": false}""")
+            .body("""{"name": "Vendas", "description": "Changed", "active": false}""")
             .exchange()
             .expectStatus().isOk
             .expectBody()
             .jsonPath("$.type").isEqualTo("INCOME")
-            .jsonPath("$.budget").isEqualTo(10)
             .jsonPath("$.description").isEqualTo("Changed")
             .jsonPath("$.active").isEqualTo(false)
 

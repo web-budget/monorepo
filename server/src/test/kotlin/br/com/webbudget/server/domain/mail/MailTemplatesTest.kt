@@ -1,5 +1,6 @@
 package br.com.webbudget.server.domain.mail
 
+import br.com.webbudget.server.domain.services.financial.DueDateNoticeNotifier.DueLine
 import br.com.webbudget.server.infrastructure.config.MailTemplateConfiguration
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -246,6 +247,58 @@ class MailTemplatesTest {
         assertThat(html).contains("&lt;b&gt;x&lt;/b&gt;").doesNotContain("<b>x</b>")
     }
 
+
+    @Test
+    fun `should render the due date notices in both languages with one row per movement`() {
+
+        val lines = listOf(
+            DueLine("10/12  Aluguel", "− R$ 1.200,50"),
+            DueLine("10/12  Salário", "+ R$ 8.000,00")
+        )
+
+        fun renderNotice(template: String, locale: String): String {
+
+            val context = Context(Locale.forLanguageTag(locale)).apply {
+                setVariable("subject", "Assunto do e-mail")
+                setVariable("preheader", "Texto de pré-cabeçalho")
+                setVariable("applicationUrl", "https://webbudget.example.com")
+                setVariable("userName", "Maria Souza")
+                setVariable("lines", lines)
+                setVariable("from", "09/12/2024")
+                setVariable("to", "15/12/2024")
+                setVariable("movementsUrl", "https://webbudget.example.com/financeiro/movimentos")
+            }
+
+            return engine.process(template, context)
+        }
+
+        val daily = renderNotice("due-date-daily", "pt-BR")
+
+        assertThat(daily).contains("<html lang=\"pt-BR\"", "Vencimentos de hoje", "Olá, Maria Souza. Estes movimentos em aberto vencem hoje.")
+        assertThat(daily).contains("10/12  Aluguel", "− R$ 1.200,50", "10/12  Salário", "+ R$ 8.000,00", "Abrir os movimentos")
+        assertThat(daily).contains("href=\"https://webbudget.example.com/financeiro/movimentos\"", "Você recebe estes avisos porque eles estão ligados no seu perfil.")
+        assertCleanOutput(daily)
+
+        val weekly = renderNotice("due-date-weekly", "pt-BR")
+
+        assertThat(weekly).contains("Vencimentos da próxima semana", "vencem de 09/12/2024 a 15/12/2024", "10/12  Aluguel")
+        assertCleanOutput(weekly)
+
+        val english = renderNotice("due-date-daily", "en-US")
+
+        assertThat(english).contains("<html lang=\"en-US\"", "Due today", "Hi Maria Souza. These open movements are due today.", "Open the movements")
+        assertThat(english).contains("You’re getting these notices because they’re turned on in your profile.")
+        assertCleanOutput(english)
+
+        val englishWeekly = renderNotice("due-date-weekly", "en-US")
+
+        assertThat(englishWeekly).contains("Due next week", "are due from 09/12/2024 to 15/12/2024")
+        assertCleanOutput(englishWeekly)
+
+        val plainText = MailPlainText.from(daily)
+
+        assertThat(plainText).contains("10/12 Aluguel: − R$ 1.200,50", "Abrir os movimentos: https://webbudget.example.com/financeiro/movimentos")
+    }
 
     private fun assertCleanOutput(html: String) {
         assertThat(html).doesNotContainPattern("\\sth:[a-z-]+=")

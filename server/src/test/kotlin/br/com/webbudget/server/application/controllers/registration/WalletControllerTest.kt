@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.data.domain.PageRequest
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
+import java.time.LocalDateTime
 import java.util.UUID
 
 @Sql("/sql/registration/clear-tables.sql", "/sql/registration/create-wallets.sql")
@@ -108,20 +109,106 @@ class WalletControllerTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `should filter by name, description and bank ignoring case`() {
+    fun `should filter by name and bank ignoring case and not by the description`() {
 
         assertThat(namesFilteredBy("PERSONAL")).containsExactlyInAnyOrder("Personal")
-        assertThat(namesFilteredBy("not used")).containsExactlyInAnyOrder("Old wallet")
         assertThat(namesFilteredBy("brok")).containsExactlyInAnyOrder("Investments")
-        assertThat(namesFilteredBy("wallet")).containsExactlyInAnyOrder("Personal", "Old wallet", "Bank account", "Investments")
+        assertThat(namesFilteredBy("wallet")).containsExactlyInAnyOrder("Old wallet")
+        assertThat(namesFilteredBy("not used")).isEmpty()
     }
 
     @Test
-    fun `should filter by the exact agency and number`() {
+    fun `should filter by part of the agency and number`() {
 
         assertThat(namesFilteredBy("321")).containsExactly("Investments")
         assertThat(namesFilteredBy("456789")).containsExactly("Bank account")
-        assertThat(namesFilteredBy("32")).isEmpty()
+        assertThat(namesFilteredBy("4567")).containsExactly("Bank account")
+        assertThat(namesFilteredBy("32")).containsExactly("Investments")
+        assertThat(namesFilteredBy("99999")).isEmpty()
+    }
+
+    @Test
+    fun `should list the balance, agency and number of each wallet`() {
+
+        restTestClient.get()
+            .uri("$ENDPOINT_URL?sort=currentBalance,desc&size=1")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.content[0].name").isEqualTo("Bank account")
+            .jsonPath("$.content[0].currentBalance").isEqualTo(150.5)
+            .jsonPath("$.content[0].agency").isEqualTo("123")
+            .jsonPath("$.content[0].number").isEqualTo("456789")
+            .jsonPath("$.content[0].bank").isEqualTo("Bank")
+    }
+
+    @Test
+    fun `should sort the wallets by type and balance`() {
+
+        restTestClient.get()
+            .uri("$ENDPOINT_URL?sort=type,asc&sort=name,asc&size=1")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.content[0].name").isEqualTo("Bank account")
+    }
+
+    @Test
+    fun `should not tell the last entry of a wallet without entries`() {
+
+        restTestClient.get()
+            .uri("$ENDPOINT_URL/$PERSONAL_ID")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.lastEntryOn").doesNotExist()
+    }
+
+    @Test
+    fun `should not tell the last entry of the listed wallets without entries`() {
+
+        val body = listBody()
+
+        assertThat(body).doesNotContain("lastEntryOn")
+    }
+
+    @Test
+    fun `should tell in the list the last entry of a wallet after an adjustment`() {
+
+        adjust(PERSONAL_ID, 25)
+
+        assertThat(listedLastEntryOn(PERSONAL_ID)).isNotNull().isEqualTo(detailLastEntryOn(PERSONAL_ID))
+        assertThat(listedLastEntryOn(INVESTMENTS_ID)).isNull()
+        assertThat(listedLastEntryOn(BANK_ACCOUNT_ID)).isNull()
+    }
+
+    @Test
+    fun `should tell in the list the last entry of the two wallets after a transfer`() {
+
+        adjust(PERSONAL_ID, 100)
+        transfer(PERSONAL_ID, INVESTMENTS_ID, 40)
+
+        val personal = listedLastEntryOn(PERSONAL_ID)
+        val investments = listedLastEntryOn(INVESTMENTS_ID)
+
+        assertThat(personal).isNotNull().isEqualTo(detailLastEntryOn(PERSONAL_ID))
+        assertThat(investments).isNotNull().isEqualTo(detailLastEntryOn(INVESTMENTS_ID))
+        assertThat(listedLastEntryOn(BANK_ACCOUNT_ID)).isNull()
+    }
+
+    @Test
+    fun `should keep the last entry in the list when filtering and sorting`() {
+
+        adjust(BANK_ACCOUNT_ID, -10)
+
+        val body = restTestClient.get()
+            .uri("$ENDPOINT_URL?filter=bank&sort=name,asc")
+            .exchange()
+            .expectStatus().isOk
+            .returnResult(String::class.java)
+            .responseBody!!
+
+        assertThat(body).contains("\"name\":\"Bank account\"").contains("lastEntryOn")
     }
 
     @Test
@@ -359,6 +446,52 @@ class WalletControllerTest : BaseIntegrationTest() {
             .isTrue()
     }
 
+    private fun adjust(walletId: String, value: Int) {
+        restTestClient.post()
+            .uri("/private/v1/financial/wallets/$walletId/adjustments")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"value": $value}""")
+            .exchange()
+            .expectStatus().isOk
+    }
+
+    private fun transfer(fromWallet: String, toWallet: String, value: Int) {
+        restTestClient.post()
+            .uri("/private/v1/financial/transfers")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"fromWallet": "$fromWallet", "toWallet": "$toWallet", "value": $value}""")
+            .exchange()
+            .expectStatus().isCreated
+    }
+
+    private fun listBody(): String = restTestClient.get()
+        .uri("$ENDPOINT_URL?size=50")
+        .exchange()
+        .expectStatus().isOk
+        .returnResult(String::class.java)
+        .responseBody!!
+
+    private fun listedLastEntryOn(walletId: String): LocalDateTime? {
+        val content = restTestClient.get()
+            .uri("$ENDPOINT_URL?size=50")
+            .exchange()
+            .expectStatus().isOk
+            .returnResult(String::class.java)
+            .responseBody!!
+        val wallet = Regex("\\{[^{}]*\"id\":\"$walletId\"[^{}]*}").find(content)!!.value
+        return Regex("\"lastEntryOn\":\"([^\"]+)\"").find(wallet)?.groupValues?.get(1)?.let(LocalDateTime::parse)
+    }
+
+    private fun detailLastEntryOn(walletId: String): LocalDateTime? {
+        val content = restTestClient.get()
+            .uri("$ENDPOINT_URL/$walletId")
+            .exchange()
+            .expectStatus().isOk
+            .returnResult(String::class.java)
+            .responseBody!!
+        return Regex("\"lastEntryOn\":\"([^\"]+)\"").find(content)?.groupValues?.get(1)?.let(LocalDateTime::parse)
+    }
+
     private fun namesFilteredBy(filter: String): List<String> {
 
         val body = restTestClient.get()
@@ -375,5 +508,6 @@ class WalletControllerTest : BaseIntegrationTest() {
         private const val ENDPOINT_URL = "/private/v1/registration/wallets"
         private const val PERSONAL_ID = "d6421251-7b38-4765-88e0-4d70bc3bc4c7"
         private const val BANK_ACCOUNT_ID = "cd00845c-ae27-47e4-8282-c8df1c42acfe"
+        private const val INVESTMENTS_ID = "4ade8a17-460b-40fc-b200-1504bcd4aaf7"
     }
 }

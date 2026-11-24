@@ -16,6 +16,7 @@ data class CurrentUser(
     val authProvider: AuthProvider,
     val credentialsVersion: Int,
     val language: Language,
+    val dueDateNotices: Boolean,
     val roles: Set<String>
 ) : Serializable {
 
@@ -30,6 +31,7 @@ data class CurrentUser(
             authProvider = user.authProvider,
             credentialsVersion = user.credentialsVersion,
             language = user.defaultLanguage,
+            dueDateNotices = user.dueDateNotices,
             roles = user.roleNames()
         )
     }
