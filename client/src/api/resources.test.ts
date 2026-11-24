@@ -210,3 +210,13 @@ describe.each([
     expect(lastRequest()).toMatchObject({ method: 'delete', url: `${path}/id-1` })
   })
 })
+
+describe('financialPeriodsApi.findResult', () => {
+  it('reads the result of the period', async () => {
+    await expect(financialPeriodsApi.findResult('id-1')).resolves.toEqual({ served: true })
+    expect(lastRequest()).toMatchObject({
+      method: 'get',
+      url: '/financial/financial-periods/id-1/result',
+    })
+  })
+})

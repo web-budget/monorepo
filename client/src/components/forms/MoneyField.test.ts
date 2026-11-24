@@ -23,38 +23,38 @@ function shown(wrapper: ReturnType<typeof render>['wrapper']) {
 }
 
 describe('MoneyField', () => {
-  it('shows the amount in reais, or nothing without one', () => {
-    expect(shown(render(1500.5).wrapper)).toBe('R$ 1.500,50')
+  it('shows the amount next to the R$ addon, or nothing without one', () => {
+    expect(shown(render(1500.5).wrapper)).toBe('1.500,50')
     expect(shown(render(null).wrapper)).toBe('')
-    expect(render(null).wrapper.find('input').attributes('placeholder')).toBe('R$ 0,00')
+    expect(render(null).wrapper.find('input').attributes('placeholder')).toBe('0,00')
   })
 
   it('formats while typing and keeps the number in the form', async () => {
     const { wrapper, values } = render(null)
 
     await wrapper.find('input').setValue('1')
-    expect(shown(wrapper)).toBe('R$ 0,01')
+    expect(shown(wrapper)).toBe('0,01')
 
     await wrapper.find('input').setValue('1234567')
-    expect(shown(wrapper)).toBe('R$ 12.345,67')
+    expect(shown(wrapper)).toBe('12.345,67')
     expect(values().amount).toBe(12345.67)
   })
 
   it('keeps typing from the formatted text', async () => {
     const { wrapper, values } = render(12345.67)
 
-    await wrapper.find('input').setValue('R$ 12.345,678')
+    await wrapper.find('input').setValue('12.345,678')
 
-    expect(shown(wrapper)).toBe('R$ 123.456,78')
+    expect(shown(wrapper)).toBe('123.456,78')
     expect(values().amount).toBe(123456.78)
   })
 
   it('drops anything that is not a digit', async () => {
     const { wrapper, values } = render(12.34)
 
-    await wrapper.find('input').setValue('R$ 12,3a4')
+    await wrapper.find('input').setValue('12,3a4')
 
-    expect(shown(wrapper)).toBe('R$ 12,34')
+    expect(shown(wrapper)).toBe('12,34')
     expect(values().amount).toBe(12.34)
   })
 
@@ -65,6 +65,13 @@ describe('MoneyField', () => {
 
     expect(shown(wrapper)).toBe('')
     expect(values().amount).toBeNull()
+  })
+
+  it('marks the group invalid and shows the R$ addon', () => {
+    const { wrapper } = render(null)
+
+    expect(wrapper.find('[data-slot="input-group"]').text()).toBe('R$')
+    expect(wrapper.find('input').classes()).toContain('text-right')
   })
 
   it('shows the label, the hint and the disabled state', () => {

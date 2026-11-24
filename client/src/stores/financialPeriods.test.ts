@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { createPinia, setActivePinia } from 'pinia'
 import { financialPeriodsApi } from '@/api/financialPeriods'
+import { movementsApi } from '@/api/movements'
 import type { FinancialPeriodListView, FinancialPeriodView } from '@/types'
 import { useFinancialPeriodsStore } from './financialPeriods'
 
 vi.mock('@/api/financialPeriods')
+vi.mock('@/api/movements')
 
 const row: FinancialPeriodListView = {
   id: 'fp-1',
@@ -85,5 +87,37 @@ describe('useFinancialPeriodsStore', () => {
 
     expect(store.pageRequest.status).toBe('OPEN')
     expect(store.pageResponse.content).toEqual([])
+  })
+
+  it('finds only the expired open periods', async () => {
+    const expired = { ...row, id: 'fp-2', expired: true }
+    vi.mocked(financialPeriodsApi.findAll).mockResolvedValue({ ...page, content: [row, expired] })
+    const store = useFinancialPeriodsStore()
+
+    await expect(store.findExpired()).resolves.toEqual([expired])
+    expect(financialPeriodsApi.findAll).toHaveBeenCalledWith({ status: 'OPEN', size: 100 })
+  })
+
+  it('counts the launched, open and paid movements of a period', async () => {
+    vi.mocked(movementsApi.findAll).mockImplementation((query) => {
+      const totals = { OPEN: 4, PAID: 3 } as Record<string, number>
+      const total = query.statuses ? (totals[query.statuses[0]!] ?? 0) : 7
+      return Promise.resolve({
+        content: [],
+        page: { size: 1, number: 0, totalElements: total, totalPages: total },
+      })
+    })
+    const store = useFinancialPeriodsStore()
+
+    await expect(store.findMovementCounts('fp-1')).resolves.toEqual({
+      launched: 7,
+      open: 4,
+      paid: 3,
+    })
+    expect(movementsApi.findAll).toHaveBeenCalledWith({
+      financialPeriods: ['fp-1'],
+      statuses: ['PAID'],
+      size: 1,
+    })
   })
 })

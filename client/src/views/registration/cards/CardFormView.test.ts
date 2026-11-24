@@ -24,6 +24,9 @@ const wallet = {
   name: 'Main',
   type: 'BANK_ACCOUNT',
   bank: 'ACME',
+  currentBalance: 0,
+  agency: null,
+  number: null,
   active: true,
 } as const
 

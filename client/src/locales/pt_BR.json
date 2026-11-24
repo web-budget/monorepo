@@ -736,7 +736,7 @@
       "found": "{count} carteira encontrada para “{query}” | {count} carteiras encontradas para “{query}”"
     },
     "remove": {
-      "title": "Remover a carteira “{name}”?",
+      "title": "Excluir a carteira “{name}”?",
       "description": "Não dá para desfazer."
     },
     "toast": {
@@ -744,7 +744,7 @@
       "created-detail": "“{name}” já aparece nos lançamentos.",
       "updated": "Alterações salvas",
       "updated-detail": "“{name}” foi atualizada.",
-      "removed": "Carteira removida",
+      "removed": "Carteira excluída",
       "removed-detail": "“{name}” saiu da lista."
     },
     "sections": {
@@ -793,7 +793,7 @@
       "found": "{count} cartão encontrado para “{query}” | {count} cartões encontrados para “{query}”"
     },
     "remove": {
-      "title": "Remover o cartão “{name}”?",
+      "title": "Excluir o cartão “{name}”?",
       "description": "Não dá para desfazer."
     },
     "toast": {
@@ -801,7 +801,7 @@
       "created-detail": "“{name}” já aparece nos lançamentos.",
       "updated": "Alterações salvas",
       "updated-detail": "“{name}” foi atualizado.",
-      "removed": "Cartão removido",
+      "removed": "Cartão excluído",
       "removed-detail": "“{name}” saiu da lista."
     },
     "sections": {
@@ -872,14 +872,14 @@
       "edit": "Editar nome e metas"
     },
     "remove": {
-      "title": "Remover o período financeiro “{name}”?",
+      "title": "Excluir o período financeiro “{name}”?",
       "description": "Não dá para desfazer."
     },
     "toast": {
       "created": "Período criado",
       "updated": "Alterações salvas",
       "updated-detail": "“{name}” foi atualizado.",
-      "removed": "Período financeiro removido",
+      "removed": "Período financeiro excluído",
       "removed-detail": "“{name}” saiu da lista."
     },
     "sections": {
@@ -941,7 +941,7 @@
       "found": "{count} classificação encontrada para “{query}” | {count} classificações encontradas para “{query}”"
     },
     "remove": {
-      "title": "Remover a classificação “{name}”?",
+      "title": "Excluir a classificação “{name}”?",
       "description": "Não dá para desfazer."
     },
     "toast": {
@@ -949,7 +949,7 @@
       "created-detail": "“{name}” já aparece nos lançamentos.",
       "updated": "Alterações salvas",
       "updated-detail": "“{name}” foi atualizada.",
-      "removed": "Classificação removida",
+      "removed": "Classificação excluída",
       "removed-detail": "“{name}” saiu da lista."
     },
     "sections": {
@@ -991,7 +991,7 @@
       "found": "{count} centro de custo encontrado para “{query}” | {count} centros de custo encontrados para “{query}”"
     },
     "remove": {
-      "title": "Remover o centro de custo “{name}”?",
+      "title": "Excluir o centro de custo “{name}”?",
       "description": "Não dá para desfazer."
     },
     "toast": {
@@ -999,7 +999,7 @@
       "created-detail": "“{name}” já aparece nos lançamentos.",
       "updated": "Alterações salvas",
       "updated-detail": "“{name}” foi atualizado.",
-      "removed": "Centro de custo removido",
+      "removed": "Centro de custo excluído",
       "removed-detail": "“{name}” saiu da lista."
     },
     "sections": {
@@ -1507,11 +1507,11 @@
       "created-detail": "“{name}” entrou na fatura aberta do cartão.",
       "updated": "Alterações salvas",
       "updated-detail": "“{name}” foi atualizada.",
-      "removed": "Compra removida",
+      "removed": "Compra excluída",
       "removed-detail": "“{name}” saiu da fatura."
     },
     "remove": {
-      "title": "Remover a compra “{name}”?",
+      "title": "Excluir a compra “{name}”?",
       "description": "Ela sai da fatura e do gasto por centro de custo. Não dá para desfazer."
     }
   }

@@ -52,7 +52,7 @@ describe('FinancialPeriodFormView', () => {
   it('shows the title, the sections and no status toggle, and asks for the required fields', async () => {
     const { wrapper } = await mountView(FinancialPeriodFormView, 'financial-periods')
 
-    expect(wrapper.find('h1').text()).toBe('Novo período financeiro')
+    expect(wrapper.find('h1').text()).toBe('Novo período')
     expect(wrapper.findAll('h2').map((title) => title.text())).toEqual([
       'Identificação',
       'Datas',
@@ -83,8 +83,8 @@ describe('FinancialPeriodFormView', () => {
       revenuesGoal: 5000,
       expensesGoal: null,
     })
-    expect(toast.success).toHaveBeenCalledWith('Período financeiro criado', {
-      description: '“January” já aceita lançamentos.',
+    expect(toast.success).toHaveBeenCalledWith('Período criado', {
+      description: undefined,
       duration: 4000,
     })
     expect(router.currentRoute.value.name).not.toBe('financial-periods.detail')
@@ -138,13 +138,13 @@ describe('FinancialPeriodFormView', () => {
       id: 'p-1',
     })
 
-    expect(wrapper.find('h1').text()).toBe('Editando período financeiro')
+    expect(wrapper.find('h1').text()).toBe('Editar nome e metas')
     expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('January')
     expect((field(wrapper, 'startingAt').element as HTMLInputElement).value).toBe('2026-01-01')
     expect(field(wrapper, 'startingAt').attributes('disabled')).toBeDefined()
     expect(field(wrapper, 'endingAt').attributes('disabled')).toBeDefined()
-    expect((field(wrapper, 'revenuesGoal').element as HTMLInputElement).value).toBe('R$ 5.000,00')
-    expect(wrapper.text()).toContain('As datas não mudam depois de criado.')
+    expect((field(wrapper, 'revenuesGoal').element as HTMLInputElement).value).toBe('5.000,00')
+    expect(wrapper.text()).toContain('Sem sobreposição com outro período.')
   })
 
   it('saves the new name and goals only, and goes to the detail', async () => {

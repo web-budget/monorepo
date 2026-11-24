@@ -69,9 +69,9 @@ describe('useConfirmDialog', () => {
 
     expect(dialog.state.options).toEqual({
       destructive: true,
-      title: 'Remover a carteira “Main”?',
+      title: 'Excluir a carteira “Main”?',
       description: 'Não dá para desfazer.',
-      confirmLabel: 'Remover',
+      confirmLabel: 'Excluir',
     })
     dialog.accept()
     expect(await result).toBe(true)

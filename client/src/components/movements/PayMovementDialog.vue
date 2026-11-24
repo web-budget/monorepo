@@ -172,7 +172,7 @@ const submit = form.handleSubmit((values) => {
           <AlertDescription>{{ t('movement.form.no-open-invoice-hint') }}</AlertDescription>
         </Alert>
         <SelectField
-          v-else
+          v-if="!onCard"
           name="wallet"
           :label="t('movement.pay.wallet')"
           :options="walletOptions"

@@ -236,7 +236,7 @@ const listCopy = computed(() => ({
         <template #cell-result="{ item }">
           <CurrencyDisplay
             v-if="item.status === 'CLOSED' && results[item.id] !== undefined"
-            :value="results[item.id] ?? null"
+            :value="results[item.id] as number"
             signed
             glued
             bare
