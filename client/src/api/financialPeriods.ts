@@ -10,7 +10,7 @@ import type {
   PageQuery,
 } from '@/types'
 
-const PATH = '/registration/financial-periods'
+const PATH = '/financial/financial-periods'
 
 export const financialPeriodsApi = {
   findAll(query: PageQuery): Promise<PagedResponse<FinancialPeriodListView>> {

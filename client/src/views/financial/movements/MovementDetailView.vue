@@ -1,5 +1,13 @@
 <script setup lang="ts">
-import { Banknote, Clock, Lock, Undo2 } from 'lucide-vue-next'
+import {
+  Banknote,
+  CalendarRange,
+  Clock,
+  CreditCard,
+  Lock,
+  ScrollText,
+  Undo2,
+} from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted } from 'vue'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
@@ -11,6 +19,7 @@ import InvoiceStatusBadge from '@/components/invoices/InvoiceStatusBadge.vue'
 import MovementStatusBadge from '@/components/movements/MovementStatusBadge.vue'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import PayMovementDialog from '@/components/movements/PayMovementDialog.vue'
+import UndoPaymentDialog from '@/components/movements/UndoPaymentDialog.vue'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useActiveCards } from '@/composables/useActiveCards'
@@ -19,7 +28,6 @@ import { useCrudDetail } from '@/composables/useCrudDetail'
 import { useMovementActions } from '@/composables/useMovementActions'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { useMovementsStore } from '@/stores/movements'
-import type { MovementView } from '@/types'
 import { daysOverdue } from '@/utils/movements'
 
 const props = defineProps<{ id: string }>()
@@ -54,13 +62,31 @@ const canPay = computed(() => movement.value?.status === 'OPEN' && !periodClosed
 const canUndo = computed(() => paidInOpenPeriod.value)
 
 function openPay() {
-  const { id, name, type, value, invoice } = movement.value!
-  actions.openPay({ id, name, type, value, invoicePayment: Boolean(invoice) })
+  const { id, name, type, value, invoice, financialPeriod } = movement.value!
+  actions.openPay({ id, name, type, value, invoicePayment: Boolean(invoice), financialPeriod })
 }
 
-function signedValue(item: MovementView) {
-  return item.type === 'INCOME' ? item.value : -item.value
-}
+const viewTarget = computed(() => {
+  const payment = movement.value?.payment
+  if (payment?.card) {
+    return {
+      label: 'movement.actions.view-invoice',
+      icon: CreditCard,
+      to: {
+        name: 'invoices',
+        query: { card: payment.card.id, period: movement.value?.financialPeriod.id },
+      },
+    }
+  }
+  if (payment?.wallet) {
+    return {
+      label: 'movement.actions.view-statement',
+      icon: ScrollText,
+      to: { name: 'statement', query: { wallet: payment.wallet.id } },
+    }
+  }
+  return null
+})
 </script>
 
 <template>
@@ -69,6 +95,7 @@ function signedValue(item: MovementView) {
     :messages="[...messages, ...actions.messages.value, ...walletErrors.messages.value]"
     :readonly="locked"
     :hide-edit="Boolean(movement?.invoice)"
+    :edit-variant="canPay ? 'outline' : 'default'"
     @edit="changeToUpdate"
     @delete="remove"
   >
@@ -78,12 +105,14 @@ function signedValue(item: MovementView) {
           $t(movement!.type === 'INCOME' ? 'movement.actions.receive' : 'movement.actions.pay')
         }}
       </Button>
-      <Button
-        v-if="canUndo"
-        type="button"
-        variant="outline"
-        @click="actions.undoPayment(movement!)"
-      >
+    </template>
+    <template v-if="movement && movement.status === 'PAID'" #footer>
+      <Button v-if="viewTarget" as-child type="button" variant="outline">
+        <RouterLink :to="viewTarget.to">
+          <component :is="viewTarget.icon" />{{ $t(viewTarget.label) }}
+        </RouterLink>
+      </Button>
+      <Button v-if="canUndo" type="button" variant="outline" @click="actions.openUndo(movement!)">
         <Undo2 />{{ $t('movement.actions.undo') }}
       </Button>
     </template>
@@ -108,6 +137,17 @@ function signedValue(item: MovementView) {
             {{ $t('movement.notices.closed', { name: movement.financialPeriod.name }) }}
           </AlertTitle>
           <AlertDescription>{{ $t('movement.notices.closed-description') }}</AlertDescription>
+          <Button
+            as-child
+            type="button"
+            variant="outline"
+            size="sm"
+            class="col-start-2 mt-1.5 w-fit"
+          >
+            <RouterLink :to="{ name: 'financial-periods' }">
+              <CalendarRange />{{ $t('movement.notices.closed-action') }}
+            </RouterLink>
+          </Button>
         </Alert>
         <Alert v-if="movement.overdue" variant="attention" data-slot="overdue-notice">
           <Clock />
@@ -137,7 +177,7 @@ function signedValue(item: MovementView) {
           </Badge>
         </DetailField>
         <DetailField :label="$t('movement.detail.value')">
-          <CurrencyDisplay :value="signedValue(movement)" signed />
+          <CurrencyDisplay :value="movement.value" class="text-base font-semibold" />
         </DetailField>
         <DetailField :label="$t('movement.detail.due-date')" mono>
           <DateTimeDisplay fix-time :value="movement.dueDate" />
@@ -153,11 +193,6 @@ function signedValue(item: MovementView) {
             :value="movement.classification?.name"
           />
         </template>
-        <DetailField
-          :label="$t('movement.detail.description')"
-          :value="movement.description"
-          wide
-        />
       </DetailSection>
       <DetailSection
         v-if="movement.invoice"
@@ -189,10 +224,14 @@ function signedValue(item: MovementView) {
             <CurrencyDisplay :value="movement.payment.value" />
           </DetailField>
           <DetailField :label="$t('movement.detail.discount')">
-            <CurrencyDisplay :value="movement.payment.discount" zero-if-null />
+            <CurrencyDisplay
+              v-if="movement.payment.discount > 0"
+              :value="movement.payment.discount"
+            />
+            <template v-else>{{ $t('movement.detail.discount-none') }}</template>
           </DetailField>
           <DetailField :label="$t('movement.detail.value-paid')">
-            <CurrencyDisplay :value="movement.payment.valuePaid" />
+            <CurrencyDisplay :value="movement.payment.valuePaid" class="text-base font-semibold" />
           </DetailField>
           <DetailField
             :label="$t('movement.detail.method')"
@@ -215,6 +254,12 @@ function signedValue(item: MovementView) {
       </DetailSection>
     </template>
   </DetailCard>
+  <UndoPaymentDialog
+    :movement="actions.undoTarget.value"
+    :loading="loading"
+    @close="actions.closeUndo()"
+    @confirm="actions.undoPayment"
+  />
   <PayMovementDialog
     :movement="actions.payTarget.value"
     :wallets="activeWallets.wallets.value"

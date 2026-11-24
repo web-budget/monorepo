@@ -6,6 +6,8 @@ export interface ItemsTableColumn {
   align?: 'end'
   mono?: boolean
   wide?: boolean
+  mobile?: 'title' | 'value' | 'line' | 'hide'
+  mobileLabel?: boolean
 }
 
 export interface ItemsTableItem {
