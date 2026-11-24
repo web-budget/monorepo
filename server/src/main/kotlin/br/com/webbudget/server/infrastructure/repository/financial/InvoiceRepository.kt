@@ -37,6 +37,12 @@ class InvoiceRepository(
             .where(purchases.ID_INVOICE.eq(invoices.ID))
     ).`as`("invoice_value")
 
+    private val purchaseCount: Field<Int> = DSL.field(
+        DSL.selectCount()
+            .from(purchases)
+            .where(purchases.ID_INVOICE.eq(invoices.ID))
+    ).`as`("purchase_count")
+
     fun findActiveCards(): List<CardReference> {
         val activeCards = CARDS.`as`("active_cards")
         return dsl.selectFrom(activeCards)
@@ -127,9 +133,8 @@ class InvoiceRepository(
             .execute()
     }
 
-    fun findOpenByFinancialPeriod(financialPeriodId: Long): List<Invoice> = selectJoined()
+    fun findByFinancialPeriod(financialPeriodId: Long): List<Invoice> = selectJoined()
         .where(invoices.ID_FINANCIAL_PERIOD.eq(financialPeriodId))
-        .and(invoices.STATUS.eq(Invoice.Status.OPEN.name))
         .orderBy(cards.NAME, invoices.ID)
         .fetch { record -> record.toInvoice() }
 
@@ -141,7 +146,7 @@ class InvoiceRepository(
     )
 
     fun closeEmptyAutomatically(financialPeriodId: Long): Int = dsl.update(INVOICES)
-        .set(INVOICES.STATUS, Invoice.Status.CLOSED.name)
+        .set(INVOICES.STATUS, Invoice.Status.PAID.name)
         .set(INVOICES.CLOSED_AUTOMATICALLY, true)
         .set(INVOICES.VERSION, INVOICES.VERSION.plus(1))
         .set(INVOICES.LAST_UPDATE, LocalDateTime.now())
@@ -164,7 +169,7 @@ class InvoiceRepository(
         .where(CARD_PURCHASES.ID_INVOICE.eq(INVOICES.ID))
 
     private fun selectJoined() = dsl
-        .select(*invoices.fields(), *cards.fields(), *financialPeriods.fields(), invoiceValue)
+        .select(*invoices.fields(), *cards.fields(), *financialPeriods.fields(), invoiceValue, purchaseCount)
         .from(invoices)
         .joinReferences()
 
@@ -180,7 +185,8 @@ class InvoiceRepository(
             card = into(cards).toCardReference(),
             financialPeriod = into(financialPeriods).toFinancialPeriodReference(),
             status = Invoice.Status.valueOf(invoiceRecord.status!!),
-            value = get(invoiceValue)
+            value = get(invoiceValue),
+            purchaseCount = get(purchaseCount)
         ).also { invoice ->
             invoice.restore(
                 invoiceRecord.id,

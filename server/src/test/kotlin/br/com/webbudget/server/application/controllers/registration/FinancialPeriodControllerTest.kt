@@ -52,6 +52,7 @@ class FinancialPeriodControllerTest : BaseIntegrationTest() {
             .jsonPath("$.content[0].name").isEqualTo("07/2024")
             .jsonPath("$.content[0].status").isEqualTo("CLOSED")
             .jsonPath("$.content[0].expired").isEqualTo(false)
+            .jsonPath("$.content[0].reopenable").isEqualTo(true)
     }
 
     @Test
@@ -137,8 +138,36 @@ class FinancialPeriodControllerTest : BaseIntegrationTest() {
             .jsonPath("$.id").isEqualTo(ACTIVE_ID)
             .jsonPath("$.name").isEqualTo("08/2024")
             .jsonPath("$.status").isEqualTo("OPEN")
+            .jsonPath("$.reopenable").isEqualTo(false)
             .jsonPath("$.expired").isEqualTo(true)
             .jsonPath("$.expensesGoal").isEqualTo(4500.00)
+    }
+
+    @Test
+    fun `should only let the last closed period be reopened`() {
+
+        financialPeriodRepository.updateStatus(
+            financialPeriodRepository.findByExternalId(UUID.fromString(ACTIVE_ID))!!.id!!,
+            FinancialPeriod.Status.OPEN,
+            FinancialPeriod.Status.CLOSED
+        )
+
+        restTestClient.get()
+            .uri("$ENDPOINT_URL?status=CLOSED&sort=name,asc")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.content[0].name").isEqualTo("07/2024")
+            .jsonPath("$.content[0].reopenable").isEqualTo(false)
+            .jsonPath("$.content[1].name").isEqualTo("08/2024")
+            .jsonPath("$.content[1].reopenable").isEqualTo(true)
+
+        restTestClient.get()
+            .uri("$ENDPOINT_URL/$ACCOUNTED_ID")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.reopenable").isEqualTo(false)
     }
 
     @Test

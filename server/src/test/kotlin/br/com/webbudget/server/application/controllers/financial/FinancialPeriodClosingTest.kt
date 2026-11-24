@@ -153,7 +153,7 @@ class FinancialPeriodClosingTest : BaseIntegrationTest() {
             .jsonPath("$.result").isEqualTo(-125.5)
 
         val emptyInvoice = dsl.selectFrom(INVOICES).where(INVOICES.ID.eq(9103L)).fetchSingle()
-        assertThat(emptyInvoice.status).isEqualTo("CLOSED")
+        assertThat(emptyInvoice.status).isEqualTo("PAID")
         assertThat(emptyInvoice.closedAutomatically).isTrue()
         assertThat(dsl.selectFrom(INVOICES).where(INVOICES.ID.eq(9101L)).fetchSingle().closedAutomatically).isFalse()
 

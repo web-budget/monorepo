@@ -43,7 +43,7 @@ class RecurringMovementMapper(
             MovementClassificationView(it.externalId, it.name, it.type)
         },
         costCenter = recurringMovement.costCenter.let { MovementCostCenterView(it.externalId, it.name, it.fullName) },
-        card = recurringMovement.card?.let { PaymentCardView(it.externalId, it.name) },
+        card = recurringMovement.card?.let { PaymentCardView(it.externalId, it.name, it.lastFourDigits) },
         launchedInPeriod = recurringMovement.launchedInPeriod,
         createdOn = recurringMovement.createdOn!!
     )

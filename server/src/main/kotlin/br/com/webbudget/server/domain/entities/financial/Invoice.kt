@@ -9,6 +9,7 @@ class CardReference(
     val id: Long,
     val externalId: UUID,
     val name: String,
+    val lastFourDigits: String,
     val active: Boolean,
     val invoicePaymentDay: Int
 )
@@ -17,7 +18,8 @@ class Invoice(
     val card: CardReference,
     val financialPeriod: FinancialPeriodReference,
     var status: Status = Status.OPEN,
-    var value: BigDecimal = BigDecimal.ZERO
+    var value: BigDecimal = BigDecimal.ZERO,
+    val purchaseCount: Int = 0
 ) : PersistentEntity() {
 
     fun isOpen(): Boolean = status == Status.OPEN
