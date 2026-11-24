@@ -9,7 +9,7 @@ import {
   UserRound,
   X,
 } from 'lucide-vue-next'
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import PasswordTab from '@/components/account/PasswordTab.vue'
 import PreferencesTab from '@/components/account/PreferencesTab.vue'
@@ -38,6 +38,15 @@ const bodies = {
   password: PasswordTab,
   security: SecurityTab,
 }
+
+watch(
+  () => auth.session,
+  (session) => {
+    if (!session) {
+      close()
+    }
+  },
+)
 
 const currentTab = computed<AccountTab | null>(
   () => tab.value ?? (compact.value ? null : 'profile'),

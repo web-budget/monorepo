@@ -2,6 +2,7 @@ import { mount } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import AccountDialog from '@/components/account/AccountDialog.vue'
 import { useAccountDialog } from '@/composables/useAccountDialog'
+import { useAuthStore } from '@/stores/auth'
 import { createTestPlugins } from '@/test/mounting'
 import { useCompactViewport } from '@/test/crud'
 import { settle } from '@/test/settle'
@@ -142,6 +143,21 @@ describe('AccountDialog', () => {
     await show('profile')
 
     ;(content().querySelector('button[aria-label="Fechar"]') as HTMLButtonElement).click()
+    await settle()
+
+    expect(dialog.open.value).toBe(false)
+    expect(content()).toBeNull()
+  })
+
+  it('closes when the session ends under it', async () => {
+    await show('profile')
+    const auth = useAuthStore()
+
+    auth.session = { ...auth.session!, name: 'Maria da Silva' }
+    await settle()
+    expect(dialog.open.value).toBe(true)
+
+    auth.session = null
     await settle()
 
     expect(dialog.open.value).toBe(false)
