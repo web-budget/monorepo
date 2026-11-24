@@ -12,16 +12,17 @@ import {
 import { computed, nextTick, ref, watch } from 'vue'
 import { Bar } from 'vue-chartjs'
 import { useI18n } from 'vue-i18n'
-import { emptyMonthsPlugin } from '@/components/dashboards/emptyMonthsPlugin'
+import { flowMarksPlugin } from '@/components/dashboards/flowMarksPlugin'
 import { useAppearanceStore } from '@/stores/appearance'
 import type { FinancialFlowPeriod } from '@/types'
 import { axisScale, flowMonths } from '@/utils/financialFlow'
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip)
 
-const plugins = [emptyMonthsPlugin]
+const plugins = [flowMarksPlugin]
 
 const DESIGN_WIDTH = 720
+const PROVISIONAL_OPACITY = 45
 const MIN_FONT_SIZE = 10
 const MAX_FONT_SIZE = 16
 
@@ -35,9 +36,7 @@ function readColors() {
   const read = (token: string) => styles.getPropertyValue(token).trim()
   return {
     income: read('--income'),
-    incomeMuted: read('--income-muted'),
     expense: read('--expense'),
-    expenseMuted: read('--expense-muted'),
     border: read('--border'),
     text: read('--muted-foreground'),
     mono: read('--font-mono'),
@@ -62,30 +61,30 @@ const axis = computed(() =>
 
 const integer = computed(() => new Intl.NumberFormat(locale.value, { maximumFractionDigits: 0 }))
 
+function fills(color: string) {
+  return months.value.map((month) =>
+    month.recorded ? color : `color-mix(in oklch, ${color} ${PROVISIONAL_OPACITY}%, transparent)`,
+  )
+}
+
 const data = computed<ChartData<'bar'>>(() => ({
   labels: months.value.map((month) => month.label),
   datasets: [
     {
       label: t('financial-flow.legend.revenues'),
       data: months.value.map((month) => month.revenues),
-      backgroundColor: months.value.map((month) =>
-        month.recorded ? colors.value.income : colors.value.incomeMuted,
-      ),
+      backgroundColor: fills(colors.value.income),
+      hoverBackgroundColor: fills(colors.value.income),
       borderColor: colors.value.income,
-      borderWidth: months.value.map((month) => (month.recorded ? 0 : 1.5)),
-      borderDash: [4, 3],
       categoryPercentage: 0.64,
       barPercentage: 0.96,
     },
     {
       label: t('financial-flow.legend.expenses'),
       data: months.value.map((month) => month.expenses),
-      backgroundColor: months.value.map((month) =>
-        month.recorded ? colors.value.expense : colors.value.expenseMuted,
-      ),
+      backgroundColor: fills(colors.value.expense),
+      hoverBackgroundColor: fills(colors.value.expense),
       borderColor: colors.value.expense,
-      borderWidth: months.value.map((month) => (month.recorded ? 0 : 1.5)),
-      borderDash: [4, 3],
       categoryPercentage: 0.64,
       barPercentage: 0.96,
     },
@@ -124,8 +123,11 @@ const options = computed<ChartOptions<'bar'>>(() => ({
   },
   plugins: {
     legend: { display: false },
-    emptyMonths: {
-      indexes: months.value.flatMap((month, index) => (month.empty ? [index] : [])),
+    flowMarks: {
+      empty: months.value.flatMap((month, index) => (month.empty ? [index] : [])),
+      provisional: months.value.flatMap((month, index) =>
+        month.recorded || month.empty ? [] : [index],
+      ),
       color: colors.value.text,
       font: colors.value.mono,
     },
@@ -168,7 +170,7 @@ const options = computed<ChartOptions<'bar'>>(() => ({
       </ul>
     </div>
     <div
-      class="h-48 w-full min-w-0 md:aspect-[720/260] md:h-auto"
+      class="aspect-[720/260] w-full min-w-0"
       role="img"
       :aria-label="$t('financial-flow.chart.title')"
     >

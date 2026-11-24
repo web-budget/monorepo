@@ -47,9 +47,7 @@ const periods: FinancialFlowPeriod[] = [
 
 const tokens: Record<string, string> = {
   '--income': 'rgb(0, 128, 0)',
-  '--income-muted': 'rgb(200, 240, 200)',
   '--expense': 'rgb(200, 0, 0)',
-  '--expense-muted': 'rgb(250, 220, 220)',
   '--border': 'rgb(220, 220, 220)',
   '--muted-foreground': 'rgb(100, 100, 100)',
   '--font-mono': 'IBM Plex Mono',
@@ -103,19 +101,17 @@ describe('FinancialFlowChart', () => {
     expect(data.datasets[1].data).toEqual([0, 0, 0, 0, 0, 0, 0, 0, 400, 300, 0, 0])
   })
 
-  it('takes the colors from the tokens, with the provisional period lighter and dashed', () => {
+  it('takes the colors from the tokens, with the provisional period at 45% of the color', () => {
     const { bar } = render()
 
     const [revenues, expenses] = bar().props('data').datasets
     expect(revenues.backgroundColor[8]).toBe(tokens['--income'])
-    expect(revenues.backgroundColor[9]).toBe(tokens['--income-muted'])
+    expect(revenues.backgroundColor[9]).toBe('color-mix(in oklch, rgb(0, 128, 0) 45%, transparent)')
     expect(expenses.backgroundColor[8]).toBe(tokens['--expense'])
-    expect(expenses.backgroundColor[9]).toBe(tokens['--expense-muted'])
+    expect(expenses.backgroundColor[9]).toBe('color-mix(in oklch, rgb(200, 0, 0) 45%, transparent)')
+    expect(revenues.hoverBackgroundColor).toEqual(revenues.backgroundColor)
     expect(revenues.borderColor).toBe(tokens['--income'])
     expect(expenses.borderColor).toBe(tokens['--expense'])
-    expect(revenues.borderWidth[8]).toBe(0)
-    expect(revenues.borderWidth[9]).toBe(1.5)
-    expect(revenues.borderDash).toEqual([4, 3])
   })
 
   it('draws a round axis in plain numbers, with the mono font, scaled to the chart width', () => {
@@ -139,8 +135,9 @@ describe('FinancialFlowChart', () => {
     const { bar } = render()
 
     const { plugins } = bar().props('options')
-    expect(plugins.emptyMonths).toEqual({
-      indexes: [0, 1, 2, 3, 4, 5, 6, 7, 10, 11],
+    expect(plugins.flowMarks).toEqual({
+      empty: [0, 1, 2, 3, 4, 5, 6, 7, 10, 11],
+      provisional: [9],
       color: tokens['--muted-foreground'],
       font: 'IBM Plex Mono',
     })
@@ -155,7 +152,7 @@ describe('FinancialFlowChart', () => {
   it('registers the plugin that draws the empty months', () => {
     const { bar } = render()
 
-    expect(bar().props('plugins')).toEqual([expect.objectContaining({ id: 'emptyMonths' })])
+    expect(bar().props('plugins')).toEqual([expect.objectContaining({ id: 'flowMarks' })])
   })
 
   it('explains the three kinds of bar in its own legend', () => {
