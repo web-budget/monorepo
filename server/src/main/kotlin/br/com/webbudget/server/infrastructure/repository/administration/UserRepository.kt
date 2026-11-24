@@ -186,6 +186,15 @@ class UserRepository(
             .execute()
     }
 
+    fun updateName(userId: Long, name: String) {
+        dsl.update(USERS)
+            .set(USERS.NAME, name)
+            .set(USERS.VERSION, USERS.VERSION.plus(1))
+            .set(USERS.LAST_UPDATE, LocalDateTime.now())
+            .where(USERS.ID.eq(userId))
+            .execute()
+    }
+
     fun updateDueDateNotices(userId: Long, enabled: Boolean) {
         dsl.update(USERS)
             .set(USERS.DUE_DATE_NOTICES, enabled)

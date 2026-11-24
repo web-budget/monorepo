@@ -224,6 +224,14 @@ class AuthService(
     }
 
     @Transactional
+    fun changeName(name: String): CurrentUser {
+
+        userRepository.updateName(currentUserProvider.getSessionUser().id, name.trim())
+
+        return currentUserProvider.getSessionUser()
+    }
+
+    @Transactional
     fun changeLanguage(language: Language): CurrentUser {
 
         userRepository.updateDefaultLanguage(currentUserProvider.getSessionUser().id, language)
