@@ -1238,7 +1238,7 @@
         "INCOME": "Ex.: Salário de dezembro",
         "EXPENSE": "Ex.: Conta de água"
       },
-      "value-hint": "Zero ou mais.",
+      "value-hint": "Maior que zero.",
       "wallet-option": "{name} · saldo {balance}",
       "paid-by": "Pago por",
       "card": "Cartão",

@@ -1238,7 +1238,7 @@
         "INCOME": "E.g.: December salary",
         "EXPENSE": "E.g.: Water bill"
       },
-      "value-hint": "Zero or more.",
+      "value-hint": "Greater than zero.",
       "wallet-option": "{name} · balance {balance}",
       "paid-by": "Paid by",
       "card": "Card",
