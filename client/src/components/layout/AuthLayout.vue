@@ -2,7 +2,7 @@
 import AuthAside from '@/components/auth/AuthAside.vue'
 import BrandMark from '@/components/brand/BrandMark.vue'
 import BrandWordmark from '@/components/brand/BrandWordmark.vue'
-import LanguageSwitch from '@/components/layout/LanguageSwitch.vue'
+import LanguageMenu from '@/components/layout/LanguageMenu.vue'
 </script>
 
 <template>
@@ -13,8 +13,8 @@ import LanguageSwitch from '@/components/layout/LanguageSwitch.vue'
     <main
       class="relative grid content-start justify-items-center px-6 pt-10 pb-8 text-sm lg:content-center lg:p-10"
     >
-      <div class="absolute top-4 right-4 w-36 lg:top-6 lg:right-6">
-        <LanguageSwitch />
+      <div class="absolute top-4 right-4 lg:top-6 lg:right-6">
+        <LanguageMenu />
       </div>
       <div class="grid w-full max-w-[400px] gap-8">
         <div class="flex items-center gap-2.5 lg:hidden" data-slot="auth-brand">

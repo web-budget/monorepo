@@ -22,6 +22,10 @@ const session: SessionResponse = {
   status: 'APPROVED',
   language: 'PT_BR',
   dueDateNotices: true,
+  hasPassword: true,
+  googleLinked: false,
+  totpEnabled: false,
+  totpRequired: false,
   roles: [],
 }
 

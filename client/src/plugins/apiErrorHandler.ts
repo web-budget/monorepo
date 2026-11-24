@@ -13,6 +13,7 @@ const FORM_RATE_LIMITS = new Set([
   'too_many_login_attempts',
   'too_many_registration_attempts',
   'too_many_totp_attempts',
+  'too_many_password_change_attempts',
 ])
 
 function isSilent(error: ApiError): boolean {

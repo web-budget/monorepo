@@ -56,6 +56,10 @@ describe('useInactivityLogout', () => {
       status: 'APPROVED',
       language: 'PT_BR',
       dueDateNotices: true,
+      hasPassword: true,
+      googleLinked: false,
+      totpEnabled: false,
+      totpRequired: false,
       roles: [],
     }
     start()
@@ -74,6 +78,10 @@ describe('useInactivityLogout', () => {
       status: 'APPROVED',
       language: 'PT_BR',
       dueDateNotices: true,
+      hasPassword: true,
+      googleLinked: false,
+      totpEnabled: false,
+      totpRequired: false,
       roles: [],
     }
     start()
@@ -92,6 +100,10 @@ describe('useInactivityLogout', () => {
       status: 'APPROVED',
       language: 'PT_BR',
       dueDateNotices: true,
+      hasPassword: true,
+      googleLinked: false,
+      totpEnabled: false,
+      totpRequired: false,
       roles: [],
     }
     start()
@@ -112,6 +124,10 @@ describe('useInactivityLogout', () => {
       status: 'APPROVED',
       language: 'PT_BR',
       dueDateNotices: true,
+      hasPassword: true,
+      googleLinked: false,
+      totpEnabled: false,
+      totpRequired: false,
       roles: [],
     }
     await nextTick()
@@ -121,6 +137,10 @@ describe('useInactivityLogout', () => {
       status: 'APPROVED',
       language: 'PT_BR',
       dueDateNotices: true,
+      hasPassword: true,
+      googleLinked: false,
+      totpEnabled: false,
+      totpRequired: false,
       roles: ['FINANCIAL'],
     }
     await nextTick()
@@ -144,6 +164,10 @@ describe('useInactivityLogout', () => {
       status: 'APPROVED',
       language: 'PT_BR',
       dueDateNotices: true,
+      hasPassword: true,
+      googleLinked: false,
+      totpEnabled: false,
+      totpRequired: false,
       roles: [],
     }
     start()

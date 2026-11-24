@@ -1,12 +1,10 @@
 import { mount } from '@vue/test-utils'
-import { describe, expect, it, vi } from 'vitest'
+import { describe, expect, it } from 'vitest'
 import AuthLayout from '@/components/layout/AuthLayout.vue'
 import ConfigurationLayout from '@/components/layout/ConfigurationLayout.vue'
 import DashboardsLayout from '@/components/layout/DashboardsLayout.vue'
 import FinancialLayout from '@/components/layout/FinancialLayout.vue'
-import ProfileLayout from '@/components/layout/ProfileLayout.vue'
 import RegistrationLayout from '@/components/layout/RegistrationLayout.vue'
-import { useAuthStore } from '@/stores/auth'
 import { createTestPlugins } from '@/test/mounting'
 
 async function render(layout: Parameters<typeof mount>[0], path = '/') {
@@ -90,25 +88,6 @@ describe('layouts', () => {
     expect(wrapper.findAll('[data-slot="sidebar-menu"] a')).toHaveLength(7)
   })
 
-  it('ProfileLayout lists only the sections the user can open', async () => {
-    const { router, plugins } = createTestPlugins({
-      initialState: { auth: { session: { name: 'Ana', email: 'ana@example.com' } } },
-    })
-    vi.mocked(useAuthStore().hasRole).mockImplementation(
-      (role) => role === 'FINANCIAL' || role === 'REGISTRATION',
-    )
-    await router.push('/profile')
-    await router.isReady()
-    const wrapper = mount(ProfileLayout, {
-      global: { plugins: plugins as never[] },
-    }) as unknown as Awaited<ReturnType<typeof render>>
-
-    expect(menuLabels(wrapper)).toEqual(['Financeiro', 'Cadastros'])
-    expect(
-      wrapper.findAll('[data-slot="sidebar-menu"] a').map((link) => link.attributes('href')),
-    ).toEqual(['/financial', '/registration'])
-  })
-
   it('ConfigurationLayout links the users and still lists the integrations, disabled', async () => {
     const wrapper = await render(ConfigurationLayout)
 
@@ -132,8 +111,8 @@ describe('layouts', () => {
   it('AuthLayout offers the language selector to whoever has not signed in', async () => {
     const wrapper = await render(AuthLayout)
 
-    const radios = wrapper.find('main').findAll('[role="radio"]')
+    const trigger = wrapper.find('main').get('button[aria-label="Idioma"]')
 
-    expect(radios.map((radio) => radio.text())).toEqual(['pt-BR', 'en-US'])
+    expect(trigger.text()).toBe('Português (Brasil)')
   })
 })

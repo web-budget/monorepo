@@ -161,7 +161,7 @@
     "invalid-code": "Invalid code. Check that your phone's clock is right and try again.",
     "trust": {
       "label": "Trust this device",
-      "hint": "The code is not asked for again in this browser. You can revoke it in Trusted devices."
+      "hint": "The code is not asked for again in this browser. You can revoke it in My account, on the Security tab."
     },
     "submit": "Sign in",
     "submitting": "Verifying…",
@@ -188,12 +188,84 @@
       "description": "The password or the code do not match, or the request expired. For security, sign in with Google again to start over."
     }
   },
+  "account": {
+    "title": "My account",
+    "close": "Close",
+    "back": "Back",
+    "tabs": {
+      "profile": "Profile",
+      "preferences": "Preferences",
+      "notifications": "Notifications",
+      "password": "Password",
+      "security": "Security"
+    },
+    "profile": {
+      "description": "The e-mail cannot be changed.",
+      "name": "Name",
+      "email": "E-mail",
+      "save": "Save",
+      "saved": "Profile saved"
+    },
+    "notifications": {
+      "label": "Receive the due date notices by e-mail",
+      "on": "On.",
+      "off": "Off.",
+      "daily-lead": "Daily:",
+      "daily": "one e-mail a day, only when something falls due that day.",
+      "weekly-lead": "Weekly:",
+      "weekly": "every Friday, a summary of the due dates of the next week. With no due dates, nothing is sent.",
+      "saved": "Profile saved",
+      "saved-on": "The due date notices are still on.",
+      "saved-off": "The due date notices were turned off."
+    },
+    "preferences": {
+      "language": "Language",
+      "help": "Applies to the interface and the e-mails.",
+      "saved": "Saved to your profile."
+    },
+    "password": {
+      "title": "Change password",
+      "description": "For the account {email}.",
+      "notice": "Changing the password signs out the other sessions.",
+      "current": "Current password",
+      "new": "New password",
+      "confirmation": "Confirm the new password",
+      "save": "Save new password",
+      "saving": "Saving…",
+      "saved": "Password changed",
+      "saved-detail": "The other sessions were signed out.",
+      "bytes": "{count}. Accents and emojis count as more than one.",
+      "bytes-count": "{count} of {maximum} bytes",
+      "failure": {
+        "wrong": {
+          "title": "The password could not be changed",
+          "description": "The current password does not match. Check it and try again."
+        },
+        "limit": {
+          "title": "Too many attempts in a row",
+          "description": "Try again in a few seconds."
+        }
+      }
+    },
+    "google": {
+      "title": "You sign in with Google",
+      "description": "This account has no webBudget password: access is through the Google account {email}. The password and the two-step verification are Google’s."
+    },
+    "security": {
+      "two-factor": "Two-step verification",
+      "active": "Active",
+      "inactive": "Disabled",
+      "pending": "Pending",
+      "help": "Asked at sign-in with a password, through the authenticator app. Changed phones? Ask an administrator to reset it.",
+      "help-google": "Asked at sign-in with a password; signing in with Google does not ask for the code. Changed phones? Ask an administrator to reset it.",
+      "not-required": "This installation does not ask for the authenticator code.",
+      "pending-help": "The authenticator is set up at your next password sign-in.",
+      "devices-help": "Signing in on these devices does not ask for the code."
+    }
+  },
   "devices": {
     "title": "Trusted devices",
-    "description": "On these devices, signing in does not ask for the authenticator code.",
-    "description-with-devices": "On these devices, signing in does not ask for the authenticator code. Revoke the ones you do not recognize.",
     "dates": "Last used on {lastUsed} · trusted on {created}",
-    "close": "Close",
     "empty": {
       "title": "No trusted devices",
       "description": "Check “Trust this device” when entering the authenticator code at sign-in."
@@ -1274,7 +1346,7 @@
     "dark-theme": "Dark theme",
     "light-theme": "Light theme",
     "logout": "Sign out",
-    "trusted-devices": "Trusted devices",
+    "account": "My account",
     "breadcrumb": "Breadcrumb",
     "coming-soon": "Coming soon",
     "loading": "Loading...",
@@ -1285,10 +1357,7 @@
     "theme-light": "Light",
     "theme-dark": "Dark",
     "theme-system": "System",
-    "language": "Language",
-    "language-pt-BR": "Portuguese (Brazil)",
-    "language-en-US": "English (United States)",
-    "profile": "Profile"
+    "language": "Language"
   },
   "confirm": {
     "title": "Confirmation"
@@ -1775,37 +1844,6 @@
     "remove": {
       "title": "Delete the purchase “{name}”?",
       "description": "It leaves the invoice and the spending by cost center. This cannot be undone."
-    }
-  },
-  "profile": {
-    "breadcrumb": "Editing profile",
-    "title": "Profile",
-    "description": "Your data and notices.",
-    "data-hint": "The e-mail does not change.",
-    "sections": {
-      "data": "Data",
-      "notices": "Due date notices"
-    },
-    "form": {
-      "name": "Name",
-      "email": "E-mail",
-      "language": "Language",
-      "notices": "Receive the due date notices by e-mail",
-      "notices-on": "On.",
-      "notices-off": "Off."
-    },
-    "languages": {
-      "pt-BR": "Português (Brasil)",
-      "en-US": "English"
-    },
-    "notices": {
-      "daily": "Daily: one e-mail a day, only when something falls due that day.",
-      "weekly": "Weekly: every Friday, a summary of the due dates of the next week. With no due dates, nothing is sent."
-    },
-    "toast": {
-      "saved": "Profile saved",
-      "notices-on": "The due date notices are still on.",
-      "notices-off": "The due date notices were turned off."
     }
   }
 }

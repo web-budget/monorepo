@@ -1,10 +1,15 @@
 import { z } from 'zod'
 import { toTypedSchema } from '@/schemas/typedSchema'
-import { SUPPORTED_LOCALES } from '@/locales/languages'
+
+const CONTROL_CHARACTERS = /[\p{Cc}\p{Zl}\p{Zp}]/u
 
 export const profileSchema = z.object({
-  language: z.enum(SUPPORTED_LOCALES),
-  dueDateNotices: z.boolean(),
+  name: z
+    .string()
+    .trim()
+    .min(1)
+    .max(100)
+    .refine((name) => !CONTROL_CHARACTERS.test(name), { params: { i18n: 'invalid' } }),
 })
 
 export const profileFormSchema = toTypedSchema(profileSchema)
