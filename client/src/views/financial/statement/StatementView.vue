@@ -3,7 +3,6 @@ import {
   ArrowDownLeft,
   ArrowLeftRight,
   ArrowUpRight,
-  ArrowUpRightFromSquare,
   Scale,
   ScrollText,
   Undo2,
@@ -511,7 +510,7 @@ async function adjust(target: { id: string }, form: { value: number }) {
             class="text-muted-foreground hover:text-foreground inline-flex"
             @click.stop
           >
-            <ArrowUpRightFromSquare class="size-4" />
+            <ArrowUpRight class="size-4" />
           </RouterLink>
           <span v-else class="text-muted-foreground">—</span>
         </template>

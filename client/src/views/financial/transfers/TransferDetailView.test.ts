@@ -56,6 +56,7 @@ describe('TransferDetailView', () => {
     expect(wrapper.text()).toContain('Aluguel')
     expect(wrapper.text()).toMatch(/R\$\s500,00/)
     expect(wrapper.text()).not.toContain('Devolução')
+    expect(wrapper.text()).not.toContain('Inativo')
     expect(wrapper.find('a[href="/financial/statement?wallet=w-1"]').text()).toBe('Ver no extrato')
     expect(buttonWithText(wrapper, 'Devolver')).toBeDefined()
     expect(wrapper.text()).not.toContain('Remover')

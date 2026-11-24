@@ -18,7 +18,7 @@ const props = withDefaults(
     hideEdit?: boolean
     editVariant?: 'default' | 'outline'
   }>(),
-  { editVariant: 'default' },
+  { active: undefined, editVariant: 'default' },
 )
 
 const emit = defineEmits<{ edit: []; delete: [] }>()

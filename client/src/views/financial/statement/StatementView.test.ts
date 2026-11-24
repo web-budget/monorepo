@@ -318,6 +318,7 @@ describe('StatementView', () => {
 
       const rows = wrapper.findAll('tbody tr')
       expect(rows[0]!.find('a[href="/financial/movements/m-1/detail"]').exists()).toBe(true)
+      expect(rows[0]!.find('a svg').classes()).toContain('lucide-arrow-up-right')
       expect(rows[3]!.find('a[href="/financial/transfers/t-1/detail"]').exists()).toBe(true)
       expect(rows[2]!.text()).toContain('—')
       expect(wrapper.find('th .sr-only').text()).toBe('Abrir origem')
