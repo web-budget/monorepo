@@ -91,33 +91,6 @@ describe('usePeriodClosingStore', () => {
     expect(invoicesApi.close).toHaveBeenCalledWith('i-1')
   })
 
-  it('pays every pending item with the chosen wallet, one after the other', async () => {
-    serveLoad()
-    vi.mocked(movementsApi.pay).mockResolvedValue({} as never)
-    const store = usePeriodClosingStore()
-    await store.load('p-1')
-
-    await store.payAll('w-1')
-
-    expect(vi.mocked(movementsApi.pay).mock.calls).toEqual([
-      ['m-1', { wallet: 'w-1' }],
-      ['m-2', { wallet: 'w-1' }],
-    ])
-    expect(store.loading).toBe(false)
-  })
-
-  it('stops paying at the first failure', async () => {
-    serveLoad()
-    vi.mocked(movementsApi.pay).mockRejectedValue(new Error('boom'))
-    const store = usePeriodClosingStore()
-    await store.load('p-1')
-
-    await expect(store.payAll('w-1')).rejects.toThrow('boom')
-
-    expect(movementsApi.pay).toHaveBeenCalledTimes(1)
-    expect(store.loading).toBe(false)
-  })
-
   it('forgets everything on reset', async () => {
     serveLoad(['m-1'])
     const store = usePeriodClosingStore()

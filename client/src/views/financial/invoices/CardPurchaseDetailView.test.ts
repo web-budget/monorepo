@@ -94,6 +94,18 @@ describe('CardPurchaseDetailView', () => {
     expect(footerActions(wrapper)).toEqual(['Ver fatura', 'Editar', 'Excluir'])
   })
 
+  it('badges the installment next to the title, and nothing for a purchase without one', async () => {
+    const { wrapper } = await render({
+      name: 'Celular novo 10/12',
+      recurringMovement: { id: 'r-1', name: 'Celular novo', installment: 10, installments: 12 },
+    })
+    expect(wrapper.find('h1').text()).toBe('Celular novo')
+    expect(wrapper.find('[data-slot="installment"]').text()).toBe('10/12')
+
+    const { wrapper: plain } = await render()
+    expect(plain.find('[data-slot="installment"]').exists()).toBe(false)
+  })
+
   it('goes to the edit form', async () => {
     const { wrapper, router } = await render()
 

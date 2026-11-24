@@ -2,6 +2,7 @@ package br.com.webbudget.server.infrastructure.repository.registration
 
 import br.com.webbudget.server.domain.entities.registration.Wallet
 import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
+import br.com.webbudget.server.infrastructure.repository.containsIgnoringAccents
 import br.com.webbudget.server.infrastructure.repository.excluding
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
@@ -41,10 +42,10 @@ class WalletRepository(
 
         val textCondition = filter?.let { text ->
             DSL.or(
-                wallets.NAME.containsIgnoreCase(text),
-                wallets.BANK.containsIgnoreCase(text),
-                wallets.AGENCY.containsIgnoreCase(text),
-                wallets.NUMBER.containsIgnoreCase(text)
+                wallets.NAME.containsIgnoringAccents(text),
+                wallets.BANK.containsIgnoringAccents(text),
+                wallets.AGENCY.containsIgnoringAccents(text),
+                wallets.NUMBER.containsIgnoringAccents(text)
             )
         }
 

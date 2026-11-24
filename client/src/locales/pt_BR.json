@@ -541,8 +541,10 @@
       "en-us": "Inglês (Estados Unidos)"
     },
     "form": {
-      "new": "Novo usuário",
-      "editing": "Editando usuário",
+      "new": "Criando",
+      "editing": "Editando",
+      "title-new": "Novo usuário",
+      "title-editing": "Editar usuário",
       "name": "Nome",
       "email": "E-mail",
       "password": "Senha",
@@ -579,16 +581,16 @@
       "found": "{count} usuário encontrado para “{query}” | {count} usuários encontrados para “{query}”"
     },
     "remove": {
-      "title": "Remover o usuário “{name}”?",
+      "title": "Excluir o usuário “{name}”?",
       "description": "Não dá para desfazer. O acesso da pessoa é encerrado.",
-      "action": "Remover usuário"
+      "action": "Excluir usuário"
     },
     "toast": {
       "created": "Usuário criado",
       "created-detail": "“{name}” foi cadastrado.",
       "updated": "Alterações salvas",
       "updated-detail": "Os dados de “{name}” foram salvos.",
-      "removed": "Usuário removido",
+      "removed": "Usuário excluído",
       "removed-detail": "“{name}” saiu da lista.",
       "password-reset": "Senha redefinida",
       "password-reset-detail": "A nova senha de “{name}” já vale.",
@@ -733,8 +735,10 @@
       "skipped": "Alguns recorrentes não entraram"
     },
     "form": {
-      "new": "Novo recorrente",
-      "editing": "Editando recorrente",
+      "new": "Criando",
+      "editing": "Editando",
+      "title-new": "Novo recorrente",
+      "title-editing": "Editando recorrente",
       "detailing": "Detalhando",
       "type": "Tipo",
       "type-hint": "O tipo não muda depois de criado.",
@@ -952,7 +956,6 @@
       "resolved": "Resolvidas",
       "actions": "O que fazer",
       "none-title": "Nenhuma pendência",
-      "pay-all": "Pagar tudo",
       "due-on": "Vence em"
     },
     "invoices": {
@@ -1015,9 +1018,7 @@
       "closed": "{name} encerrado",
       "closed-detail": "Resultado {result} gravado. Faturas vazias fecharam com valor zero.",
       "reopened": "{name} reaberto",
-      "reopened-detail": "O resultado saiu da tabela e o período voltou a aceitar lançamentos.",
-      "paid-all": "Pendências pagas",
-      "paid-all-detail": "Saíram de {wallet}."
+      "reopened-detail": "O resultado saiu da tabela e o período voltou a aceitar lançamentos."
     }
   },
   "wallet": {
@@ -1034,9 +1035,11 @@
       "balance": "Saldo atual (R$)"
     },
     "form": {
-      "new": "Nova carteira",
-      "editing": "Editando carteira",
-      "detailing": "Detalhando carteira",
+      "new": "Criando",
+      "editing": "Editando",
+      "detailing": "Detalhando",
+      "title-new": "Nova carteira",
+      "title-editing": "Editar carteira",
       "deleting": "Excluindo carteira",
       "name": "Nome",
       "description": "Descrição",
@@ -1294,9 +1297,11 @@
       "expense": "Despesa"
     },
     "form": {
-      "new": "Nova classificação",
-      "editing": "Editando classificação",
-      "detailing": "Detalhando classificação",
+      "new": "Criando",
+      "editing": "Editando",
+      "detailing": "Detalhando",
+      "title-new": "Nova classificação",
+      "title-editing": "Editar classificação",
       "deleting": "Excluindo classificação",
       "name": "Nome",
       "description": "Descrição",
@@ -1337,9 +1342,11 @@
       "placeholder": "Nome"
     },
     "form": {
-      "new": "Novo centro de custo",
-      "editing": "Editando centro de custo",
-      "detailing": "Detalhando centro de custo",
+      "new": "Criando",
+      "editing": "Editando",
+      "detailing": "Detalhando",
+      "title-new": "Novo centro de custo",
+      "title-editing": "Editar centro de custo",
       "deleting": "Excluindo centro de custo",
       "name": "Nome",
       "description": "Descrição",
@@ -1871,7 +1878,7 @@
     "title": "Compras no cartão",
     "menu": "Compras no cartão",
     "form": {
-      "new": "Lançando compra",
+      "new": "Lançando",
       "editing": "Editando",
       "detailing": "Detalhando",
       "submit": "Lançar compra",
