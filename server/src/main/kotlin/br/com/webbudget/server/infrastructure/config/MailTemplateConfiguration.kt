@@ -16,23 +16,26 @@ import java.nio.charset.StandardCharsets.UTF_8
 class MailTemplateConfiguration {
 
     @Bean
-    fun mailMessageSource(): MessageSource = ResourceBundleMessageSource().apply {
-        setBasename("mail/messages")
-        setDefaultEncoding(UTF_8.name())
-        setFallbackToSystemLocale(false)
-    }
+    fun mailMessageSource(): MessageSource = ResourceBundleMessageSource()
+        .apply {
+            setBasename("mail/messages")
+            setDefaultEncoding(UTF_8.name())
+            setFallbackToSystemLocale(false)
+        }
 
     @Bean
     fun mailTemplateEngine(@Qualifier("mailMessageSource") mailMessageSource: MessageSource): TemplateEngine {
 
-        val templateResolver = ClassLoaderTemplateResolver().apply {
-            prefix = "templates/mail/"
-            suffix = ".html"
-            templateMode = TemplateMode.HTML
-            characterEncoding = UTF_8.name()
-        }
+        val templateResolver = ClassLoaderTemplateResolver()
+            .apply {
+                prefix = "templates/mail/"
+                suffix = ".html"
+                templateMode = TemplateMode.HTML
+                characterEncoding = UTF_8.name()
+            }
 
-        val messageResolver = SpringMessageResolver().apply { setMessageSource(mailMessageSource) }
+        val messageResolver = SpringMessageResolver()
+            .apply { setMessageSource(mailMessageSource) }
 
         return TemplateEngine().apply {
             setTemplateResolver(templateResolver)

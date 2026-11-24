@@ -8,6 +8,7 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import java.util.UUID
 
+// TODO essa classe deveria usar a classe ErrorCodes
 data class ActivateAccountForm(
     @field:NotNull(message = IS_NULL)
     val token: UUID?,
