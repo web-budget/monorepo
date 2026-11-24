@@ -134,7 +134,7 @@ describe('CardPurchaseFormView', () => {
     expect(cardPurchasesApi.create).not.toHaveBeenCalled()
   })
 
-  it('posts the purchase in the period that contains today and goes to its detail', async () => {
+  it('posts the purchase in the period that contains today and stays on the cleared form', async () => {
     vi.mocked(cardPurchasesApi.create).mockResolvedValue('cp-9')
     const { wrapper, router } = await render()
 
@@ -151,8 +151,8 @@ describe('CardPurchaseFormView', () => {
       costCenter: 'cc-1',
     })
     expect(toast.success).toHaveBeenCalledWith('Compra lançada', expect.anything())
-    expect(router.currentRoute.value.name).toBe('purchases.detail')
-    expect(router.currentRoute.value.params.id).toBe('cp-9')
+    expect(router.currentRoute.value.name).not.toBe('purchases.detail')
+    expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('')
   })
 
   it('starts from the card and the period of the link, ignoring what is not available', async () => {

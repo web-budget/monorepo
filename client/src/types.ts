@@ -143,13 +143,17 @@ export interface WalletView {
   bank: string | null
   number: string | null
   agency: string | null
+  lastEntryOn?: string | null
 }
 
 export interface WalletListView {
   id: string
   name: string
   type: WalletType
+  currentBalance: number
   bank: string | null
+  agency: string | null
+  number: string | null
   active: boolean
 }
 
@@ -288,6 +292,8 @@ export interface FinancialPeriodListView {
   endingAt: string
   status: FinancialPeriodStatus
   expired: boolean
+  revenuesGoal?: number | null
+  expensesGoal?: number | null
 }
 
 export interface FinancialPeriodResultView {
@@ -295,6 +301,8 @@ export interface FinancialPeriodResultView {
   expenses: number
   result: number
   recorded: boolean
+  toPay: number
+  overdueExpenses: number
 }
 
 export interface ClosingPeriodView {
@@ -437,6 +445,9 @@ export interface MovementListView {
   dueDate: string
   status: MovementStatus
   overdue: boolean
+  paymentMethod?: 'WALLET' | 'CARD'
+  classification: MovementClassificationView
+  costCenter: MovementCostCenterView
   financialPeriod: MovementFinancialPeriodView
 }
 

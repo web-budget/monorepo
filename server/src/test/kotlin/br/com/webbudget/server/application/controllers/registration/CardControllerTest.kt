@@ -50,6 +50,9 @@ class CardControllerTest : BaseIntegrationTest() {
             .jsonPath("$.content[0].name").isEqualTo("XP Infinite")
             .jsonPath("$.content[0].type").doesNotExist()
             .jsonPath("$.content[0].flag").isEqualTo("Visa Infinite")
+            .jsonPath("$.content[0].lastFourDigits").isEqualTo("1234")
+            .jsonPath("$.content[0].invoicePaymentDay").isEqualTo(8)
+            .jsonPath("$.content[0].wallet").doesNotExist()
             .jsonPath("$.page.totalElements").isEqualTo(2)
             .jsonPath("$.page.totalPages").isEqualTo(2)
     }
@@ -65,6 +68,34 @@ class CardControllerTest : BaseIntegrationTest() {
                 .expectBody()
                 .jsonPath("$.page.totalElements").isEqualTo(1)
                 .jsonPath("$.content[0].name").isEqualTo(name)
+        }
+    }
+
+    @Test
+    fun `should filter by the name of the wallet`() {
+
+        restTestClient.get()
+            .uri("$ENDPOINT_URL?filter=BANK ACC")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.page.totalElements").isEqualTo(1)
+            .jsonPath("$.content[0].name").isEqualTo("Itau Personalite")
+            .jsonPath("$.content[0].wallet.id").isEqualTo(WALLET_ID)
+            .jsonPath("$.content[0].wallet.name").isEqualTo("Bank account")
+    }
+
+    @Test
+    fun `should sort by the invoice payment day`() {
+
+        listOf("asc" to listOf("XP Infinite", "Itau Personalite"), "desc" to listOf("Itau Personalite", "XP Infinite")).forEach { (direction, names) ->
+            restTestClient.get()
+                .uri("$ENDPOINT_URL?sort=invoicePaymentDay,$direction")
+                .exchange()
+                .expectStatus().isOk
+                .expectBody()
+                .jsonPath("$.content[0].name").isEqualTo(names[0])
+                .jsonPath("$.content[1].name").isEqualTo(names[1])
         }
     }
 

@@ -313,6 +313,67 @@ class AuthControllerTest : BaseIntegrationTest() {
     }
 
     @Test
+    fun `should change the name of the own profile`() {
+
+        authenticateWithRoles("REGISTRATION")
+
+        patchProfile("  New Name  ")
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.name").isEqualTo("New Name")
+
+        restTestClient.get()
+            .uri(SESSION_URL)
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.name").isEqualTo("New Name")
+    }
+
+    @Test
+    fun `should let a pending account change its name`() {
+
+        createLoginUser("pending-profile@webbudget.com.br", TEST_PASSWORD, "REGISTRATION")
+        changeStatus("pending-profile@webbudget.com.br", "PENDING")
+        authenticateAs("pending-profile@webbudget.com.br", TEST_PASSWORD)
+
+        patchProfile("Pending Name")
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.status").isEqualTo("PENDING")
+            .jsonPath("$.name").isEqualTo("Pending Name")
+    }
+
+    @Test
+    fun `should refuse a blank, missing, long or control character name`() {
+
+        listOf(
+            """{"name": ""}""" to "is-null-or-blank",
+            """{}""" to "is-null-or-blank",
+            """{"name": "${"a".repeat(101)}"}""" to "has-max-chars-of-100",
+            "{\"name\": \"bad\\nname\"}" to "has-control-characters"
+        ).forEach { (body, code) ->
+            restTestClient.patch()
+                .uri(PROFILE_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(body)
+                .exchange()
+                .expectStatus().isEqualTo(422)
+                .expectBody()
+                .jsonPath("$.error").isEqualTo("field-validation-failed")
+                .jsonPath("$.parameters.name").isEqualTo(code)
+        }
+    }
+
+    @Test
+    fun `should require a session to change the name`() {
+
+        authenticateAnonymously()
+
+        patchProfile("Anonymous").expectStatus().isUnauthorized
+    }
+
+    @Test
     fun `should time the session out after thirty minutes`() {
 
         assertThat(environment.getRequiredProperty("server.servlet.session.timeout")).isEqualTo("30m")
@@ -322,6 +383,12 @@ class AuthControllerTest : BaseIntegrationTest() {
         .uri(LOGIN_URL)
         .contentType(MediaType.APPLICATION_JSON)
         .body("""{"email": "$email", "password": "$password"}""")
+        .exchange()
+
+    private fun patchProfile(name: String): ResponseSpec = restTestClient.patch()
+        .uri(PROFILE_URL)
+        .contentType(MediaType.APPLICATION_JSON)
+        .body("""{"name": "$name"}""")
         .exchange()
 
     private fun patchLanguage(language: String): ResponseSpec = patchLanguageBody("""{"language": "$language"}""")
@@ -339,5 +406,6 @@ class AuthControllerTest : BaseIntegrationTest() {
     companion object {
         private const val LOGIN_URL = "/private/v1/auth/login"
         private const val SESSION_URL = "/private/v1/auth/session"
+        private const val PROFILE_URL = "/private/v1/auth/profile"
     }
 }

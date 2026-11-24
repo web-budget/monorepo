@@ -2,10 +2,8 @@ package br.com.webbudget.server.application.payloads.financial
 
 import br.com.webbudget.server.application.payloads.ErrorCodes.IS_NOT_POSITIVE
 import br.com.webbudget.server.application.payloads.ErrorCodes.IS_NULL
-import br.com.webbudget.server.application.payloads.ErrorCodes.IS_NULL_OR_BLANK
 import br.com.webbudget.server.application.payloads.ErrorCodes.MAX_CHARS
 import br.com.webbudget.server.domain.entities.financial.WalletEntry
-import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
 import jakarta.validation.constraints.Size
@@ -35,7 +33,25 @@ data class StatementEntryPeriodView(
 
 data class StatementEntryReferenceView(
     val type: String,
-    val id: UUID
+    val id: UUID,
+    val returnTransfer: Boolean? = null,
+    val returnable: Boolean? = null
+)
+
+data class StatementEntryWalletView(
+    val id: UUID,
+    val name: String
+)
+
+data class StatementTotalView(
+    val total: BigDecimal,
+    val count: Int
+)
+
+data class StatementSummaryView(
+    val credits: StatementTotalView,
+    val debits: StatementTotalView,
+    val lastEntryOn: LocalDateTime?
 )
 
 data class WalletEntryView(
@@ -48,15 +64,15 @@ data class WalletEntryView(
     val previousBalance: BigDecimal,
     val resultingBalance: BigDecimal,
     val financialPeriod: StatementEntryPeriodView?,
-    val reference: StatementEntryReferenceView?
+    val reference: StatementEntryReferenceView?,
+    val wallet: StatementEntryWalletView? = null
 )
 
 data class AdjustmentForm(
     @field:NotNull(message = IS_NULL)
     val value: BigDecimal?,
     @field:Size(message = MAX_CHARS, max = 150)
-    @field:NotBlank(message = IS_NULL_OR_BLANK)
-    val name: String?
+    val name: String? = null
 )
 
 data class TransferForm(

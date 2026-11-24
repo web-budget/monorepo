@@ -29,7 +29,10 @@ const { messages, fields, submitting, loadingRecord, dirty, changeToList, onSubm
   toFormValues: toFinancialPeriodFormValues,
   create: (values) => store.create(toFinancialPeriodCreateForm(values)),
   update: (id, values) => store.update(id, toFinancialPeriodUpdateForm(values)),
-  redirectToDetail: true,
+  detailAfterUpdate: true,
+  successDetail: (updating) =>
+    updating ? 'financial-period.toast.updated-detail' : 'financial-period.toast.created-detail',
+  createDefaults: store.findNextDates,
   toastParams: () => ({ count: store.recurringLaunch.launched.length }),
 })
 
@@ -38,7 +41,9 @@ const updating = computed(() => props.id !== undefined)
 
 <template>
   <FormCard
-    :title="updating ? $t('financial-period.form.editing') : $t('financial-period.form.new')"
+    :title="
+      updating ? $t('financial-period.form.title-editing') : $t('financial-period.form.title-new')
+    "
     :description="updating ? form.values.name : undefined"
     :loading="loadingRecord"
     :submitting="submitting"
@@ -49,20 +54,18 @@ const updating = computed(() => props.id !== undefined)
     @submit="onSubmit"
     @back="changeToList"
   >
-    <FormSection
-      :title="$t('financial-period.sections.identification')"
-      :description="$t('financial-period.sections.identification-help')"
-    >
+    <FormSection :title="$t('financial-period.sections.identification')">
       <InputField
         name="name"
         :label="$t('financial-period.form.name')"
+        :placeholder="$t('financial-period.form.name-example')"
         required
         class="md:col-span-2"
       />
     </FormSection>
     <FormSection
       :title="$t('financial-period.sections.dates')"
-      :description="updating ? $t('financial-period.sections.dates-help') : undefined"
+      :description="$t('financial-period.sections.dates-help')"
     >
       <InputField
         name="startingAt"

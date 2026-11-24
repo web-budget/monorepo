@@ -13,7 +13,14 @@ vi.mock('@/api/movements')
 vi.mock('@/api/periodResults')
 
 const summary = { canClose: true } as ClosingSummaryView
-const result = { revenues: 1, expenses: 1, result: 0, recorded: false }
+const result = {
+  revenues: 1,
+  expenses: 1,
+  result: 0,
+  recorded: false,
+  toPay: 0,
+  overdueExpenses: 0,
+}
 const accumulated = { recorded: 0, provisional: 0, accumulated: 0, provisionalPeriods: [] }
 
 function page(content: object[]) {

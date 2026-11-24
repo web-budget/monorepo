@@ -29,7 +29,7 @@ class InvoiceTest {
     }
 
     private fun invoice(endingAt: LocalDate, paymentDay: Int) = Invoice(
-        card = CardReference(1, UUID.randomUUID(), "Card", true, paymentDay),
+        card = CardReference(1, UUID.randomUUID(), "Card", "1234", true, paymentDay),
         financialPeriod = FinancialPeriodReference(
             1,
             UUID.randomUUID(),

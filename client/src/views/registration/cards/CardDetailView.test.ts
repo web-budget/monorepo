@@ -23,7 +23,16 @@ const card: CardView = {
   lastFourDigits: '4321',
   active: true,
   flag: 'Elo',
-  wallet: { id: 'w-1', name: 'Main', type: 'BANK_ACCOUNT', bank: 'ACME', active: true },
+  wallet: {
+    id: 'w-1',
+    name: 'Main',
+    type: 'BANK_ACCOUNT',
+    bank: 'ACME',
+    currentBalance: 0,
+    agency: null,
+    number: null,
+    active: true,
+  },
   invoicePaymentDay: 10,
 }
 
@@ -75,13 +84,13 @@ describe('CardDetailView', () => {
     vi.mocked(cardsApi.remove).mockResolvedValue(undefined)
     const dialog = useConfirmDialog()
 
-    await buttonWithText(wrapper, 'Remover').trigger('click')
-    expect(dialog.state.options.title).toBe('Remover o cartão “Daily”?')
+    await buttonWithText(wrapper, 'Excluir').trigger('click')
+    expect(dialog.state.options.title).toBe('Excluir o cartão “Daily”?')
     dialog.accept()
     await flushPromises()
 
     expect(cardsApi.remove).toHaveBeenCalledWith('k-1')
-    expect(toast.success).toHaveBeenCalledWith('Cartão removido', {
+    expect(toast.success).toHaveBeenCalledWith('Cartão excluído', {
       description: '“Daily” saiu da lista.',
       duration: 4000,
     })
@@ -91,7 +100,7 @@ describe('CardDetailView', () => {
   it('does nothing when the removal is not confirmed', async () => {
     const { wrapper, router } = await render()
 
-    await buttonWithText(wrapper, 'Remover').trigger('click')
+    await buttonWithText(wrapper, 'Excluir').trigger('click')
     useConfirmDialog().cancel()
     await flushPromises()
 
@@ -105,7 +114,7 @@ describe('CardDetailView', () => {
       problem(400, { error: 'data-integrity-violation' }),
     )
 
-    await buttonWithText(wrapper, 'Remover').trigger('click')
+    await buttonWithText(wrapper, 'Excluir').trigger('click')
     useConfirmDialog().accept()
     await flushPromises()
 

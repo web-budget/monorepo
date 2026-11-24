@@ -3,12 +3,16 @@ package br.com.webbudget.server.application.mappers.financial
 import br.com.webbudget.server.application.payloads.financial.AdjustmentForm
 import br.com.webbudget.server.application.payloads.financial.StatementEntryPeriodView
 import br.com.webbudget.server.application.payloads.financial.StatementEntryReferenceView
+import br.com.webbudget.server.application.payloads.financial.StatementEntryWalletView
+import br.com.webbudget.server.application.payloads.financial.StatementSummaryView
+import br.com.webbudget.server.application.payloads.financial.StatementTotalView
 import br.com.webbudget.server.application.payloads.financial.TransferForm
 import br.com.webbudget.server.application.payloads.financial.TransferReferenceView
 import br.com.webbudget.server.application.payloads.financial.TransferView
 import br.com.webbudget.server.application.payloads.financial.TransferWalletView
 import br.com.webbudget.server.application.payloads.financial.WalletEntryView
 import br.com.webbudget.server.domain.entities.financial.StatementLine
+import br.com.webbudget.server.domain.entities.financial.StatementSummary
 import br.com.webbudget.server.domain.entities.financial.Transfer
 import br.com.webbudget.server.domain.entities.financial.TransferLink
 import br.com.webbudget.server.domain.entities.financial.WalletAdjustment
@@ -36,6 +40,15 @@ class WalletEntryMapper(
         reference = mapToReference(line)
     )
 
+    fun mapToDetailView(line: StatementLine, wallet: WalletReference): WalletEntryView =
+        mapToView(line).copy(wallet = StatementEntryWalletView(wallet.externalId, wallet.name))
+
+    fun mapToView(summary: StatementSummary): StatementSummaryView = StatementSummaryView(
+        credits = StatementTotalView(summary.credits.total, summary.credits.count),
+        debits = StatementTotalView(summary.debits.total, summary.debits.count),
+        lastEntryOn = summary.lastEntryOn
+    )
+
     fun mapToView(entry: WalletEntry): WalletEntryView = WalletEntryView(
         id = entry.externalId!!,
         createdOn = entry.createdOn!!,
@@ -50,7 +63,7 @@ class WalletEntryMapper(
     )
 
     fun mapToDomain(form: AdjustmentForm, wallet: WalletReference): WalletAdjustment =
-        WalletAdjustment(wallet, form.value!!, form.name!!)
+        WalletAdjustment(wallet, form.value!!, form.name)
 
     fun mapToDomain(form: TransferForm): Transfer = Transfer(
         fromWallet = movementReferenceRepository.findWallet(form.fromWallet!!) ?: throw ResourceNotFoundException(),
@@ -77,7 +90,12 @@ class WalletEntryMapper(
 
     private fun mapToReference(line: StatementLine): StatementEntryReferenceView? = when {
         line.movementExternalId != null -> StatementEntryReferenceView("MOVEMENT", line.movementExternalId)
-        line.transferExternalId != null -> StatementEntryReferenceView("TRANSFER", line.transferExternalId)
+        line.transferExternalId != null -> StatementEntryReferenceView(
+            "TRANSFER",
+            line.transferExternalId,
+            returnTransfer = line.transferIsReturn,
+            returnable = line.transferReturnable
+        )
         else -> null
     }
 }

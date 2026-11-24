@@ -164,13 +164,29 @@ class MovementMoveTest : BaseIntegrationTest() {
             .jsonPath("$.openInvoices[0].card.name").isEqualTo("Financial test card")
             .jsonPath("$.emptyInvoices.length()").isEqualTo(1)
             .jsonPath("$.emptyInvoices[0].card.name").isEqualTo("Financial test other card")
-            .jsonPath("$.nextOpenPeriod").doesNotExist()
+            .jsonPath("$.invoices.length()").isEqualTo(2)
+            .jsonPath("$.invoices[0].card.name").isEqualTo("Financial test card")
+            .jsonPath("$.invoices[0].card.lastFourDigits").isEqualTo("9101")
+            .jsonPath("$.invoices[0].purchaseCount").isEqualTo(2)
+            .jsonPath("$.invoices[0].status").isEqualTo("OPEN")
+            .jsonPath("$.invoices[1].card.name").isEqualTo("Financial test other card")
+            .jsonPath("$.invoices[1].purchaseCount").isEqualTo(0)
+            .jsonPath("$.openInvoices[0].purchaseCount").isEqualTo(2)
+            .jsonPath("$.emptyInvoices[0].purchaseCount").isEqualTo(0)
+            .jsonPath("$.emptyInvoices[0].status").isEqualTo("OPEN")
+            .jsonPath("$.emptyInvoices[0].card.lastFourDigits").isEqualTo("9102")
             .jsonPath("$.targetPeriods.length()").isEqualTo(1)
             .jsonPath("$.targetPeriods[0].id").isEqualTo(AUGUST)
+
+        summary(DECEMBER).expectBody(String::class.java).value { assertThat(it).contains("\"nextOpenPeriod\":null") }
 
         summary(AUGUST)
             .expectBody()
             .jsonPath("$.nextOpenPeriod.id").isEqualTo(DECEMBER)
+            .jsonPath("$.invoices.length()").isEqualTo(1)
+            .jsonPath("$.invoices[0].status").isEqualTo("CLOSED")
+            .jsonPath("$.invoices[0].purchaseCount").isEqualTo(1)
+            .jsonPath("$.openInvoices.length()").isEqualTo(0)
             .jsonPath("$.targetPeriods[0].id").isEqualTo(DECEMBER)
     }
 

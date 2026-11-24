@@ -55,7 +55,7 @@ describe('CardPurchaseDetailView', () => {
       'Fatura de Novembro',
     )
     expect(buttonWithText(wrapper, 'Editar')).toBeDefined()
-    expect(buttonWithText(wrapper, 'Remover')).toBeDefined()
+    expect(buttonWithText(wrapper, 'Excluir')).toBeDefined()
     expect(wrapper.find('[data-slot="movement-notice"]').exists()).toBe(false)
   })
 
@@ -72,13 +72,13 @@ describe('CardPurchaseDetailView', () => {
     vi.mocked(cardPurchasesApi.remove).mockResolvedValue(undefined)
     const { wrapper } = await render()
 
-    await buttonWithText(wrapper, 'Remover').trigger('click')
-    expect(useConfirmDialog().state.options.title).toBe('Remover a compra “Mercado”?')
+    await buttonWithText(wrapper, 'Excluir').trigger('click')
+    expect(useConfirmDialog().state.options.title).toBe('Excluir a compra “Mercado”?')
     useConfirmDialog().accept()
     await flushPromises()
 
     expect(cardPurchasesApi.remove).toHaveBeenCalledWith('cp-1')
-    expect(toast.success).toHaveBeenCalledWith('Compra removida', expect.anything())
+    expect(toast.success).toHaveBeenCalledWith('Compra excluída', expect.anything())
   })
 
   it('is read only when the invoice is no longer open', async () => {
@@ -86,7 +86,7 @@ describe('CardPurchaseDetailView', () => {
 
     expect(wrapper.text()).toContain('Fechada')
     expect(() => buttonWithText(wrapper, 'Editar')).toThrow('no button')
-    expect(() => buttonWithText(wrapper, 'Remover')).toThrow('no button')
+    expect(() => buttonWithText(wrapper, 'Excluir')).toThrow('no button')
   })
 
   it('is read only and links to the movement when the purchase came from a payment', async () => {
