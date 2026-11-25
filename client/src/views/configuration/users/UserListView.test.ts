@@ -545,6 +545,17 @@ describe('UserListView', () => {
       expect(usersApi.approve).not.toHaveBeenCalled()
     })
 
+    it('does not take the focus from the roles when the cancel button is pressed', async () => {
+      const { wrapper } = await render()
+      await chooseRowAction(wrapper, 1, 'Aprovar')
+      await settle()
+      const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
+
+      approveDialogButton('Cancelar').dispatchEvent(press)
+
+      expect(press.defaultPrevented).toBe(true)
+    })
+
     it('closes the approval dialog without approving', async () => {
       const { wrapper } = await render()
 
@@ -875,6 +886,18 @@ describe('UserListView', () => {
       await settle()
 
       expect(document.body.querySelector('[role="dialog"] form')).toBeNull()
+    })
+
+    it('does not take the focus from the field when the cancel button is pressed', async () => {
+      await open()
+      const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
+
+      const cancel = [...document.body.querySelectorAll('button')].find(
+        (button) => button.textContent?.trim() === 'Cancelar',
+      )!
+      cancel.dispatchEvent(press)
+
+      expect(press.defaultPrevented).toBe(true)
     })
 
     it('closes with the cancel button and forgets what was typed and any error', async () => {

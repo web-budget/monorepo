@@ -43,6 +43,7 @@ const {
   initialStatus: 'ACTIVE',
   statuses: MASCULINE_STATUS_OPTIONS.map((option) => option.value),
   sortFields: ['fullName', 'active'],
+  defaultSort: { sortField: 'fullName', direction: 'asc' },
   pageRequest,
   pageResponse,
   loading,
@@ -101,6 +102,7 @@ const columns = computed(() => [
         :total-elements="pageResponse.totalElements"
         :summary="searchSummary"
         :columns="columns"
+        default-sort-field="fullName"
         :loading="busy"
         :current-page="pageRequest.current"
         :page-size="pageRequest.size"

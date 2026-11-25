@@ -266,6 +266,19 @@ describe('RecurringMovementListView', () => {
     ).toEqual(['Detalhes', 'Editar', 'Excluir'])
   })
 
+  it('does not take the focus from the field when Cancelar is pressed in the readjust dialog', async () => {
+    const { wrapper } = await render()
+    await chooseRowAction(wrapper, 0, 'Reajustar valor')
+    const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
+
+    const cancel = [...document.body.querySelectorAll('button')].find(
+      (button) => button.textContent?.trim() === 'Cancelar',
+    )!
+    cancel.dispatchEvent(press)
+
+    expect(press.defaultPrevented).toBe(true)
+  })
+
   it('readjusts a fixed one and reloads', async () => {
     const { wrapper } = await render()
     vi.mocked(recurringMovementsApi.readjust).mockResolvedValue(rent)

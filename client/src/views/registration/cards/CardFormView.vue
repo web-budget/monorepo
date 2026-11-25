@@ -18,6 +18,7 @@ import {
   toCardUpdateForm,
 } from '@/schemas/cardSchema'
 import { useCardsStore } from '@/stores/cards'
+import { walletLabel } from '@/utils/walletLabel'
 
 const props = defineProps<{ id?: string }>()
 
@@ -51,11 +52,11 @@ const flagOptions = computed(() => {
 const walletOptions = computed(() => {
   const wallets = activeWallets.wallets.value.map((wallet) => ({
     value: wallet.id,
-    label: wallet.name,
+    label: walletLabel(wallet),
   }))
   const current = updating.value ? store.card?.wallet : undefined
   return current && !wallets.some((wallet) => wallet.value === current.id)
-    ? [...wallets, { value: current.id, label: current.name }]
+    ? [...wallets, { value: current.id, label: walletLabel(current) }]
     : wallets
 })
 

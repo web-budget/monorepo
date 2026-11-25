@@ -74,7 +74,7 @@ function confirm() {
           @update:model-value="(value: string) => (chosen = value)"
         />
         <DialogFooter>
-          <Button type="button" variant="outline" @click="emit('close')">
+          <Button type="button" variant="outline" @mousedown.prevent @click="emit('close')">
             {{ $t('form.cancel') }}
           </Button>
           <Button type="button" :disabled="loading || chosen === ''" @click="confirm()">

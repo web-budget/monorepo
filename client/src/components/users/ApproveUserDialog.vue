@@ -57,7 +57,7 @@ const submit = form.handleSubmit((values) => {
         </DialogHeader>
         <RoleSelectField name="roles" :label="$t('users.form.roles')" :options="roleOptions" />
         <DialogFooter>
-          <Button type="button" variant="outline" @click="emit('close')">
+          <Button type="button" variant="outline" @mousedown.prevent @click="emit('close')">
             {{ $t('form.cancel') }}
           </Button>
           <Button type="submit" :disabled="loading">{{ $t('users.approve.action') }}</Button>

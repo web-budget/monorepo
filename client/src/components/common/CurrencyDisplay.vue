@@ -11,6 +11,7 @@ const props = withDefaults(
     bare?: boolean
     glued?: boolean
     neutral?: boolean
+    tone?: 'income' | 'expense'
   }>(),
   { zeroIfNull: false, signed: false, bare: false, glued: false, neutral: false },
 )
@@ -24,6 +25,8 @@ const direction = computed(() => {
   if (!props.signed || !amount.value) return null
   return amount.value > 0 ? 'income' : 'expense'
 })
+
+const color = computed(() => direction.value ?? props.tone ?? null)
 
 function plain(value: number) {
   const formatted = n(value, 'currency')
@@ -41,11 +44,11 @@ function format(value: number) {
   <span
     v-if="amount !== null"
     data-slot="currency"
-    :data-direction="direction ?? undefined"
+    :data-direction="color ?? undefined"
     :class="[
       'font-mono tabular-nums',
-      !neutral && direction === 'income' && 'text-income',
-      !neutral && direction === 'expense' && 'text-expense',
+      !neutral && color === 'income' && 'text-income',
+      !neutral && color === 'expense' && 'text-expense',
     ]"
     >{{ format(amount) }}</span
   >
