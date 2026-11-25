@@ -1534,6 +1534,7 @@
       "received-note": "Receitas pagas",
       "paid": "Pago",
       "paid-note": "Despesas pagas",
+      "paid-note-on-card": "Despesas pagas · {amount} no cartão",
       "result": "Resultado",
       "result-note": "Receitas − despesas",
       "to-pay": "A pagar",

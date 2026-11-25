@@ -75,6 +75,7 @@ function serveResults() {
     result: 1500,
     toPay: 0,
     overdueExpenses: 0,
+    paidOnCard: 0,
     recorded: false,
   })
 }
@@ -363,6 +364,7 @@ describe('FinancialPeriodListView', () => {
       result: -300,
       toPay: 0,
       overdueExpenses: 0,
+      paidOnCard: 0,
       recorded: true,
     })
     serveListing(vi.mocked(financialPeriodsApi.findAll), periods, periods.length, COUNTS)

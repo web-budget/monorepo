@@ -23,6 +23,7 @@ const result = {
   recorded: false,
   toPay: 0,
   overdueExpenses: 0,
+  paidOnCard: 0,
 }
 const accumulated = { recorded: 0, provisional: 0, accumulated: 0, provisionalPeriods: [] }
 

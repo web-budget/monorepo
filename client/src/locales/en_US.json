@@ -1534,6 +1534,7 @@
       "received-note": "Paid income",
       "paid": "Paid",
       "paid-note": "Paid expenses",
+      "paid-note-on-card": "Paid expenses · {amount} on card",
       "result": "Result",
       "result-note": "Income − expenses",
       "to-pay": "To pay",

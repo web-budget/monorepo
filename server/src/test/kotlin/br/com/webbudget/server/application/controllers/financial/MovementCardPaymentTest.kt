@@ -100,6 +100,37 @@ class MovementCardPaymentTest : BaseIntegrationTest() {
             .expectStatus().isOk
             .expectBody()
             .jsonPath("$.expenses").isEqualTo(89.9)
+            .jsonPath("$.paidOnCard").isEqualTo(320.0)
+    }
+
+    @Test
+    fun `should report the value paid on card, with discount, apart from the wallet total`() {
+
+        restTestClient.get()
+            .uri("/private/v1/financial/financial-periods/$OPEN_PERIOD/result")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.paidOnCard").isEqualTo(0)
+
+        payByWallet(GROCERIES_ID).expectStatus().isOk
+
+        restTestClient.get()
+            .uri("/private/v1/financial/financial-periods/$OPEN_PERIOD/result")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.paidOnCard").isEqualTo(0)
+
+        payByCard(GYM_ID, discount = "20.00").expectStatus().isOk
+
+        restTestClient.get()
+            .uri("/private/v1/financial/financial-periods/$OPEN_PERIOD/result")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.expenses").isEqualTo(89.9)
+            .jsonPath("$.paidOnCard").isEqualTo(300.0)
     }
 
     @Test
