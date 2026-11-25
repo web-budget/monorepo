@@ -35,7 +35,7 @@ const cards = [{ id: 'k-1', name: 'Visa Platinum' }] as never[]
 async function render(
   movement: Payable | null,
   balanceOf = vi.fn<(id: string) => Promise<number>>(),
-  options: { wallets?: never[]; cards?: never[] } = {},
+  options: { wallets?: never[]; cards?: never[]; messages?: string[] } = {},
 ) {
   installZodErrorMap()
   const { plugins } = createTestPlugins()
@@ -45,6 +45,7 @@ async function render(
       wallets: options.wallets ?? wallets,
       cards: options.cards ?? cards,
       loading: false,
+      messages: options.messages ?? [],
       balanceOf,
     },
     attachTo: document.body,
@@ -97,6 +98,15 @@ describe('PayMovementDialog', () => {
     vi.useFakeTimers({ toFake: ['Date'] })
     vi.setSystemTime(new Date(2026, 10, 21))
     vi.mocked(invoicesApi.findAll).mockResolvedValue(pageOf([{ id: 'i-1' }] as never[]))
+  })
+
+  it('shows the payment errors from the server in the dialog', async () => {
+    await render(expense, vi.fn().mockResolvedValue(100), {
+      messages: ['A data do pagamento não pode ser futura'],
+    })
+
+    const alert = document.body.querySelector('[role="dialog"] [data-slot="server-error"]')
+    expect(alert!.textContent).toContain('A data do pagamento não pode ser futura')
   })
 
   afterEach(() => {

@@ -372,7 +372,8 @@ describe('MovementDetailView', () => {
     await flushPromises()
 
     expect(dialog.props('movement')).not.toBeNull()
-    expect(wrapper.find('[data-slot="server-error"]').text()).toContain('desconto')
+    expect(dialog.props('messages').join(' ')).toContain('desconto')
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
   })
 
   it('closes the dialog without paying', async () => {
@@ -445,7 +446,8 @@ describe('MovementDetailView', () => {
 
     expect(dialog.props('movement')).not.toBeNull()
     expect(movementsApi.findById).toHaveBeenCalledTimes(2)
-    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
+    expect(dialog.props('messages')).toHaveLength(1)
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
   })
 
   it('shows the server error when the wallets cannot be loaded', async () => {

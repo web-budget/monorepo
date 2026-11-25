@@ -87,6 +87,11 @@ function approveDialogButton(label: string) {
     (candidate) => candidate.textContent?.trim() === label,
   )!
 }
+function approveDialogError() {
+  return (
+    document.body.querySelector('[role="dialog"] [data-slot="server-error"]')?.textContent ?? ''
+  )
+}
 
 describe('UserListView', () => {
   beforeEach(() => {
@@ -472,7 +477,9 @@ describe('UserListView', () => {
       approveDialogButton('Aprovar').click()
       await settle()
 
-      expect(wrapper.text()).toContain('Alguma informação está ausente ou inválida')
+      expect(approveDialogError()).toContain('Alguma informação está ausente ou inválida')
+      expect(wrapper.text()).not.toContain('Alguma informação está ausente ou inválida')
+      expect(document.body.textContent).toContain('Aprovar a conta de Bruno?')
       expect(usersApi.update).not.toHaveBeenCalled()
       expect(toast.success).not.toHaveBeenCalled()
     })
@@ -579,7 +586,10 @@ describe('UserListView', () => {
       approveDialogButton('Aprovar').click()
       await settle()
 
-      expect(wrapper.text()).toContain('A conta mudou de status enquanto a tela estava aberta')
+      expect(approveDialogError()).toContain(
+        'A conta mudou de status enquanto a tela estava aberta',
+      )
+      expect(wrapper.text()).not.toContain('A conta mudou de status enquanto a tela estava aberta')
     })
   })
 

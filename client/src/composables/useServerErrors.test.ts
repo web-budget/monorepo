@@ -4,6 +4,20 @@ import { useServerErrors } from '@/composables/useServerErrors'
 import { isHandled } from '@/utils/handledErrors'
 
 describe('useServerErrors', () => {
+  it('forgets the messages and the fields when cleared', async () => {
+    const { fields, messages, clear, run } = useServerErrors()
+    await run(() =>
+      Promise.reject(
+        new ApiError({ error: 'conflict', parameters: { 'wallet.name': 'Main' } }, 409),
+      ),
+    )
+
+    clear()
+
+    expect(messages.value).toEqual([])
+    expect(fields.value).toEqual([])
+  })
+
   it('reports success and keeps no message', async () => {
     const { messages, run } = useServerErrors()
 

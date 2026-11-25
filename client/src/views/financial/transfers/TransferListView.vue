@@ -224,7 +224,7 @@ function create() {
           </Button>
         </div>
       </Card>
-      <ServerErrorAlert :messages="[...optionErrors.messages.value, ...giveBack.messages.value]" />
+      <ServerErrorAlert :messages="optionErrors.messages.value" />
       <ListState
         v-if="listState !== 'table'"
         :kind="listState"
@@ -293,6 +293,7 @@ function create() {
       :transfer="giveBack.target.value"
       :loading="loading"
       :balance-of="giveBack.balanceOf"
+      :messages="giveBack.messages.value"
       @close="giveBack.close()"
       @confirm="giveBack.confirm"
     />

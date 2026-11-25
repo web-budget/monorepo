@@ -34,10 +34,10 @@ const paidOnCard = {
 
 const withoutPayment = { ...paidExpense, payment: null } as MovementView
 
-async function render(movement: MovementView | null, loading = false) {
+async function render(movement: MovementView | null, loading = false, messages: string[] = []) {
   const { plugins } = createTestPlugins()
   const wrapper = mount(UndoPaymentDialog, {
-    props: { movement, loading },
+    props: { movement, loading, messages },
     attachTo: document.body,
     global: { plugins },
   })
@@ -58,6 +58,13 @@ function reversal() {
 describe('UndoPaymentDialog', () => {
   beforeEach(() => {
     document.body.replaceChildren()
+  })
+
+  it('shows the server errors at the top of the dialog body', async () => {
+    await render(paidExpense, false, ['Pagamento já desfeito'])
+
+    const alert = document.body.querySelector('[role="dialog"] [data-slot="server-error"]')
+    expect(alert!.textContent).toContain('Pagamento já desfeito')
   })
 
   it('stays closed without a movement', async () => {

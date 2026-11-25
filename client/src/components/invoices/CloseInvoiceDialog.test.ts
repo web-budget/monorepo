@@ -11,6 +11,7 @@ const base: {
   dueDate: string | null
   walletName: string | null
   loading: boolean
+  messages: string[]
 } = {
   open: true,
   title: 'Fechar a fatura de Novembro, Visa?',
@@ -19,6 +20,7 @@ const base: {
   dueDate: '2026-12-10',
   walletName: 'Conta corrente',
   loading: false,
+  messages: [],
 }
 
 async function render(overrides: Partial<typeof base> = {}) {
@@ -41,6 +43,13 @@ function button(text: string) {
 describe('CloseInvoiceDialog', () => {
   beforeEach(() => {
     document.body.replaceChildren()
+  })
+
+  it('shows the server errors at the top of the dialog body', async () => {
+    await render({ messages: ['A fatura já está fechada'] })
+
+    const alert = document.body.querySelector('[role="dialog"] [data-slot="server-error"]')
+    expect(alert!.textContent).toContain('A fatura já está fechada')
   })
 
   it('sums up the purchases, the payment, the due date and the wallet', async () => {
