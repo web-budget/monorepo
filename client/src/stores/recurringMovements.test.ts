@@ -85,6 +85,21 @@ describe('useRecurringMovementsStore', () => {
     expect(store.recurringMovement).toEqual(readjusted)
   })
 
+  it('launches extra and keeps the report', async () => {
+    const report = { launched: [], skipped: [] }
+    vi.mocked(recurringMovementsApi.launchExtra).mockResolvedValue(report)
+    const store = useRecurringMovementsStore()
+
+    await expect(
+      store.launchExtra('r-1', { financialPeriod: 'p-1', quantity: 2 }),
+    ).resolves.toEqual(report)
+
+    expect(recurringMovementsApi.launchExtra).toHaveBeenCalledWith('r-1', {
+      financialPeriod: 'p-1',
+      quantity: 2,
+    })
+  })
+
   it('loads a page of the value history', async () => {
     const value = { value: 1000, reason: null, validFrom: '2026-01-01T00:00:00' }
     vi.mocked(recurringMovementsApi.findValues).mockResolvedValue({

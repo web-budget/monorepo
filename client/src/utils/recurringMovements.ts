@@ -41,3 +41,23 @@ export function isLaunchedIn(
 ): boolean {
   return recurringMovement.launchedInPeriod != null
 }
+
+export const MAX_ENDLESS_EXTRA_LAUNCHES = 12
+
+export function maxExtraLaunches(
+  recurringMovement: Pick<RecurringMovementView, 'installments' | 'nextInstallment'>,
+): number {
+  const { installments, nextInstallment } = recurringMovement
+  if (installments == null) {
+    return MAX_ENDLESS_EXTRA_LAUNCHES
+  }
+  return nextInstallment == null ? 0 : installments - nextInstallment + 1
+}
+
+export function extraLaunchInstallments(
+  recurringMovement: Pick<RecurringMovementView, 'nextInstallment'>,
+  quantity: number,
+): number[] {
+  const first = recurringMovement.nextInstallment ?? 1
+  return Array.from({ length: quantity }, (_, index) => first + index)
+}

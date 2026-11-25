@@ -345,7 +345,18 @@ onMounted(async () => {
             glued
             class="text-xl font-semibold tracking-tight"
           />
-          <span class="text-muted-foreground text-xs">{{ $t('movement.summary.paid-note') }}</span>
+          <span class="text-muted-foreground text-xs" data-slot="paid-note">
+            <i18n-t
+              v-if="periodResult.paidOnCard > 0"
+              keypath="movement.summary.paid-note-on-card"
+              scope="global"
+            >
+              <template #amount>
+                <CurrencyDisplay :value="periodResult.paidOnCard" />
+              </template>
+            </i18n-t>
+            <template v-else>{{ $t('movement.summary.paid-note') }}</template>
+          </span>
         </Card>
         <Card class="gap-1 p-4">
           <span class="text-muted-foreground text-xs">{{ $t('movement.summary.result') }}</span>

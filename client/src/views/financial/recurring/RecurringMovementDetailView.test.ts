@@ -1,13 +1,20 @@
 import { flushPromises } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'vue-sonner'
+import { financialPeriodsApi } from '@/api/financialPeriods'
 import { recurringMovementsApi } from '@/api/recurringMovements'
 import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import { buttonWithText, mountView, pageOf, problem, settle } from '@/test/crud'
-import type { RecurringLaunchEntryView, RecurringMovementView, RecurringValueView } from '@/types'
+import type {
+  FinancialPeriodListView,
+  RecurringLaunchEntryView,
+  RecurringMovementView,
+  RecurringValueView,
+} from '@/types'
 import RecurringMovementDetailView from '@/views/financial/recurring/RecurringMovementDetailView.vue'
 
 vi.mock('@/api/recurringMovements')
+vi.mock('@/api/financialPeriods')
 vi.mock('vue-sonner', () => ({
   toast: {
     success: vi.fn<() => void>(),
@@ -95,12 +102,17 @@ describe('RecurringMovementDetailView', () => {
     ])
   })
 
-  it('puts Excluir, Reajustar valor and Editar in that order, Editar being the primary one', async () => {
+  it('puts Excluir, Reajustar valor, Lançar no período and Editar in that order, Editar being the primary one', async () => {
     const { wrapper } = await render()
 
     const actions = wrapper.findAll('[data-slot="page-actions"] button')
-    expect(actions.map((button) => button.text())).toEqual(['Excluir', 'Reajustar valor', 'Editar'])
-    expect(actions[2]!.classes()).toContain('bg-primary')
+    expect(actions.map((button) => button.text())).toEqual([
+      'Excluir',
+      'Reajustar valor',
+      'Lançar no período',
+      'Editar',
+    ])
+    expect(actions[3]!.classes()).toContain('bg-primary')
   })
 
   it('shows the identification, the value and the repetition', async () => {
@@ -346,5 +358,226 @@ describe('RecurringMovementDetailView', () => {
     expect(wrapper.find('[role="alert"]').exists()).toBe(true)
     expect(recurringMovementsApi.findValues).not.toHaveBeenCalled()
     expect(recurringMovementsApi.findLaunches).not.toHaveBeenCalled()
+  })
+
+  describe('launching in the period', () => {
+    const december = {
+      id: 'p-12',
+      name: 'Dezembro de 2026',
+      startingAt: '2026-12-01',
+      endingAt: '2026-12-31',
+      status: 'OPEN',
+      expired: false,
+    } as FinancialPeriodListView
+
+    const installmentBased = { installments: 4, launchedInstallments: 2, nextInstallment: 3 }
+    const endless = {
+      installments: undefined,
+      launchedInstallments: undefined,
+      nextInstallment: undefined,
+    }
+
+    async function openDialog(
+      content: Partial<RecurringMovementView> = installmentBased,
+      periods: FinancialPeriodListView[] = [december],
+    ) {
+      vi.mocked(financialPeriodsApi.findAll).mockResolvedValue(pageOf(periods))
+      const { wrapper } = await render(content)
+      await buttonWithText(wrapper, 'Lançar no período').trigger('click')
+      await flushPromises()
+      return wrapper
+    }
+
+    function type(name: string, value: string) {
+      const input = document.body.querySelector<HTMLInputElement>(`input[name="${name}"]`)!
+      input.value = value
+      input.dispatchEvent(new Event('input', { bubbles: true }))
+      return flushPromises()
+    }
+
+    function preview() {
+      return document.body.querySelector('[data-slot="launch-preview"]')?.textContent
+    }
+
+    async function submit() {
+      document
+        .querySelector('[role="dialog"] form')!
+        .dispatchEvent(new Event('submit', { cancelable: true }))
+      await settle()
+    }
+
+    function dialog() {
+      return document.body.querySelector('[role="dialog"]')
+    }
+
+    function dialogButton(text: string) {
+      return [...dialog()!.querySelectorAll('button')].find(
+        (button) => button.textContent?.trim() === text,
+      )!
+    }
+
+    it('offers the action only on an active recurring movement that is not finished', async () => {
+      const variable = await render({ valueKind: 'VARIABLE' })
+      expect(variable.wrapper.text()).toContain('Lançar no período')
+      expect(variable.wrapper.text()).not.toContain('Reajustar valor')
+
+      const inactive = await render({ active: false, ended: true })
+      expect(inactive.wrapper.text()).not.toContain('Lançar no período')
+
+      const finished = await render({ finished: true, ended: true })
+      expect(finished.wrapper.text()).not.toContain('Lançar no período')
+    })
+
+    it('previews the installments that will be created and the due date', async () => {
+      await openDialog(installmentBased)
+
+      expect(dialog()!.textContent).toContain('Lançar “Celular novo” no período')
+      expect(dialog()!.textContent).toContain('De 1 a 2, as parcelas que faltam.')
+      expect(preview()).toContain('Celular novo 3/4, vencendo em 31/12/2026.')
+
+      await type('quantity', '2')
+      expect(preview()).toContain('Celular novo 3/4 e 4/4, vencendo em 31/12/2026.')
+
+      await type('quantity', '3')
+      expect(preview()).toBeUndefined()
+    })
+
+    it('lists three or more installments', async () => {
+      await openDialog({ installments: 12, launchedInstallments: 2, nextInstallment: 3 })
+
+      await type('quantity', '3')
+
+      expect(preview()).toContain('Celular novo 3/12, 4/12 e 5/12, vencendo em 31/12/2026.')
+    })
+
+    it('previews an endless recurring movement without installments', async () => {
+      await openDialog(endless)
+
+      expect(dialog()!.textContent).toContain('De 1 a 12.')
+      expect(preview()).toContain('Celular novo, vencendo em 31/12/2026.')
+
+      await type('quantity', '2')
+      expect(preview()).toContain('2 lançamentos de Celular novo, vencendo em 31/12/2026.')
+    })
+
+    it('launches the quantity, shows the toast and reloads the recurring movement', async () => {
+      vi.mocked(recurringMovementsApi.launchExtra).mockResolvedValue({
+        launched: [
+          { recurringMovement: 'r-1', installment: 3, movement: {} as never },
+          { recurringMovement: 'r-1', installment: 4, movement: {} as never },
+        ],
+        skipped: [],
+      })
+      await openDialog(installmentBased)
+
+      await type('quantity', '2')
+      await submit()
+
+      expect(recurringMovementsApi.launchExtra).toHaveBeenCalledWith('r-1', {
+        financialPeriod: 'p-12',
+        quantity: 2,
+      })
+      expect(toast.success).toHaveBeenCalledWith('2 lançamentos criados', expect.anything())
+      expect(dialog()).toBeNull()
+      expect(recurringMovementsApi.findById).toHaveBeenCalledTimes(2)
+    })
+
+    it('refuses a quantity above what is left without calling the server', async () => {
+      await openDialog(installmentBased)
+
+      await type('quantity', '3')
+      await submit()
+
+      expect(recurringMovementsApi.launchExtra).not.toHaveBeenCalled()
+      expect(dialog()).not.toBeNull()
+    })
+
+    it('takes a value only for a variable recurring movement', async () => {
+      vi.mocked(recurringMovementsApi.launchExtra).mockResolvedValue({ launched: [], skipped: [] })
+      await openDialog({ ...endless, valueKind: 'VARIABLE', suggestedValue: 218.35 })
+
+      const value = document.body.querySelector<HTMLInputElement>('input[name="value"]')!
+      expect(value.placeholder).toBe('218,35')
+      expect(dialog()!.textContent).toMatch(
+        /Opcional\. Em branco usa o valor sugerido, R\$\s*218,35\./,
+      )
+
+      await type('value', '9840')
+      await submit()
+
+      expect(recurringMovementsApi.launchExtra).toHaveBeenCalledWith('r-1', {
+        financialPeriod: 'p-12',
+        quantity: 1,
+        value: 98.4,
+      })
+    })
+
+    it('does not take the focus from the field when the cancel button is pressed', async () => {
+      await openDialog(installmentBased)
+      const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
+
+      dialogButton('Cancelar').dispatchEvent(press)
+
+      expect(press.defaultPrevented).toBe(true)
+    })
+
+    it('closes without launching on Escape', async () => {
+      await openDialog(installmentBased)
+
+      dialog()!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+      await flushPromises()
+
+      expect(dialog()).toBeNull()
+      expect(recurringMovementsApi.launchExtra).not.toHaveBeenCalled()
+    })
+
+    it('has no value field on a fixed recurring movement', async () => {
+      await openDialog(installmentBased)
+
+      expect(document.body.querySelector('input[name="value"]')).toBeNull()
+    })
+
+    it('keeps the dialog open and shows what the server refuses inside it', async () => {
+      vi.mocked(recurringMovementsApi.launchExtra).mockRejectedValue(problem(400))
+      const wrapper = await openDialog(installmentBased)
+
+      await submit()
+
+      expect(dialog()!.querySelector('[data-slot="server-error"]')).not.toBeNull()
+      expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
+      expect(toast.success).not.toHaveBeenCalled()
+
+      dialogButton('Cancelar').click()
+      await flushPromises()
+      expect(dialog()).toBeNull()
+
+      await buttonWithText(wrapper, 'Lançar no período').trigger('click')
+      await flushPromises()
+      expect(dialog()!.querySelector('[data-slot="server-error"]')).toBeNull()
+    })
+
+    it('warns when there is no open period and does not let it launch', async () => {
+      await openDialog(installmentBased, [])
+
+      expect(dialog()!.textContent).toContain('Não há período aberto')
+      expect(preview()).toBeUndefined()
+      expect(dialogButton('Lançar').disabled).toBe(true)
+    })
+
+    it('marks an expired period', async () => {
+      await openDialog(installmentBased, [{ ...december, expired: true }])
+
+      expect(dialog()!.textContent).toContain('Dezembro de 2026 · expirado')
+    })
+
+    it('shows the error inside the dialog when the periods fail to load', async () => {
+      vi.mocked(financialPeriodsApi.findAll).mockRejectedValue(problem(500))
+      const { wrapper } = await render(installmentBased)
+
+      await buttonWithText(wrapper, 'Lançar no período').trigger('click')
+      await flushPromises()
+
+      expect(dialog()!.querySelector('[data-slot="server-error"]')).not.toBeNull()
+    })
   })
 })

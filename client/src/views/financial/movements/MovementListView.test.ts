@@ -144,6 +144,7 @@ const periodResult: FinancialPeriodResultView = {
   result: 8303.88,
   toPay: 1250.5,
   overdueExpenses: 2,
+  paidOnCard: 0,
   recorded: false,
 }
 
@@ -396,6 +397,28 @@ describe('MovementListView', () => {
       const result = wrapper.findAll('[data-slot="summary"] [data-slot="currency"]')[2]!
       expect(result.text()).toMatch(/^−R\$\s50,00$/)
       expect(result.attributes('data-direction')).toBe('expense')
+    })
+
+    it('keeps the plain note on the paid card when nothing was paid on card', async () => {
+      const { wrapper } = await render()
+
+      const note = wrapper.find('[data-slot="paid-note"]')
+      expect(note.text()).toBe('Despesas pagas')
+      expect(note.find('[data-slot="currency"]').exists()).toBe(false)
+    })
+
+    it('says how much was paid on card in the note of the paid card, without sign', async () => {
+      serve()
+      vi.mocked(financialPeriodsApi.findResult).mockResolvedValue({
+        ...periodResult,
+        paidOnCard: 240.87,
+      })
+      const { wrapper } = await mountView(MovementListViewUnderTest, 'movements')
+
+      const note = wrapper.find('[data-slot="paid-note"]')
+      expect(note.text()).toMatch(/^Despesas pagas · R\$\s240,87 no cartão$/)
+      expect(note.text()).not.toMatch(/[−+]/)
+      expect(note.find('[data-slot="currency"]').attributes('data-direction')).toBeUndefined()
     })
 
     it('shows what is left to pay and how many expenses are overdue', async () => {

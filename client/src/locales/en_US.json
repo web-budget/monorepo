@@ -79,7 +79,10 @@
       "recurring-movement-with-launches": "The recurring movement already has launches and cannot be deleted. Deactivate it to stop launching.",
       "card-recurring-must-be-expense": "Only an expense can have a suggested card",
       "inactive-card": "The card is inactive",
-      "launch-value-only-for-variable": "Only a variable recurring movement takes a value when launched"
+      "launch-value-only-for-variable": "Only a variable recurring movement takes a value when launched",
+      "recurring-movement-inactive": "The recurring movement is inactive",
+      "recurring-movement-finished": "The recurring movement has already launched every installment",
+      "launch-quantity-out-of-range": "The quantity is above what can be launched"
     },
     "not-found": {
       "detail": "Not found",
@@ -778,6 +781,7 @@
       "details": "Details",
       "edit": "Edit",
       "readjust": "Readjust value",
+      "launch-in-period": "Launch in period",
       "remove": "Delete"
     },
     "readjust": {
@@ -788,6 +792,22 @@
       "reason": "Reason",
       "confirm": "Readjust",
       "reason-example": "Optional. E.g.: annual readjustment"
+    },
+    "launch-extra": {
+      "title": "Launch “{name}” in the period",
+      "description": "Creates more open movements in the same period. The batch and the automatic launch stay at one per period.",
+      "period": "Period",
+      "quantity": "Quantity",
+      "quantity-installments": "From 1 to {maximum}, the installments left.",
+      "quantity-endless": "From 1 to {maximum}.",
+      "value": "Value",
+      "value-hint": "Optional. Blank uses the suggested value, {value}.",
+      "preview": "Will create:",
+      "preview-installments": "{name} {installments}, due {date}.",
+      "preview-endless": "{name}, due {date}. | {count} movements of {name}, due {date}.",
+      "and": "and",
+      "no-period": "There is no open period. Create a period to launch.",
+      "confirm": "Launch"
     },
     "remove": {
       "title": "Delete “{name}”?",
@@ -803,6 +823,7 @@
       "readjusted": "Value readjusted",
       "readjusted-detail": "Valid from the next launch.",
       "launched": "Recurring movements launched",
+      "extra-launched": "{count} movement created | {count} movements created",
       "launched-detail": "{count} entry created in {period}. | {count} entries created in {period}.",
       "skipped": "Some recurring movements were left out"
     },
@@ -891,7 +912,7 @@
       "purchases": "Purchases",
       "due-date": "Due date",
       "no-purchases": "No purchases on this invoice",
-      "payment-bar": "Invoice payment:"
+      "payment-bar": "Paid by movement:"
     },
     "list": {
       "description": "Purchases of each card by period.",
@@ -999,6 +1020,11 @@
     "title-of": "Closing of {name}",
     "description": "Settle the pending items and record the result.",
     "period": "Period to close",
+    "empty": {
+      "title": "No period to close",
+      "description": "All periods are closed.",
+      "create": "Create period"
+    },
     "summary": {
       "revenues": "Paid revenues",
       "revenues-note": "Only what was received",
@@ -1007,8 +1033,7 @@
       "result": "Result",
       "result-note": "Revenues − expenses",
       "accumulated": "Accumulated",
-      "accumulated-note": "Closed ones plus the provisional of the open ones",
-      "title": "Period summary"
+      "accumulated-note": "Previous + current"
     },
     "pendencies": {
       "title": "Pending items",
@@ -1053,9 +1078,7 @@
       "pendencies-done": "Nothing open",
       "invoices-open": "{count} invoice with an entry still open | {count} invoices with entries still open",
       "invoices-done": "No invoice blocks it",
-      "next-period-missing": "There is none: pay everything or create one",
-      "ready": "All set.",
-      "blocked": "Settle the items above."
+      "next-period-missing": "There is none: pay everything or create one"
     },
     "move": {
       "title": "Move “{name}”",
@@ -1604,6 +1627,7 @@
       "received-note": "Paid income",
       "paid": "Paid",
       "paid-note": "Paid expenses",
+      "paid-note-on-card": "Paid expenses · {amount} on card",
       "result": "Result",
       "result-note": "Income − expenses",
       "to-pay": "To pay",

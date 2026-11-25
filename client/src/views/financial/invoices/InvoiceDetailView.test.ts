@@ -280,7 +280,7 @@ describe('InvoiceDetailView', () => {
     const { wrapper, router } = await render({ status: 'CLOSED', dueDate: '2026-12-10', payment })
 
     const bar = wrapper.find('[data-slot="payment-bar"]')
-    expect(bar.text()).toContain('Pagamento de fatura: Pagamento de fatura, Visa Platinum')
+    expect(bar.text()).toContain('Pago no movimento: Pagamento de fatura, Visa Platinum')
     expect(bar.text()).toContain('500,00')
     expect(bar.text()).not.toContain('R$')
     const link = wrapper

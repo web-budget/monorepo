@@ -79,7 +79,10 @@
       "recurring-movement-with-launches": "O recorrente já tem lançamentos e não pode ser excluído. Desative-o para parar de lançar.",
       "card-recurring-must-be-expense": "Só a despesa pode ter cartão sugerido",
       "inactive-card": "O cartão está inativo",
-      "launch-value-only-for-variable": "Só o recorrente variável aceita um valor no lançamento"
+      "launch-value-only-for-variable": "Só o recorrente variável aceita um valor no lançamento",
+      "recurring-movement-inactive": "O recorrente está inativo",
+      "recurring-movement-finished": "O recorrente já lançou todas as parcelas",
+      "launch-quantity-out-of-range": "A quantidade passa do que dá para lançar"
     },
     "not-found": {
       "detail": "Não encontrado",
@@ -778,6 +781,7 @@
       "details": "Detalhes",
       "edit": "Editar",
       "readjust": "Reajustar valor",
+      "launch-in-period": "Lançar no período",
       "remove": "Excluir"
     },
     "readjust": {
@@ -788,6 +792,22 @@
       "reason": "Motivo",
       "confirm": "Reajustar",
       "reason-example": "Opcional. Ex.: reajuste anual"
+    },
+    "launch-extra": {
+      "title": "Lançar “{name}” no período",
+      "description": "Cria mais lançamentos em aberto no mesmo período. O lote e o lançamento automático continuam um por período.",
+      "period": "Período",
+      "quantity": "Quantidade",
+      "quantity-installments": "De 1 a {maximum}, as parcelas que faltam.",
+      "quantity-endless": "De 1 a {maximum}.",
+      "value": "Valor",
+      "value-hint": "Opcional. Em branco usa o valor sugerido, {value}.",
+      "preview": "Vai criar:",
+      "preview-installments": "{name} {installments}, vencendo em {date}.",
+      "preview-endless": "{name}, vencendo em {date}. | {count} lançamentos de {name}, vencendo em {date}.",
+      "and": "e",
+      "no-period": "Não há período aberto. Crie um período para lançar.",
+      "confirm": "Lançar"
     },
     "remove": {
       "title": "Excluir “{name}”?",
@@ -803,6 +823,7 @@
       "readjusted": "Valor reajustado",
       "readjusted-detail": "Vale a partir do próximo lançamento.",
       "launched": "Recorrentes lançados",
+      "extra-launched": "{count} lançamento criado | {count} lançamentos criados",
       "launched-detail": "{count} lançamento criado em {period}. | {count} lançamentos criados em {period}.",
       "skipped": "Alguns recorrentes não entraram"
     },
@@ -891,7 +912,7 @@
       "purchases": "Compras",
       "due-date": "Vencimento",
       "no-purchases": "Nenhuma compra nesta fatura",
-      "payment-bar": "Pagamento de fatura:"
+      "payment-bar": "Pago no movimento:"
     },
     "list": {
       "description": "Compras de cada cartão por período.",
@@ -999,6 +1020,11 @@
     "title-of": "Fechamento de {name}",
     "description": "Resolva as pendências e grave o resultado.",
     "period": "Período a fechar",
+    "empty": {
+      "title": "Nenhum período para fechar",
+      "description": "Todos os períodos estão encerrados.",
+      "create": "Criar período"
+    },
     "summary": {
       "revenues": "Receitas pagas",
       "revenues-note": "Só o que foi recebido",
@@ -1007,8 +1033,7 @@
       "result": "Resultado",
       "result-note": "Receitas − despesas",
       "accumulated": "Acumulado",
-      "accumulated-note": "Fechados mais provisório dos abertos",
-      "title": "Resumo do período"
+      "accumulated-note": "Anteriores + atual"
     },
     "pendencies": {
       "title": "Pendências",
@@ -1053,9 +1078,7 @@
       "pendencies-done": "Nada em aberto",
       "invoices-open": "{count} fatura com lançamento ainda aberta | {count} faturas com lançamento ainda abertas",
       "invoices-done": "Nenhuma fatura bloqueia",
-      "next-period-missing": "Não há: pague tudo ou crie um",
-      "ready": "Tudo certo.",
-      "blocked": "Resolva os itens acima."
+      "next-period-missing": "Não há: pague tudo ou crie um"
     },
     "move": {
       "title": "Mover “{name}”",
@@ -1604,6 +1627,7 @@
       "received-note": "Receitas pagas",
       "paid": "Pago",
       "paid-note": "Despesas pagas",
+      "paid-note-on-card": "Despesas pagas · {amount} no cartão",
       "result": "Resultado",
       "result-note": "Receitas − despesas",
       "to-pay": "A pagar",

@@ -35,7 +35,7 @@ class FinancialPeriodResultController(
         val recorded = periodResultRepository.findByFinancialPeriod(financialPeriod.id)
 
         if (recorded != null) {
-            return ResponseEntity.ok(FinancialPeriodResultView(recorded.revenues, recorded.expenses, recorded.result, true, BigDecimal.ZERO, 0))
+            return ResponseEntity.ok(FinancialPeriodResultView(recorded.revenues, recorded.expenses, recorded.result, true, BigDecimal.ZERO, 0, BigDecimal.ZERO))
         }
 
         val paid = movementRepository.sumPaidValueByType(financialPeriod.id)
@@ -51,6 +51,7 @@ class FinancialPeriodResultController(
                 result = revenues.subtract(expenses),
                 toPay = open.total,
                 overdueExpenses = open.overdueCount,
+                paidOnCard = movementRepository.sumPaidOnCard(financialPeriod.id),
                 recorded = false
             )
         )
