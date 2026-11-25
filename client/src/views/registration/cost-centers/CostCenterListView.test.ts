@@ -67,11 +67,11 @@ describe('CostCenterListView', () => {
     ])
   })
 
-  it('loads the active cost centers, newest first, and lists them with the budgets aligned to the right', async () => {
+  it('loads the active cost centers by full name, A to Z, and lists them with the budgets aligned to the right', async () => {
     const { wrapper } = await render()
 
     expect(costCentersApi.findAll).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'ACTIVE', sort: 'createdOn,desc' }),
+      expect.objectContaining({ status: 'ACTIVE', sort: 'fullName,asc' }),
     )
     const rows = wrapper.findAll('tbody tr')
     expect(rows).toHaveLength(2)
@@ -99,13 +99,40 @@ describe('CostCenterListView', () => {
     )
   })
 
+  it('marks the full name as sorted ascending without putting the default order in the URL', async () => {
+    const { wrapper, router } = await render()
+
+    expect(
+      wrapper
+        .findAll('th')
+        .find((header) => header.text() === 'Nome')!
+        .attributes('aria-sort'),
+    ).toBe('ascending')
+    expect(router.currentRoute.value.query).toEqual({})
+  })
+
+  it('toggles the full name order from the header and keeps the choice in the URL', async () => {
+    const { wrapper, router } = await render()
+    const sorted = () => listingCalls(vi.mocked(costCentersApi.findAll)).slice(-1)[0]
+
+    await buttonWithText(wrapper, 'Nome').trigger('click')
+    await flushPromises()
+    expect(sorted()).toEqual(expect.objectContaining({ sort: 'fullName,desc' }))
+    expect(router.currentRoute.value.query).toEqual({ sort: 'fullName,desc' })
+
+    await buttonWithText(wrapper, 'Nome').trigger('click')
+    await flushPromises()
+    expect(sorted()).toEqual(expect.objectContaining({ sort: 'fullName,asc' }))
+    expect(router.currentRoute.value.query).toEqual({})
+  })
+
   it('sorts by the full name and clears the search', async () => {
     const { wrapper } = await render()
 
     await buttonWithText(wrapper, 'Nome').trigger('click')
     await flushPromises()
     expect(listingCalls(vi.mocked(costCentersApi.findAll)).slice(-1)[0]).toEqual(
-      expect.objectContaining({ sort: 'fullName,asc' }),
+      expect.objectContaining({ sort: 'fullName,desc' }),
     )
 
     await wrapper.find('input').setValue('abc')
@@ -138,14 +165,14 @@ describe('CostCenterListView', () => {
     vi.mocked(costCentersApi.remove).mockResolvedValue(undefined)
     const dialog = useConfirmDialog()
 
-    await chooseRowAction(wrapper, 1, 'Remover')
-    expect(dialog.state.options.title).toBe('Remover o centro de custo “Kitchen”?')
+    await chooseRowAction(wrapper, 1, 'Excluir')
+    expect(dialog.state.options.title).toBe('Excluir o centro de custo “Kitchen”?')
     dialog.accept()
     await flushPromises()
 
     expect(costCentersApi.remove).toHaveBeenCalledWith('cc-2')
     expect(wrapper.findAll('tbody tr')).toHaveLength(1)
-    expect(toast.success).toHaveBeenCalledWith('Centro de custo removido', {
+    expect(toast.success).toHaveBeenCalledWith('Centro de custo excluído', {
       description: '“Kitchen” saiu da lista.',
       duration: 4000,
     })
@@ -154,7 +181,7 @@ describe('CostCenterListView', () => {
   it('keeps the cost center when the removal is not confirmed', async () => {
     const { wrapper } = await render()
 
-    await chooseRowAction(wrapper, 0, 'Remover')
+    await chooseRowAction(wrapper, 0, 'Excluir')
     useConfirmDialog().cancel()
     await flushPromises()
 
@@ -168,7 +195,7 @@ describe('CostCenterListView', () => {
       problem(400, { error: 'data-integrity-violation' }),
     )
 
-    await chooseRowAction(wrapper, 0, 'Remover')
+    await chooseRowAction(wrapper, 0, 'Excluir')
     useConfirmDialog().accept()
     await flushPromises()
 

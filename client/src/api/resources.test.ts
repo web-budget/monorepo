@@ -176,7 +176,7 @@ describe.each([
   [
     'financialPeriodsApi',
     financialPeriodsApi as unknown as CrudResource,
-    '/registration/financial-periods',
+    '/financial/financial-periods',
   ],
 ])('%s', (_name, resource, path) => {
   it('lists a page with the query as parameters', async () => {
@@ -208,5 +208,15 @@ describe.each([
   it('removes by id', async () => {
     await expect(resource.remove('id-1')).resolves.toBeUndefined()
     expect(lastRequest()).toMatchObject({ method: 'delete', url: `${path}/id-1` })
+  })
+})
+
+describe('financialPeriodsApi.findResult', () => {
+  it('reads the result of the period', async () => {
+    await expect(financialPeriodsApi.findResult('id-1')).resolves.toEqual({ served: true })
+    expect(lastRequest()).toMatchObject({
+      method: 'get',
+      url: '/financial/financial-periods/id-1/result',
+    })
   })
 })

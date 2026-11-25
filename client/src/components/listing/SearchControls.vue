@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Search, X } from 'lucide-vue-next'
 import { ref, watch } from 'vue'
+import StatusTabs from '@/components/listing/StatusTabs.vue'
 import { MASCULINE_STATUS_OPTIONS, type StatusOption } from '@/components/listing/statusOptions'
 import { Input } from '@/components/ui/input'
 
@@ -94,28 +95,12 @@ function resetFilter() {
         </button>
       </div>
     </form>
-    <div
-      class="bg-muted inline-flex h-9 items-center gap-0.5 rounded-md p-1 max-md:w-full max-md:overflow-x-auto max-md:[scrollbar-width:none]"
-      role="group"
-      :aria-label="$t('search-control.status')"
-    >
-      <button
-        v-for="option in props.statusOptions"
-        :key="option.value"
-        type="button"
-        :aria-pressed="props.status === option.value"
-        class="text-muted-foreground aria-pressed:bg-card aria-pressed:text-foreground aria-pressed:shadow-xs inline-flex h-7 items-center justify-center gap-1.5 rounded-sm px-3 text-sm font-medium transition-colors max-md:flex-1 max-md:gap-1 max-md:px-1.5 max-md:text-[13px]"
-        @click="selectStatus(option.value)"
-      >
-        {{ $t(option.label) }}
-        <span
-          v-if="props.counts[option.value] != null"
-          class="font-mono text-xs tabular-nums"
-          data-slot="status-count"
-        >
-          {{ props.counts[option.value] }}
-        </span>
-      </button>
-    </div>
+    <StatusTabs
+      v-if="props.statusOptions.length > 0"
+      :status="props.status"
+      :options="props.statusOptions"
+      :counts="props.counts"
+      @select="selectStatus"
+    />
   </div>
 </template>

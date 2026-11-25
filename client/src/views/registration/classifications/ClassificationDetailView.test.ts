@@ -22,7 +22,6 @@ const classification: ClassificationView = {
   name: 'Salary',
   type: 'INCOME',
   active: true,
-  budget: 1500,
   description: null,
 }
 
@@ -37,19 +36,15 @@ describe('ClassificationDetailView', () => {
     document.body.replaceChildren()
   })
 
-  it('shows the classification in sections, with the budget', async () => {
+  it('shows the classification in sections', async () => {
     const { wrapper } = await render()
 
     expect(classificationsApi.findById).toHaveBeenCalledWith('c-1')
     expect(wrapper.find('h1').text()).toBe('Salary')
     expect(wrapper.find('[data-slot="page-description"]').exists()).toBe(false)
     expect(wrapper.text()).toContain('Ativa')
-    expect(wrapper.findAll('h2').map((title) => title.text())).toEqual([
-      'Identificação',
-      'Orçamento',
-    ])
+    expect(wrapper.findAll('h2').map((title) => title.text())).toEqual(['Identificação'])
     expect(wrapper.text()).toContain('Receita')
-    expect(wrapper.text()).toContain('1.500,00')
     expect(wrapper.text()).toContain('---')
   })
 
@@ -67,13 +62,13 @@ describe('ClassificationDetailView', () => {
     vi.mocked(classificationsApi.remove).mockResolvedValue(undefined)
     const dialog = useConfirmDialog()
 
-    await buttonWithText(wrapper, 'Remover').trigger('click')
-    expect(dialog.state.options.title).toBe('Remover a classificação “Salary”?')
+    await buttonWithText(wrapper, 'Excluir').trigger('click')
+    expect(dialog.state.options.title).toBe('Excluir a classificação “Salary”?')
     dialog.accept()
     await flushPromises()
 
     expect(classificationsApi.remove).toHaveBeenCalledWith('c-1')
-    expect(toast.success).toHaveBeenCalledWith('Classificação removida', {
+    expect(toast.success).toHaveBeenCalledWith('Classificação excluída', {
       description: '“Salary” saiu da lista.',
       duration: 4000,
     })
@@ -83,7 +78,7 @@ describe('ClassificationDetailView', () => {
   it('does nothing when the removal is not confirmed', async () => {
     const { wrapper, router } = await render()
 
-    await buttonWithText(wrapper, 'Remover').trigger('click')
+    await buttonWithText(wrapper, 'Excluir').trigger('click')
     useConfirmDialog().cancel()
     await flushPromises()
 
@@ -97,7 +92,7 @@ describe('ClassificationDetailView', () => {
       problem(400, { error: 'data-integrity-violation' }),
     )
 
-    await buttonWithText(wrapper, 'Remover').trigger('click')
+    await buttonWithText(wrapper, 'Excluir').trigger('click')
     useConfirmDialog().accept()
     await flushPromises()
 
@@ -112,7 +107,7 @@ describe('ClassificationDetailView', () => {
 
     const { wrapper } = await mountView(ClassificationDetailView, 'classifications', { id: 'c-9' })
 
-    expect(wrapper.find('h1').text()).toBe('Detalhando classificação')
+    expect(wrapper.find('h1').text()).toBe('Detalhando')
     expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
       'O recurso solicitado não existe',
     )

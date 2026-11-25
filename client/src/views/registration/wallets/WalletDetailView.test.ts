@@ -1,13 +1,16 @@
 import { flushPromises } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'vue-sonner'
+import { walletEntriesApi } from '@/api/walletEntries'
 import { walletsApi } from '@/api/wallets'
+import AdjustBalanceDialog from '@/components/wallets/AdjustBalanceDialog.vue'
 import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import { buttonWithText, mountView, problem } from '@/test/crud'
 import type { WalletView } from '@/types'
 import WalletDetailView from '@/views/registration/wallets/WalletDetailView.vue'
 
 vi.mock('@/api/wallets')
+vi.mock('@/api/walletEntries')
 vi.mock('vue-sonner', () => ({
   toast: {
     success: vi.fn<() => void>(),
@@ -27,6 +30,7 @@ const wallet: WalletView = {
   bank: 'ACME',
   agency: '123',
   number: '456',
+  lastEntryOn: '2026-11-20T10:05:00',
 }
 
 async function render(view: WalletView = wallet) {
@@ -54,12 +58,39 @@ describe('WalletDetailView', () => {
       'Dados do banco',
       'Saldo',
     ])
-    expect(wrapper.text()).toContain('Conta Bancária')
+    expect(wrapper.text()).toContain('Conta bancária')
     expect(wrapper.text()).toContain('ACME')
+    expect(wrapper.text()).toContain('Agência')
     expect(wrapper.text()).toContain('123')
     expect(wrapper.text()).toContain('456')
-    expect(wrapper.text()).toContain('---')
+    expect(wrapper.text()).not.toContain('Descrição')
     expect(wrapper.text()).toMatch(/R\$\s?10,00/)
+    expect(wrapper.text()).toContain('Última movimentação')
+    expect(wrapper.text()).toContain('20/11/2026 10:05')
+  })
+
+  it('says the balance comes from the statement', async () => {
+    const { wrapper } = await render()
+
+    const notice = wrapper.find('[data-slot="balance-notice"]')
+    expect(notice.text()).toContain('O saldo não se edita na carteira')
+    expect(notice.text()).toContain('Ele vem do extrato.')
+  })
+
+  it('puts the statement, the transfer and the adjustment in the footer of the card', async () => {
+    const { wrapper } = await render()
+
+    expect(wrapper.find('[data-slot="detail-footer"]').text()).toBe(
+      'Ver extratoTransferirAjustar saldo',
+    )
+  })
+
+  it('shows a debit balance in red and no last entry for a wallet without lines', async () => {
+    const { wrapper } = await render({ ...wallet, currentBalance: -312.08, lastEntryOn: null })
+
+    expect(wrapper.text()).toMatch(/−R\$\s?312,08/)
+    expect(wrapper.find('.text-expense').exists()).toBe(true)
+    expect(wrapper.text()).toContain('---')
   })
 
   it('leaves the bank section out of a personal wallet', async () => {
@@ -73,10 +104,71 @@ describe('WalletDetailView', () => {
 
     const { wrapper } = await mountView(WalletDetailView, 'wallets', { id: 'w-1' })
 
-    expect(wrapper.find('h1').text()).toBe('Detalhando carteira')
+    expect(wrapper.find('h1').text()).toBe('Detalhando')
     expect(wrapper.find('dl').exists()).toBe(false)
     expect(buttonWithText(wrapper, 'Editar')).toBeDefined()
-    expect(buttonWithText(wrapper, 'Remover')).toBeDefined()
+    expect(buttonWithText(wrapper, 'Excluir')).toBeDefined()
+  })
+
+  it('links to a transfer from the wallet', async () => {
+    const { wrapper } = await render()
+
+    expect(wrapper.find('a[href="/financial/transfers/create?from=w-1"]').text()).toBe('Transferir')
+  })
+
+  it('links to the statement of the wallet', async () => {
+    const { wrapper } = await render()
+
+    expect(wrapper.find('a[href="/financial/statement?wallet=w-1"]').text()).toBe('Ver extrato')
+  })
+
+  it('adjusts the balance from the dialog and reloads the wallet', async () => {
+    vi.mocked(walletEntriesApi.adjust).mockResolvedValue({} as never)
+    const { wrapper } = await render()
+
+    await buttonWithText(wrapper, 'Ajustar saldo').trigger('click')
+    const dialog = wrapper.getComponent(AdjustBalanceDialog)
+    expect(dialog.props('wallet')).toEqual({ id: 'w-1', name: 'Main', balance: 10 })
+
+    dialog.vm.$emit('adjust', dialog.props('wallet'), { value: 1 })
+    await flushPromises()
+
+    expect(walletEntriesApi.adjust).toHaveBeenCalledWith('w-1', { value: 1 })
+    expect(toast.success).toHaveBeenCalledWith('Saldo ajustado', {
+      description: 'Crédito de 1,00 em Main. Não entra no resultado.',
+      duration: 4000,
+    })
+    expect(dialog.props('wallet')).toBeNull()
+    expect(walletsApi.findById).toHaveBeenCalledTimes(2)
+  })
+
+  it('keeps the dialog open and shows the error when the adjustment fails', async () => {
+    vi.mocked(walletEntriesApi.adjust).mockRejectedValue(problem(400, { error: 'inactive-wallet' }))
+    const { wrapper } = await render()
+
+    await buttonWithText(wrapper, 'Ajustar saldo').trigger('click')
+    const dialog = wrapper.getComponent(AdjustBalanceDialog)
+    dialog.vm.$emit('adjust', dialog.props('wallet'), { value: 1 })
+    await flushPromises()
+
+    expect(dialog.props('wallet')).not.toBeNull()
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
+  })
+
+  it('closes the dialog without adjusting', async () => {
+    const { wrapper } = await render()
+
+    await buttonWithText(wrapper, 'Ajustar saldo').trigger('click')
+    wrapper.getComponent(AdjustBalanceDialog).vm.$emit('close')
+    await flushPromises()
+
+    expect(wrapper.getComponent(AdjustBalanceDialog).props('wallet')).toBeNull()
+  })
+
+  it('does not offer to adjust an inactive wallet', async () => {
+    const { wrapper } = await render({ ...wallet, active: false })
+
+    expect(buttonWithText(wrapper, 'Ajustar saldo').attributes('disabled')).toBeDefined()
   })
 
   it('goes to the edit form', async () => {
@@ -94,15 +186,15 @@ describe('WalletDetailView', () => {
     vi.mocked(walletsApi.remove).mockResolvedValue(undefined)
     const dialog = useConfirmDialog()
 
-    await buttonWithText(wrapper, 'Remover').trigger('click')
+    await buttonWithText(wrapper, 'Excluir').trigger('click')
 
-    expect(dialog.state.options.title).toBe('Remover a carteira “Main”?')
+    expect(dialog.state.options.title).toBe('Excluir a carteira “Main”?')
 
     dialog.accept()
     await flushPromises()
 
     expect(walletsApi.remove).toHaveBeenCalledWith('w-1')
-    expect(toast.success).toHaveBeenCalledWith('Carteira removida', {
+    expect(toast.success).toHaveBeenCalledWith('Carteira excluída', {
       description: '“Main” saiu da lista.',
       duration: 4000,
     })
@@ -112,7 +204,7 @@ describe('WalletDetailView', () => {
   it('removes nothing when the removal is not confirmed', async () => {
     const { wrapper, router } = await render()
 
-    await buttonWithText(wrapper, 'Remover').trigger('click')
+    await buttonWithText(wrapper, 'Excluir').trigger('click')
     useConfirmDialog().cancel()
     await flushPromises()
 
@@ -126,7 +218,7 @@ describe('WalletDetailView', () => {
       problem(400, { error: 'data-integrity-violation' }),
     )
 
-    await buttonWithText(wrapper, 'Remover').trigger('click')
+    await buttonWithText(wrapper, 'Excluir').trigger('click')
     useConfirmDialog().accept()
     await flushPromises()
 

@@ -1,6 +1,7 @@
 package br.com.webbudget.server.application.controllers.registration
 
 import br.com.webbudget.server.BaseIntegrationTest
+import br.com.webbudget.server.domain.entities.registration.Card
 import br.com.webbudget.server.infrastructure.repository.registration.CardRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -141,6 +142,38 @@ class CardControllerTest : BaseIntegrationTest() {
     }
 
     @Test
+    fun `should create a credit card when the type is not sent`() {
+
+        restTestClient.post()
+            .uri(ENDPOINT_URL)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"name": "Nubank", "lastFourDigits": "9998", "flag": "Master", "invoicePaymentDay": 8, "wallet": "$WALLET_ID"}""")
+            .exchange()
+            .expectStatus().isCreated
+
+        val created = cardRepository.findAll("9998", null, PageRequest.of(0, 1)).content.single()
+
+        assertThat(created.type).isEqualTo(Card.Type.CREDIT)
+        assertThat(created.flag).isEqualTo("Master")
+        assertThat(created.invoicePaymentDay).isEqualTo(8)
+    }
+
+    @Test
+    fun `should create a credit card without a wallet when the type is not sent`() {
+
+        restTestClient.post()
+            .uri(ENDPOINT_URL)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"name": "Nubank", "lastFourDigits": "9997", "invoicePaymentDay": 8}""")
+            .exchange()
+            .expectStatus().isCreated
+
+        val created = cardRepository.findAll("9997", null, PageRequest.of(0, 1)).content.single()
+
+        assertThat(created.type).isEqualTo(Card.Type.CREDIT)
+    }
+
+    @Test
     fun `should create a debit card with its wallet`() {
 
         restTestClient.post()
@@ -190,13 +223,12 @@ class CardControllerTest : BaseIntegrationTest() {
         restTestClient.post()
             .uri(ENDPOINT_URL)
             .contentType(MediaType.APPLICATION_JSON)
-            .body("""{"name": "", "lastFourDigits": "12345", "type": null}""")
+            .body("""{"name": "", "lastFourDigits": "12345"}""")
             .exchange()
             .expectStatus().isEqualTo(422)
             .expectBody()
             .jsonPath("$.parameters.name").isEqualTo("is-null-or-blank")
             .jsonPath("$.parameters.lastFourDigits").isEqualTo("has-max-chars-of-4")
-            .jsonPath("$.parameters.type").isEqualTo("is-null")
     }
 
     @Test

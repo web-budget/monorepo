@@ -4,7 +4,12 @@ import { describe, expect, it } from 'vitest'
 import ListState, { type ListStateKind } from '@/components/listing/ListState.vue'
 import i18n from '@/locales'
 
-function render(props: { kind: ListStateKind; query?: string; message?: string }) {
+function render(props: {
+  kind: ListStateKind
+  query?: string
+  message?: string
+  creatable?: boolean
+}) {
   return mount(ListState, {
     props: { entity: 'wallet', icon: Wallet, ...props },
     global: { plugins: [i18n] },
@@ -16,8 +21,8 @@ describe('ListState', () => {
     const wrapper = render({ kind: 'empty' })
 
     expect(wrapper.attributes('role')).toBe('status')
-    expect(wrapper.text()).toContain('Nenhuma carteira ainda')
-    expect(wrapper.text()).toContain('Os lançamentos sempre saem de uma carteira.')
+    expect(wrapper.text()).toContain('Nenhuma carteira cadastrada')
+    expect(wrapper.text()).toContain('Cadastre a primeira carteira.')
 
     await wrapper.find('button').trigger('click')
 
@@ -25,6 +30,19 @@ describe('ListState', () => {
     expect(wrapper.emitted('create')).toHaveLength(1)
     expect(wrapper.emitted('clear')).toBeUndefined()
     expect(wrapper.emitted('retry')).toBeUndefined()
+  })
+
+  it('hides the create action of an empty list that cannot create', () => {
+    const wrapper = render({ kind: 'empty', creatable: false })
+
+    expect(wrapper.text()).toContain('Nenhuma carteira cadastrada')
+    expect(wrapper.find('button').exists()).toBe(false)
+  })
+
+  it('keeps the retry action of an error list that cannot create', () => {
+    const wrapper = render({ kind: 'error', creatable: false })
+
+    expect(wrapper.find('button').exists()).toBe(true)
   })
 
   it('names the search that found nothing and offers to clear it', async () => {

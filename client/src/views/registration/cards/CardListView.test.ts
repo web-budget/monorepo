@@ -26,8 +26,8 @@ vi.mock('vue-sonner', () => ({
 }))
 
 const cards: CardRow[] = [
-  { id: 'k-1', name: 'Travel', type: 'CREDIT', active: true, flag: 'Visa' },
-  { id: 'k-2', name: 'Daily', type: 'DEBIT', active: true, flag: null },
+  { id: 'k-1', name: 'Travel', active: true, flag: 'Visa' },
+  { id: 'k-2', name: 'Daily', active: true, flag: null },
 ]
 
 async function render(content = cards, counts?: Record<string, number>) {
@@ -62,7 +62,7 @@ describe('CardListView', () => {
     ])
   })
 
-  it('loads the active cards and lists them with the translated type', async () => {
+  it('loads the active cards and lists them', async () => {
     const { wrapper } = await render()
 
     expect(cardsApi.findAll).toHaveBeenCalledWith(
@@ -72,8 +72,6 @@ describe('CardListView', () => {
     expect(rows).toHaveLength(2)
     expect(rows[0]!.text()).toContain('Travel')
     expect(rows[0]!.text()).toContain('Visa')
-    expect(rows[0]!.text()).toContain('Crédito')
-    expect(rows[1]!.text()).toContain('Débito')
     expect(rows[0]!.find('a').attributes('href')).toBe('/cards/k-1/detail')
   })
 
@@ -135,14 +133,14 @@ describe('CardListView', () => {
     vi.mocked(cardsApi.remove).mockResolvedValue(undefined)
     const dialog = useConfirmDialog()
 
-    await chooseRowAction(wrapper, 0, 'Remover')
-    expect(dialog.state.options.title).toBe('Remover o cartão “Travel”?')
+    await chooseRowAction(wrapper, 0, 'Excluir')
+    expect(dialog.state.options.title).toBe('Excluir o cartão “Travel”?')
     dialog.accept()
     await flushPromises()
 
     expect(cardsApi.remove).toHaveBeenCalledWith('k-1')
     expect(wrapper.findAll('tbody tr')).toHaveLength(1)
-    expect(toast.success).toHaveBeenCalledWith('Cartão removido', {
+    expect(toast.success).toHaveBeenCalledWith('Cartão excluído', {
       description: '“Travel” saiu da lista.',
       duration: 4000,
     })
@@ -151,7 +149,7 @@ describe('CardListView', () => {
   it('keeps the card when the removal is not confirmed', async () => {
     const { wrapper } = await render()
 
-    await chooseRowAction(wrapper, 0, 'Remover')
+    await chooseRowAction(wrapper, 0, 'Excluir')
     useConfirmDialog().cancel()
     await flushPromises()
 
@@ -165,7 +163,7 @@ describe('CardListView', () => {
       problem(400, { error: 'data-integrity-violation' }),
     )
 
-    await chooseRowAction(wrapper, 0, 'Remover')
+    await chooseRowAction(wrapper, 0, 'Excluir')
     useConfirmDialog().accept()
     await flushPromises()
 

@@ -10,8 +10,9 @@ import type {
 } from '@/components/listing/itemsTable'
 import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import { useNotification } from '@/composables/useNotification'
-import { useListFilters } from '@/composables/useListFilters'
+import { useListFilters, type ExtraFilters } from '@/composables/useListFilters'
 import { useServerErrors } from '@/composables/useServerErrors'
+import type { DefaultSort } from '@/utils/listQuery'
 import type { PageRequest } from '@/utils/pageRequest'
 
 interface ListedRow {
@@ -33,7 +34,10 @@ interface CrudListOptions<S extends string> {
   count: (status: S) => Promise<number | null>
   statuses: S[]
   sortFields: string[]
+  defaultSort?: DefaultSort
+  countsFollowFilters?: boolean
   allStatus?: S
+  extra?: ExtraFilters
 }
 
 export function useCrudList<S extends string>(options: CrudListOptions<S>) {
@@ -50,6 +54,8 @@ export function useCrudList<S extends string>(options: CrudListOptions<S>) {
     initialStatus: options.initialStatus,
     statuses: options.statuses,
     sortFields: options.sortFields,
+    defaultSort: options.defaultSort,
+    extra: options.extra,
     onExternalChange: reload,
   })
 
@@ -88,6 +94,9 @@ export function useCrudList<S extends string>(options: CrudListOptions<S>) {
     searchedText.value = options.pageRequest.value.filterText
     loadFailed.value = !(await loadErrors.run(options.findAll))
     initializing.value = false
+    if (options.countsFollowFilters) {
+      void loadCounts()
+    }
   }
 
   async function loadCounts() {
@@ -152,7 +161,9 @@ export function useCrudList<S extends string>(options: CrudListOptions<S>) {
 
   onMounted(async () => {
     await reload()
-    void loadCounts()
+    if (!options.countsFollowFilters) {
+      void loadCounts()
+    }
   })
 
   return {

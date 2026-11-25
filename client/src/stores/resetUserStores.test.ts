@@ -49,7 +49,16 @@ describe('resetUserStores', () => {
     const wallets = useWalletsStore()
     const periods = useFinancialPeriodsStore()
     wallets.pageResponse.content = [
-      { id: 'w-1', name: 'Main', type: 'PERSONAL', bank: null, active: true },
+      {
+        id: 'w-1',
+        name: 'Main',
+        type: 'PERSONAL',
+        bank: null,
+        currentBalance: 0,
+        agency: null,
+        number: null,
+        active: true,
+      },
     ]
     periods.pageRequest.status = 'ALL'
 

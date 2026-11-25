@@ -5,7 +5,6 @@ import { useI18n } from 'vue-i18n'
 import FormCard from '@/components/forms/FormCard.vue'
 import FormSection from '@/components/forms/FormSection.vue'
 import InputField from '@/components/forms/InputField.vue'
-import MoneyField from '@/components/forms/MoneyField.vue'
 import SelectField from '@/components/forms/SelectField.vue'
 import StatusSection from '@/components/forms/StatusSection.vue'
 import { useCrudForm } from '@/composables/useCrudForm'
@@ -49,7 +48,9 @@ const classificationTypes = computed(() => typeOptions('classification', CLASSIF
 
 <template>
   <FormCard
-    :title="updating ? $t('classification.form.editing') : $t('classification.form.new')"
+    :title="
+      updating ? $t('classification.form.title-editing') : $t('classification.form.title-new')
+    "
     :description="updating ? form.values.name : undefined"
     :loading="loadingRecord"
     :submitting="submitting"
@@ -89,12 +90,6 @@ const classificationTypes = computed(() => typeOptions('classification', CLASSIF
         multiline
         class="md:col-span-2"
       />
-    </FormSection>
-    <FormSection
-      :title="$t('classification.sections.budget')"
-      :description="$t('classification.sections.budget-help')"
-    >
-      <MoneyField name="budget" :label="$t('classification.form.budget')" />
     </FormSection>
   </FormCard>
 </template>

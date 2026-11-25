@@ -19,15 +19,20 @@ class WalletMapper {
         number = wallet.number,
         description = wallet.description,
         active = wallet.active,
-        currentBalance = wallet.currentBalance
+        currentBalance = wallet.currentBalance,
+        lastEntryOn = wallet.lastEntryOn
     )
 
     fun mapToListView(wallet: Wallet): WalletListView = WalletListView(
         id = wallet.externalId!!,
         name = wallet.name,
         type = wallet.type,
+        currentBalance = wallet.currentBalance,
         bank = wallet.bank,
-        active = wallet.active
+        agency = wallet.agency,
+        number = wallet.number,
+        active = wallet.active,
+        lastEntryOn = wallet.lastEntryOn
     )
 
     fun mapToDomain(form: WalletCreateForm): Wallet = Wallet(

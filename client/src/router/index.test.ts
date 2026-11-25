@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 import router from '@/router'
 import { isPublicRoute } from '@/router/publicRoutes'
+import enUS from '@/locales/en_US.json'
+import ptBR from '@/locales/pt_BR.json'
 
 describe('router', () => {
   it('uses HTML5 history rooted at the app base URL', () => {
@@ -29,7 +31,7 @@ describe('router', () => {
       .map((record) => record.components?.default)
       .filter((component) => typeof component === 'function')
 
-    expect(loaders).toHaveLength(43)
+    expect(loaders).toHaveLength(57)
     for (const loader of loaders) {
       expect(await (loader as () => Promise<unknown>)()).toHaveProperty('default')
     }
@@ -83,7 +85,6 @@ describe('registration crud routes', () => {
     ['cards', 'card'],
     ['cost-centers', 'cost-center'],
     ['classifications', 'classification'],
-    ['financial-periods', 'financial-period'],
   ])('registers the list, create, update and detail routes of %s', (name, entity) => {
     const base = `/registration/${name}`
 
@@ -113,6 +114,20 @@ describe('registration crud routes', () => {
 
     expect(update?.props.default).toBe(true)
     expect(list?.props.default).toBeFalsy()
+  })
+})
+
+describe('financial crud routes', () => {
+  it('registers the periods under the financial section', () => {
+    expect(router.resolve('/financial/periods').name).toBe('financial-periods')
+    expect(router.resolve('/financial/periods/create').name).toBe('financial-periods.create')
+    expect(router.resolve('/financial/periods/abc/update').name).toBe('financial-periods.update')
+    expect(router.resolve('/financial/periods/abc/detail').params.id).toBe('abc')
+    expect(
+      router
+        .resolve('/financial/periods/abc/detail')
+        .matched.map((record) => record.meta.breadcrumb),
+    ).toEqual(['menu.financial', 'financial-period.menu', 'financial-period.form.detailing'])
   })
 })
 
@@ -208,5 +223,31 @@ describe('dashboards routes', () => {
       title: `dashboards.${key}`,
       description: `dashboards.description.${key}`,
     })
+  })
+})
+
+describe('action breadcrumbs', () => {
+  const verbs = {
+    pt_BR: ['Criando', 'Editando', 'Detalhando', 'Lançando', 'Transferindo'],
+    en_US: ['Creating', 'Editing', 'Viewing', 'Posting', 'Transferring'],
+  }
+
+  function lookup(messages: Record<string, unknown>, key: string) {
+    return key
+      .split('.')
+      .reduce<unknown>((node, part) => (node as Record<string, unknown>)[part], messages) as string
+  }
+
+  it('labels every create, update and detail route with a bare verb in both languages', () => {
+    const keys = router
+      .getRoutes()
+      .map((record) => String(record.meta.breadcrumb ?? ''))
+      .filter((key) => /\.(form\.(new|editing|detailing)|detail\.breadcrumb)$/.test(key))
+
+    expect(keys.length).toBeGreaterThan(15)
+    for (const key of keys) {
+      expect(verbs.pt_BR).toContain(lookup(ptBR, key))
+      expect(verbs.en_US).toContain(lookup(enUS, key))
+    }
   })
 })

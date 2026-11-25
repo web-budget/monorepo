@@ -8,14 +8,16 @@ class FinancialPeriod(
     var name: String,
     var startingAt: LocalDate,
     var endingAt: LocalDate,
-    var status: Status = Status.ACTIVE,
+    var status: Status = Status.OPEN,
     var expensesGoal: BigDecimal? = null,
     var revenuesGoal: BigDecimal? = null
 ) : PersistentEntity() {
 
-    fun isOpen(): Boolean = status == Status.ACTIVE || status == Status.ENDED
+    fun isOpen(): Boolean = status == Status.OPEN
+
+    fun isExpired(today: LocalDate): Boolean = isOpen() && endingAt.isBefore(today)
 
     enum class Status {
-        ACTIVE, ENDED, ACCOUNTED
+        OPEN, CLOSED
     }
 }

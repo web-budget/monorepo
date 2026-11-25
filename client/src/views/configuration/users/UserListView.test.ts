@@ -308,7 +308,7 @@ describe('UserListView', () => {
       await flushPromises()
 
       expect(document.body.textContent).toContain('Sua conta')
-      for (const label of ['Editar', 'Redefinir senha', 'Remover']) {
+      for (const label of ['Editar', 'Redefinir senha', 'Excluir']) {
         expect(menuItem(label).getAttribute('data-disabled')).not.toBeNull()
       }
     })
@@ -322,7 +322,7 @@ describe('UserListView', () => {
       await flushPromises()
 
       expect(document.body.textContent).toContain('Bruno')
-      for (const label of ['Editar', 'Redefinir senha', 'Remover']) {
+      for (const label of ['Editar', 'Redefinir senha', 'Excluir']) {
         expect(menuItem(label).getAttribute('data-disabled')).toBeNull()
       }
     })
@@ -333,10 +333,10 @@ describe('UserListView', () => {
     vi.mocked(usersApi.remove).mockResolvedValue(undefined)
 
     const dialog = useConfirmDialog()
-    await chooseRowAction(wrapper, 1, 'Remover')
+    await chooseRowAction(wrapper, 1, 'Excluir')
 
     expect(dialog.state.open).toBe(true)
-    expect(dialog.state.options.title).toBe('Remover o usuário “Bruno”?')
+    expect(dialog.state.options.title).toBe('Excluir o usuário “Bruno”?')
     expect(usersApi.remove).not.toHaveBeenCalled()
 
     dialog.accept()
@@ -344,7 +344,7 @@ describe('UserListView', () => {
 
     expect(usersApi.remove).toHaveBeenCalledWith('u-2')
     expect(wrapper.findAll('tbody tr')).toHaveLength(1)
-    expect(toast.success).toHaveBeenCalledWith('Usuário removido', {
+    expect(toast.success).toHaveBeenCalledWith('Usuário excluído', {
       description: '“Bruno” saiu da lista.',
       duration: 4000,
     })
@@ -353,7 +353,7 @@ describe('UserListView', () => {
   it('keeps the user when the deletion is not confirmed', async () => {
     const { wrapper } = await render()
 
-    await chooseRowAction(wrapper, 1, 'Remover')
+    await chooseRowAction(wrapper, 1, 'Excluir')
     useConfirmDialog().cancel()
     await flushPromises()
 
@@ -543,6 +543,17 @@ describe('UserListView', () => {
 
       expect(document.body.textContent).toContain('Escolha pelo menos uma área.')
       expect(usersApi.approve).not.toHaveBeenCalled()
+    })
+
+    it('does not take the focus from the roles when the cancel button is pressed', async () => {
+      const { wrapper } = await render()
+      await chooseRowAction(wrapper, 1, 'Aprovar')
+      await settle()
+      const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
+
+      approveDialogButton('Cancelar').dispatchEvent(press)
+
+      expect(press.defaultPrevented).toBe(true)
     })
 
     it('closes the approval dialog without approving', async () => {
@@ -736,10 +747,10 @@ describe('UserListView', () => {
         .dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
       await settle()
       await openSheet(wrapper, 'Bruno')
-      sheetButton('Remover').click()
+      sheetButton('Excluir').click()
       await settle()
 
-      expect(useConfirmDialog().state.options.title).toBe('Remover o usuário “Bruno”?')
+      expect(useConfirmDialog().state.options.title).toBe('Excluir o usuário “Bruno”?')
       useConfirmDialog().cancel()
     })
 
@@ -780,7 +791,7 @@ describe('UserListView', () => {
       await openSheet(wrapper, 'Admin Silva')
 
       expect(document.body.querySelector('[role="dialog"]')?.textContent).toContain('Sua conta')
-      for (const label of ['Editar', 'Redefinir senha', 'Remover']) {
+      for (const label of ['Editar', 'Redefinir senha', 'Excluir']) {
         expect(sheetButton(label).disabled).toBe(true)
       }
     })
@@ -875,6 +886,18 @@ describe('UserListView', () => {
       await settle()
 
       expect(document.body.querySelector('[role="dialog"] form')).toBeNull()
+    })
+
+    it('does not take the focus from the field when the cancel button is pressed', async () => {
+      await open()
+      const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
+
+      const cancel = [...document.body.querySelectorAll('button')].find(
+        (button) => button.textContent?.trim() === 'Cancelar',
+      )!
+      cancel.dispatchEvent(press)
+
+      expect(press.defaultPrevented).toBe(true)
     })
 
     it('closes with the cancel button and forgets what was typed and any error', async () => {

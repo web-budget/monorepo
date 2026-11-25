@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
 import DetailCard from '@/components/common/DetailCard.vue'
 import DetailField from '@/components/common/DetailField.vue'
 import DetailSection from '@/components/common/DetailSection.vue'
@@ -44,11 +43,6 @@ const { messages, changeToUpdate, remove } = useCrudDetail({
           :value="classification.description"
           wide
         />
-      </DetailSection>
-      <DetailSection :title="$t('classification.sections.budget')">
-        <DetailField :label="$t('classification.form.budget')">
-          <CurrencyDisplay :value="classification.budget" zero-if-null />
-        </DetailField>
       </DetailSection>
     </template>
   </DetailCard>

@@ -76,13 +76,13 @@ describe('CostCenterDetailView', () => {
     vi.mocked(costCentersApi.remove).mockResolvedValue(undefined)
     const dialog = useConfirmDialog()
 
-    await buttonWithText(wrapper, 'Remover').trigger('click')
-    expect(dialog.state.options.title).toBe('Remover o centro de custo “Kitchen”?')
+    await buttonWithText(wrapper, 'Excluir').trigger('click')
+    expect(dialog.state.options.title).toBe('Excluir o centro de custo “Kitchen”?')
     dialog.accept()
     await flushPromises()
 
     expect(costCentersApi.remove).toHaveBeenCalledWith('cc-2')
-    expect(toast.success).toHaveBeenCalledWith('Centro de custo removido', {
+    expect(toast.success).toHaveBeenCalledWith('Centro de custo excluído', {
       description: '“Kitchen” saiu da lista.',
       duration: 4000,
     })
@@ -92,7 +92,7 @@ describe('CostCenterDetailView', () => {
   it('does nothing when the removal is not confirmed', async () => {
     const { wrapper, router } = await render()
 
-    await buttonWithText(wrapper, 'Remover').trigger('click')
+    await buttonWithText(wrapper, 'Excluir').trigger('click')
     useConfirmDialog().cancel()
     await flushPromises()
 
@@ -106,7 +106,7 @@ describe('CostCenterDetailView', () => {
       problem(400, { error: 'data-integrity-violation' }),
     )
 
-    await buttonWithText(wrapper, 'Remover').trigger('click')
+    await buttonWithText(wrapper, 'Excluir').trigger('click')
     useConfirmDialog().accept()
     await flushPromises()
 
@@ -121,7 +121,7 @@ describe('CostCenterDetailView', () => {
 
     const { wrapper } = await mountView(CostCenterDetailView, 'cost-centers', { id: 'cc-9' })
 
-    expect(wrapper.find('h1').text()).toBe('Detalhando centro de custo')
+    expect(wrapper.find('h1').text()).toBe('Detalhando')
     expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
       'O recurso solicitado não existe',
     )

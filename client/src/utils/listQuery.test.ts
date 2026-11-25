@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import {
   buildListQuery,
+  parseExtraQuery,
   parseListQuery,
   sameListQuery,
   sameListState,
@@ -153,5 +154,31 @@ describe('sameListState', () => {
 
   it.each(changes)('is false when %o differs', (change) => {
     expect(sameListState(defaults, { ...defaults, ...change })).toBe(false)
+  })
+})
+
+describe('extra parameters', () => {
+  it('reads only the known keys that have a value', () => {
+    expect(parseExtraQuery({ period: 'p-1', type: '', other: 'x' }, ['period', 'type'])).toEqual({
+      period: 'p-1',
+    })
+  })
+
+  it('writes the extra values that are filled and drops the ones that are not', () => {
+    const query = buildListQuery({ period: 'old', from: 'email' }, defaults, 'ACTIVE', {
+      period: 'p-2',
+      type: '',
+    }, ['period', 'type'])
+
+    expect(query).toEqual({ period: 'p-2', from: 'email' })
+  })
+
+  it('removes an extra key that the state no longer has', () => {
+    expect(buildListQuery({ period: 'old' }, defaults, 'ACTIVE', {}, ['period'])).toEqual({})
+  })
+
+  it('compares the extra keys when asked to', () => {
+    expect(sameListQuery({ period: 'a' }, { period: 'b' })).toBe(true)
+    expect(sameListQuery({ period: 'a' }, { period: 'b' }, ['period'])).toBe(false)
   })
 })

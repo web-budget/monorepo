@@ -1,8 +1,10 @@
 import { flushPromises } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'vue-sonner'
+import { walletEntriesApi } from '@/api/walletEntries'
 import { walletsApi } from '@/api/wallets'
 import { Select } from '@/components/ui/select'
+import AdjustBalanceDialog from '@/components/wallets/AdjustBalanceDialog.vue'
 import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import {
   buttonWithText,
@@ -16,6 +18,7 @@ import type { PageQuery, WalletListView } from '@/types'
 import WalletListView_ from '@/views/registration/wallets/WalletListView.vue'
 
 vi.mock('@/api/wallets')
+vi.mock('@/api/walletEntries')
 vi.mock('vue-sonner', () => ({
   toast: {
     success: vi.fn<() => void>(),
@@ -26,8 +29,26 @@ vi.mock('vue-sonner', () => ({
 }))
 
 const wallets: WalletListView[] = [
-  { id: 'w-1', name: 'Main', type: 'BANK_ACCOUNT', bank: 'ACME', active: true },
-  { id: 'w-2', name: 'Cash', type: 'PERSONAL', bank: 'Ignored', active: false },
+  {
+    id: 'w-1',
+    name: 'Main',
+    type: 'BANK_ACCOUNT',
+    bank: 'ACME',
+    currentBalance: 4812.37,
+    agency: '1234-5',
+    number: '98765-0',
+    active: true,
+  },
+  {
+    id: 'w-2',
+    name: 'Cash',
+    type: 'PERSONAL',
+    bank: null,
+    currentBalance: -312.08,
+    agency: null,
+    number: null,
+    active: false,
+  },
 ]
 
 const COUNTS: Record<string, number> = { ACTIVE: 4, INACTIVE: 1, ALL: 5 }
@@ -69,7 +90,9 @@ describe('WalletListView', () => {
     const { wrapper } = await render()
 
     expect(wrapper.find('h1').text()).toBe('Carteiras')
-    expect(wrapper.find('[data-slot="page-description"]').text()).toContain('Contas bancárias')
+    expect(wrapper.find('[data-slot="page-description"]').text()).toContain(
+      'Contas, investimentos e dinheiro em espécie.',
+    )
     expect(wrapper.find('[data-slot="page-actions"]').text()).toBe('Criar')
   })
 
@@ -87,11 +110,15 @@ describe('WalletListView', () => {
     expect(rows).toHaveLength(2)
     expect(rows[0]!.text()).toContain('Main')
     expect(rows[0]!.text()).toContain('ACME')
-    expect(rows[0]!.text()).toContain('Conta Bancária')
+    expect(rows[0]!.text()).toContain('Conta bancária')
+    expect(rows[0]!.text()).toContain('1234-5 / 98765-0')
+    expect(rows[0]!.text()).toContain('4.812,37')
+    expect(rows[0]!.text()).not.toContain('R$')
     expect(rows[1]!.text()).toContain('Cash')
-    expect(rows[1]!.text()).toContain('---')
-    expect(rows[1]!.text()).not.toContain('Ignored')
     expect(rows[1]!.text()).toContain('Pessoal')
+    expect(rows[1]!.text()).toContain('—')
+    expect(rows[1]!.text()).toContain('−312,08')
+    expect(rows[1]!.find('.text-expense').exists()).toBe(true)
   })
 
   it('labels the status of a wallet in the feminine, as the tabs do', async () => {
@@ -408,6 +435,100 @@ describe('WalletListView', () => {
     expect(link.attributes('href')).toBe('/wallets/w-2/detail')
   })
 
+  it('offers the statement, the adjustment, the edition and the removal in the menu of the row', async () => {
+    const { wrapper } = await render()
+
+    await wrapper
+      .findAll('tbody tr')[0]!
+      .find('button[aria-label="Mais ações"]')
+      .trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+
+    const items = [...document.body.querySelectorAll('[role="menuitem"]')].map((item) =>
+      item.textContent?.trim(),
+    )
+    expect(items).toEqual(['Ver extrato', 'Ajustar saldo', 'Editar', 'Excluir'])
+  })
+
+  it('opens the statement of the wallet from the menu of its row', async () => {
+    const { wrapper, router } = await render()
+
+    await chooseRowAction(wrapper, 0, 'Ver extrato')
+
+    expect(router.currentRoute.value.fullPath).toBe('/financial/statement?wallet=w-1')
+  })
+
+  it('adjusts the balance from the menu of its row and reloads', async () => {
+    vi.mocked(walletEntriesApi.adjust).mockResolvedValue({} as never)
+    const { wrapper } = await render()
+
+    await chooseRowAction(wrapper, 0, 'Ajustar saldo')
+    const dialog = wrapper.getComponent(AdjustBalanceDialog)
+    expect(dialog.props('wallet')).toEqual({ id: 'w-1', name: 'Main', balance: 4812.37 })
+    const before = listing().length
+    dialog.vm.$emit('adjust', { id: 'w-1' }, { value: 0.03 })
+    await flushPromises()
+
+    expect(walletEntriesApi.adjust).toHaveBeenCalledWith('w-1', { value: 0.03 })
+    expect(toast.success).toHaveBeenCalledWith('Saldo ajustado', {
+      description: 'Crédito de 0,03 em Main. Não entra no resultado.',
+      duration: 4000,
+    })
+    expect(listing().length).toBe(before + 1)
+    expect(dialog.props('wallet')).toBeNull()
+  })
+
+  it('debits when the adjustment is negative', async () => {
+    vi.mocked(walletEntriesApi.adjust).mockResolvedValue({} as never)
+    const { wrapper } = await render()
+
+    await chooseRowAction(wrapper, 0, 'Ajustar saldo')
+    wrapper.getComponent(AdjustBalanceDialog).vm.$emit('adjust', { id: 'w-1' }, { value: -0.02 })
+    await flushPromises()
+
+    expect(toast.success).toHaveBeenCalledWith('Saldo ajustado', {
+      description: 'Débito de 0,02 em Main. Não entra no resultado.',
+      duration: 4000,
+    })
+  })
+
+  it('keeps the adjustment dialog open and shows why it failed', async () => {
+    vi.mocked(walletEntriesApi.adjust).mockRejectedValue(problem(500))
+    const { wrapper } = await render()
+
+    await chooseRowAction(wrapper, 0, 'Ajustar saldo')
+    wrapper.getComponent(AdjustBalanceDialog).vm.$emit('adjust', { id: 'w-1' }, { value: 1 })
+    await flushPromises()
+
+    expect(wrapper.getComponent(AdjustBalanceDialog).props('wallet')).not.toBeNull()
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
+  })
+
+  it('closes the adjustment dialog', async () => {
+    const { wrapper } = await render()
+
+    await chooseRowAction(wrapper, 0, 'Ajustar saldo')
+    wrapper.getComponent(AdjustBalanceDialog).vm.$emit('close')
+    await flushPromises()
+
+    expect(wrapper.getComponent(AdjustBalanceDialog).props('wallet')).toBeNull()
+  })
+
+  it('does not offer to adjust an inactive wallet', async () => {
+    const { wrapper } = await render()
+
+    await wrapper
+      .findAll('tbody tr')[1]!
+      .find('button[aria-label="Mais ações"]')
+      .trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+
+    const item = [...document.body.querySelectorAll('[role="menuitem"]')].find(
+      (candidate) => candidate.textContent?.trim() === 'Ajustar saldo',
+    )!
+    expect(item.getAttribute('data-disabled')).not.toBeNull()
+  })
+
   it('opens the form to edit a wallet from the menu of its row', async () => {
     const { wrapper, router } = await render()
 
@@ -423,7 +544,8 @@ describe('WalletListView', () => {
     const { wrapper } = await render()
 
     expect(wrapper.find('table').exists()).toBe(false)
-    expect(wrapper.findAll('[data-slot="items-cards"] > [data-slot="card"]')).toHaveLength(2)
+    expect(wrapper.findAll('[data-layout="compact"] > div')).toHaveLength(2)
+    expect(wrapper.find('[data-layout="compact"]').text()).toContain('1234-5 / 98765-0')
   })
 
   describe('removing', () => {
@@ -432,9 +554,9 @@ describe('WalletListView', () => {
       vi.mocked(walletsApi.remove).mockResolvedValue(undefined)
       const dialog = useConfirmDialog()
 
-      await chooseRowAction(wrapper, 0, 'Remover')
+      await chooseRowAction(wrapper, 0, 'Excluir')
 
-      expect(dialog.state.options.title).toBe('Remover a carteira “Main”?')
+      expect(dialog.state.options.title).toBe('Excluir a carteira “Main”?')
       expect(dialog.state.options.description).toBe('Não dá para desfazer.')
       expect(walletsApi.remove).not.toHaveBeenCalled()
 
@@ -443,7 +565,7 @@ describe('WalletListView', () => {
 
       expect(walletsApi.remove).toHaveBeenCalledWith('w-1')
       expect(wrapper.findAll('tbody tr')).toHaveLength(1)
-      expect(toast.success).toHaveBeenCalledWith('Carteira removida', {
+      expect(toast.success).toHaveBeenCalledWith('Carteira excluída', {
         description: '“Main” saiu da lista.',
         duration: 4000,
       })
@@ -455,7 +577,7 @@ describe('WalletListView', () => {
       serve(wallets.slice(1), 1, { ACTIVE: 3, INACTIVE: 1, ALL: 4 })
       const dialog = useConfirmDialog()
 
-      await chooseRowAction(wrapper, 0, 'Remover')
+      await chooseRowAction(wrapper, 0, 'Excluir')
       dialog.accept()
       await flushPromises()
 
@@ -466,7 +588,7 @@ describe('WalletListView', () => {
       const { wrapper } = await render()
       const dialog = useConfirmDialog()
 
-      await chooseRowAction(wrapper, 0, 'Remover')
+      await chooseRowAction(wrapper, 0, 'Excluir')
       dialog.cancel()
       await flushPromises()
 
@@ -481,7 +603,7 @@ describe('WalletListView', () => {
       )
       const dialog = useConfirmDialog()
 
-      await chooseRowAction(wrapper, 0, 'Remover')
+      await chooseRowAction(wrapper, 0, 'Excluir')
       dialog.accept()
       await flushPromises()
 
@@ -498,7 +620,7 @@ describe('WalletListView', () => {
       const { wrapper, router } = await render([], 0, { ACTIVE: 0, INACTIVE: 0, ALL: 0 })
 
       const state = wrapper.find('[data-state="empty"]')
-      expect(state.text()).toContain('Nenhuma carteira ainda')
+      expect(state.text()).toContain('Nenhuma carteira cadastrada')
       expect(wrapper.find('table').exists()).toBe(false)
 
       await state.find('button').trigger('click')
@@ -514,7 +636,7 @@ describe('WalletListView', () => {
       await flushPromises()
 
       const state = wrapper.find('[data-state="no-result"]')
-      expect(state.text()).toContain('Nada encontrado para “poupanca”')
+      expect(state.text()).toContain('Nenhuma carteira encontrada para “poupanca”')
 
       await state.find('button').trigger('click')
       await flushPromises()
@@ -551,7 +673,7 @@ describe('WalletListView', () => {
       const { wrapper } = await render([], 0, { ACTIVE: 0, INACTIVE: 0, ALL: 2 })
 
       const state = wrapper.find('[data-state="no-result"]')
-      expect(state.text()).toContain('Nada encontrado neste filtro')
+      expect(state.text()).toContain('Nenhuma carteira com esses filtros')
 
       await state.find('button').trigger('click')
       await flushPromises()
@@ -565,7 +687,7 @@ describe('WalletListView', () => {
 
       const state = wrapper.find('[data-state="error"]')
       expect(state.text()).toContain('Não foi possível carregar as carteiras')
-      expect(state.text()).toContain('Tente novamente mais tarde')
+      expect(state.text()).toContain('O servidor não respondeu. Seus filtros continuam na URL.')
       expect(wrapper.find('table').exists()).toBe(false)
 
       serve()

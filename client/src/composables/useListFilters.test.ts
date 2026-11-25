@@ -135,3 +135,75 @@ describe('useListFilters', () => {
     expect(onExternalChange).not.toHaveBeenCalled()
   })
 })
+
+describe('useListFilters with extra parameters', () => {
+  async function mountExtra(location: string) {
+    const router = createRouter({
+      history: createMemoryHistory(),
+      routes: [{ path: '/list', component: { render: () => h('div') } }],
+    })
+    await router.push(location)
+    const pageRequest = ref(createPageRequest<string>())
+    const values = ref<Record<string, string>>({})
+    const onExternalChange = vi.fn<() => void>()
+    let writeRoute = () => {}
+    mount(
+      defineComponent({
+        setup() {
+          writeRoute = useListFilters({
+            pageRequest,
+            initialStatus: 'ACTIVE',
+            statuses: ['ACTIVE', 'ALL'],
+            sortFields: ['name'],
+            extra: {
+              keys: ['type', 'period'],
+              values,
+              sanitize: (parsed) => (parsed.type === 'BAD' ? { ...parsed, type: '' } : parsed),
+            },
+            onExternalChange,
+          }).writeRoute
+          return () => h('div')
+        },
+      }),
+      { global: { plugins: [router] } },
+    )
+    return { router, values, onExternalChange, writeRoute: () => writeRoute() }
+  }
+
+  it('reads the extra parameters from the URL and sanitizes them', async () => {
+    const { values } = await mountExtra('/list?type=BAD&period=p-1')
+
+    expect(values.value).toEqual({ type: '', period: 'p-1' })
+  })
+
+  it('writes the extra parameters into the URL', async () => {
+    const { router, values, writeRoute } = await mountExtra('/list')
+
+    values.value = { period: 'p-2' }
+    writeRoute()
+    await flushPromises()
+
+    expect(router.currentRoute.value.query).toEqual({ period: 'p-2' })
+  })
+
+  it('follows an outside change of an extra parameter and tells the list to reload', async () => {
+    const { router, values, onExternalChange } = await mountExtra('/list')
+
+    await router.push('/list?period=p-3')
+    await flushPromises()
+
+    expect(values.value).toEqual({ period: 'p-3' })
+    expect(onExternalChange).toHaveBeenCalledTimes(1)
+  })
+
+  it('ignores a URL that says what the extra parameters already say', async () => {
+    const { router, values, onExternalChange, writeRoute } = await mountExtra('/list')
+
+    values.value = { type: 'INCOME' }
+    writeRoute()
+    await flushPromises()
+
+    expect(router.currentRoute.value.query).toEqual({ type: 'INCOME' })
+    expect(onExternalChange).not.toHaveBeenCalled()
+  })
+})
