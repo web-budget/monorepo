@@ -75,6 +75,7 @@ function serveResults() {
     result: 1500,
     toPay: 0,
     overdueExpenses: 0,
+    paidOnCard: 0,
     recorded: false,
   })
 }
@@ -363,6 +364,7 @@ describe('FinancialPeriodListView', () => {
       result: -300,
       toPay: 0,
       overdueExpenses: 0,
+      paidOnCard: 0,
       recorded: true,
     })
     serveListing(vi.mocked(financialPeriodsApi.findAll), periods, periods.length, COUNTS)
@@ -383,6 +385,30 @@ describe('FinancialPeriodListView', () => {
     expect(router.currentRoute.value.name).toBe('financial-periods.create')
   })
 
+  it('searches the periods by name, keeping the text in the URL and in the counts', async () => {
+    const { wrapper, router } = await render()
+
+    expect(wrapper.find('input[type="search"]').attributes('placeholder')).toBe('Nome')
+    await wrapper.find('input').setValue('jan')
+    await wrapper.find('input').trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+
+    expect(listingCalls(vi.mocked(financialPeriodsApi.findAll)).slice(-1)[0]).toEqual(
+      expect.objectContaining({ filter: 'jan', page: 0 }),
+    )
+    expect(router.currentRoute.value.query.filter).toBe('jan')
+    expect(wrapper.text()).toContain('4 períodos financeiros encontrados para “jan”')
+    const counted = vi
+      .mocked(financialPeriodsApi.findAll)
+      .mock.calls.filter(([query]) => query.size === 1)
+      .slice(-3)
+    expect(counted.map(([query]) => query.filter)).toEqual(['jan', 'jan', 'jan'])
+
+    await wrapper.find('button[aria-label="Limpar filtro"]').trigger('click')
+    await flushPromises()
+    expect(router.currentRoute.value.query.filter).toBeUndefined()
+  })
+
   it('says nothing matched the search, and shows the error state with a retry', async () => {
     serveListing(vi.mocked(financialPeriodsApi.findAll), [], 0, COUNTS)
     const { wrapper } = await mountView(
@@ -397,7 +423,7 @@ describe('FinancialPeriodListView', () => {
     await wrapper.find('[data-state="no-result"] button').trigger('click')
     await flushPromises()
     expect(listingCalls(vi.mocked(financialPeriodsApi.findAll)).slice(-1)[0]).toEqual(
-      expect.objectContaining({ status: 'ALL' }),
+      expect.objectContaining({ status: 'CLOSED', filter: '' }),
     )
 
     vi.mocked(financialPeriodsApi.findAll).mockRejectedValue(problem(500))

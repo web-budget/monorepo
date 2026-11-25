@@ -140,7 +140,7 @@ export const useFinancialPeriodsStore = defineStore('financialPeriods', () => {
     pageResponse: resource.pageResponse,
     loading: resource.loading,
     findAll: resource.findAll,
-    count: resource.count,
+    count: (status: FinancialPeriodStatusFilter) => resource.count(status, true),
     findOne: resource.findOne,
     create: resource.create,
     update: resource.update,

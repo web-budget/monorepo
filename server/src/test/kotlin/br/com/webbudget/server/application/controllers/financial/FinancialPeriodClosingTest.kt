@@ -45,7 +45,7 @@ class FinancialPeriodClosingTest : BaseIntegrationTest() {
         assertThat(statusOf(9103L)).isEqualTo("CLOSED")
         assertThat(dsl.fetchCount(PERIOD_RESULTS)).isEqualTo(1)
 
-        result(AUGUST).expectBody().jsonPath("$.recorded").isEqualTo(true)
+        result(AUGUST).expectBody().jsonPath("$.recorded").isEqualTo(true).jsonPath("$.paidOnCard").isEqualTo(0)
 
         createMovement("Late bill", "EXPENSE", "10.00", AUGUST).expectStatus().isBadRequest
             .expectBody().jsonPath("$.error").isEqualTo("financial-period-not-open")

@@ -43,7 +43,7 @@ class FinancialPeriodClosingController(
         val periodResult = financialPeriodClosingService.close(findFinancialPeriod(id))
 
         return ResponseEntity.ok(
-            FinancialPeriodResultView(periodResult.revenues, periodResult.expenses, periodResult.result, true, BigDecimal.ZERO, 0)
+            FinancialPeriodResultView(periodResult.revenues, periodResult.expenses, periodResult.result, true, BigDecimal.ZERO, 0, BigDecimal.ZERO)
         )
     }
 

@@ -11,6 +11,7 @@ const result: FinancialPeriodResultView = {
   recorded: false,
   toPay: 0,
   overdueExpenses: 0,
+  paidOnCard: 0,
 }
 
 async function render(shown: FinancialPeriodResultView | null = result) {

@@ -6,6 +6,7 @@ import {
   CircleCheck,
   CircleDashed,
   Lock,
+  LockKeyhole,
   Plus,
 } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
@@ -44,7 +45,7 @@ import { useNotification } from '@/composables/useNotification'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { usePeriodClosingStore } from '@/stores/periodClosing'
 import type { ClosingInvoiceView, ClosingPeriodView, MovementListView } from '@/types'
-import { defaultClosingPeriod, monthOf } from '@/utils/periods'
+import { monthOf, oldestOpen } from '@/utils/periods'
 import { queryValue } from '@/utils/queryValue'
 
 const { t, n } = useI18n()
@@ -65,6 +66,7 @@ const closeErrors = useServerErrors()
 const supportErrors = useServerErrors()
 
 const selectedId = ref('')
+const periodsLoaded = ref(false)
 const closing = ref(false)
 const moving = ref<MovementListView | null>(null)
 
@@ -91,6 +93,8 @@ const closeInvoice = useCloseClosingInvoice(reload)
 async function choose(id: string) {
   selectedId.value = id
   if (id === '') {
+    store.reset()
+    await router.replace({ query: { ...route.query, period: undefined } })
     return
   }
   await router.replace({ query: { ...route.query, period: id } })
@@ -98,10 +102,10 @@ async function choose(id: string) {
 }
 
 onMounted(async () => {
-  await optionErrors.run(options.load)
+  periodsLoaded.value = await optionErrors.run(options.load)
   const requested = queryValue(route.query.period)
   const known = openPeriods.value.find((period) => period.id === requested)
-  await choose(known?.id ?? defaultClosingPeriod(options.periods.value)?.id ?? '')
+  await choose(known?.id ?? oldestOpen(options.periods.value)?.id ?? '')
   await supportErrors.run(async () => {
     await Promise.all([activeWallets.load(), activeCards.load()])
   })
@@ -193,7 +197,8 @@ async function closePeriod() {
       name: period.name,
       result: formatted,
     })
-    await router.push({ name: 'financial-periods' })
+    await optionErrors.run(options.load)
+    await choose(oldestOpen(options.periods.value)?.id ?? '')
   }
 }
 
@@ -232,10 +237,21 @@ function createPeriod() {
       :model-value="selectedId"
       @update:model-value="choose"
     />
-    <div class="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
+    <Card
+      v-if="periodsLoaded && openPeriods.length === 0"
+      class="grid justify-items-center gap-2 px-6 py-14 text-center"
+      data-slot="no-period"
+    >
+      <LockKeyhole class="text-muted-foreground size-6" />
+      <p class="text-base font-semibold">{{ $t('period-closing.empty.title') }}</p>
+      <p class="text-muted-foreground text-sm">{{ $t('period-closing.empty.description') }}</p>
+      <Button type="button" size="sm" variant="outline" @click="createPeriod()">
+        {{ $t('period-closing.empty.create') }}
+      </Button>
+    </Card>
+    <div v-else-if="selected" class="grid items-start gap-5 lg:grid-cols-[minmax(0,1fr)_300px]">
       <div class="grid gap-5">
-        <section v-if="result && accumulated" class="grid gap-3" data-slot="summary">
-          <h2 class="text-base font-semibold">{{ $t('period-closing.summary.title') }}</h2>
+        <section v-if="result && accumulated" data-slot="summary">
           <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
             <Card class="gap-1 p-4">
               <span class="text-muted-foreground text-xs">{{
@@ -569,15 +585,10 @@ function createPeriod() {
             </span>
           </li>
         </ul>
-        <div class="grid gap-2 border-t pt-4">
+        <div class="border-t pt-4">
           <Button type="button" class="w-full" :disabled="!ready" @click="openClosing()">
             <Lock />{{ $t('period-closing.checklist.close', { name: monthOf(selected?.name) }) }}
           </Button>
-          <p class="text-muted-foreground text-xs">
-            {{
-              ready ? $t('period-closing.checklist.ready') : $t('period-closing.checklist.blocked')
-            }}
-          </p>
         </div>
       </Card>
     </div>
