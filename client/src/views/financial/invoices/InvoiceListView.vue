@@ -61,7 +61,7 @@ const { writeRoute } = useListFilters({
   pageRequest,
   initialStatus: 'ALL',
   statuses,
-  sortFields: ['name', 'value', 'status'],
+  sortFields: ['name', 'period', 'value', 'status'],
   defaultSort: { sortField: 'name', direction: 'asc' },
   extra: { keys: INVOICE_FILTER_KEYS, values: filters },
   onExternalChange: reload,
@@ -138,6 +138,7 @@ const columns = computed(() => [
   {
     field: 'period',
     header: t('credit-card-invoice.table-columns.period'),
+    sortable: true,
     mobile: 'line' as const,
     mobileLabel: false,
   },
