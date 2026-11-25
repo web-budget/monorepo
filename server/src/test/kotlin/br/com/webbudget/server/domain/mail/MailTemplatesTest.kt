@@ -201,6 +201,21 @@ class MailTemplatesTest {
     }
 
     @Test
+    fun `should render the password changed notice for a change made by the user in both languages`() {
+
+        val pt = renderNotice("password-changed", "pt-BR", passwordChangedVariables + ("changedBy" to "USER"))
+
+        assertThat(pt).contains("Por você, em Minha conta", "Foi você? Então está tudo certo. As outras sessões abertas foram encerradas.")
+        assertThat(pt).doesNotContain("Pela recuperação de senha", "Por um administrador")
+        assertCleanOutput(pt)
+
+        val english = renderNotice("password-changed", "en-US", passwordChangedVariables + ("changedBy" to "USER"))
+
+        assertThat(english).contains("By you, in My account", "Was it you? Then you’re all set. Your other open sessions were signed out.")
+        assertCleanOutput(english)
+    }
+
+    @Test
     fun `should render the two-step verification reset notice in both languages`() {
 
         val variables = mapOf("loginUrl" to "https://webbudget.example.com/login")

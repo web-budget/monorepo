@@ -71,6 +71,15 @@ data class ProfileForm(
     val name: String?
 )
 
+data class PasswordChangeForm(
+    @field:NotBlank(message = IS_NULL_OR_BLANK)
+    @field:Size(max = MAX_PASSWORD_LENGTH, message = MAX_CHARS)
+    val currentPassword: String?,
+    @field:NotBlank(message = IS_NULL_OR_BLANK)
+    @field:MaxUtf8Bytes(max = MAX_REGISTRATION_PASSWORD_BYTES)
+    val newPassword: String?
+)
+
 data class LanguageForm(
     @field:NotNull(message = IS_NULL)
     val language: Language?
@@ -148,18 +157,26 @@ data class SessionView(
     val status: UserStatus,
     val language: Language,
     val dueDateNotices: Boolean,
-    val roles: List<String>
+    val roles: List<String>,
+    val hasPassword: Boolean,
+    val googleLinked: Boolean,
+    val totpEnabled: Boolean,
+    val totpRequired: Boolean
 ) {
 
     companion object {
 
-        fun from(user: CurrentUser): SessionView = SessionView(
+        fun from(user: CurrentUser, totpRequired: Boolean): SessionView = SessionView(
             name = user.name,
             email = user.email,
             status = user.status,
             language = user.language,
             dueDateNotices = user.dueDateNotices,
-            roles = user.roles.sorted()
+            roles = user.roles.sorted(),
+            hasPassword = user.hasPassword,
+            googleLinked = user.googleLinked,
+            totpEnabled = user.totpEnabled,
+            totpRequired = totpRequired
         )
     }
 }

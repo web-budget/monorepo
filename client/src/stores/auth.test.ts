@@ -22,6 +22,10 @@ const session: SessionResponse = {
   status: 'APPROVED',
   language: 'PT_BR',
   dueDateNotices: true,
+  hasPassword: true,
+  googleLinked: false,
+  totpEnabled: false,
+  totpRequired: false,
   roles: ['ADMINISTRATION', 'REGISTRATION'],
 }
 
@@ -130,6 +134,49 @@ describe('useAuthStore', () => {
     await expect(store.changeLanguage('EN_US')).rejects.toBe(failure)
 
     expect(store.session).toEqual(session)
+  })
+
+  it('changeName() keeps the session the server answers with', async () => {
+    const store = await authenticatedStore()
+    vi.mocked(authApi.changeName).mockResolvedValue({ ...session, name: 'Maria' })
+
+    await store.changeName('Maria')
+
+    expect(authApi.changeName).toHaveBeenCalledWith('Maria')
+    expect(store.session).toEqual({ ...session, name: 'Maria' })
+  })
+
+  it('changeName() keeps the session as it was when the server refuses', async () => {
+    const store = await authenticatedStore()
+    const failure = new ApiError({ error: 'field-validation-failed' }, 422)
+    vi.mocked(authApi.changeName).mockRejectedValue(failure)
+
+    await expect(store.changeName('Maria')).rejects.toBe(failure)
+
+    expect(store.session).toEqual(session)
+  })
+
+  it('changePassword() hands the passwords over and keeps the session', async () => {
+    const store = await authenticatedStore()
+    vi.mocked(authApi.changePassword).mockResolvedValue()
+
+    await store.changePassword({ currentPassword: 'old', newPassword: 'New1password' })
+
+    expect(authApi.changePassword).toHaveBeenCalledWith({
+      currentPassword: 'old',
+      newPassword: 'New1password',
+    })
+    expect(store.session).toEqual(session)
+  })
+
+  it('changePassword() rethrows the refusal of the server', async () => {
+    const store = await authenticatedStore()
+    const failure = new ApiError({ error: 'invalid_current_password' }, 400)
+    vi.mocked(authApi.changePassword).mockRejectedValue(failure)
+
+    await expect(
+      store.changePassword({ currentPassword: 'wrong', newPassword: 'New1password' }),
+    ).rejects.toBe(failure)
   })
 
   it('hasRole() is true only for a role of the session', async () => {
