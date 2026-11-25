@@ -4,7 +4,7 @@ import {
   installmentProgress,
   isLaunchedIn,
   monthAndYear,
-  signedValue,
+  toneOf,
 } from '@/utils/recurringMovements'
 
 describe('installmentProgress', () => {
@@ -35,16 +35,15 @@ describe('installmentProgress', () => {
   })
 })
 
-describe('displayedValue and signedValue', () => {
+describe('displayedValue and toneOf', () => {
   it('shows the value of a fixed one and the suggestion of a variable one', () => {
     expect(displayedValue({ valueKind: 'FIXED', value: 100, suggestedValue: 80 })).toBe(100)
     expect(displayedValue({ valueKind: 'VARIABLE', value: 100, suggestedValue: 80 })).toBe(80)
   })
 
-  it('signs the value by the type', () => {
-    const recurringMovement = { valueKind: 'FIXED', value: 100, suggestedValue: 100 } as const
-    expect(signedValue({ ...recurringMovement, type: 'INCOME' })).toBe(100)
-    expect(signedValue({ ...recurringMovement, type: 'EXPENSE' })).toBe(-100)
+  it('colors the value by the type', () => {
+    expect(toneOf({ type: 'INCOME' })).toBe('income')
+    expect(toneOf({ type: 'EXPENSE' })).toBe('expense')
   })
 })
 

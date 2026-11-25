@@ -5,6 +5,7 @@ import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import InputField from '@/components/forms/InputField.vue'
 import MoneyField from '@/components/forms/MoneyField.vue'
+import ServerErrorAlert from '@/components/forms/ServerErrorAlert.vue'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -30,6 +31,7 @@ interface ReadjustableRecurringMovement {
 const props = defineProps<{
   recurringMovement: ReadjustableRecurringMovement | null
   loading: boolean
+  messages: string[]
 }>()
 
 const emit = defineEmits<{
@@ -68,6 +70,7 @@ const submit = form.handleSubmit((values) => {
           </DialogTitle>
           <DialogDescription>{{ $t('recurrent-movement.readjust.description') }}</DialogDescription>
         </DialogHeader>
+        <ServerErrorAlert :messages="messages" />
         <MoneyField
           name="value"
           :label="$t('recurrent-movement.readjust.value')"

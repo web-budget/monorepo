@@ -13,11 +13,12 @@ interface ReadjustTarget {
 export function useReadjustValue(reload: () => Promise<unknown> | unknown) {
   const store = useRecurringMovementsStore()
   const { showSuccess } = useNotification()
-  const { messages, run } = useServerErrors()
+  const { messages, clear, run } = useServerErrors()
 
   const target = ref<ReadjustTarget | null>(null)
 
   function open({ id, name, value }: ReadjustTarget) {
+    clear()
     target.value = { id, name, value }
   }
 

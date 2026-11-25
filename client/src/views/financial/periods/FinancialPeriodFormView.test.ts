@@ -209,10 +209,16 @@ describe('FinancialPeriodFormView', () => {
     expect(aside.text()).toContain('Recorrentes automáticos lançados:')
     const recurring = aside.findAll('li').slice(0, 3)
     expect(recurring.map((item) => item.text())).toEqual([
-      'Salário +8.400,00',
-      'Aluguel −1.850,00',
-      'Celular novo 11/12−249,90',
+      'Salário 8.400,00',
+      'Aluguel 1.850,00',
+      'Celular novo 11/12249,90',
     ])
+    expect(
+      aside
+        .findAll('[data-slot="currency"]')
+        .slice(0, 3)
+        .map((value) => value.attributes('data-direction')),
+    ).toEqual(['income', 'expense', 'expense'])
     expect(aside.text()).toContain('Faturas abertas criadas:')
     expect(
       aside

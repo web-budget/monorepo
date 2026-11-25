@@ -22,7 +22,7 @@ import { useCrudList } from '@/composables/useCrudList'
 import { useReadjustValue } from '@/composables/useReadjustValue'
 import { RECURRING_FILTER_KEYS, useRecurringMovementsStore } from '@/stores/recurringMovements'
 import type { RecurringMovementStatusFilter, RecurringMovementView } from '@/types'
-import { signedValue } from '@/utils/recurringMovements'
+import { displayedValue, toneOf } from '@/utils/recurringMovements'
 
 const { t } = useI18n()
 
@@ -192,7 +192,7 @@ function openDetail(recurringMovement: RecurringMovementView) {
           </Button>
         </SearchControls>
       </Card>
-      <ServerErrorAlert :messages="[...messages, ...readjust.messages.value]" />
+      <ServerErrorAlert :messages="messages" />
       <ListState
         v-if="listState !== 'table'"
         :kind="listState"
@@ -234,7 +234,7 @@ function openDetail(recurringMovement: RecurringMovementView) {
             >
               {{ $t('recurrent-movement.last-value') }}
             </span>
-            <CurrencyDisplay :value="signedValue(item)" signed glued bare />
+            <CurrencyDisplay :value="displayedValue(item)" :tone="toneOf(item)" bare />
           </span>
         </template>
         <template #cell-valueKind="{ item }">
@@ -266,6 +266,7 @@ function openDetail(recurringMovement: RecurringMovementView) {
     <ReadjustValueDialog
       :recurring-movement="readjust.target.value"
       :loading="loading"
+      :messages="readjust.messages.value"
       @close="readjust.close()"
       @confirm="readjust.confirm"
     />
