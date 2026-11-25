@@ -777,6 +777,7 @@ describe('PeriodClosingView', () => {
       recorded: true,
       toPay: 0,
       overdueExpenses: 0,
+      paidOnCard: 0,
     })
     vi.mocked(financialPeriodsApi.findAll).mockResolvedValue(
       pageOf(periods.map((period) => ({ ...period, status: 'CLOSED' }))),
