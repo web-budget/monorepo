@@ -110,3 +110,43 @@ describe('CurrencyDisplay sign', () => {
     expect(wrapper.classes()).not.toContain('text-expense')
   })
 })
+
+describe('CurrencyDisplay tone', () => {
+  function renderTone(tone: 'income' | 'expense', value = 1234) {
+    return mount(CurrencyDisplay, { props: { value, tone }, global: { plugins: [i18n] } })
+  }
+
+  it('colors as income without adding a sign', () => {
+    const wrapper = renderTone('income')
+
+    expect(wrapper.text()).toMatch(/^R\$\s*1\.234,00$/)
+    expect(wrapper.classes()).toContain('text-income')
+    expect(wrapper.attributes('data-direction')).toBe('income')
+  })
+
+  it('colors as expense without adding a sign', () => {
+    const wrapper = renderTone('expense')
+
+    expect(wrapper.text()).toMatch(/^R\$\s*1\.234,00$/)
+    expect(wrapper.classes()).toContain('text-expense')
+  })
+
+  it('lets the sign direction win over the tone', () => {
+    const wrapper = mount(CurrencyDisplay, {
+      props: { value: -50, signed: true, tone: 'income' },
+      global: { plugins: [i18n] },
+    })
+
+    expect(wrapper.text()).toMatch(/^− R\$\s*50,00$/)
+    expect(wrapper.classes()).toContain('text-expense')
+  })
+
+  it('drops the color when neutral', () => {
+    const wrapper = mount(CurrencyDisplay, {
+      props: { value: 10, tone: 'income', neutral: true },
+      global: { plugins: [i18n] },
+    })
+
+    expect(wrapper.classes()).not.toContain('text-income')
+  })
+})

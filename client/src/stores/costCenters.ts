@@ -6,7 +6,9 @@ import { createPageRequest } from '@/utils/pageRequest'
 import type { CostCenterListView, StatusFilter } from '@/types'
 
 export const useCostCentersStore = defineStore('costCenters', () => {
-  const resource = useCrudResource(costCentersApi, () => createPageRequest<StatusFilter>())
+  const resource = useCrudResource(costCentersApi, () =>
+    createPageRequest<StatusFilter>({ sortField: 'fullName', direction: 'asc' }),
+  )
   const costCenters = ref<CostCenterListView[]>([])
 
   function findByName(text: string): Promise<void> {

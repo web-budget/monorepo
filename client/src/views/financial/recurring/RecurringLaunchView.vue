@@ -337,7 +337,9 @@ async function launch() {
           <template v-else>{{ $t('recurrent-movement.launch.none-selected') }}</template>
         </span>
         <div class="flex gap-2">
-          <Button type="button" variant="outline" @click="cancel()">{{ $t('form.cancel') }}</Button>
+          <Button type="button" variant="outline" @mousedown.prevent @click="cancel()">{{
+            $t('form.cancel')
+          }}</Button>
           <Button type="button" :disabled="selected.length === 0 || loading" @click="launch()">
             <ListChecks />{{
               selected.length === 0
