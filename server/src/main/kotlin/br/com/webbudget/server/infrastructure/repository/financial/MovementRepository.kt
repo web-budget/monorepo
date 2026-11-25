@@ -1,11 +1,15 @@
 package br.com.webbudget.server.infrastructure.repository.financial
 
+import br.com.webbudget.server.domain.entities.financial.Invoice
 import br.com.webbudget.server.domain.entities.financial.Movement
+import br.com.webbudget.server.domain.entities.financial.Payment
 import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
+import br.com.webbudget.server.jooq.financial.tables.references.INVOICES
 import br.com.webbudget.server.jooq.financial.tables.references.MOVEMENTS
 import br.com.webbudget.server.jooq.financial.tables.references.PAYMENTS
+import br.com.webbudget.server.jooq.registration.tables.references.CARDS
 import br.com.webbudget.server.jooq.registration.tables.references.CLASSIFICATIONS
 import br.com.webbudget.server.jooq.registration.tables.references.COST_CENTERS
 import br.com.webbudget.server.jooq.registration.tables.references.FINANCIAL_PERIODS
@@ -33,6 +37,9 @@ class MovementRepository(
     private val financialPeriods = FINANCIAL_PERIODS.`as`("financial_periods")
     private val payments = PAYMENTS.`as`("payments")
     private val wallets = WALLETS.`as`("wallets")
+    private val cards = CARDS.`as`("cards")
+    private val invoices = INVOICES.`as`("invoices")
+    private val invoiceCards = CARDS.`as`("invoice_cards")
 
     fun findByExternalId(externalId: UUID): Movement? = selectJoined()
         .where(movements.EXTERNAL_ID.eq(externalId))
@@ -60,7 +67,8 @@ class MovementRepository(
                 filter.costCenter?.let { costCenters.EXTERNAL_ID.eq(it) },
                 filter.financialPeriods?.takeIf { it.isNotEmpty() }?.let { financialPeriods.EXTERNAL_ID.`in`(it) },
                 filter.dueFrom?.let { movements.DUE_DATE.ge(it) },
-                filter.dueTo?.let { movements.DUE_DATE.le(it) }
+                filter.dueTo?.let { movements.DUE_DATE.le(it) },
+                filter.invoicePayments?.let { requested -> if (requested) movements.ID_INVOICE.isNotNull else movements.ID_INVOICE.isNull }
             )
         )
 
@@ -91,6 +99,7 @@ class MovementRepository(
         .from(movements)
         .join(payments).on(payments.ID_MOVEMENT.eq(movements.ID))
         .where(movements.ID_FINANCIAL_PERIOD.eq(financialPeriodId))
+        .and(payments.METHOD.eq(Payment.Method.WALLET.name))
         .groupBy(movements.TYPE)
         .fetch()
         .associate { record -> Movement.Type.valueOf(record.value1()!!) to (record.value2() ?: BigDecimal.ZERO) }
@@ -123,8 +132,9 @@ class MovementRepository(
             .set(MOVEMENTS.STATUS, movement.status.name)
             .set(MOVEMENTS.DESCRIPTION, movement.description)
             .set(MOVEMENTS.ID_FINANCIAL_PERIOD, movement.financialPeriod.id)
-            .set(MOVEMENTS.ID_CLASSIFICATION, movement.classification.id)
-            .set(MOVEMENTS.ID_COST_CENTER, movement.costCenter.id)
+            .set(MOVEMENTS.ID_CLASSIFICATION, movement.classification?.id)
+            .set(MOVEMENTS.ID_COST_CENTER, movement.costCenter?.id)
+            .set(MOVEMENTS.ID_INVOICE, movement.invoice?.id)
             .returning()
             .fetchSingle()
 
@@ -139,8 +149,8 @@ class MovementRepository(
             .set(MOVEMENTS.DUE_DATE, movement.dueDate)
             .set(MOVEMENTS.STATUS, movement.status.name)
             .set(MOVEMENTS.DESCRIPTION, movement.description)
-            .set(MOVEMENTS.ID_CLASSIFICATION, movement.classification.id)
-            .set(MOVEMENTS.ID_COST_CENTER, movement.costCenter.id)
+            .set(MOVEMENTS.ID_CLASSIFICATION, movement.classification?.id)
+            .set(MOVEMENTS.ID_COST_CENTER, movement.costCenter?.id)
             .set(MOVEMENTS.VERSION, MOVEMENTS.VERSION.plus(1))
             .set(MOVEMENTS.LAST_UPDATE, LocalDateTime.now())
             .where(MOVEMENTS.ID.eq(movement.id))
@@ -161,22 +171,43 @@ class MovementRepository(
     private fun selectJoined() = dsl.select().from(movements).joinReferences()
 
     private fun <R : Record> SelectJoinStep<R>.joinReferences(): SelectJoinStep<R> = this
-        .join(classifications).on(classifications.ID.eq(movements.ID_CLASSIFICATION))
-        .join(costCenters).on(costCenters.ID.eq(movements.ID_COST_CENTER))
+        .leftJoin(classifications).on(classifications.ID.eq(movements.ID_CLASSIFICATION))
+        .leftJoin(costCenters).on(costCenters.ID.eq(movements.ID_COST_CENTER))
         .join(financialPeriods).on(financialPeriods.ID.eq(movements.ID_FINANCIAL_PERIOD))
         .leftJoin(payments).on(payments.ID_MOVEMENT.eq(movements.ID))
         .leftJoin(wallets).on(wallets.ID.eq(payments.ID_WALLET))
+        .leftJoin(cards).on(cards.ID.eq(payments.ID_CARD))
+        .leftJoin(invoices).on(invoices.ID.eq(movements.ID_INVOICE))
+        .leftJoin(invoiceCards).on(invoiceCards.ID.eq(invoices.ID_CARD))
 
     private fun Record.toMovement(): Movement {
 
         val paymentRecord = into(payments)
-        val payment = paymentRecord.id?.let { paymentRecord.toPayment(into(wallets).toWalletReference()) }
+        val payment = paymentRecord.id?.let {
+            val walletRecord = into(wallets)
+            val cardRecord = into(cards)
+            paymentRecord.toPayment(
+                wallet = walletRecord.id?.let { walletRecord.toWalletReference() },
+                card = cardRecord.id?.let { cardRecord.toCardReference() }
+            )
+        }
+
+        val classificationRecord = into(classifications)
+        val costCenterRecord = into(costCenters)
+        val financialPeriod = into(financialPeriods).toFinancialPeriodReference()
+        val invoiceRecord = into(invoices)
+
+        val invoice = invoiceRecord.id?.let {
+            Invoice(into(invoiceCards).toCardReference(), financialPeriod, Invoice.Status.valueOf(invoiceRecord.status!!))
+                .also { it.restore(invoiceRecord.id, invoiceRecord.externalId, invoiceRecord.version, invoiceRecord.createdOn, invoiceRecord.lastUpdate) }
+        }
 
         return into(movements).toMovement(
-            classification = into(classifications).toClassificationReference(),
-            costCenter = into(costCenters).toCostCenterReference(),
-            financialPeriod = into(financialPeriods).toFinancialPeriodReference(),
-            payment = payment
+            classification = classificationRecord.id?.let { classificationRecord.toClassificationReference() },
+            costCenter = costCenterRecord.id?.let { costCenterRecord.toCostCenterReference() },
+            financialPeriod = financialPeriod,
+            payment = payment,
+            invoice = invoice
         )
     }
 }
@@ -195,5 +226,6 @@ data class MovementCriteria(
     val costCenter: UUID? = null,
     val financialPeriods: List<UUID>? = null,
     val dueFrom: LocalDate? = null,
-    val dueTo: LocalDate? = null
+    val dueTo: LocalDate? = null,
+    val invoicePayments: Boolean? = null
 )

@@ -34,10 +34,10 @@ const paidOnCard = {
 
 const withoutPayment = { ...paidExpense, payment: null } as MovementView
 
-async function render(movement: MovementView | null, loading = false) {
+async function render(movement: MovementView | null, loading = false, messages: string[] = []) {
   const { plugins } = createTestPlugins()
   const wrapper = mount(UndoPaymentDialog, {
-    props: { movement, loading },
+    props: { movement, loading, messages },
     attachTo: document.body,
     global: { plugins },
   })
@@ -58,6 +58,13 @@ function reversal() {
 describe('UndoPaymentDialog', () => {
   beforeEach(() => {
     document.body.replaceChildren()
+  })
+
+  it('shows the server errors at the top of the dialog body', async () => {
+    await render(paidExpense, false, ['Pagamento já desfeito'])
+
+    const alert = document.body.querySelector('[role="dialog"] [data-slot="server-error"]')
+    expect(alert!.textContent).toContain('Pagamento já desfeito')
   })
 
   it('stays closed without a movement', async () => {
@@ -82,14 +89,14 @@ describe('UndoPaymentDialog', () => {
   it('shows the reversal of an expense as a credit', async () => {
     await render(paidExpense)
 
-    expect(reversal()).toMatch(/Estorno de \+R\$\s90,00/)
+    expect(reversal()).toMatch(/Estorno de R\$\s90,00/)
     expect(document.body.querySelector('[data-slot="reversal"] .text-income')).not.toBeNull()
   })
 
   it('shows the reversal of an income as a debit', async () => {
     await render(paidIncome)
 
-    expect(reversal()).toMatch(/Estorno de −R\$\s8\.300,00/)
+    expect(reversal()).toMatch(/Estorno de R\$\s8\.300,00/)
     expect(document.body.querySelector('[data-slot="reversal"] .text-expense')).not.toBeNull()
   })
 
@@ -102,7 +109,7 @@ describe('UndoPaymentDialog', () => {
   it('copes with a movement that has no payment', async () => {
     await render(withoutPayment)
 
-    expect(reversal()).toMatch(/Estorno de \+R\$\s0,00/)
+    expect(reversal()).toMatch(/Estorno de R\$\s0,00/)
   })
 
   it('emits confirm with the movement', async () => {

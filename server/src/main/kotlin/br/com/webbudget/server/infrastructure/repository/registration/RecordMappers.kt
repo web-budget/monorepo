@@ -25,9 +25,8 @@ internal fun WalletsRecord.toWallet(): Wallet = Wallet(
 internal fun CardsRecord.toCard(wallet: Wallet? = null): Card = Card(
     name = name!!,
     lastFourDigits = lastFourDigits!!,
-    type = Card.Type.valueOf(type!!),
     active = active!!,
-    invoicePaymentDay = invoicePaymentDay,
+    invoicePaymentDay = invoicePaymentDay!!,
     flag = flag,
     wallet = wallet
 ).also { card -> card.restore(id, externalId, version, createdOn, lastUpdate) }

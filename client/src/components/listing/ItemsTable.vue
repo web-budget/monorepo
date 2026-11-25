@@ -72,6 +72,7 @@ const props = withDefaults(
     noun?: string
     defaultSortField?: string
     activeSortIconOnly?: boolean
+    hideFooter?: boolean
     statusSortable?: boolean
   }>(),
   {
@@ -90,6 +91,7 @@ const props = withDefaults(
     noun: undefined,
     defaultSortField: DEFAULT_SORT_FIELD,
     activeSortIconOnly: false,
+    hideFooter: false,
     statusSortable: true,
   },
 )
@@ -481,7 +483,10 @@ function changePageSize(value: unknown) {
       </Card>
     </div>
 
-    <div class="text-muted-foreground flex flex-wrap items-center justify-between gap-2 text-xs">
+    <div
+      v-if="!props.hideFooter"
+      class="text-muted-foreground flex flex-wrap items-center justify-between gap-2 text-xs"
+    >
       <span class="font-mono tabular-nums">
         {{
           props.summary ??

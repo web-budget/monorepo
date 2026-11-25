@@ -325,7 +325,7 @@
       "credit-card-invoice": "Compras de cada cartão por período.",
       "period-closing": "Resolver pendências e gravar o resultado.",
       "wallet": "Contas bancárias, investimentos e dinheiro em espécie.",
-      "card": "Cartões de crédito e débito ligados às carteiras.",
+      "card": "Cartões de crédito.",
       "classification": "Categorias de receita e despesa dos lançamentos.",
       "cost-center": "Hierarquia para agrupar onde o dinheiro é gasto.",
       "financial-period": "Criar, editar e acompanhar os períodos.",
@@ -626,13 +626,20 @@
       "total": "Total da fatura",
       "purchases": "Compras",
       "due-date": "Vencimento",
-      "no-purchases": "Nenhuma compra nesta fatura"
+      "no-purchases": "Nenhuma compra nesta fatura",
+      "payment-bar": "Pagamento de fatura:"
     },
     "list": {
       "description": "Compras de cada cartão por período.",
       "empty-title": "Nenhuma fatura neste período",
       "empty-description": "Crie um período para gerar as faturas.",
-      "plural": "as faturas"
+      "plural": "as faturas",
+      "noun": "fatura | faturas",
+      "empty-action": "Criar",
+      "error-description": "O servidor não respondeu. Seus filtros continuam na URL.",
+      "no-result-filter": "Nenhuma fatura com esses filtros",
+      "no-result-hint": "Mude os filtros ou limpe a busca.",
+      "no-result-action": "Limpar filtros"
     },
     "options": {
       "all": "Todas",
@@ -650,7 +657,10 @@
       "card": "Cartão",
       "period": "Período",
       "value": "Total (R$)",
-      "status": "Situação"
+      "status": "Situação",
+      "purchases": "Compras",
+      "due-date": "Vencimento",
+      "actions": "Ações"
     },
     "status": {
       "OPEN": "Aberta",
@@ -663,13 +673,18 @@
     "purchases": {
       "date": "Data",
       "name": "Compra",
-      "value": "Valor (R$)"
+      "value": "Valor (R$)",
+      "cost-center": "Centro de custo",
+      "classification": "Classificação",
+      "recurring": "recorrente"
     },
     "actions": {
       "close": "Fechar fatura",
       "view-payment": "Ver pagamento de fatura",
       "delete-payment": "Excluir pagamento de fatura",
-      "new-purchase": "Nova compra"
+      "new-purchase": "Nova compra",
+      "import": "Importar fatura",
+      "open": "Abrir fatura"
     },
     "close": {
       "title": "Fechar a fatura de {period}, {card}?",
@@ -679,7 +694,8 @@
       "payment": "Pagamento de fatura",
       "due-date": "Vencimento",
       "wallet": "Carteira sugerida ao pagar",
-      "confirm": "Fechar fatura"
+      "confirm": "Fechar fatura",
+      "help": "A carteira é escolhida ao pagar."
     },
     "delete-payment": {
       "title": "Excluir o pagamento de fatura?",
@@ -691,6 +707,25 @@
       "closed-detail": "Pagamento de fatura de {value} gerado, em aberto.",
       "reopened": "Fatura reaberta",
       "reopened-detail": "O pagamento de fatura foi excluído."
+    },
+    "due-date-open": "após fechar",
+    "import": {
+      "breadcrumb": "Importando",
+      "title": "Importar fatura",
+      "description": "Envie o CSV ou OFX, classifique e salve.",
+      "steps": {
+        "upload": "Envio",
+        "processing": "Processando",
+        "draft": "Rascunho"
+      },
+      "card": "Cartão",
+      "period": "Período da fatura",
+      "period-hint": "A fatura do cartão precisa estar aberta neste período.",
+      "drop": "Arraste o arquivo da fatura ou clique para escolher",
+      "formats": "CSV ou OFX, até 5 MB.",
+      "send": "Enviar arquivo",
+      "recent": "Importações recentes",
+      "recent-empty": "Nenhuma importação ainda."
     }
   },
   "period-closing": {
@@ -781,18 +816,20 @@
     "title": "Cartões",
     "menu": "Cartões",
     "search": {
-      "placeholder": "Nome, últimos 4 dígitos ou bandeira"
+      "placeholder": "Nome, final, bandeira ou carteira"
     },
     "table-columns": {
       "name": "Nome",
-      "flag": "Bandeira"
+      "flag": "Bandeira",
+      "last-digits": "Final",
+      "invoice-payment-day": "Dia do pagamento da fatura",
+      "wallet": "Carteira que paga a fatura",
+      "status": "Situação"
     },
     "form": {
       "new": "Criando",
       "editing": "Editando",
       "detailing": "Detalhando",
-      "title-new": "Novo cartão",
-      "title-editing": "Editar cartão",
       "deleting": "Excluindo cartão",
       "name": "Nome",
       "flag": "Bandeira",
@@ -802,14 +839,27 @@
       "wallet-search-empty": "Nenhuma carteira encontrada",
       "wallet-search-placeholder": "Digite o nome",
       "active-label": "Ativo",
-      "active-hint": "Inativar para remover das listagens"
+      "active-hint": "Inativar para remover das listagens",
+      "title-new": "Novo cartão",
+      "title-edit": "Editar cartão",
+      "description": "Só cartão de crédito. Campos com * são obrigatórios.",
+      "name-example": "Ex.: Visa Platinum",
+      "last-four-digits-example": "0000",
+      "wallet-hint": "Vem sugerida ao pagar; dá para trocar na hora.",
+      "wallet-placeholder": "Sem carteira sugerida"
     },
     "list": {
       "description": "Cartões de crédito.",
-      "empty-title": "Nenhum cartão ainda",
-      "empty-description": "Cadastre os cartões de crédito que você usa. As compras entram na fatura.",
+      "empty-title": "Nenhum cartão cadastrado",
+      "empty-description": "Cadastre o primeiro cartão.",
       "plural": "os cartões",
-      "found": "{count} cartão encontrado para “{query}” | {count} cartões encontrados para “{query}”"
+      "found": "{count} cartão encontrado para “{query}” | {count} cartões encontrados para “{query}”",
+      "noun": "cartão | cartões",
+      "error-description": "O servidor não respondeu. Seus filtros continuam na URL.",
+      "no-result-query": "Nenhum cartão encontrado para “{query}”",
+      "no-result-filter": "Nenhum cartão com esses filtros",
+      "no-result-hint": "Mude os filtros ou limpe a busca.",
+      "no-result-action": "Limpar filtros"
     },
     "remove": {
       "title": "Excluir o cartão “{name}”?",
@@ -817,7 +867,7 @@
     },
     "toast": {
       "created": "Cartão criado",
-      "created-detail": "“{name}” já aparece nos lançamentos.",
+      "created-detail": "Ele ganha uma fatura aberta em cada período aberto.",
       "updated": "Alterações salvas",
       "updated-detail": "“{name}” foi atualizado.",
       "removed": "Cartão excluído",
@@ -825,9 +875,16 @@
     },
     "sections": {
       "identification": "Identificação",
-      "identification-help": "Como o cartão aparece nos lançamentos.",
       "invoice": "Fatura",
-      "invoice-help": "Usados como sugestão ao pagar a fatura fechada. A carteira vem sugerida ao pagar; dá para trocar na hora."
+      "invoice-help": "Usados como sugestão ao pagar a fatura fechada."
+    },
+    "actions": {
+      "view-invoices": "Ver faturas"
+    },
+    "detail": {
+      "last-digits": "Final",
+      "invoice-payment-day": "Dia do pagamento",
+      "wallet": "Carteira que paga"
     }
   },
   "financial-period": {
@@ -1125,7 +1182,8 @@
       "edit": "Editar",
       "undo": "Desfazer pagamento",
       "view-statement": "Ver no extrato",
-      "view-invoice": "Ver na fatura"
+      "view-invoice": "Ver na fatura",
+      "view-the-invoice": "Ver a fatura"
     },
     "table-columns": {
       "name": "Nome",
@@ -1215,8 +1273,8 @@
       "paid": "Pagamento registrado",
       "paid-detail": "Saiu de {wallet}, linha nova no extrato.",
       "payment-undone": "Pagamento desfeito",
-      "payment-undone-detail": "O estorno já está no extrato e o movimento voltou para em aberto.",
-      "created-paid-detail": "Lançado já pago: o valor saiu da carteira.",
+      "payment-undone-detail": "O pagamento foi estornado e o movimento voltou para em aberto.",
+      "created-paid-detail": "Lançado já pago, com o pagamento registrado.",
       "received": "Recebimento registrado",
       "received-detail": "Entrou em {wallet}, linha nova no extrato.",
       "paid-on-card-detail": "Entrou na fatura de {card}."
@@ -1269,8 +1327,7 @@
         "INCOME": "Só aparecem classificações de receita.",
         "EXPENSE": "Só aparecem classificações de despesa."
       },
-      "payment-help": "Opcional.",
-      "invoice": "Fatura"
+      "payment-help": "Opcional."
     },
     "detail": {
       "name": "Nome",
@@ -1290,10 +1347,6 @@
       "card": "Cartão",
       "method-wallet": "Carteira",
       "method-card": "Cartão de crédito",
-      "invoice-card": "Cartão",
-      "invoice-status": "Situação da fatura",
-      "invoice": "Fatura",
-      "invoice-link": "Abrir a fatura",
       "discount-none": "---"
     },
     "notices": {
@@ -1334,6 +1387,9 @@
       "reversal-word": "estorno",
       "description-card": "A compra sai da fatura de {card}. O movimento volta para “Em aberto”.",
       "reversal": "Estorno de {amount}"
+    },
+    "badge": {
+      "invoice": "fatura"
     }
   },
   "transfer": {
@@ -1489,7 +1545,7 @@
       "adjustment": "Ajuste",
       "balance-after": "Saldo depois",
       "confirm": "Ajustar",
-      "value-example": "+0,03 ou −0,02"
+      "value-example": "0,03 ou −0,02"
     },
     "toast": {
       "adjusted": "Saldo ajustado",
@@ -1523,8 +1579,6 @@
       "new": "Lançando",
       "editing": "Editando",
       "detailing": "Detalhando",
-      "title-new": "Lançando compra",
-      "title-editing": "Editando compra",
       "submit": "Lançar compra",
       "card": "Cartão",
       "period": "Período da fatura",
@@ -1532,23 +1586,26 @@
       "purchased-on": "Data da compra",
       "value": "Valor",
       "cost-center": "Centro de custo",
-      "classification": "Classificação de despesa"
+      "classification": "Classificação de despesa",
+      "title-new": "Nova compra no cartão",
+      "name-example": "Ex.: Mercado do bairro",
+      "period-hint": "Só períodos abertos.",
+      "classification-hint": "Só classificações de despesa.",
+      "expired-suffix": "expirado",
+      "title-edit": "Editar compra"
     },
     "sections": {
       "card": "Cartão e período",
-      "card-help": "Só períodos abertos.",
-      "purchase": "Compra",
-      "classification": "Classificação"
+      "purchase": "Compra"
     },
     "detail": {
       "value": "Valor",
-      "purchased-on": "Data da compra",
-      "card": "Cartão",
+      "purchased-on": "Data",
       "invoice": "Fatura",
-      "invoice-link": "Fatura de {period}",
-      "period": "Período",
+      "invoice-link": "{card}, {period}",
       "cost-center": "Centro de custo",
-      "classification": "Classificação"
+      "classification": "Classificação",
+      "name": "Nome"
     },
     "notices": {
       "movement": "Esta compra veio de um pagamento no cartão e não se altera aqui.",
@@ -1556,7 +1613,7 @@
     },
     "toast": {
       "created": "Compra lançada",
-      "created-detail": "“{name}” entrou na fatura aberta do cartão.",
+      "created-detail": "Entrou na fatura aberta do cartão.",
       "updated": "Alterações salvas",
       "updated-detail": "“{name}” foi atualizada.",
       "removed": "Compra excluída",
@@ -1565,6 +1622,15 @@
     "remove": {
       "title": "Excluir a compra “{name}”?",
       "description": "Ela sai da fatura e do gasto por centro de custo. Não dá para desfazer."
+    },
+    "actions": {
+      "view-invoice": "Ver fatura"
+    },
+    "closed-invoice": {
+      "title": "A fatura de {period} do {card} está fechada",
+      "description": "Nada foi lançado.",
+      "action": "Ver a fatura",
+      "title-missing": "Não há fatura aberta de {card} em {period}"
     }
   }
 }

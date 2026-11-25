@@ -52,7 +52,8 @@ class MovementController(
             costCenter = filter.costCenter,
             financialPeriods = filter.financialPeriods,
             dueFrom = filter.dueFrom,
-            dueTo = filter.dueTo
+            dueTo = filter.dueTo,
+            invoicePayments = filter.invoicePayments
         )
 
         return movementRepository.findAll(criteria, LocalDate.now(), pageable)

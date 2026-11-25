@@ -23,7 +23,8 @@ class PaymentRepository(
             .set(PAYMENTS.DISCOUNT, payment.discount)
             .set(PAYMENTS.VALUE_PAID, payment.valuePaid)
             .set(PAYMENTS.ID_MOVEMENT, movementId)
-            .set(PAYMENTS.ID_WALLET, payment.wallet.id)
+            .set(PAYMENTS.ID_WALLET, payment.wallet?.id)
+            .set(PAYMENTS.ID_CARD, payment.card?.id)
             .returning()
             .fetchSingle()
 

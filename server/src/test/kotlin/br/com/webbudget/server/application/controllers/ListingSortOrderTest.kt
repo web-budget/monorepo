@@ -63,6 +63,8 @@ class ListingSortOrderTest : BaseIntegrationTest() {
         assertNames("/registration/cards", "", "XP Infinite", "Itau Personalite")
         assertNames("/registration/cards", "sort=name,asc", "Itau Personalite", "XP Infinite")
         assertNames("/registration/cards", "sort=name,desc", "XP Infinite", "Itau Personalite")
+        assertNames("/registration/cards", "sort=invoicePaymentDay,asc", "XP Infinite", "Itau Personalite")
+        assertNames("/registration/cards", "sort=invoicePaymentDay,desc", "Itau Personalite", "XP Infinite")
     }
 
     @Test
@@ -123,6 +125,21 @@ class ListingSortOrderTest : BaseIntegrationTest() {
         assertNames(path, "", "Rounding", "Financial test other wallet", "Rent", "Deposit")
         assertNames(path, "sort=name,asc", "Deposit", "Financial test other wallet", "Rent", "Rounding")
         assertNames(path, "sort=name,desc", "Rounding", "Rent", "Financial test other wallet", "Deposit")
+    }
+
+    @Test
+    @Sql(
+        "/sql/financial/clear-tables.sql",
+        "/sql/financial/create-registration-data.sql",
+        "/sql/financial/create-invoices.sql",
+        "/sql/financial/create-card-purchases.sql"
+    )
+    @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
+    fun `should list the card purchases from the newest to the oldest by default`() {
+
+        assertNames("/financial/card-purchases", "", "Books", "Cinema", "Pizza")
+        assertNames("/financial/card-purchases", "sort=name,asc", "Books", "Cinema", "Pizza")
+        assertNames("/financial/card-purchases", "sort=name,desc", "Pizza", "Cinema", "Books")
     }
 
     @Test

@@ -125,7 +125,7 @@ function serve(content = periods) {
   vi.mocked(walletsApi.findAll).mockResolvedValue(
     pageOf([
       { id: 'w-1', name: 'Conta corrente', currentBalance: 1234.5 },
-      { id: 'w-2', name: 'Poupança', currentBalance: 10 },
+      { id: 'w-2', name: 'Poupança', currentBalance: -10 },
     ] as never[]),
   )
   vi.mocked(cardsApi.findAll).mockResolvedValue(
@@ -325,7 +325,7 @@ describe('MovementFormView', () => {
       }),
     )
     expect(toast.success).toHaveBeenCalledWith('Movimento lançado', {
-      description: 'Lançado já pago: o valor saiu da carteira.',
+      description: 'Lançado já pago, com o pagamento registrado.',
       duration: 4000,
     })
   })
@@ -337,7 +337,7 @@ describe('MovementFormView', () => {
 
     expect(optionsOf(wrapper, 3)).toEqual([
       { value: 'w-1', label: expect.stringMatching(/^Conta corrente · saldo R\$\s1\.234,50$/) },
-      { value: 'w-2', label: expect.stringMatching(/^Poupança · saldo R\$\s10,00$/) },
+      { value: 'w-2', label: expect.stringMatching(/^Poupança · saldo −R\$\s10,00$/) },
     ])
     expect(selects(wrapper)[3]!.props('modelValue')).toBe('w-1')
   })

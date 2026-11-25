@@ -26,7 +26,9 @@ import {
   toMovementUpdateForm,
 } from '@/schemas/movementSchema'
 import { useMovementsStore } from '@/stores/movements'
+import { cardLabel } from '@/utils/invoices'
 import { defaultPeriod } from '@/utils/movements'
+import { formatBalance } from '@/utils/money'
 
 const props = defineProps<{ id?: string }>()
 
@@ -107,12 +109,12 @@ const walletChoices = computed(() =>
     value: wallet.id,
     label: t('movement.form.wallet-option', {
       name: wallet.name,
-      balance: n(wallet.currentBalance, 'currency'),
+      balance: formatBalance(n, wallet.currentBalance),
     }),
   })),
 )
 const cardChoices = computed(() =>
-  activeCards.cards.value.map((card) => ({ value: card.id, label: card.name })),
+  activeCards.cards.value.map((card) => ({ value: card.id, label: cardLabel(card) })),
 )
 const submitLabel = computed(() => {
   if (updating.value) {

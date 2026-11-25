@@ -117,6 +117,14 @@ export function listingCalls(findAll: Mock<(query: PageQuery) => Promise<unknown
   return findAll.mock.calls.map(([query]) => query).filter((query) => query.size !== 1)
 }
 
+export function namedTestRoutes(...names: string[]): RouteRecordRaw[] {
+  return names.map((name) => ({
+    path: `/__${name}${name.endsWith('detail') || name.endsWith('update') ? '/:id' : ''}`,
+    name,
+    component: leaf,
+  }))
+}
+
 export function stateOf(wrapper: ReturnType<typeof mount>) {
   return ['empty', 'no-result', 'error'].find((kind) =>
     wrapper.find(`[data-state="${kind}"]`).exists(),

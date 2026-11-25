@@ -18,11 +18,14 @@ export function useMovementActions(reload: () => Promise<unknown> | unknown) {
   const store = useMovementsStore()
   const { showSuccess } = useNotification()
   const { messages, run } = useServerErrors()
+  const payErrors = useServerErrors()
+  const undoErrors = useServerErrors()
 
   const payTarget = ref<MovementTarget | null>(null)
   const undoTarget = ref<MovementView | null>(null)
 
   function openPay(target: MovementTarget) {
+    payErrors.clear()
     payTarget.value = target
   }
 
@@ -32,7 +35,7 @@ export function useMovementActions(reload: () => Promise<unknown> | unknown) {
 
   async function pay(target: MovementTarget, form: PaymentForm) {
     let paid: MovementView | undefined
-    const done = await run(async () => {
+    const done = await payErrors.run(async () => {
       paid = await store.pay(target.id, form)
     })
     if (done) {
@@ -54,6 +57,7 @@ export function useMovementActions(reload: () => Promise<unknown> | unknown) {
   }
 
   async function openUndo(target: Pick<MovementTarget, 'id'>) {
+    undoErrors.clear()
     await run(async () => {
       undoTarget.value = await movementsApi.findById(target.id)
     })
@@ -64,7 +68,7 @@ export function useMovementActions(reload: () => Promise<unknown> | unknown) {
   }
 
   async function undoPayment(target: MovementView) {
-    if (await run(() => store.undoPayment(target.id))) {
+    if (await undoErrors.run(() => store.undoPayment(target.id))) {
       closeUndo()
       showSuccess('movement.toast.payment-undone', 'movement.toast.payment-undone-detail')
       await reload()
@@ -73,6 +77,8 @@ export function useMovementActions(reload: () => Promise<unknown> | unknown) {
 
   return {
     messages,
+    payMessages: payErrors.messages,
+    undoMessages: undoErrors.messages,
     payTarget,
     undoTarget,
     openPay,

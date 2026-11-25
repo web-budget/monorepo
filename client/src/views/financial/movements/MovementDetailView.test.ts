@@ -65,11 +65,14 @@ const paid: MovementView = {
 const buttons = (wrapper: Awaited<ReturnType<typeof render>>['wrapper']) =>
   wrapper.findAll('button').map((button) => button.text())
 
-const extraRoutes = ['statement', 'invoices', 'financial-periods'].map((name) => ({
-  path: `/${name}`,
-  name,
-  component: { render: () => h('div') },
-}))
+const extraRoutes = [
+  ...['statement', 'invoices', 'financial-periods'].map((name) => ({
+    path: `/${name}`,
+    name,
+    component: { render: () => h('div') },
+  })),
+  { path: '/invoices/:id', name: 'invoices.detail', component: { render: () => h('div') } },
+]
 
 async function mountDetail(id: string) {
   installZodErrorMap()
@@ -176,6 +179,20 @@ describe('MovementDetailView', () => {
     expect(wrapper.find('a[href="/invoices?card=c-1&period=p-1"]').text()).toBe('Ver na fatura')
   })
 
+  it('links a card payment to the invoice itself when the server says which one', async () => {
+    const { wrapper } = await render({
+      ...paid,
+      payment: {
+        ...paid.payment!,
+        wallet: null,
+        card: { id: 'c-1', name: 'Visa' },
+        invoice: { id: 'i-9', status: 'OPEN' },
+      },
+    })
+
+    expect(wrapper.find('a[href="/invoices/i-9"]').text()).toBe('Ver na fatura')
+  })
+
   it('offers no link for a paid movement without wallet or card', async () => {
     const { wrapper } = await render({
       ...paid,
@@ -193,22 +210,32 @@ describe('MovementDetailView', () => {
     expect(wrapper.find('[data-slot="detail-footer"] a').exists()).toBe(false)
   })
 
-  it('shows an invoice payment with its invoice instead of the classification, and cannot be edited', async () => {
+  it('shows an invoice payment without classification, with a link to the invoice instead of Editar', async () => {
     const { wrapper } = await render({
       ...open,
       overdue: false,
       classification: null,
       costCenter: null,
-      invoice: { id: 'i-1', status: 'CLOSED', card: { id: 'c-1', name: 'Visa' } },
+      invoice: {
+        id: 'i-1',
+        status: 'CLOSED',
+        card: { id: 'c-1', name: 'Visa', lastFourDigits: '4821' },
+      },
     })
 
     expect(wrapper.findAll('h2').map((title) => title.text())).toEqual([
       'Identificação',
-      'Fatura',
       'Pagamento',
     ])
-    expect(wrapper.text()).toContain('Fechada')
-    expect(wrapper.find('a[href="/financial/invoices/i-1/detail"]').text()).toBe('Abrir a fatura')
+    expect(wrapper.text()).not.toContain('Situação da fatura')
+    const labels = wrapper.findAll('dt').map((label) => label.text())
+    expect(labels).toContain('Centro de custo')
+    expect(labels).toContain('Classificação')
+    const dashes = wrapper.findAll('dd span.text-muted-foreground').map((dash) => dash.text())
+    expect(dashes).toEqual(['—', '—'])
+    const link = wrapper.find('[data-slot="page-actions"] a')
+    expect(link.text()).toBe('Ver a fatura')
+    expect(link.attributes('href')).toBe('/invoices/i-1')
     expect(buttons(wrapper)).not.toContain('Editar')
     expect(buttons(wrapper)).toContain('Excluir')
 
@@ -236,7 +263,7 @@ describe('MovementDetailView', () => {
     )
     expect(wrapper.find('[data-slot="paid-notice"]').exists()).toBe(false)
     expect(buttons(wrapper)).toEqual([])
-    expect(wrapper.text()).toContain('---')
+    expect(wrapper.text()).toContain('—')
   })
 
   it('does not offer to undo a payment of a closed period', async () => {
@@ -345,7 +372,8 @@ describe('MovementDetailView', () => {
     await flushPromises()
 
     expect(dialog.props('movement')).not.toBeNull()
-    expect(wrapper.find('[data-slot="server-error"]').text()).toContain('desconto')
+    expect(dialog.props('messages').join(' ')).toContain('desconto')
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
   })
 
   it('closes the dialog without paying', async () => {
@@ -418,7 +446,8 @@ describe('MovementDetailView', () => {
 
     expect(dialog.props('movement')).not.toBeNull()
     expect(movementsApi.findById).toHaveBeenCalledTimes(2)
-    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
+    expect(dialog.props('messages')).toHaveLength(1)
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
   })
 
   it('shows the server error when the wallets cannot be loaded', async () => {

@@ -49,7 +49,7 @@ class RegistrationRepositoryTest : BaseIntegrationTest() {
     fun `should refuse to update a stale card`() {
 
         val wallet = walletRepository.insert(Wallet("Wallet", Wallet.Type.PERSONAL))
-        val card = cardRepository.insert(Card("Card", "1234", Card.Type.DEBIT, wallet = wallet))
+        val card = cardRepository.insert(Card("Card", "1234", 1, wallet = wallet))
         val stale = cardRepository.findByExternalId(card.externalId!!)!!
 
         cardRepository.update(card)

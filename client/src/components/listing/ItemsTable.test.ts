@@ -538,6 +538,17 @@ describe('ItemsTable with a custom default sort', () => {
   })
 })
 
+describe('ItemsTable without footer', () => {
+  it('leaves out the range and the pagination when asked', () => {
+    const wrapper = render({ hideFooter: true })
+
+    expect(wrapper.text()).not.toContain('1–2 de 2')
+    expect(wrapper.find('nav[aria-label="pagination"], [data-slot="pagination"]').exists()).toBe(
+      false,
+    )
+    expect(wrapper.findAll('tbody tr')).toHaveLength(2)
+  })
+})
 describe('ItemsTable compact cards driven by the mobile columns', () => {
   const mobileColumns: ItemsTableColumn[] = [
     { field: 'name', header: 'Nome', mobile: 'title' },

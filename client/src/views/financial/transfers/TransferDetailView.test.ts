@@ -128,7 +128,8 @@ describe('TransferDetailView', () => {
     await flushPromises()
 
     expect(dialog.props('transfer')).not.toBeNull()
-    expect(wrapper.find('[data-slot="server-error"]').text()).toContain('já foi devolvida')
+    expect(dialog.props('messages').join(' ')).toContain('já foi devolvida')
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
   })
 
   it('loads the other transfer when the id changes', async () => {

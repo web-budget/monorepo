@@ -76,7 +76,7 @@ describe('FinancialPeriodDetailView', () => {
     expect(wrapper.text()).toMatch(/R\$\s0,00/)
     expect(wrapper.text()).toContain('3.000,00')
     expect(wrapper.text()).toContain('3.500,00')
-    expect(wrapper.text()).toMatch(/R\$\s500,00/)
+    expect(wrapper.text()).toMatch(/−R\$\s500,00/)
   })
 
   it('counts the launched, open and paid movements', async () => {

@@ -496,7 +496,6 @@ class MovementControllerTest : BaseIntegrationTest() {
             .exchange()
             .expectStatus().isEqualTo(422)
             .expectBody()
-            .jsonPath("$.parameters.wallet").isEqualTo("is-null")
             .jsonPath("$.parameters.discount").isEqualTo("is-negative")
     }
 

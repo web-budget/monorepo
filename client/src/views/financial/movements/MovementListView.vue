@@ -271,10 +271,6 @@ function clearListFilters() {
   return clearFilters()
 }
 
-function signedValue(item: MovementListView) {
-  return item.type === 'INCOME' ? item.value : -item.value
-}
-
 async function loadResult() {
   const period = filters.value.period
   periodResult.value = undefined
@@ -320,7 +316,7 @@ onMounted(async () => {
           <span class="text-muted-foreground text-xs">{{ $t('movement.summary.received') }}</span>
           <CurrencyDisplay
             :value="periodResult.revenues"
-            signed
+            tone="income"
             glued
             class="text-xl font-semibold tracking-tight"
           />
@@ -331,8 +327,8 @@ onMounted(async () => {
         <Card class="gap-1 p-4">
           <span class="text-muted-foreground text-xs">{{ $t('movement.summary.paid') }}</span>
           <CurrencyDisplay
-            :value="-periodResult.expenses"
-            signed
+            :value="periodResult.expenses"
+            tone="expense"
             glued
             class="text-xl font-semibold tracking-tight"
           />
@@ -342,9 +338,8 @@ onMounted(async () => {
           <span class="text-muted-foreground text-xs">{{ $t('movement.summary.result') }}</span>
           <CurrencyDisplay
             :value="periodResult.result"
-            signed
+            :signed="periodResult.result < 0"
             glued
-            neutral
             class="text-xl font-semibold tracking-tight"
           />
           <span class="text-muted-foreground text-xs">{{
@@ -354,8 +349,8 @@ onMounted(async () => {
         <Card class="gap-1 p-4" data-slot="to-pay">
           <span class="text-muted-foreground text-xs">{{ $t('movement.summary.to-pay') }}</span>
           <CurrencyDisplay
-            :value="-periodResult.toPay"
-            signed
+            :value="periodResult.toPay"
+            tone="expense"
             glued
             class="text-xl font-semibold tracking-tight"
           />
@@ -481,18 +476,28 @@ onMounted(async () => {
         @table-sorted="onTableSorted"
         @row-selected="changeToDetail"
       >
+        <template #cell-name="{ item }">
+          {{ item.name }}
+          <Badge v-if="item.invoicePayment" variant="outline" class="ml-1">
+            {{ $t('movement.badge.invoice') }}
+          </Badge>
+        </template>
         <template #cell-dueDate="{ item }">
           <DateTimeDisplay fix-time :value="item.dueDate" class="font-mono tabular-nums" />
         </template>
-        <template #cell-costCenter="{ item }">{{ item.costCenter.name }}</template>
-        <template #cell-classification="{ item }">{{ item.classification.name }}</template>
+        <template #cell-costCenter="{ item }">{{ item.costCenter?.name }}</template>
+        <template #cell-classification="{ item }">{{ item.classification?.name }}</template>
         <template #cell-value="{ item }">
           <span class="inline-flex items-center justify-end gap-1">
             <component
               :is="item.type === 'INCOME' ? ArrowDownLeft : ArrowUpRight"
               :class="['size-3.5', item.type === 'INCOME' ? 'text-income' : 'text-expense']"
             />
-            <CurrencyDisplay :value="signedValue(item)" signed glued bare />
+            <CurrencyDisplay
+              :value="item.value"
+              :tone="item.type === 'INCOME' ? 'income' : 'expense'"
+              bare
+            />
           </span>
         </template>
         <template #cell-status="{ item }">
@@ -520,6 +525,7 @@ onMounted(async () => {
     <UndoPaymentDialog
       :movement="actions.undoTarget.value"
       :loading="loading"
+      :messages="actions.undoMessages.value"
       @close="actions.closeUndo()"
       @confirm="actions.undoPayment"
     />
@@ -529,6 +535,7 @@ onMounted(async () => {
       :cards="activeCards.cards.value"
       :loading="loading"
       :balance-of="activeWallets.balanceOf"
+      :messages="actions.payMessages.value"
       @close="actions.closePay()"
       @pay="actions.pay"
     />
