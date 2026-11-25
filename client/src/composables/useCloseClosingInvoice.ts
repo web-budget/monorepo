@@ -16,6 +16,7 @@ export function useCloseClosingInvoice(reload: () => Promise<unknown> | unknown)
   const store = usePeriodClosingStore()
   const { showSuccess } = useNotification()
   const { messages, run } = useServerErrors()
+  const closeErrors = useServerErrors()
 
   const target = ref<{ invoice: ClosingInvoiceView; period: ClosablePeriod } | null>(null)
   const card = ref<CardView | null>(null)
@@ -28,6 +29,7 @@ export function useCloseClosingInvoice(reload: () => Promise<unknown> | unknown)
   )
 
   async function open(invoice: ClosingInvoiceView, period: ClosablePeriod) {
+    closeErrors.clear()
     await run(async () => {
       card.value = await cardsApi.findById(invoice.card.id)
       target.value = { invoice, period }
@@ -40,7 +42,7 @@ export function useCloseClosingInvoice(reload: () => Promise<unknown> | unknown)
 
   async function confirm() {
     const current = target.value!
-    if (await run(() => store.closeInvoice(current.invoice.id))) {
+    if (await closeErrors.run(() => store.closeInvoice(current.invoice.id))) {
       close()
       showSuccess(
         'credit-card-invoice.toast.closed',
@@ -52,5 +54,5 @@ export function useCloseClosingInvoice(reload: () => Promise<unknown> | unknown)
     }
   }
 
-  return { messages, target, purchases, card, dueDate, open, close, confirm }
+  return { messages, closeMessages: closeErrors.messages, target, purchases, card, dueDate, open, close, confirm }
 }

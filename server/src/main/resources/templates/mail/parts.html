@@ -25,6 +25,11 @@
     <td class="wb-ledger-value" valign="top" style="padding: 9px 0; border-bottom: 1px solid #d1dad5; font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; font-weight: 500; color: #121e18; word-break: break-word;"><span th:if="${mono}" th:text="${value}" style="font-family: 'IBM Plex Mono', SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px;">valor</span><span th:unless="${mono}" th:text="${value}">valor</span></td>
 </tr>
 
+<tr th:fragment="amountRow(label, value, tone)" th:with="color=${tone == 'income'} ? '#0b7643' : '#bd3931'">
+    <td class="wb-ledger-label" width="38%" valign="top" th:text="${label}" style="width: 38%; padding: 9px 12px 9px 0; border-bottom: 1px solid #d1dad5; font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 13px; line-height: 20px; color: #596760;">Rótulo</td>
+    <td class="wb-ledger-value" valign="top" style="padding: 9px 0; border-bottom: 1px solid #d1dad5; font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; font-size: 14px; line-height: 20px; font-weight: 500; word-break: break-word;"><span th:text="${value}" th:style="|font-family: 'IBM Plex Mono', SFMono-Regular, Menlo, Consolas, monospace; font-size: 13px; color: ${color};|">valor</span></td>
+</tr>
+
 <table th:fragment="button(label, href)" role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin: 24px 0 20px 0;">
     <tr>
         <td bgcolor="#0c6944" style="background-color: #0c6944; border-radius: 3px; mso-padding-alt: 12px 20px;">

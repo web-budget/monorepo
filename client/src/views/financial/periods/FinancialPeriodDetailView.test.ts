@@ -84,7 +84,20 @@ describe('FinancialPeriodDetailView', () => {
     expect(wrapper.text()).toMatch(/R\$\s0,00/)
     expect(wrapper.text()).toContain('3.000,00')
     expect(wrapper.text()).toContain('3.500,00')
-    expect(wrapper.text()).toMatch(/R\$\s500,00/)
+    expect(wrapper.text()).toMatch(/−R\$\s500,00/)
+    expect(wrapper.text()).not.toContain('+')
+  })
+
+  it('shows a positive result without sign', async () => {
+    vi.mocked(financialPeriodsApi.findById).mockResolvedValue({ ...period, status: 'CLOSED' })
+    vi.mocked(financialPeriodsApi.findResult).mockResolvedValue({ ...result, result: 500 })
+    serveMovementTotals()
+    const { wrapper } = await mountView(FinancialPeriodDetailView, 'financial-periods', {
+      id: 'p-1',
+    })
+
+    expect(wrapper.text()).toMatch(/Resultado\s*R\$\s500,00/)
+    expect(wrapper.text()).not.toMatch(/[+−]R\$/)
   })
 
   it('counts the launched, open and paid movements', async () => {
@@ -179,13 +192,24 @@ describe('FinancialPeriodDetailView', () => {
     await flushPromises()
     await flushPromises()
 
-    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
     expect(document.body.querySelector('[role="dialog"]')).not.toBeNull()
+    expect(
+      document.body.querySelector('[role="dialog"] [data-slot="server-error"]')?.textContent,
+    ).toContain('Um erro inesperado aconteceu')
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
     ;[...document.body.querySelectorAll<HTMLButtonElement>('[role="dialog"] button')]
       .find((button) => button.textContent?.trim() === 'Cancelar')!
       .click()
     await flushPromises()
     expect(document.body.querySelector('[role="dialog"]')).toBeNull()
+
+    await wrapper
+      .find('[data-slot="detail-footer"]')
+      .findAll('button')
+      .find((button) => button.text() === 'Reabrir')!
+      .trigger('click')
+    await flushPromises()
+    expect(document.body.querySelector('[role="dialog"] [data-slot="server-error"]')).toBeNull()
   })
 
   it('shows the closed result and offers no edit or removal', async () => {

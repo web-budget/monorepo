@@ -16,6 +16,7 @@ export function useCloseInvoice(onClosed: () => Promise<unknown> | unknown) {
   const store = useInvoicesStore()
   const { showSuccess } = useNotification()
   const { messages, run } = useServerErrors()
+  const closeErrors = useServerErrors()
 
   const target = ref<InvoiceView | null>(null)
   const card = ref<CardView | null>(null)
@@ -36,6 +37,7 @@ export function useCloseInvoice(onClosed: () => Promise<unknown> | unknown) {
   )
 
   async function open(invoice: InvoiceView) {
+    closeErrors.clear()
     target.value = invoice
     card.value = null
     period.value = null
@@ -55,7 +57,7 @@ export function useCloseInvoice(onClosed: () => Promise<unknown> | unknown) {
 
   async function confirm() {
     const invoice = target.value
-    if (invoice && (await run(() => store.close(invoice.id)))) {
+    if (invoice && (await closeErrors.run(() => store.close(invoice.id)))) {
       target.value = null
       showSuccess(
         'credit-card-invoice.toast.closed',
@@ -75,6 +77,7 @@ export function useCloseInvoice(onClosed: () => Promise<unknown> | unknown) {
     dueDate: dueDate.value,
     walletName: card.value?.wallet?.name ?? null,
     loading: store.loading,
+    messages: closeErrors.messages.value,
   }))
 
   return { messages, dialog, open, cancel, confirm }

@@ -41,6 +41,7 @@ const props = defineProps<{
   wallets: WalletListView[]
   cards: CardListView[]
   loading: boolean
+  messages: string[]
   balanceOf: (walletId: string) => Promise<number>
 }>()
 
@@ -143,6 +144,7 @@ const submit = form.handleSubmit((values) => {
           </DialogTitle>
           <DialogDescription class="sr-only">{{ movement?.name }}</DialogDescription>
         </DialogHeader>
+        <ServerErrorAlert :messages="[...messages, ...balanceErrors.messages.value]" />
         <InputField name="paidOn" type="date" :label="t('movement.pay.paid-on')" required />
         <SegmentedField
           v-if="cardAllowed"
@@ -182,7 +184,6 @@ const submit = form.handleSubmit((values) => {
           required
         />
         <MoneyField name="discount" :label="t('movement.pay.discount')" />
-        <ServerErrorAlert :messages="balanceErrors.messages.value" />
         <dl
           class="bg-muted/50 grid gap-1.5 rounded-md border p-3 text-sm"
           data-slot="payment-summary"
@@ -193,7 +194,7 @@ const submit = form.handleSubmit((values) => {
           </div>
           <div v-else-if="balance !== null" class="flex justify-between gap-3">
             <dt class="text-muted-foreground">{{ t('movement.pay.wallet-balance') }}</dt>
-            <dd><CurrencyDisplay :value="balance" /></dd>
+            <dd><CurrencyDisplay :value="balance" :signed="balance < 0" glued /></dd>
           </div>
           <div class="flex justify-between gap-3">
             <dt class="text-muted-foreground">{{ t('movement.pay.movement-value') }}</dt>
@@ -214,7 +215,7 @@ const submit = form.handleSubmit((values) => {
             class="flex justify-between gap-3 font-semibold"
           >
             <dt>{{ t('movement.pay.balance-after') }}</dt>
-            <dd><CurrencyDisplay :value="balanceAfter" /></dd>
+            <dd><CurrencyDisplay :value="balanceAfter" :signed="balanceAfter < 0" glued /></dd>
           </div>
         </dl>
         <DialogFooter>

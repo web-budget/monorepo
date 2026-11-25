@@ -127,7 +127,7 @@ watch(
 <template>
   <DetailCard
     :title="title"
-    :messages="[...messages, ...readjust.messages.value, ...historyErrors.messages.value]"
+    :messages="[...messages, ...historyErrors.messages.value]"
     @edit="changeToUpdate"
     @delete="remove"
   >
@@ -250,6 +250,7 @@ watch(
   <ReadjustValueDialog
     :recurring-movement="readjust.target.value"
     :loading="loading"
+    :messages="readjust.messages.value"
     @close="readjust.close()"
     @confirm="readjust.confirm"
   />

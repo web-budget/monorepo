@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { parseMoneyInput } from '@/utils/money'
+import { formatBalance, parseMoneyInput } from '@/utils/money'
 
 describe('parseMoneyInput', () => {
   it.each([
@@ -20,5 +20,15 @@ describe('parseMoneyInput', () => {
 
   it('ignores digits beyond the limit', () => {
     expect(parseMoneyInput('12345678901234', '')).toBe(12345678901.23)
+  })
+})
+
+describe('formatBalance', () => {
+  const format = (value: number) => `R$ ${value.toFixed(2)}`
+
+  it('signs only a negative balance, with the minus sign', () => {
+    expect(formatBalance(format, 312.08)).toBe('R$ 312.08')
+    expect(formatBalance(format, 0)).toBe('R$ 0.00')
+    expect(formatBalance(format, -312.08)).toBe('−R$ 312.08')
   })
 })
