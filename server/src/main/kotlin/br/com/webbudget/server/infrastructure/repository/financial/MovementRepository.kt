@@ -161,6 +161,16 @@ class MovementRepository(
         .fetch()
         .associate { record -> Movement.Type.valueOf(record.value1()!!) to (record.value2() ?: BigDecimal.ZERO) }
 
+    fun sumPaidOnCard(financialPeriodId: Long): BigDecimal = dsl
+        .select(DSL.coalesce(DSL.sum(payments.VALUE_PAID), BigDecimal.ZERO))
+        .from(movements)
+        .join(payments).on(payments.ID_MOVEMENT.eq(movements.ID))
+        .where(movements.ID_FINANCIAL_PERIOD.eq(financialPeriodId))
+        .and(movements.TYPE.eq(Movement.Type.EXPENSE.name))
+        .and(payments.METHOD.eq(Payment.Method.CARD.name))
+        .fetchSingle()
+        .value1()!!
+
     fun sumOpenExpenses(financialPeriodId: Long, today: LocalDate): OpenExpenses {
 
         val record = dsl

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { TrendingUp } from 'lucide-vue-next'
+import { CalendarPlus, TrendingUp } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -9,6 +9,7 @@ import DetailField from '@/components/common/DetailField.vue'
 import DetailSection from '@/components/common/DetailSection.vue'
 import ItemsTable from '@/components/listing/ItemsTable.vue'
 import { MINIMUM_PAGE_SIZE } from '@/components/listing/itemsTable'
+import LaunchInPeriodDialog from '@/components/recurring/LaunchInPeriodDialog.vue'
 import ReadjustValueDialog from '@/components/recurring/ReadjustValueDialog.vue'
 import RecurringInstallments from '@/components/recurring/RecurringInstallments.vue'
 import RecurringStatusBadge from '@/components/recurring/RecurringStatusBadge.vue'
@@ -16,6 +17,7 @@ import RecurringValueKindBadge from '@/components/recurring/RecurringValueKindBa
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useCrudDetail } from '@/composables/useCrudDetail'
+import { useLaunchInPeriod } from '@/composables/useLaunchInPeriod'
 import { useReadjustValue } from '@/composables/useReadjustValue'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { useRecurringMovementsStore } from '@/stores/recurringMovements'
@@ -106,6 +108,14 @@ const { messages, changeToUpdate, remove } = useCrudDetail({
 
 const readjust = useReadjustValue(reloadAfterReadjust)
 
+async function reloadAfterLaunch() {
+  await historyErrors.run(() => store.findOne(props.id))
+}
+
+const launchInPeriod = useLaunchInPeriod(reloadAfterLaunch)
+
+const launchable = computed(() => recurringMovement.value?.ended === false)
+
 const loadedKind = computed(() =>
   recurringMovement.value?.id === props.id ? recurringMovement.value.valueKind : undefined,
 )
@@ -134,9 +144,25 @@ watch(
     <template v-if="recurringMovement" #badge>
       <RecurringStatusBadge :ended="recurringMovement.ended" />
     </template>
-    <template v-if="recurringMovement?.valueKind === 'FIXED'" #middle-actions>
-      <Button type="button" variant="outline" @click="readjust.open(recurringMovement)">
+    <template
+      v-if="recurringMovement && (recurringMovement.valueKind === 'FIXED' || launchable)"
+      #middle-actions
+    >
+      <Button
+        v-if="recurringMovement.valueKind === 'FIXED'"
+        type="button"
+        variant="outline"
+        @click="readjust.open(recurringMovement)"
+      >
         <TrendingUp />{{ $t('recurrent-movement.actions.readjust') }}
+      </Button>
+      <Button
+        v-if="launchable"
+        type="button"
+        variant="outline"
+        @click="launchInPeriod.open(recurringMovement)"
+      >
+        <CalendarPlus />{{ $t('recurrent-movement.actions.launch-in-period') }}
       </Button>
     </template>
     <template v-if="recurringMovement">
@@ -247,6 +273,14 @@ watch(
       </DetailSection>
     </template>
   </DetailCard>
+  <LaunchInPeriodDialog
+    :recurring-movement="launchInPeriod.target.value"
+    :periods="launchInPeriod.periods.value"
+    :loading="loading"
+    :messages="launchInPeriod.messages.value"
+    @close="launchInPeriod.close()"
+    @confirm="launchInPeriod.confirm"
+  />
   <ReadjustValueDialog
     :recurring-movement="readjust.target.value"
     :loading="loading"

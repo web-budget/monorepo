@@ -1,9 +1,11 @@
 import { describe, expect, it } from 'vitest'
 import {
+  launchInPeriodFormSchema,
   NO_CARD,
   readjustSchema,
   recurringMovementFormDefaults,
   recurringMovementSchema,
+  toRecurringExtraLaunchForm,
   toRecurringMovementCreateForm,
   toRecurringMovementFormValues,
   toRecurringMovementUpdateForm,
@@ -141,5 +143,49 @@ describe('readjust', () => {
     })
     expect(toRecurringValueForm({ value: 300, reason: '  ' })).toEqual({ value: 300, reason: null })
     expect(toRecurringValueForm({ value: 300 })).toEqual({ value: 300, reason: null })
+  })
+})
+
+describe('launch in period', () => {
+  const errorsOf = async (maximum: number, values: Record<string, unknown>) =>
+    (await launchInPeriodFormSchema(maximum).parse(values)).errors.map((error) => error.path)
+
+  it('takes a period, a quantity up to the maximum and an optional value', async () => {
+    const parsed = await launchInPeriodFormSchema(2).parse({
+      financialPeriod: 'p-1',
+      quantity: '2',
+      value: '',
+    })
+
+    expect(parsed.errors).toEqual([])
+    expect(parsed.value).toEqual({ financialPeriod: 'p-1', quantity: 2, value: null })
+  })
+
+  it('refuses a missing period and a quantity out of range or not a whole number', async () => {
+    expect(await errorsOf(2, { quantity: 1 })).toEqual(['financialPeriod'])
+    expect(await errorsOf(2, { financialPeriod: 'p-1' })).toEqual(['quantity'])
+    expect(await errorsOf(2, { financialPeriod: 'p-1', quantity: '' })).toEqual(['quantity'])
+    expect(await errorsOf(2, { financialPeriod: 'p-1', quantity: 0 })).toEqual(['quantity'])
+    expect(await errorsOf(2, { financialPeriod: 'p-1', quantity: 3 })).toEqual(['quantity'])
+    expect(await errorsOf(2, { financialPeriod: 'p-1', quantity: 1.5 })).toEqual(['quantity'])
+    expect(await errorsOf(2, { financialPeriod: 'p-1', quantity: 1, value: 0 })).toEqual(['value'])
+  })
+
+  it('sends the value only for a variable recurring movement', () => {
+    const values = { financialPeriod: 'p-1', quantity: 2, value: 98.4 }
+
+    expect(toRecurringExtraLaunchForm(values, true)).toEqual({
+      financialPeriod: 'p-1',
+      quantity: 2,
+      value: 98.4,
+    })
+    expect(toRecurringExtraLaunchForm(values, false)).toEqual({
+      financialPeriod: 'p-1',
+      quantity: 2,
+    })
+    expect(toRecurringExtraLaunchForm({ ...values, value: null }, true)).toEqual({
+      financialPeriod: 'p-1',
+      quantity: 2,
+    })
   })
 })

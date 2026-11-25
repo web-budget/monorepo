@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { FinancialPeriodListView } from '@/types'
-import { defaultClosingPeriod, monthOf, oldestExpired, periodMonthName } from '@/utils/periods'
+import { monthOf, oldestExpired, oldestOpen, periodMonthName } from '@/utils/periods'
 
 function period(
   id: string,
@@ -17,18 +17,15 @@ const september = period('september', '2026-09-01', '2026-09-30', 'OPEN', true)
 const november = period('november', '2026-11-01', '2026-11-30', 'OPEN', false)
 const august = period('august', '2026-08-01', '2026-08-31', 'CLOSED', false)
 
-describe('defaultClosingPeriod', () => {
-  it('prefers the oldest expired open period', () => {
-    expect(defaultClosingPeriod([november, october, september, august])?.id).toBe('september')
-  })
-
-  it('falls back to the open period that holds today', () => {
-    expect(defaultClosingPeriod([november, august], new Date(2026, 10, 21))?.id).toBe('november')
+describe('oldestOpen', () => {
+  it('finds the open period that ended first, expired or not', () => {
+    expect(oldestOpen([november, october, september, august])?.id).toBe('september')
+    expect(oldestOpen([november, august])?.id).toBe('november')
   })
 
   it('has nothing without open periods', () => {
-    expect(defaultClosingPeriod([august])).toBeUndefined()
-    expect(defaultClosingPeriod([])).toBeUndefined()
+    expect(oldestOpen([august])).toBeUndefined()
+    expect(oldestOpen([])).toBeUndefined()
   })
 })
 

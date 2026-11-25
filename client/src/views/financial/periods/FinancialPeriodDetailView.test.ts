@@ -38,6 +38,7 @@ const result = {
   result: -500,
   toPay: 0,
   overdueExpenses: 0,
+  paidOnCard: 0,
   recorded: false,
 }
 

@@ -309,6 +309,7 @@ export interface FinancialPeriodResultView {
   recorded: boolean
   toPay: number
   overdueExpenses: number
+  paidOnCard: number
 }
 
 export interface ClosingPeriodView {
@@ -812,6 +813,12 @@ export interface RecurringMovementQuery {
 
 export interface RecurringLaunchItem {
   id: string
+  value?: number
+}
+
+export interface RecurringExtraLaunchForm {
+  financialPeriod: string
+  quantity: number
   value?: number
 }
 

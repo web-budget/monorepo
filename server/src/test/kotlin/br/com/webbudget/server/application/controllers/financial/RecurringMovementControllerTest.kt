@@ -416,6 +416,157 @@ class RecurringMovementControllerTest : BaseIntegrationTest() {
     }
 
     @Test
+    fun `should launch the remaining installments in the same period and finish the recurring movement`() {
+
+        create("Phone", "FIXED", "100.00", extra = """, "installments": 4, "firstInstallment": 2""").expectStatus().isCreated
+        val id = lastRecurringId()
+
+        launch(OPEN_PERIOD, id).expectStatus().isOk
+
+        launchExtra(id, OPEN_PERIOD, 2)
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.launched.length()").isEqualTo(2)
+            .jsonPath("$.launched[0].installment").isEqualTo(3)
+            .jsonPath("$.launched[0].movement.name").isEqualTo("Phone 3/4")
+            .jsonPath("$.launched[0].movement.dueDate").isEqualTo("2024-12-31")
+            .jsonPath("$.launched[1].installment").isEqualTo(4)
+            .jsonPath("$.launched[1].movement.name").isEqualTo("Phone 4/4")
+            .jsonPath("$.skipped.length()").isEqualTo(0)
+
+        assertThat(dsl.fetchCount(MOVEMENTS)).isEqualTo(3)
+        assertThat(dsl.selectFrom(RECURRING_LAUNCHES).fetch().map { it.idFinancialPeriod }.toSet()).hasSize(1)
+
+        restTestClient.get().uri("$ENDPOINT_URL/$id").exchange()
+            .expectBody()
+            .jsonPath("$.finished").isEqualTo(true)
+            .jsonPath("$.launchedInstallments").isEqualTo(4)
+
+        launchExtra(id, OPEN_PERIOD, 1)
+            .expectStatus().isBadRequest
+            .expectBody().jsonPath("$.error").isEqualTo("recurring-movement-finished")
+    }
+
+    @Test
+    fun `should launch an endless recurring movement twice in the same period and keep the batch skipping it`() {
+
+        create("Streaming", "FIXED", "39.90").expectStatus().isCreated
+        val id = lastRecurringId()
+
+        launch(OPEN_PERIOD, id).expectStatus().isOk
+
+        launchExtra(id, OPEN_PERIOD, 1)
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.launched.length()").isEqualTo(1)
+            .jsonPath("$.launched[0].installment").isEqualTo(2)
+            .jsonPath("$.launched[0].movement.name").isEqualTo("Streaming")
+            .jsonPath("$.launched[0].movement.status").isEqualTo("OPEN")
+
+        assertThat(dsl.fetchCount(MOVEMENTS)).isEqualTo(2)
+
+        launch(OPEN_PERIOD, id)
+            .expectBody()
+            .jsonPath("$.launched.length()").isEqualTo(0)
+            .jsonPath("$.skipped[0].reason").isEqualTo("already-launched-in-period")
+
+        restTestClient.get().uri("$ENDPOINT_URL/$id/launches").exchange()
+            .expectBody()
+            .jsonPath("$.page.totalElements").isEqualTo(2)
+            .jsonPath("$.content[0].financialPeriod.id").isEqualTo(OPEN_PERIOD)
+            .jsonPath("$.content[1].financialPeriod.id").isEqualTo(OPEN_PERIOD)
+
+        launchExtra(id, OTHER_OPEN_PERIOD, 12).expectStatus().isOk
+        launchExtra(id, OTHER_OPEN_PERIOD, 13)
+            .expectStatus().isBadRequest
+            .expectBody().jsonPath("$.error").isEqualTo("launch-quantity-out-of-range")
+
+        assertThat(dsl.fetchCount(MOVEMENTS)).isEqualTo(14)
+    }
+
+    @Test
+    fun `should refuse an extra launch above what is left or below one`() {
+
+        create("Phone", "FIXED", "100.00", extra = """, "installments": 4, "firstInstallment": 3""").expectStatus().isCreated
+        val id = lastRecurringId()
+
+        launchExtra(id, OPEN_PERIOD, 3)
+            .expectStatus().isBadRequest
+            .expectBody().jsonPath("$.error").isEqualTo("launch-quantity-out-of-range")
+
+        launchExtra(id, OPEN_PERIOD, 0)
+            .expectStatus().isEqualTo(422)
+            .expectBody().jsonPath("$.parameters.quantity").isEqualTo("is-not-positive")
+
+        assertThat(dsl.fetchCount(MOVEMENTS)).isZero()
+
+        launchExtra(id, OPEN_PERIOD, 2).expectStatus().isOk
+    }
+
+    @Test
+    fun `should refuse an extra launch in a closed period, of an inactive recurring movement or with unknown ids`() {
+
+        create("Streaming", "FIXED", "39.90").expectStatus().isCreated
+        val streaming = lastRecurringId()
+        create("Gym", "FIXED", "120.00").expectStatus().isCreated
+        val gym = lastRecurringId()
+
+        restTestClient.put()
+            .uri("$ENDPOINT_URL/$gym")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body(updateBody("Gym", active = false))
+            .exchange()
+            .expectStatus().isOk
+
+        launchExtra(streaming, CLOSED_PERIOD, 1)
+            .expectStatus().isBadRequest
+            .expectBody().jsonPath("$.error").isEqualTo("financial-period-not-open")
+
+        launchExtra(gym, OPEN_PERIOD, 1)
+            .expectStatus().isBadRequest
+            .expectBody().jsonPath("$.error").isEqualTo("recurring-movement-inactive")
+
+        launchExtra(UUID.randomUUID().toString(), OPEN_PERIOD, 1).expectStatus().isNotFound
+        launchExtra(streaming, UUID.randomUUID().toString(), 1).expectStatus().isNotFound
+
+        restTestClient.post()
+            .uri("$ENDPOINT_URL/$streaming/launch-extra")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{}""")
+            .exchange()
+            .expectStatus().isEqualTo(422)
+            .expectBody()
+            .jsonPath("$.parameters.financialPeriod").isEqualTo("is-null")
+            .jsonPath("$.parameters.quantity").isEqualTo("is-null")
+
+        assertThat(dsl.fetchCount(MOVEMENTS)).isZero()
+    }
+
+    @Test
+    fun `should take a value in an extra launch only for a variable recurring movement`() {
+
+        create("Streaming", "FIXED", "39.90").expectStatus().isCreated
+
+        launchExtra(lastRecurringId(), OPEN_PERIOD, 1, value = "10.00")
+            .expectStatus().isBadRequest
+            .expectBody().jsonPath("$.error").isEqualTo("launch-value-only-for-variable")
+
+        create("Electricity", "VARIABLE", "150.00").expectStatus().isCreated
+        val electricity = lastRecurringId()
+
+        launchExtra(electricity, OPEN_PERIOD, 2, value = "98.40")
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.launched[0].movement.value").isEqualTo(98.4)
+            .jsonPath("$.launched[1].movement.value").isEqualTo(98.4)
+
+        launchExtra(electricity, OPEN_PERIOD, 1)
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.launched[0].movement.value").isEqualTo(150.0)
+    }
+
+    @Test
     fun `should suggest the last paid value of a variable recurring movement`() {
 
         create("Electricity", "VARIABLE", "100.00").expectStatus().isCreated
@@ -796,6 +947,13 @@ class RecurringMovementControllerTest : BaseIntegrationTest() {
             .body("""{"financialPeriod": "$period", "recurringMovements": [$items]}""")
             .exchange()
     }
+
+    private fun launchExtra(id: String, period: String, quantity: Int, value: String? = null): ResponseSpec =
+        restTestClient.post()
+            .uri("$ENDPOINT_URL/$id/launch-extra")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"financialPeriod": "$period", "quantity": $quantity${if (value != null) ", \"value\": $value" else ""}}""")
+            .exchange()
 
     private fun changeValue(id: String, value: String) {
         restTestClient.patch()
