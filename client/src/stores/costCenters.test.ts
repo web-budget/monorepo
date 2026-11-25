@@ -31,14 +31,14 @@ describe('useCostCentersStore', () => {
     vi.clearAllMocks()
   })
 
-  it('lists cost centers newest first', async () => {
+  it('lists cost centers by full name, ascending', async () => {
     vi.mocked(costCentersApi.findAll).mockResolvedValue(page)
     const store = useCostCentersStore()
 
     await store.findAll()
 
     expect(costCentersApi.findAll).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'ACTIVE', sort: 'createdOn,desc' }),
+      expect.objectContaining({ status: 'ACTIVE', sort: 'fullName,asc' }),
     )
     expect(store.pageResponse.content).toEqual([row])
   })
@@ -81,6 +81,7 @@ describe('useCostCentersStore', () => {
 
     expect(store.pageResponse.content).toEqual([])
     expect(store.costCenters).toEqual([])
-    expect(store.pageRequest.sortField).toBe('createdOn')
+    expect(store.pageRequest.sortField).toBe('fullName')
+    expect(store.pageRequest.direction).toBe('asc')
   })
 })
