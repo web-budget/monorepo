@@ -87,6 +87,7 @@ function approveDialogButton(label: string) {
     (candidate) => candidate.textContent?.trim() === label,
   )!
 }
+
 function approveDialogError() {
   return (
     document.body.querySelector('[role="dialog"] [data-slot="server-error"]')?.textContent ?? ''
