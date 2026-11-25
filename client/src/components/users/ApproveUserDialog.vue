@@ -2,6 +2,7 @@
 import { useForm } from 'vee-validate'
 import { computed, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import ServerErrorAlert from '@/components/forms/ServerErrorAlert.vue'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -16,7 +17,12 @@ import { sortRoles } from '@/components/users/roles'
 import { approveFormSchema } from '@/schemas/userSchema'
 import type { UserView } from '@/types'
 
-const props = defineProps<{ user: UserView | null; roles: string[]; loading: boolean }>()
+const props = defineProps<{
+  user: UserView | null
+  roles: string[]
+  loading: boolean
+  messages: string[]
+}>()
 
 const emit = defineEmits<{ close: []; approve: [user: UserView, roles: string[]] }>()
 
@@ -55,6 +61,7 @@ const submit = form.handleSubmit((values) => {
             {{ $t('users.approve.description', { email: user?.email }) }}
           </DialogDescription>
         </DialogHeader>
+        <ServerErrorAlert :messages="messages" />
         <RoleSelectField name="roles" :label="$t('users.form.roles')" :options="roleOptions" />
         <DialogFooter>
           <Button type="button" variant="outline" @mousedown.prevent @click="emit('close')">

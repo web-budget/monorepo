@@ -2,6 +2,8 @@
 import { Info, Undo2 } from 'lucide-vue-next'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
+import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
+import ServerErrorAlert from '@/components/forms/ServerErrorAlert.vue'
 import { Alert, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
@@ -14,19 +16,16 @@ import {
 } from '@/components/ui/dialog'
 import type { MovementView } from '@/types'
 
-const props = defineProps<{ movement: MovementView | null; loading: boolean }>()
+const props = defineProps<{ movement: MovementView | null; loading: boolean; messages: string[] }>()
 
 const emit = defineEmits<{ close: []; confirm: [movement: MovementView] }>()
 
-const { t, n } = useI18n()
+const { t } = useI18n()
 
 const card = computed(() => props.movement?.payment?.card ?? null)
 const wallet = computed(() => props.movement?.payment?.wallet ?? null)
 const credit = computed(() => props.movement?.type !== 'INCOME')
-const reversal = computed(() => {
-  const paid = props.movement?.payment?.valuePaid ?? 0
-  return `${credit.value ? '+' : '−'}${n(paid, 'currency')}`
-})
+const reversalValue = computed(() => props.movement?.payment?.valuePaid ?? 0)
 </script>
 
 <template>
@@ -48,14 +47,13 @@ const reversal = computed(() => {
           </i18n-t>
         </DialogDescription>
       </DialogHeader>
+      <ServerErrorAlert :messages="messages" />
       <Alert data-slot="reversal">
         <Info />
         <AlertTitle>
           <i18n-t keypath="movement.undo.reversal" scope="global">
             <template #amount>
-              <span :class="['font-mono', credit ? 'text-income' : 'text-expense']">{{
-                reversal
-              }}</span>
+              <CurrencyDisplay :value="reversalValue" :tone="credit ? 'income' : 'expense'" />
             </template>
           </i18n-t>
         </AlertTitle>

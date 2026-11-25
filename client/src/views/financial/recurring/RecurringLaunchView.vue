@@ -29,7 +29,7 @@ import {
 } from '@/stores/recurringLaunch'
 import type { FinancialPeriodListView, RecurringMovementView } from '@/types'
 import { nextOpenPeriod } from '@/utils/movements'
-import { isLaunchedIn, signedValue } from '@/utils/recurringMovements'
+import { displayedValue, isLaunchedIn, toneOf } from '@/utils/recurringMovements'
 
 const { t, d } = useI18n()
 const compact = useMediaQuery('(max-width: 767px)')
@@ -308,7 +308,7 @@ async function launch() {
             @update:model-value="(value) => store.type(item.id, value)"
           />
           <span v-else :class="isLaunchedIn(item) && 'opacity-60'">
-            <CurrencyDisplay :value="signedValue(item)" signed glued bare />
+            <CurrencyDisplay :value="displayedValue(item)" :tone="toneOf(item)" bare />
           </span>
         </template>
         <template #cell-situation="{ item }">
@@ -332,7 +332,7 @@ async function launch() {
               $t('recurrent-movement.launch.selected', { count: selected.length }, selected.length)
             }}</b>
             · {{ $t('recurrent-movement.launch.effect') }}
-            <CurrencyDisplay :value="effect" signed glued bare />
+            <CurrencyDisplay :value="effect" :signed="effect < 0" glued bare />
           </template>
           <template v-else>{{ $t('recurrent-movement.launch.none-selected') }}</template>
         </span>

@@ -36,10 +36,28 @@ describe('TransferStatement', () => {
     const from = wrapper.find('[data-side="from"]').text()
     const to = wrapper.find('[data-side="to"]').text()
     expect(from).toMatch(/Saldo anterior\s*R\$\s1\.000,00/)
-    expect(from).toMatch(/Débito\s*−R\$\s500,00/)
+    expect(from).toMatch(/Débito\s*R\$\s500,00/)
     expect(from).toMatch(/Saldo posterior\s*R\$\s500,00/)
-    expect(to).toMatch(/Crédito\s*\+R\$\s500,00/)
+    expect(to).toMatch(/Crédito\s*R\$\s500,00/)
     expect(to).toMatch(/Saldo posterior\s*R\$\s550,00/)
+    expect(from + to).not.toMatch(/[+−]/)
+    expect(wrapper.find('[data-side="from"] .text-expense').exists()).toBe(true)
+    expect(wrapper.find('[data-side="to"] .text-income').exists()).toBe(true)
+  })
+
+  it('signs only the balances that are negative', () => {
+    const wrapper = render({
+      from: { name: 'Conta corrente', balance: 100 },
+      to: { name: 'Poupança', balance: -50 },
+      value: 300,
+    })
+
+    const from = wrapper.find('[data-side="from"]').text()
+    const to = wrapper.find('[data-side="to"]').text()
+    expect(from).toMatch(/Saldo anterior\s*R\$\s100,00/)
+    expect(from).toMatch(/Saldo posterior\s*−R\$\s200,00/)
+    expect(to).toMatch(/Saldo anterior\s*−R\$\s50,00/)
+    expect(to).toMatch(/Saldo posterior\s*R\$\s250,00/)
   })
 
   it('leaves the balances out while they are unknown or the wallet is not chosen', () => {

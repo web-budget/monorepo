@@ -106,6 +106,9 @@ async function removeUser(target: UserView) {
 const {
   messages: actionMessages,
   approveTarget,
+  approveMessages,
+  openApprove,
+  closeApprove,
   approve,
   block,
   unblock,
@@ -227,7 +230,7 @@ onMounted(() => run(store.findRoles))
             type="button"
             variant="ghost"
             class="justify-start"
-            @click="approveTarget = loadedUser"
+            @click="openApprove(loadedUser)"
           >
             <Check />{{ $t('users.approve.shortcut') }}
           </Button>
@@ -288,7 +291,8 @@ onMounted(() => run(store.findRoles))
     :user="approveTarget"
     :roles="roles"
     :loading="store.loading"
-    @close="approveTarget = null"
+    :messages="approveMessages"
+    @close="closeApprove()"
     @approve="approve"
   />
 </template>

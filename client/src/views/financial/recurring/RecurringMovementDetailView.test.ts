@@ -305,9 +305,18 @@ describe('RecurringMovementDetailView', () => {
       .dispatchEvent(new Event('submit', { cancelable: true }))
     await settle()
 
-    expect(document.body.querySelector('[role="dialog"]')).not.toBeNull()
-    expect(wrapper.find('[role="alert"]').exists()).toBe(true)
+    const dialog = document.body.querySelector('[role="dialog"]')!
+    expect(dialog.querySelector('[data-slot="server-error"]')).not.toBeNull()
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
     expect(toast.success).not.toHaveBeenCalled()
+
+    ;[...dialog.querySelectorAll('button')]
+      .find((button) => button.textContent?.trim() === 'Cancelar')!
+      .click()
+    await flushPromises()
+    await buttonWithText(wrapper, 'Reajustar valor').trigger('click')
+    await flushPromises()
+    expect(document.body.querySelector('[role="dialog"] [data-slot="server-error"]')).toBeNull()
   })
 
   it('edits and removes it', async () => {

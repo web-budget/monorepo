@@ -26,11 +26,10 @@ export function displayedValue(
     : recurringMovement.value
 }
 
-export function signedValue(
-  recurringMovement: Pick<RecurringMovementView, 'type' | 'valueKind' | 'value' | 'suggestedValue'>,
-): number {
-  const value = displayedValue(recurringMovement)
-  return recurringMovement.type === 'INCOME' ? value : -value
+export function toneOf(
+  recurringMovement: Pick<RecurringMovementView, 'type'>,
+): 'income' | 'expense' {
+  return recurringMovement.type === 'INCOME' ? 'income' : 'expense'
 }
 
 export function monthAndYear(isoDate: string): string {
