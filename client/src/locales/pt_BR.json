@@ -1273,8 +1273,8 @@
       "paid": "Pagamento registrado",
       "paid-detail": "Saiu de {wallet}, linha nova no extrato.",
       "payment-undone": "Pagamento desfeito",
-      "payment-undone-detail": "O estorno já está no extrato e o movimento voltou para em aberto.",
-      "created-paid-detail": "Lançado já pago: o valor saiu da carteira.",
+      "payment-undone-detail": "O pagamento foi estornado e o movimento voltou para em aberto.",
+      "created-paid-detail": "Lançado já pago, com o pagamento registrado.",
       "received": "Recebimento registrado",
       "received-detail": "Entrou em {wallet}, linha nova no extrato.",
       "paid-on-card-detail": "Entrou na fatura de {card}."

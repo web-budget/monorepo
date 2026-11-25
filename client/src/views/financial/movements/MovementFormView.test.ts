@@ -325,7 +325,7 @@ describe('MovementFormView', () => {
       }),
     )
     expect(toast.success).toHaveBeenCalledWith('Movimento lançado', {
-      description: 'Lançado já pago: o valor saiu da carteira.',
+      description: 'Lançado já pago, com o pagamento registrado.',
       duration: 4000,
     })
   })
