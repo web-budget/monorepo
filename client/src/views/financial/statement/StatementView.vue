@@ -54,6 +54,7 @@ const giveBack = useGiveBack()
 const loadErrors = useServerErrors()
 const optionErrors = useServerErrors()
 const actionErrors = useServerErrors()
+const adjustErrors = useServerErrors()
 const { showSuccess } = useNotification()
 
 const balance = ref<number | null>(null)
@@ -275,8 +276,17 @@ function clearSearch() {
   return search()
 }
 
+function openAdjust() {
+  adjustErrors.clear()
+  adjusting.value = true
+}
+
+function closeAdjust() {
+  adjusting.value = false
+}
+
 async function adjust(target: { id: string }, form: { value: number }) {
-  if (await actionErrors.run(() => store.adjust(target.id, form))) {
+  if (await adjustErrors.run(() => store.adjust(target.id, form))) {
     adjusting.value = false
     const notice = adjustmentNotice(form.value, wallet.value?.name, n)
     showSuccess('statement.toast.adjusted', notice.detail, true, notice.params)
@@ -297,7 +307,7 @@ async function adjust(target: { id: string }, form: { value: number }) {
           type="button"
           variant="outline"
           :disabled="!wallet?.active || balance === null"
-          @click="adjusting = true"
+          @click="openAdjust()"
         >
           <Scale />{{ $t('statement.actions.adjust') }}
         </Button>
@@ -438,11 +448,7 @@ async function adjust(target: { id: string }, form: { value: number }) {
         </div>
       </Card>
       <ServerErrorAlert
-        :messages="[
-          ...optionErrors.messages.value,
-          ...actionErrors.messages.value,
-          ...giveBack.messages.value,
-        ]"
+        :messages="[...optionErrors.messages.value, ...actionErrors.messages.value]"
       />
       <ListState
         v-if="listState !== 'table'"
@@ -544,13 +550,15 @@ async function adjust(target: { id: string }, form: { value: number }) {
           : null
       "
       :loading="loading"
-      @close="adjusting = false"
+      :messages="adjustErrors.messages.value"
+      @close="closeAdjust()"
       @adjust="adjust"
     />
     <GiveBackDialog
       :transfer="giveBack.target.value"
       :loading="transfers.loading"
       :balance-of="giveBack.balanceOf"
+      :messages="giveBack.messages.value"
       @close="giveBack.close()"
       @confirm="giveBack.confirm"
     />

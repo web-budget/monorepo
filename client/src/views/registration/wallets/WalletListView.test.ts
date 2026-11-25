@@ -501,7 +501,8 @@ describe('WalletListView', () => {
     await flushPromises()
 
     expect(wrapper.getComponent(AdjustBalanceDialog).props('wallet')).not.toBeNull()
-    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
+    expect(wrapper.getComponent(AdjustBalanceDialog).props('messages')).toHaveLength(1)
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
   })
 
   it('closes the adjustment dialog', async () => {

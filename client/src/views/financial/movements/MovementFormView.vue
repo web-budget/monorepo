@@ -28,6 +28,7 @@ import {
 import { useMovementsStore } from '@/stores/movements'
 import { cardLabel } from '@/utils/invoices'
 import { defaultPeriod } from '@/utils/movements'
+import { formatBalance } from '@/utils/money'
 
 const props = defineProps<{ id?: string }>()
 
@@ -108,7 +109,7 @@ const walletChoices = computed(() =>
     value: wallet.id,
     label: t('movement.form.wallet-option', {
       name: wallet.name,
-      balance: n(wallet.currentBalance, 'currency'),
+      balance: formatBalance(n, wallet.currentBalance),
     }),
   })),
 )

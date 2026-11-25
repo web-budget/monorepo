@@ -242,10 +242,14 @@ describe('MovementListView', () => {
       expect(rows[0]!.text()).toContain('20/11/2026')
       expect(rows[0]!.text()).toContain('Casa')
       expect(rows[0]!.text()).toContain('Moradia')
-      expect(rows[0]!.text()).toContain('−96,12')
+      expect(rows[0]!.text()).toContain('96,12')
       expect(rows[0]!.text()).toContain('Vencido há 1 dia')
       expect(rows[1]!.text()).toContain('Salário')
-      expect(rows[1]!.text()).toContain('+8.400,00')
+      expect(rows[1]!.text()).toContain('8.400,00')
+      expect(rows[0]!.text()).not.toMatch(/[+−]/)
+      expect(rows[1]!.text()).not.toMatch(/[+−]/)
+      expect(rows[0]!.find('[data-slot="currency"]').attributes('data-direction')).toBe('expense')
+      expect(rows[1]!.find('[data-slot="currency"]').attributes('data-direction')).toBe('income')
       expect(rows[1]!.text()).toContain('Pago')
       expect(rows[0]!.attributes('data-state')).toBe('selected')
       expect(rows[1]!.attributes('data-state')).toBeUndefined()
@@ -351,9 +355,32 @@ describe('MovementListView', () => {
       expect(summary.text()).toContain('Receitas pagas')
       expect(summary.text()).toContain('Despesas pagas')
       expect(summary.text()).toContain('Receitas − despesas')
-      expect(summary.text()).toMatch(/\+R\$\s8\.400,00/)
-      expect(summary.text()).toMatch(/−R\$\s96,12/)
-      expect(summary.text()).toMatch(/\+R\$\s8\.303,88/)
+      const values = summary.findAll('[data-slot="currency"]')
+      expect(values.map((value) => value.text())).toEqual([
+        expect.stringMatching(/^R\$\s8\.400,00$/),
+        expect.stringMatching(/^R\$\s96,12$/),
+        expect.stringMatching(/^R\$\s8\.303,88$/),
+        expect.stringMatching(/^R\$\s1\.250,50$/),
+      ])
+      expect(values.map((value) => value.attributes('data-direction'))).toEqual([
+        'income',
+        'expense',
+        undefined,
+        'expense',
+      ])
+    })
+
+    it('signs and colors the result only when it is negative', async () => {
+      serve()
+      vi.mocked(financialPeriodsApi.findResult).mockResolvedValue({
+        ...periodResult,
+        result: -50,
+      })
+      const { wrapper } = await mountView(MovementListViewUnderTest, 'movements')
+
+      const result = wrapper.findAll('[data-slot="summary"] [data-slot="currency"]')[2]!
+      expect(result.text()).toMatch(/^−R\$\s50,00$/)
+      expect(result.attributes('data-direction')).toBe('expense')
     })
 
     it('shows what is left to pay and how many expenses are overdue', async () => {
@@ -361,7 +388,8 @@ describe('MovementListView', () => {
 
       const toPay = wrapper.find('[data-slot="to-pay"]')
       expect(toPay.text()).toContain('A pagar')
-      expect(toPay.text()).toMatch(/−R\$\s1\.250,50/)
+      expect(toPay.text()).toMatch(/A pagarR\$\s1\.250,50/)
+      expect(toPay.text()).not.toContain('−')
       expect(toPay.text()).toContain('2 vencidos')
     })
 
@@ -836,7 +864,23 @@ describe('MovementListView', () => {
       await flushPromises()
 
       expect(dialog.props('movement')).not.toBeNull()
-      expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
+      expect(dialog.props('messages')).toHaveLength(1)
+      expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
+    })
+
+    it('clears the payment error when the dialog is opened again', async () => {
+      vi.mocked(movementsApi.pay).mockRejectedValue(problem(400, { error: 'invalid-discount' }))
+      const { wrapper } = await render()
+      await chooseRowAction(wrapper, 0, 'Pagar')
+      const dialog = wrapper.getComponent(PayMovementDialog)
+      dialog.vm.$emit('pay', dialog.props('movement'), { wallet: 'w-1' })
+      await flushPromises()
+      dialog.vm.$emit('close')
+      await flushPromises()
+
+      await chooseRowAction(wrapper, 0, 'Pagar')
+
+      expect(wrapper.getComponent(PayMovementDialog).props('messages')).toEqual([])
     })
 
     it('shows the server error when the wallets cannot be loaded', async () => {
@@ -895,7 +939,8 @@ describe('MovementListView', () => {
       await flushPromises()
 
       expect(dialog.props('movement')).not.toBeNull()
-      expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
+      expect(dialog.props('messages')).toHaveLength(1)
+      expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
     })
 
     it('shows the server error when the movement of the undo cannot be loaded', async () => {

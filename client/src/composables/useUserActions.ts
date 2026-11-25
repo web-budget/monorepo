@@ -12,6 +12,7 @@ export function useUserActions(onChanged: () => Promise<void> | void) {
   const { confirm } = useConfirmDialog()
   const { showSuccess } = useNotification()
   const { messages, run } = useServerErrors()
+  const approveErrors = useServerErrors()
 
   const approveTarget = ref<UserView | null>(null)
 
@@ -22,9 +23,21 @@ export function useUserActions(onChanged: () => Promise<void> | void) {
     }
   }
 
-  async function approve(user: UserView, roles: string[]) {
+  function openApprove(user: UserView) {
+    approveErrors.clear()
+    approveTarget.value = user
+  }
+
+  function closeApprove() {
     approveTarget.value = null
-    await apply(() => store.approve(user, roles), 'approved', user)
+  }
+
+  async function approve(user: UserView, roles: string[]) {
+    if (await approveErrors.run(() => store.approve(user, roles))) {
+      closeApprove()
+      showSuccess('users.toast.approved', 'users.toast.approved-detail', true, { name: user.name })
+      await onChanged()
+    }
   }
 
   async function block(user: UserView) {
@@ -62,5 +75,15 @@ export function useUserActions(onChanged: () => Promise<void> | void) {
     }
   }
 
-  return { messages, approveTarget, approve, block, unblock, resetTotp }
+  return {
+    messages,
+    approveMessages: approveErrors.messages,
+    approveTarget,
+    openApprove,
+    closeApprove,
+    approve,
+    block,
+    unblock,
+    resetTotp,
+  }
 }

@@ -29,6 +29,10 @@ function describe(key: 'from' | 'to', wallet: StatementWallet | null, amount: nu
   }
 }
 
+function isNegative(value: number | null) {
+  return value !== null && value < 0
+}
+
 const sides = computed(() => [
   describe('from', props.from, -props.value || 0),
   describe('to', props.to, props.value),
@@ -54,7 +58,7 @@ const sides = computed(() => [
         <div class="flex items-baseline gap-2">
           <span class="text-muted-foreground">{{ $t('transfer.statement.before') }}</span>
           <span class="border-border flex-1 border-b border-dotted" />
-          <CurrencyDisplay :value="side.before" neutral />
+          <CurrencyDisplay :value="side.before" :signed="isNegative(side.before)" glued />
         </div>
         <div
           :class="[
@@ -66,12 +70,15 @@ const sides = computed(() => [
             {{ $t(side.key === 'from' ? 'transfer.statement.debit' : 'transfer.statement.credit') }}
           </span>
           <span class="border-border flex-1 border-b border-dotted" />
-          <CurrencyDisplay :value="side.amount" signed glued />
+          <CurrencyDisplay
+            :value="Math.abs(side.amount)"
+            :tone="side.key === 'from' ? 'expense' : 'income'"
+          />
         </div>
         <div class="border-border flex items-baseline gap-2 border-t pt-1.5 font-semibold">
           <span class="text-foreground">{{ $t('transfer.statement.after') }}</span>
           <span class="border-border flex-1 border-b border-dotted" />
-          <CurrencyDisplay :value="side.after" neutral />
+          <CurrencyDisplay :value="side.after" :signed="isNegative(side.after)" glued />
         </div>
       </div>
     </template>

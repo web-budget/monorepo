@@ -31,5 +31,5 @@ export function useServerErrors() {
     }
   }
 
-  return { messages, fields, clearFields, clear, run }
+  return { messages, fields, clear, clearFields, run }
 }
