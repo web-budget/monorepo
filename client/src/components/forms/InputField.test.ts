@@ -20,14 +20,24 @@ describe('InputField', () => {
     Reflect.deleteProperty(HTMLInputElement.prototype, 'showPicker')
   })
 
-  it('opens the calendar when a date field receives focus', async () => {
+  it('opens the calendar when a date field is clicked', async () => {
+    const showPicker = vi.fn<() => void>()
+    HTMLInputElement.prototype.showPicker = showPicker
+    const wrapper = render({ type: 'date' })
+
+    await wrapper.find('input').trigger('click')
+
+    expect(showPicker).toHaveBeenCalledTimes(1)
+  })
+
+  it('does not open the calendar when the date field only receives focus', async () => {
     const showPicker = vi.fn<() => void>()
     HTMLInputElement.prototype.showPicker = showPicker
     const wrapper = render({ type: 'date' })
 
     await wrapper.find('input').trigger('focus')
 
-    expect(showPicker).toHaveBeenCalledTimes(1)
+    expect(showPicker).not.toHaveBeenCalled()
   })
 
   it('does not open anything for other kinds of field', async () => {
@@ -35,19 +45,19 @@ describe('InputField', () => {
     HTMLInputElement.prototype.showPicker = showPicker
     const wrapper = render({ type: 'text' })
 
-    await wrapper.find('input').trigger('focus')
+    await wrapper.find('input').trigger('click')
 
     expect(showPicker).not.toHaveBeenCalled()
   })
 
   it('keeps working when the browser has no picker or refuses to open it', async () => {
     const wrapper = render({ type: 'date' })
-    await wrapper.find('input').trigger('focus')
+    await wrapper.find('input').trigger('click')
 
     HTMLInputElement.prototype.showPicker = () => {
       throw new DOMException('no gesture', 'NotAllowedError')
     }
-    await wrapper.find('input').trigger('focus')
+    await wrapper.find('input').trigger('click')
 
     expect(wrapper.find('input').exists()).toBe(true)
   })
