@@ -9,10 +9,12 @@ import br.com.webbudget.server.utilities.contents
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
+import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD
 import java.time.LocalDate
+import java.time.ZoneId
 
 @Sql("/sql/financial/clear-tables.sql", "/sql/financial/create-registration-data.sql")
 @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
@@ -26,6 +28,9 @@ class DueDateNoticeTest : BaseIntegrationTest() {
 
     @Autowired
     private lateinit var userRepository: UserRepository
+
+    @Value($$"${web-budget.mail.time-zone}")
+    private lateinit var mailTimeZone: String
 
     @Test
     fun `should warn once per recipient about what is due on the day`() {
@@ -152,7 +157,7 @@ class DueDateNoticeTest : BaseIntegrationTest() {
     @Test
     fun `should run the scheduled jobs`() {
 
-        createMovement("Rent", "EXPENSE", "10.00", LocalDate.now().toString())
+        createMovement("Rent", "EXPENSE", "10.00", LocalDate.now(ZoneId.of(mailTimeZone)).toString())
 
         dueDateNoticeScheduler.sendDaily()
         dueDateNoticeScheduler.sendWeekly()
