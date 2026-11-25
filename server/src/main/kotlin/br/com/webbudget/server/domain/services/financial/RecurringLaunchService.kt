@@ -9,7 +9,10 @@ import br.com.webbudget.server.domain.entities.financial.RecurringMovement
 import br.com.webbudget.server.domain.entities.financial.SkippedRecurring
 import br.com.webbudget.server.domain.exceptions.DomainException
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.FINANCIAL_PERIOD_NOT_OPEN
+import br.com.webbudget.server.domain.exceptions.ErrorCodes.LAUNCH_QUANTITY_OUT_OF_RANGE
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.LAUNCH_VALUE_ONLY_FOR_VARIABLE
+import br.com.webbudget.server.domain.exceptions.ErrorCodes.RECURRING_MOVEMENT_FINISHED
+import br.com.webbudget.server.domain.exceptions.ErrorCodes.RECURRING_MOVEMENT_INACTIVE
 import br.com.webbudget.server.domain.exceptions.ResourceNotFoundException
 import br.com.webbudget.server.infrastructure.repository.financial.RecurringLaunchRepository
 import br.com.webbudget.server.infrastructure.repository.financial.RecurringMovementRepository
@@ -57,13 +60,49 @@ class RecurringLaunchService(
         return RecurringLaunchReport(launched, skipped)
     }
 
+    @Transactional
+    fun launchExtra(
+        recurringMovement: RecurringMovement,
+        financialPeriod: FinancialPeriodReference,
+        quantity: Int,
+        value: BigDecimal?
+    ): RecurringLaunchReport {
+
+        if (!financialPeriod.isOpen()) {
+            throw DomainException("The financial period is not open", FINANCIAL_PERIOD_NOT_OPEN)
+        }
+
+        if (!recurringMovement.active) {
+            throw DomainException("The recurring movement is inactive", RECURRING_MOVEMENT_INACTIVE)
+        }
+
+        if (recurringMovement.finished) {
+            throw DomainException("The recurring movement is finished", RECURRING_MOVEMENT_FINISHED)
+        }
+
+        if (value != null && recurringMovement.valueKind != RecurringMovement.ValueKind.VARIABLE) {
+            throw DomainException("Only a variable recurring movement takes a value", LAUNCH_VALUE_ONLY_FOR_VARIABLE)
+        }
+
+        if (quantity !in 1..recurringMovement.maxExtraLaunches()) {
+            throw DomainException("The quantity is out of the allowed range", LAUNCH_QUANTITY_OUT_OF_RANGE)
+        }
+
+        val firstInstallment = recurringMovement.nextInstallment!!
+
+        val launched = (0 until quantity).map {
+            launchOne(recurringMovement, financialPeriod, value, firstInstallment + it)
+        }
+
+        return RecurringLaunchReport(launched, emptyList())
+    }
+
     private fun launchOne(
         recurringMovement: RecurringMovement,
         financialPeriod: FinancialPeriodReference,
-        value: BigDecimal?
+        value: BigDecimal?,
+        installment: Int = recurringMovement.nextInstallment!!
     ): LaunchedRecurring {
-
-        val installment = recurringMovement.nextInstallment!!
 
         val movement = Movement(
             name = recurringMovement.movementName(installment),
