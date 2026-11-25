@@ -72,10 +72,6 @@ function changeYear(value: unknown) {
   return router.replace({ query: { ...route.query, year: next } })
 }
 
-function outflow(expenses: number): number {
-  return expenses === 0 ? 0 : -expenses
-}
-
 function openMovements(period: FinancialFlowPeriod) {
   return router.push({
     path: '/financial/movements',
@@ -121,7 +117,8 @@ function openMovements(period: FinancialFlowPeriod) {
           }}</span>
           <CurrencyDisplay
             :value="flow.totals.revenues"
-            class="text-income text-xl font-semibold tracking-tight md:text-2xl"
+            tone="income"
+            class="text-xl font-semibold tracking-tight md:text-2xl"
           />
         </Card>
         <Card class="gap-1 p-4 pb-5">
@@ -130,7 +127,8 @@ function openMovements(period: FinancialFlowPeriod) {
           }}</span>
           <CurrencyDisplay
             :value="flow.totals.expenses"
-            class="text-expense text-xl font-semibold tracking-tight md:text-2xl"
+            tone="expense"
+            class="text-xl font-semibold tracking-tight md:text-2xl"
           />
         </Card>
         <Card class="gap-1 p-4 pb-5">
@@ -139,6 +137,7 @@ function openMovements(period: FinancialFlowPeriod) {
           }}</span>
           <CurrencyDisplay
             :value="flow.totals.result"
+            :signed="flow.totals.result < 0"
             class="text-xl font-semibold tracking-tight md:text-2xl"
           />
         </Card>
@@ -185,13 +184,13 @@ function openMovements(period: FinancialFlowPeriod) {
               >
                 <TableCell>{{ periodLabel(period.financialPeriod.endingAt, locale) }}</TableCell>
                 <TableCell class="text-right">
-                  <CurrencyDisplay :value="period.revenues" signed bare glued />
+                  <CurrencyDisplay :value="period.revenues" tone="income" bare />
                 </TableCell>
                 <TableCell class="text-right">
-                  <CurrencyDisplay :value="outflow(period.expenses)" signed bare glued />
+                  <CurrencyDisplay :value="period.expenses" tone="expense" bare />
                 </TableCell>
                 <TableCell class="text-right font-medium">
-                  <CurrencyDisplay :value="period.result" signed bare glued />
+                  <CurrencyDisplay :value="period.result" :signed="period.result < 0" bare glued />
                 </TableCell>
                 <TableCell>
                   <Badge :variant="period.recorded ? 'neutral' : 'highlight'">
