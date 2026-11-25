@@ -50,7 +50,7 @@ repositories {
     mavenCentral()
 }
 
-val kotlinLoggingJvmVersion = "8.0.4"
+val kotlinLoggingJvmVersion = "8.0.7"
 val postgresDriverVersion = "42.7.14"
 val greenMailVersion = "2.1.15"
 val totpVersion = "1.7.1"
