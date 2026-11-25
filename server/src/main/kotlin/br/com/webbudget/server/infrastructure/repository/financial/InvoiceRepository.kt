@@ -87,6 +87,7 @@ class InvoiceRepository(
             "name" to cards.NAME,
             "status" to invoices.STATUS,
             "value" to invoiceValue,
+            "period" to financialPeriods.STARTING_AT,
             "createdOn" to invoices.CREATED_ON
         )
 

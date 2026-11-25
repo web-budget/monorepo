@@ -244,6 +244,20 @@ describe('InvoiceListView', () => {
     expect(lastQuery()).toMatchObject({ page: 1, size: 15 })
   })
 
+  it('sorts by the period and keeps the order in the url', async () => {
+    const { wrapper, router } = await render(undefined, invoices)
+
+    await buttonWithText(wrapper, 'Período').trigger('click')
+    await flushPromises()
+    expect(lastQuery().sort).toBe('period,asc')
+    expect(router.currentRoute.value.query.sort).toBe('period,asc')
+
+    await buttonWithText(wrapper, 'Período').trigger('click')
+    await flushPromises()
+    expect(lastQuery().sort).toBe('period,desc')
+    expect(router.currentRoute.value.query.sort).toBe('period,desc')
+  })
+
   it('shows the empty state with a way to create a period and clears the filters from no-result', async () => {
     const { wrapper, router } = await render(undefined, [])
     const empty = wrapper.find('[data-state="empty"]')
