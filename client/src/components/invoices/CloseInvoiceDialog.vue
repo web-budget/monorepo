@@ -2,6 +2,7 @@
 import { Lock } from 'lucide-vue-next'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
 import DateTimeDisplay from '@/components/common/DateTimeDisplay.vue'
+import ServerErrorAlert from '@/components/forms/ServerErrorAlert.vue'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -20,6 +21,7 @@ defineProps<{
   dueDate: string | null
   walletName: string | null
   loading: boolean
+  messages: string[]
 }>()
 
 const emit = defineEmits<{ close: []; confirm: [] }>()
@@ -41,6 +43,7 @@ const emit = defineEmits<{ close: []; confirm: [] }>()
             }}
           </DialogDescription>
         </DialogHeader>
+        <ServerErrorAlert :messages="messages" />
         <dl class="bg-muted grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 rounded-md p-3 text-sm">
           <dt class="text-muted-foreground">{{ $t('credit-card-invoice.close.purchases') }}</dt>
           <dd class="text-right font-mono">{{ purchases }}</dd>

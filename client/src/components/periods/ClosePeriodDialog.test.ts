@@ -35,17 +35,36 @@ describe('ClosePeriodDialog', () => {
     document.body.replaceChildren()
   })
 
-  it('shows revenues and expenses with their signs and the signed result', async () => {
+  it('shows revenues, expenses and the result without sign, painting by tone', async () => {
     await render()
 
     expect(document.body.textContent).toContain('Fechar Outubro de 2026?')
-    expect(summary()).toBe('Receitas+8.400,00Despesas−5.279,45Resultado+3.120,55')
+    expect(summary()).toBe('Receitas8.400,00Despesas5.279,45Resultado3.120,55')
+    const colors = [
+      ...document.body.querySelectorAll('[data-slot="close-summary"] [data-slot="currency"]'),
+    ].map((element) => element.getAttribute('data-direction'))
+    expect(colors).toEqual(['income', 'expense', null])
   })
 
-  it('shows a negative result with the minus sign', async () => {
+  it('shows only a negative result with the minus sign and in red', async () => {
     await render({ ...result, revenues: 100, expenses: 400, result: -300 })
 
     expect(summary()).toContain('Resultado−300,00')
+    const resultValue = document.body.querySelectorAll(
+      '[data-slot="close-summary"] [data-slot="currency"]',
+    )[2]!
+    expect(resultValue.getAttribute('data-direction')).toBe('expense')
+  })
+
+  it('shows the server errors at the top of the body', async () => {
+    const wrapper = await render()
+    expect(document.body.querySelector('[data-slot="server-error"]')).toBeNull()
+
+    await wrapper.setProps({ messages: ['O período ainda tem movimentos em aberto'] })
+
+    expect(document.body.querySelector('[data-slot="server-error"]')!.textContent).toContain(
+      'O período ainda tem movimentos em aberto',
+    )
   })
 
   it('shows no summary without a result', async () => {

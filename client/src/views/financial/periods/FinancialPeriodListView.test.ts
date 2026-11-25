@@ -136,6 +136,7 @@ describe('FinancialPeriodListView', () => {
     expect(rows[1]!.text()).toContain('Aberto · expirado')
     expect(rows[2]!.text()).toContain('Encerrado')
     expect(rows[2]!.text()).toContain('1.500,00')
+    expect(rows[2]!.text()).not.toMatch(/[+−]/)
     expect(rows[2]!.text()).not.toContain('provisório')
     expect(financialPeriodsApi.findResult).toHaveBeenCalledTimes(2)
     expect(financialPeriodsApi.findResult).toHaveBeenCalledWith('p-3')
@@ -340,13 +341,35 @@ describe('FinancialPeriodListView', () => {
     await flushPromises()
     await flushPromises()
 
-    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
     expect(document.body.querySelector('[role="dialog"]')).not.toBeNull()
+    expect(
+      document.body.querySelector('[role="dialog"] [data-slot="server-error"]')?.textContent,
+    ).toContain('Um erro inesperado aconteceu')
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
     ;[...document.body.querySelectorAll<HTMLButtonElement>('[role="dialog"] button')]
       .find((button) => button.textContent?.trim() === 'Cancelar')!
       .click()
     await flushPromises()
     expect(document.body.querySelector('[role="dialog"]')).toBeNull()
+
+    await chooseRowAction(wrapper, 2, 'Reabrir')
+    expect(document.body.querySelector('[role="dialog"] [data-slot="server-error"]')).toBeNull()
+  })
+
+  it('signs a closed result only when it is negative', async () => {
+    vi.mocked(financialPeriodsApi.findResult).mockResolvedValue({
+      revenues: 100,
+      expenses: 400,
+      result: -300,
+      toPay: 0,
+      overdueExpenses: 0,
+      recorded: true,
+    })
+    serveListing(vi.mocked(financialPeriodsApi.findAll), periods, periods.length, COUNTS)
+    const { wrapper } = await mountView(FinancialPeriodListView, 'financial-periods')
+
+    const closed = wrapper.findAll('tbody tr')[2]!
+    expect(closed.text().split(String.fromCharCode(160)).join(' ')).toContain('−300,00')
   })
 
   it('invites the user to create the first period when none exists', async () => {

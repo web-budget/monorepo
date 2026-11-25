@@ -65,7 +65,7 @@ onMounted(loadExtras)
 <template>
   <DetailCard
     :title="financialPeriod?.name ?? $t('financial-period.form.detailing')"
-    :messages="[...messages, ...extraErrors.messages.value, ...reopening.messages.value]"
+    :messages="[...messages, ...extraErrors.messages.value]"
     readonly
     @edit="changeToUpdate"
     @delete="remove"
@@ -138,6 +138,8 @@ onMounted(loadExtras)
         <DetailField :label="$t('financial-period.result.result')">
           <CurrencyDisplay
             :value="periodResult.result"
+            :signed="periodResult.result < 0"
+            glued
             zero-if-null
             class="text-base font-semibold"
           />
@@ -168,6 +170,7 @@ onMounted(loadExtras)
     <ReopenPeriodDialog
       :period="reopening.target.value"
       :loading="reopening.loading.value"
+      :messages="reopening.messages.value"
       @close="reopening.close()"
       @confirm="reopening.confirm()"
     />

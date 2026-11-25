@@ -119,6 +119,15 @@ function openStatement(wallet: WalletListView) {
   return router.push({ path: '/financial/statement', query: { wallet: wallet.id } })
 }
 
+function openAdjust(wallet: WalletListView) {
+  adjustErrors.clear()
+  adjusting.value = wallet
+}
+
+function closeAdjust() {
+  adjusting.value = null
+}
+
 async function adjust(target: { id: string }, form: { value: number }) {
   if (await adjustErrors.run(() => statement.adjust(target.id, form))) {
     const wallet = adjusting.value
@@ -149,7 +158,7 @@ async function adjust(target: { id: string }, form: { value: number }) {
           @on-filter-reset="search()"
         />
       </Card>
-      <ServerErrorAlert :messages="[...messages, ...adjustErrors.messages.value]" />
+      <ServerErrorAlert :messages="messages" />
       <ListState
         v-if="listState !== 'table'"
         :kind="listState"
@@ -199,7 +208,7 @@ async function adjust(target: { id: string }, form: { value: number }) {
           <WalletRowActions
             :adjustable="item.active"
             @statement="openStatement(item)"
-            @adjust="adjusting = item"
+            @adjust="openAdjust(item)"
             @edit="changeToUpdate(item.id)"
             @remove="remove(item)"
           />
@@ -213,7 +222,8 @@ async function adjust(target: { id: string }, form: { value: number }) {
           : null
       "
       :loading="statement.loading"
-      @close="adjusting = null"
+      :messages="adjustErrors.messages.value"
+      @close="closeAdjust()"
       @adjust="adjust"
     />
   </PageContainer>

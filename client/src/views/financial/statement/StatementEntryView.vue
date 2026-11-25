@@ -30,8 +30,6 @@ watch(
   },
   { immediate: true },
 )
-
-const signed = computed(() => (entry.value!.direction === 'CREDIT' ? 1 : -1) * entry.value!.value)
 </script>
 
 <template>
@@ -49,16 +47,31 @@ const signed = computed(() => (entry.value!.direction === 'CREDIT' ? 1 : -1) * e
       </DetailField>
       <DetailField :label="$t('statement.filters.wallet')" :value="entry.wallet?.name" />
       <DetailField :label="$t('statement.detail.value')">
-        <CurrencyDisplay :value="signed" signed bare glued class="text-base font-semibold" />
+        <CurrencyDisplay
+          :value="entry.value"
+          :tone="entry.direction === 'CREDIT' ? 'income' : 'expense'"
+          bare
+          class="text-base font-semibold"
+        />
       </DetailField>
       <DetailField :label="$t('statement.table-columns.origin')">
         {{ $t(`statement.origin.${entry.origin}`) }}
       </DetailField>
       <DetailField :label="$t('statement.table-columns.previous-balance')" mono>
-        <CurrencyDisplay :value="entry.previousBalance" bare />
+        <CurrencyDisplay
+          :value="entry.previousBalance"
+          :signed="entry.previousBalance < 0"
+          bare
+          glued
+        />
       </DetailField>
       <DetailField :label="$t('statement.table-columns.resulting-balance')" mono>
-        <CurrencyDisplay :value="entry.resultingBalance" bare />
+        <CurrencyDisplay
+          :value="entry.resultingBalance"
+          :signed="entry.resultingBalance < 0"
+          bare
+          glued
+        />
       </DetailField>
     </DetailSection>
   </DetailCard>

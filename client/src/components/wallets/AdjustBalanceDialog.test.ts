@@ -7,11 +7,11 @@ import { createTestPlugins } from '@/test/mounting'
 
 const wallet = { id: 'w-1', name: 'Conta corrente', balance: 1000 }
 
-async function render(target: typeof wallet | null = wallet) {
+async function render(target: typeof wallet | null = wallet, messages: string[] = []) {
   installZodErrorMap()
   const { plugins } = createTestPlugins()
   const wrapper = mount(AdjustBalanceDialog, {
-    props: { wallet: target, loading: false },
+    props: { wallet: target, loading: false, messages },
     attachTo: document.body,
     global: { plugins },
   })
@@ -45,6 +45,13 @@ describe('AdjustBalanceDialog', () => {
     document.body.replaceChildren()
   })
 
+  it('shows the server errors at the top of the dialog body', async () => {
+    await render(wallet, ['A carteira está inativa'])
+
+    const alert = document.body.querySelector('[role="dialog"] [data-slot="server-error"]')
+    expect(alert!.textContent).toContain('A carteira está inativa')
+  })
+
   it('stays closed without a wallet', async () => {
     await render(null)
 
@@ -56,6 +63,7 @@ describe('AdjustBalanceDialog', () => {
 
     expect(document.body.textContent).toContain('Ajustar o saldo de Conta corrente')
     expect(summary()).toMatch(/Saldo depois\s*R\$\s1\.000,00/)
+    expect(summary()).not.toContain('+')
 
     await type('value', '-2')
 
@@ -64,12 +72,13 @@ describe('AdjustBalanceDialog', () => {
     expect(summary()).toMatch(/Saldo depois\s*R\$\s999,98/)
   })
 
-  it('credits with a plus sign and keeps a lone minus sign waiting for the digits', async () => {
+  it('credits without a sign and keeps a lone minus sign waiting for the digits', async () => {
     await render()
 
     await type('value', '3')
-    expect(input('value').value).toBe('+0,03')
-    expect(summary()).toMatch(/Ajuste\s*\+R\$\s0,03/)
+    expect(input('value').value).toBe('0,03')
+    expect(summary()).toMatch(/Ajuste\s*R\$\s0,03/)
+    expect(summary()).not.toContain('+')
 
     await type('value', '-')
     expect(input('value').value).toBe('−')
@@ -78,7 +87,17 @@ describe('AdjustBalanceDialog', () => {
     expect(input('value').value).toBe('−0,05')
 
     await type('value', '+0,05')
-    expect(input('value').value).toBe('+0,05')
+    expect(input('value').value).toBe('0,05')
+  })
+
+  it('signs a negative balance and the balance left after a debit', async () => {
+    await render({ ...wallet, balance: -10 })
+
+    expect(summary()).toMatch(/Saldo da carteira\s*−R\$\s10,00/)
+
+    await type('value', '-5')
+
+    expect(summary()).toMatch(/Saldo depois\s*−R\$\s10,05/)
   })
 
   it('treats a value that is not a number as no adjustment', async () => {

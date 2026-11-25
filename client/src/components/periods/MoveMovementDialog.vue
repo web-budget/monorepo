@@ -3,6 +3,7 @@ import { ArrowRight } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import FilterSelect from '@/components/forms/FilterSelect.vue'
+import ServerErrorAlert from '@/components/forms/ServerErrorAlert.vue'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -20,12 +21,16 @@ interface MovableMovement {
   name: string
 }
 
-const props = defineProps<{
-  movement: MovableMovement | null
-  targets: ClosingPeriodView[]
-  suggested: ClosingPeriodView | null
-  loading: boolean
-}>()
+const props = withDefaults(
+  defineProps<{
+    movement: MovableMovement | null
+    targets: ClosingPeriodView[]
+    suggested: ClosingPeriodView | null
+    loading: boolean
+    messages?: string[]
+  }>(),
+  { messages: () => [] },
+)
 
 const emit = defineEmits<{
   close: []
@@ -67,6 +72,7 @@ function confirm() {
           <DialogTitle>{{ $t('period-closing.move.title', { name: movement?.name }) }}</DialogTitle>
           <DialogDescription class="sr-only">{{ movement?.name }}</DialogDescription>
         </DialogHeader>
+        <ServerErrorAlert :messages="messages" />
         <FilterSelect
           :label="$t('period-closing.move.period')"
           :options="choices"

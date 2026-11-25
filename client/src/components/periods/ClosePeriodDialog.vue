@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Lock } from 'lucide-vue-next'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
+import ServerErrorAlert from '@/components/forms/ServerErrorAlert.vue'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -12,12 +13,16 @@ import {
 } from '@/components/ui/dialog'
 import type { FinancialPeriodResultView } from '@/types'
 
-defineProps<{
-  open: boolean
-  name: string
-  result: FinancialPeriodResultView | null
-  loading: boolean
-}>()
+withDefaults(
+  defineProps<{
+    open: boolean
+    name: string
+    result: FinancialPeriodResultView | null
+    loading: boolean
+    messages?: string[]
+  }>(),
+  { messages: () => [] },
+)
 
 const emit = defineEmits<{ close: []; confirm: [] }>()
 </script>
@@ -30,6 +35,7 @@ const emit = defineEmits<{ close: []; confirm: [] }>()
           <DialogTitle>{{ $t('period-closing.close.title', { name }) }}</DialogTitle>
           <DialogDescription>{{ $t('period-closing.close.description') }}</DialogDescription>
         </DialogHeader>
+        <ServerErrorAlert :messages="messages" />
         <dl
           v-if="result"
           class="bg-muted grid grid-cols-[auto_1fr] gap-x-6 gap-y-2 rounded-md p-3 text-sm"
@@ -37,20 +43,19 @@ const emit = defineEmits<{ close: []; confirm: [] }>()
         >
           <dt class="text-muted-foreground">{{ $t('financial-period.result.revenues') }}</dt>
           <dd class="text-right">
-            <CurrencyDisplay :value="result.revenues" sign="income" glued bare />
+            <CurrencyDisplay :value="result.revenues" tone="income" bare />
           </dd>
           <dt class="text-muted-foreground">{{ $t('financial-period.result.expenses') }}</dt>
           <dd class="text-right">
-            <CurrencyDisplay :value="result.expenses" sign="expense" glued bare />
+            <CurrencyDisplay :value="result.expenses" tone="expense" bare />
           </dd>
           <dt class="font-medium">{{ $t('financial-period.result.result') }}</dt>
           <dd class="text-right">
             <CurrencyDisplay
               :value="result.result"
-              :sign="result.result < 0 ? 'expense' : 'income'"
+              :signed="result.result < 0"
               glued
               bare
-              neutral
               class="font-semibold"
             />
           </dd>

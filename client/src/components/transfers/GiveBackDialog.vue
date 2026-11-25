@@ -18,6 +18,7 @@ import type { TransferView } from '@/types'
 const props = defineProps<{
   transfer: TransferView | null
   loading: boolean
+  messages: string[]
   balanceOf: (walletId: string) => Promise<number>
 }>()
 
@@ -53,7 +54,7 @@ watch(
             {{ transfer.fromWallet.name }} → {{ transfer.toWallet.name }}
           </DialogDescription>
         </DialogHeader>
-        <ServerErrorAlert :messages="balanceErrors.messages.value" />
+        <ServerErrorAlert :messages="[...messages, ...balanceErrors.messages.value]" />
         <TransferStatement
           :title="$t('transfer.give-back.statement')"
           :from="{ name: transfer.toWallet.name, balance: balances.from }"

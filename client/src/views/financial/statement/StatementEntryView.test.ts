@@ -42,17 +42,28 @@ describe('StatementEntryView', () => {
     expect(wrapper.findAll('h2').map((title) => title.text())).toEqual(['Lançamento'])
     expect(wrapper.text()).toContain('18/11/2026 19:00')
     expect(wrapper.text()).toContain('Conta corrente')
-    expect(wrapper.text()).toContain('+0,03')
+    expect(wrapper.text()).toContain('Valor0,03')
+    expect(wrapper.text()).not.toMatch(/[+−]/)
+    expect(wrapper.find('[data-slot="currency"]').attributes('data-direction')).toBe('income')
     expect(wrapper.text()).toContain('4.812,34')
     expect(wrapper.text()).toContain('4.812,37')
     expect(wrapper.find('[data-slot="detail-footer"]').exists()).toBe(false)
   })
 
-  it('shows a debit with its minus sign and no actions', async () => {
+  it('shows a debit without a sign, in the expense color, and no actions', async () => {
     const { wrapper } = await render({ ...entry, direction: 'DEBIT', value: 0.02 })
 
-    expect(wrapper.text()).toContain('−0,02')
+    expect(wrapper.text()).toContain('Valor0,02')
+    expect(wrapper.text()).not.toContain('−0,02')
+    expect(wrapper.find('[data-slot="currency"]').attributes('data-direction')).toBe('expense')
     expect(wrapper.find('button').exists()).toBe(false)
+  })
+
+  it('signs only the balances that are negative', async () => {
+    const { wrapper } = await render({ ...entry, previousBalance: -4.5, resultingBalance: 0.2 })
+
+    expect(wrapper.text()).toContain('Saldo anterior−4,50')
+    expect(wrapper.text()).toContain('Saldo atual0,20')
   })
 
   it('names a reversal like the statement does', async () => {

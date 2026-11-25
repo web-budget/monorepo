@@ -167,7 +167,8 @@ describe('RecurringMovementListView', () => {
     const rows = wrapper.findAll('tbody tr')
     expect(rows).toHaveLength(3)
     expect(rows[0]!.text()).toContain('Aluguel')
-    expect(rows[0]!.text()).toContain('−1.200,00')
+    expect(rows[0]!.text()).toContain('1.200,00')
+    expect(rows[0]!.text()).not.toMatch(/[−+-]s?1.200/)
     expect(rows[0]!.text()).not.toContain('R$')
     expect(rows[0]!.text()).toContain('Fixo')
     expect(rows[0]!.text()).toContain('Indeterminado')
@@ -177,16 +178,23 @@ describe('RecurringMovementListView', () => {
     expect(rows[1]!.text()).toContain('3/12')
     expect(rows[1]!.text()).toContain('Manual')
     expect(rows[2]!.text()).toContain('último')
-    expect(rows[2]!.text()).toContain('−210,00')
+    expect(rows[2]!.text()).toContain('210,00')
+    expect(rows[2]!.text()).not.toMatch(/[−+-]s?210/)
     expect(rows[2]!.text()).toContain('Variável')
     expect(rows[2]!.text()).toContain('Encerrado')
   })
 
-  it('signs an income as a credit', async () => {
-    serve([{ ...rent, type: 'INCOME' }])
+  it('colors the value by the type and never signs it', async () => {
+    serve([rent, { ...rent, id: 'r-4', type: 'INCOME' }])
     const { wrapper } = await mountView(RecurringMovementListView, 'recurring-movements')
 
-    expect(wrapper.find('tbody tr').text()).toContain('+1.200,00')
+    const [expense, income] = wrapper.findAll('tbody tr [data-slot="currency"]')
+    expect(expense!.text()).toBe('1.200,00')
+    expect(expense!.attributes('data-direction')).toBe('expense')
+    expect(expense!.classes()).toContain('text-expense')
+    expect(income!.text()).toBe('1.200,00')
+    expect(income!.attributes('data-direction')).toBe('income')
+    expect(income!.classes()).toContain('text-income')
   })
 
   it('searches with Enter, changes the tab and sorts by name and value', async () => {
@@ -307,6 +315,31 @@ describe('RecurringMovementListView', () => {
       duration: 4000,
     })
     expect(listingCalls()).toHaveLength(2)
+  })
+
+  it('keeps the readjust dialog open with the error inside it, and clears it on reopening', async () => {
+    const { wrapper } = await render()
+    vi.mocked(recurringMovementsApi.readjust).mockRejectedValue(problem(400))
+
+    await chooseRowAction(wrapper, 0, 'Reajustar valor')
+    const value = document.body.querySelector<HTMLInputElement>('input[name="value"]')!
+    value.value = '130000'
+    value.dispatchEvent(new Event('input', { bubbles: true }))
+    await flushPromises()
+    const dialog = document.body.querySelector('[role="dialog"]')!
+    dialog.querySelector('form')!.dispatchEvent(new Event('submit', { cancelable: true }))
+    await settle()
+
+    expect(document.body.querySelector('[role="dialog"] [data-slot="server-error"]')).not.toBeNull()
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
+    expect(toast.success).not.toHaveBeenCalled()
+
+    ;[...dialog.querySelectorAll('button')]
+      .find((button) => button.textContent?.trim() === 'Cancelar')!
+      .click()
+    await flushPromises()
+    await chooseRowAction(wrapper, 0, 'Reajustar valor')
+    expect(document.body.querySelector('[role="dialog"] [data-slot="server-error"]')).toBeNull()
   })
 
   it('removes one after confirmation', async () => {
