@@ -54,10 +54,14 @@ class DueDateNoticeTest : BaseIntegrationTest() {
         val contents = messages.first().contents()
 
         assertThat(messages.first().subject).isEqualTo("Vencimentos de hoje (2)")
-        assertThat(contents.html).contains("Rent", "− R$ 1.200,50", "Salary", "+ R$ 8.000,00", "Abrir os movimentos")
+        assertThat(contents.html).contains("Rent", "R$ 1.200,50", "Salary", "R$ 8.000,00", "Abrir os movimentos")
+        assertThat(contents.html).doesNotContain("− R$", "+ R$")
+        assertThat(contents.html).containsPattern("color: #bd3931;\"[^>]*>R\\$ 1\\.200,50<")
+        assertThat(contents.html).containsPattern("color: #0b7643;\"[^>]*>R\\$ 8\\.000,00<")
         assertThat(contents.html).contains("10/12", "/financeiro/movimentos")
         assertThat(contents.html).doesNotContain("Tomorrow bill", "Late bill", "Paid bill")
-        assertThat(contents.plainText).contains("Rent", "Salary")
+        assertThat(contents.plainText).contains("Rent: R$ 1.200,50", "Salary: R$ 8.000,00")
+        assertThat(contents.plainText).doesNotContain("− R$", "+ R$")
     }
 
     @Test
@@ -116,7 +120,8 @@ class DueDateNoticeTest : BaseIntegrationTest() {
         val message = greenMail.receivedMessages.first { message -> message.allRecipients.any { it.toString() == english.email } }
 
         assertThat(message.subject).isEqualTo("Due today (1)")
-        assertThat(message.contents().html).contains("Open the movements", "− R$ 1,200.50", "Dec 10")
+        assertThat(message.contents().html).contains("Open the movements", "R$ 1,200.50", "Dec 10")
+        assertThat(message.contents().html).doesNotContain("− R$", "+ R$")
     }
 
     @Test
