@@ -124,7 +124,7 @@ describe('CardFormView', () => {
 
     await field(wrapper, 'name').setValue('Daily')
     await field(wrapper, 'invoicePaymentDay').setValue('5')
-    await pickWallet(wrapper, 'Ma', 'Main')
+    await pickWallet(wrapper, 'Ma', 'Main, ACME')
     await field(wrapper, 'lastFourDigits').setValue('4321')
     await submit(wrapper)
 
@@ -211,7 +211,7 @@ describe('CardFormView', () => {
     expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('Travel')
     expect((field(wrapper, 'lastFourDigits').element as HTMLInputElement).value).toBe('4321')
     expect((field(wrapper, 'invoicePaymentDay').element as HTMLInputElement).value).toBe('10')
-    expect(wrapper.find('button[data-field="wallet"]').text()).toContain('Main')
+    expect(wrapper.find('button[data-field="wallet"]').text()).toBe('Main, ACME')
   })
 
   it('saves the changes of a card and its status, and goes to the detail', async () => {

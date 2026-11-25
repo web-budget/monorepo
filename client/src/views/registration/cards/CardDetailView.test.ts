@@ -55,7 +55,7 @@ describe('CardDetailView', () => {
     expect(wrapper.find('[data-slot="page-description"]').exists()).toBe(false)
     expect(wrapper.text()).toContain('Ativo')
     expect(wrapper.findAll('h2').map((title) => title.text())).toEqual(['Identificação', 'Fatura'])
-    expect(wrapper.text()).toContain('Main')
+    expect(wrapper.text()).toContain('Main, ACME')
     expect(wrapper.text()).toContain('4321')
     expect(wrapper.text()).toContain('Elo')
   })
