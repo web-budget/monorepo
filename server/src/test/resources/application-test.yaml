@@ -1,7 +1,12 @@
 web-budget:
+  scheduling:
+    enabled: false
   security:
     admin-default-password: test-admin-password
     login:
+      max-attempts: 1000
+      base-duration: 60s
+    password-change:
       max-attempts: 1000
       base-duration: 60s
     ip-lockout:

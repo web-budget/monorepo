@@ -105,6 +105,11 @@ describe('installApiErrorHandler', () => {
       email: 'ana@example.com',
       status: 'APPROVED',
       language: 'PT_BR',
+      dueDateNotices: true,
+      hasPassword: true,
+      googleLinked: false,
+      totpEnabled: false,
+      totpRequired: false,
       roles: [],
     }
     const client = createClient({ status: 401, data: { error: 'session-revoked' } }, router)

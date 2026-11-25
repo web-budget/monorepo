@@ -95,6 +95,16 @@ export interface SessionResponse {
   status: UserStatus
   language: Language
   roles: Role[]
+  dueDateNotices: boolean
+  hasPassword: boolean
+  googleLinked: boolean
+  totpEnabled: boolean
+  totpRequired: boolean
+}
+
+export interface PasswordChangeRequest {
+  currentPassword: string
+  newPassword: string
 }
 
 export interface ActivateAccountForm {

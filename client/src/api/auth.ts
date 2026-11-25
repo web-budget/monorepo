@@ -6,6 +6,7 @@ import type {
   Language,
   LoginOutcome,
   LoginRequest,
+  PasswordChangeRequest,
   RegisterRequest,
   SessionResponse,
   TotpEnrollRequest,
@@ -51,6 +52,20 @@ export const authApi = {
 
   changeLanguage(language: Language): Promise<SessionResponse> {
     return apiClient.patch<SessionResponse>('/auth/language', { language }).then((r) => r.data)
+  },
+
+  updateDueDateNotices(enabled: boolean): Promise<SessionResponse> {
+    return apiClient
+      .patch<SessionResponse>('/auth/due-date-notices', { enabled })
+      .then((r) => r.data)
+  },
+
+  changeName(name: string): Promise<SessionResponse> {
+    return apiClient.patch<SessionResponse>('/auth/profile', { name }).then((r) => r.data)
+  },
+
+  changePassword(request: PasswordChangeRequest): Promise<void> {
+    return apiClient.patch('/auth/password', request).then(() => undefined)
   },
 
   fetchConfig(): Promise<AuthConfigResponse> {

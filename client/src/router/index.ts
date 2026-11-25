@@ -15,6 +15,7 @@ const router = createRouter({
     ...registrationRoutes,
     ...financialRoutes,
     ...configurationRoutes,
+    { path: '/profile', redirect: { name: 'start' } },
   ],
 })
 

@@ -226,6 +226,14 @@ describe('dashboards routes', () => {
   })
 })
 
+describe('router old addresses', () => {
+  it('sends the old profile page to the start route', () => {
+    const record = router.getRoutes().find((candidate) => candidate.path === '/profile')
+
+    expect(record?.redirect).toEqual({ name: 'start' })
+  })
+})
+
 describe('action breadcrumbs', () => {
   const verbs = {
     pt_BR: ['Criando', 'Editando', 'Detalhando', 'Lançando', 'Transferindo'],

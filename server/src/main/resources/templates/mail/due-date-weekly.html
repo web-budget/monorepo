@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::content}, ~{::footer})}">
+<body>
+<div th:fragment="content">
+    <table th:replace="~{parts :: badge('pending', #{due-date-weekly.badge})}"></table>
+    <h1 th:replace="~{parts :: title(#{due-date-weekly.title})}"></h1>
+    <p th:replace="~{parts :: paragraph(#{due-date-weekly.lead(${userName}, ${from}, ${to})})}"></p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; margin: 4px 0 8px 0; border-top: 1px solid #d1dad5;">
+        <th:block th:each="line : ${lines}">
+            <tr th:replace="~{parts :: amountRow(${line.label}, ${line.value}, ${line.tone})}"></tr>
+        </th:block>
+    </table>
+    <table th:replace="~{parts :: button(#{due-date-weekly.cta}, ${movementsUrl})}"></table>
+    <th:block th:replace="~{parts :: fallback(${movementsUrl})}"></th:block>
+</div>
+<p th:fragment="footer" th:text="#{due-date-weekly.footer}" style="margin: 0;">Você recebe estes avisos porque eles estão ligados no seu perfil.</p>
+</body>
+</html>

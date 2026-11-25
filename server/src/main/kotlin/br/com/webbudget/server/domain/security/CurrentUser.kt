@@ -15,7 +15,11 @@ data class CurrentUser(
     val status: UserStatus,
     val authProvider: AuthProvider,
     val credentialsVersion: Int,
+    val hasPassword: Boolean,
+    val googleLinked: Boolean,
+    val totpEnabled: Boolean,
     val language: Language,
+    val dueDateNotices: Boolean,
     val roles: Set<String>
 ) : Serializable {
 
@@ -29,7 +33,11 @@ data class CurrentUser(
             status = user.status,
             authProvider = user.authProvider,
             credentialsVersion = user.credentialsVersion,
+            hasPassword = user.password != null,
+            googleLinked = user.googleSub != null,
+            totpEnabled = user.totpEnabled,
             language = user.defaultLanguage,
+            dueDateNotices = user.dueDateNotices,
             roles = user.roleNames()
         )
     }

@@ -29,6 +29,11 @@ const session: SessionResponse = {
   email: 'ana@example.com',
   status: 'APPROVED',
   language: 'PT_BR',
+  dueDateNotices: true,
+  hasPassword: true,
+  googleLinked: false,
+  totpEnabled: false,
+  totpRequired: false,
   roles: [],
 }
 
