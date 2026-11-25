@@ -8,7 +8,10 @@ import {
 } from '@/components/layout/sections'
 import { createTestPlugins } from '@/test/mounting'
 
-function render(section: ModuleSectionDefinition, counts: Record<string, number | null> = {}) {
+function render(
+  section: ModuleSectionDefinition,
+  counts: Record<string, number | string | null> = {},
+) {
   const { plugins } = createTestPlugins()
   return mount(ModuleHome, {
     props: { section, description: 'module-home.description.configuration', counts },
@@ -42,6 +45,32 @@ describe('ModuleHome', () => {
     const count = wrapper.find('[data-slot="module-card-count"]')
     expect(count.text()).toBe('6')
     expect(count.classes()).toContain('font-mono')
+  })
+
+  it('shows a text as the count', () => {
+    const wrapper = render(configurationSection, { '/configuration/users': 'Maria' })
+
+    expect(wrapper.find('[data-slot="module-card-count"]').text()).toBe('Maria')
+  })
+
+  it('shows what asks for attention next to the name, with the highlight', () => {
+    const { plugins } = createTestPlugins()
+    const wrapper = mount(ModuleHome, {
+      props: {
+        section: configurationSection,
+        description: 'module-home.description.configuration',
+        counts: {},
+        attentions: { '/configuration/users': '2 pendentes' },
+      },
+      global: { plugins },
+    })
+
+    const badge = wrapper.find('[data-slot="module-card-attention"]')
+    expect(badge.text()).toBe('2 pendentes')
+    expect(badge.classes()).toContain('bg-highlight')
+    expect(render(configurationSection).find('[data-slot="module-card-attention"]').exists()).toBe(
+      false,
+    )
   })
 
   it('shows a zero count', () => {
@@ -85,6 +114,6 @@ describe('ModuleHome', () => {
   it('lays the cards out on an auto-fill grid of at least 320px', () => {
     const wrapper = render(configurationSection)
 
-    expect(wrapper.html()).toContain('grid-cols-[repeat(auto-fill,minmax(320px,1fr))]')
+    expect(wrapper.html()).toContain('grid-cols-[repeat(auto-fill,minmax(min(100%,320px),1fr))]')
   })
 })

@@ -18,8 +18,8 @@ const items: MenuGroup[] = [
   {
     label: 'menu.dashboards',
     items: [
-      { label: 'dashboards.overview', to: '/dashboards', exact: true },
-      { label: 'dashboards.current-month', to: '/dashboards/mes-atual' },
+      { label: 'financial-period.menu', to: '/financial/periods', exact: true },
+      { label: 'statement.menu', to: '/financial/statement' },
     ],
   },
 ]
@@ -79,14 +79,14 @@ describe('SideMenu', () => {
   })
 
   it('marks an exact item only on its own path, not on the paths below it', async () => {
-    const overview = await render('/dashboards')
-    const below = await render('/dashboards/mes-atual')
+    const overview = await render('/financial/periods')
+    const below = await render('/financial/statement')
 
     expect(overview.findAll('[data-active="true"]').map((button) => button.text())).toEqual([
-      'Visão geral',
+      'Períodos',
     ])
     expect(below.findAll('[data-active="true"]').map((button) => button.text())).toEqual([
-      'Mês atual',
+      'Extrato',
     ])
   })
 

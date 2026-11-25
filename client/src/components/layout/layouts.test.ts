@@ -37,35 +37,15 @@ describe('layouts', () => {
     expect(wrapper.find('main').text()).toContain('root')
   })
 
-  it('DashboardsLayout lists the five dashboards as links, with the overview selected', async () => {
-    const wrapper = await render(DashboardsLayout, '/dashboards')
+  it('DashboardsLayout lists only the financial flow, selected when it is open', async () => {
+    const wrapper = await render(DashboardsLayout, '/dashboards/financial-flow')
 
-    expect(menuLabels(wrapper)).toEqual([
-      'Visão geral',
-      'Mês atual',
-      'Meses anteriores',
-      'Por carteira',
-      'Por classificação',
-    ])
+    expect(menuLabels(wrapper)).toEqual(['Fluxo financeiro'])
     expect(
       wrapper.findAll('[data-slot="sidebar-menu"] a').map((link) => link.attributes('href')),
-    ).toEqual([
-      '/dashboards',
-      '/dashboards/mes-atual',
-      '/dashboards/meses-anteriores',
-      '/dashboards/por-carteira',
-      '/dashboards/por-classificacao',
-    ])
+    ).toEqual(['/dashboards/financial-flow'])
     expect(wrapper.findAll('[data-active="true"]').map((button) => button.text())).toEqual([
-      'Visão geral',
-    ])
-  })
-
-  it('DashboardsLayout selects only the dashboard that is open', async () => {
-    const wrapper = await render(DashboardsLayout, '/dashboards/mes-atual')
-
-    expect(wrapper.findAll('[data-active="true"]').map((button) => button.text())).toEqual([
-      'Mês atual',
+      'Fluxo financeiro',
     ])
   })
 

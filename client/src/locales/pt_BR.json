@@ -385,27 +385,9 @@
     "home": "Início",
     "sections": "Seções"
   },
-  "dashboards": {
-    "overview": "Visão geral",
-    "current-month": "Mês atual",
-    "previous-months": "Meses anteriores",
-    "by-wallet": "Por carteira",
-    "by-classification": "Por classificação",
-    "description": {
-      "overview": "Saldos, receitas e despesas do período.",
-      "current-month": "O movimento do mês em andamento.",
-      "previous-months": "Comparativo dos meses anteriores.",
-      "by-wallet": "Quanto entra e sai de cada carteira.",
-      "by-classification": "Para onde vai o dinheiro, por classificação."
-    },
-    "empty": {
-      "title": "Os dashboards chegam com o financeiro",
-      "description": "Os números e gráficos aparecem aqui quando o financeiro estiver pronto."
-    }
-  },
   "module-home": {
     "description": {
-      "financial": "Lançamentos, faturas e fechamento do período.",
+      "financial": "Lançamentos, cartões, recorrentes e fechamento de cada período.",
       "registration": "Escolha o que cadastrar ou consultar.",
       "configuration": "Contas de usuários, áreas de acesso e integrações."
     },
@@ -417,12 +399,18 @@
       "card": "Cartões de crédito.",
       "classification": "Categorias de receita e despesa dos lançamentos.",
       "cost-center": "Hierarquia para agrupar onde o dinheiro é gasto.",
-      "financial-period": "Criar, editar e acompanhar os períodos.",
+      "financial-period": "Criar, encerrar e reabrir períodos.",
       "users": "Contas, áreas de acesso e aprovações.",
       "integrations": "Conexões com bancos e serviços externos.",
       "movement": "Receitas e despesas do período.",
       "transfer": "Dinheiro que muda de carteira.",
       "statement": "Mudanças de saldo de cada carteira."
+    },
+    "attention": {
+      "overdue": "{count} vencido | {count} vencidos",
+      "closed-invoice": "{count} fechada a pagar | {count} fechadas a pagar",
+      "expired": "{count} expirado | {count} expirados",
+      "pending": "{period} pendente"
     }
   },
   "action-button": {
@@ -2039,6 +2027,43 @@
       "title": "Como a parcela entra",
       "description": "Cria um recorrente: cada parcela entra como movimento em aberto e vai para a fatura quando paga no cartão.",
       "action": "Lançar a primeira parcela"
+    }
+  },
+  "financial-flow": {
+    "menu": "Fluxo financeiro",
+    "title": "Fluxo financeiro",
+    "description": "Receitas e despesas pagas de cada período.",
+    "year": "Ano",
+    "list": {
+      "plural": "o fluxo financeiro"
+    },
+    "totals": {
+      "revenues": "Receitas",
+      "expenses": "Despesas",
+      "result": "Resultado"
+    },
+    "chart": {
+      "title": "Receitas e despesas por período"
+    },
+    "legend": {
+      "revenues": "Receitas",
+      "expenses": "Despesas",
+      "provisional": "Provisório (período aberto)"
+    },
+    "table": {
+      "period": "Período",
+      "revenues": "Receitas (R$)",
+      "expenses": "Despesas (R$)",
+      "result": "Resultado (R$)",
+      "status": "Situação"
+    },
+    "status": {
+      "recorded": "Gravado",
+      "provisional": "Provisório"
+    },
+    "empty": {
+      "title": "Nenhum período em {year}",
+      "description": "Crie um período ou escolha outro ano."
     }
   }
 }

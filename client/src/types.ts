@@ -703,6 +703,20 @@ export interface CardPurchaseView {
   recurringMovement?: PurchaseRecurringView | null
 }
 
+export interface FinancialFlowPeriod {
+  financialPeriod: { id: string; name: string; startingAt: string; endingAt: string }
+  revenues: number
+  expenses: number
+  result: number
+  recorded: boolean
+}
+
+export interface FinancialFlowView {
+  year: number
+  totals: { revenues: number; expenses: number; result: number }
+  periods: FinancialFlowPeriod[]
+}
+
 export type RecurringValueKind = 'FIXED' | 'VARIABLE'
 
 export type RecurringMovementStatusFilter = 'ACTIVE' | 'FINISHED' | 'ALL'

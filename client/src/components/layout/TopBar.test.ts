@@ -101,7 +101,7 @@ describe('TopBar', () => {
     expect(sectionLinks(wrapper).some((link) => link.attributes('aria-current'))).toBe(false)
   })
 
-  it('shows the current section next to the symbol for the phone bar', async () => {
+  it('shows the current section name for the phone bar', async () => {
     const { wrapper } = await render({ path: '/registration/wallets' })
 
     expect(wrapper.find('header > span').text()).toBe('Cadastros')
@@ -113,16 +113,10 @@ describe('TopBar', () => {
     expect(wrapper.find('header > span').exists()).toBe(false)
   })
 
-  it('links the brand home', async () => {
+  it('has no brand on the bar, because the side menu carries it', async () => {
     const { wrapper } = await render()
 
-    expect(wrapper.find('header a[href="/"]').text()).toBe('webBudget')
-  })
-
-  it('shows the brand only on the phone bar, because the side menu has it on desktop', async () => {
-    const { wrapper } = await render()
-
-    expect(wrapper.find('header a[href="/"]').classes()).toContain('md:hidden')
+    expect(wrapper.find('header a[href="/"]').exists()).toBe(false)
   })
 
   it('keeps the side menu toggle on every width', async () => {

@@ -31,7 +31,7 @@ describe('router', () => {
       .map((record) => record.components?.default)
       .filter((component) => typeof component === 'function')
 
-    expect(loaders).toHaveLength(64)
+    expect(loaders).toHaveLength(60)
     for (const loader of loaders) {
       expect(await (loader as () => Promise<unknown>)()).toHaveProperty('default')
     }
@@ -204,25 +204,17 @@ describe('start route', () => {
 })
 
 describe('dashboards routes', () => {
-  it.each([
-    ['/dashboards', 'dashboards', 'overview'],
-    ['/dashboards/mes-atual', 'dashboards.current-month', 'current-month'],
-    ['/dashboards/meses-anteriores', 'dashboards.previous-months', 'previous-months'],
-    ['/dashboards/por-carteira', 'dashboards.by-wallet', 'by-wallet'],
-    ['/dashboards/por-classificacao', 'dashboards.by-classification', 'by-classification'],
-  ])('registers %s with its breadcrumb and the DASHBOARDS role', (path, name, key) => {
-    const resolved = router.resolve(path)
+  it('redirects the dashboards to the financial flow, which has its breadcrumb and the DASHBOARDS role', () => {
+    const redirected = router.getRoutes().find((record) => record.name === 'dashboards')
+    const resolved = router.resolve('/dashboards/financial-flow')
 
-    expect(resolved.name).toBe(name)
+    expect(redirected?.redirect).toEqual({ name: 'dashboards.financial-flow' })
+    expect(resolved.name).toBe('dashboards.financial-flow')
     expect(resolved.matched.map((record) => record.meta.breadcrumb)).toEqual([
       'menu.dashboards',
-      `dashboards.${key}`,
+      'financial-flow.menu',
     ])
     expect(resolved.matched.map((record) => record.meta.role)).toContain('DASHBOARDS')
-    expect(router.getRoutes().find((record) => record.name === name)?.props.default).toEqual({
-      title: `dashboards.${key}`,
-      description: `dashboards.description.${key}`,
-    })
   })
 })
 

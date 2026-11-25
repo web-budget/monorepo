@@ -63,6 +63,14 @@ class MovementReferenceRepository(
             ?.toFinancialPeriodReference()
     }
 
+    fun findFinancialPeriodsEndingBetween(from: LocalDate, to: LocalDate): List<FinancialPeriodReference> {
+        val financialPeriods = FINANCIAL_PERIODS.`as`("financial_periods")
+        return dsl.selectFrom(financialPeriods)
+            .where(financialPeriods.ENDING_AT.between(from, to))
+            .orderBy(financialPeriods.ENDING_AT, financialPeriods.STARTING_AT)
+            .fetch { record -> record.toFinancialPeriodReference() }
+    }
+
     fun findOpenFinancialPeriods(): List<FinancialPeriodReference> {
         val financialPeriods = FINANCIAL_PERIODS.`as`("financial_periods")
         return dsl.selectFrom(financialPeriods)

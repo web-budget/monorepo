@@ -1,11 +1,9 @@
 import {
   ArrowLeftRight,
   ArrowRightLeft,
-  CalendarDays,
   CalendarRange,
   ChartColumn,
   CreditCard,
-  History,
   Lock,
   Network,
   ReceiptText,
@@ -35,13 +33,7 @@ export const dashboardsSection: SectionDefinition = {
   path: '/dashboards',
   label: 'menu.dashboards',
   role: 'DASHBOARDS',
-  items: [
-    { label: 'dashboards.overview', icon: ChartColumn, to: '/dashboards', exact: true },
-    { label: 'dashboards.current-month', icon: CalendarDays, to: '/dashboards/mes-atual' },
-    { label: 'dashboards.previous-months', icon: History, to: '/dashboards/meses-anteriores' },
-    { label: 'dashboards.by-wallet', icon: Wallet, to: '/dashboards/por-carteira' },
-    { label: 'dashboards.by-classification', icon: Tags, to: '/dashboards/por-classificacao' },
-  ],
+  items: [{ label: 'financial-flow.menu', icon: ChartColumn, to: '/dashboards/financial-flow' }],
 }
 
 export const financialSection: ModuleSectionDefinition = {
