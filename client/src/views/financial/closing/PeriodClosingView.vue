@@ -125,12 +125,18 @@ const blockingInvoices = computed(() => summary.value?.openInvoices.length ?? 0)
 const nextPeriodDone = computed(() => !noNextPeriod.value || pendenciesDone.value)
 const ready = computed(() => summary.value?.canClose === true && !loading.value)
 
-function signedValue(movement: MovementListView) {
-  return movement.type === 'INCOME' ? movement.value : -movement.value
+function toneOf(movement: MovementListView) {
+  return movement.type === 'INCOME' ? 'income' : 'expense'
 }
 
-function signOf(value: number) {
-  return value < 0 ? 'expense' : 'income'
+function openMove(movement: MovementListView) {
+  moveErrors.messages.value = []
+  moving.value = movement
+}
+
+function openClosing() {
+  closeErrors.messages.value = []
+  closing.value = true
 }
 
 function payLabel(movement: MovementListView) {
@@ -182,7 +188,7 @@ async function closePeriod() {
     })
   ) {
     closing.value = false
-    const formatted = `${recordedResult < 0 ? '−' : '+'}${n(Math.abs(recordedResult), 'currency')}`
+    const formatted = `${recordedResult < 0 ? '−' : ''}${n(Math.abs(recordedResult), 'currency')}`
     showSuccess('period-closing.toast.closed', 'period-closing.toast.closed-detail', true, {
       name: period.name,
       result: formatted,
@@ -214,8 +220,6 @@ function createPeriod() {
       :messages="[
         ...optionErrors.messages.value,
         ...loadErrors.messages.value,
-        ...moveErrors.messages.value,
-        ...closeErrors.messages.value,
         ...supportErrors.messages.value,
         ...actions.messages.value,
         ...closeInvoice.messages.value,
@@ -239,8 +243,7 @@ function createPeriod() {
               }}</span>
               <CurrencyDisplay
                 :value="result.revenues"
-                sign="income"
-                glued
+                tone="income"
                 class="text-xl font-semibold tracking-tight"
               />
               <span class="text-muted-foreground text-xs">{{
@@ -253,8 +256,7 @@ function createPeriod() {
               }}</span>
               <CurrencyDisplay
                 :value="result.expenses"
-                sign="expense"
-                glued
+                tone="expense"
                 class="text-xl font-semibold tracking-tight"
               />
               <span class="text-muted-foreground text-xs">{{
@@ -267,9 +269,8 @@ function createPeriod() {
               }}</span>
               <CurrencyDisplay
                 :value="result.result"
-                :sign="signOf(result.result)"
+                :signed="result.result < 0"
                 glued
-                neutral
                 class="text-xl font-semibold tracking-tight"
               />
               <span class="text-muted-foreground text-xs">{{
@@ -282,9 +283,8 @@ function createPeriod() {
               }}</span>
               <CurrencyDisplay
                 :value="accumulated.accumulated"
-                :sign="signOf(accumulated.accumulated)"
+                :signed="accumulated.accumulated < 0"
                 glued
-                neutral
                 class="text-xl font-semibold tracking-tight"
               />
               <span class="text-muted-foreground text-xs">{{
@@ -382,7 +382,7 @@ function createPeriod() {
                     </span>
                   </TableCell>
                   <TableCell class="text-right">
-                    <CurrencyDisplay :value="signedValue(movement)" signed glued bare />
+                    <CurrencyDisplay :value="movement.value" :tone="toneOf(movement)" bare />
                   </TableCell>
                   <TableCell>
                     <span class="flex flex-wrap justify-end gap-2">
@@ -402,7 +402,7 @@ function createPeriod() {
                         :title="
                           noNextPeriod ? $t('period-closing.pendencies.move-disabled') : undefined
                         "
-                        @click.stop="moving = movement"
+                        @click.stop="openMove(movement)"
                       >
                         <ArrowRight />{{ $t('period-closing.pendencies.move') }}
                       </Button>
@@ -426,7 +426,7 @@ function createPeriod() {
                       {{ $t('period-closing.pendencies.invoice') }}
                     </Badge>
                   </span>
-                  <CurrencyDisplay :value="signedValue(movement)" signed glued bare />
+                  <CurrencyDisplay :value="movement.value" :tone="toneOf(movement)" bare />
                 </div>
                 <div class="text-muted-foreground text-xs">
                   {{ $t('period-closing.pendencies.due-on') }}
@@ -444,7 +444,7 @@ function createPeriod() {
                     size="sm"
                     variant="outline"
                     :disabled="noNextPeriod"
-                    @click.stop="moving = movement"
+                    @click.stop="openMove(movement)"
                   >
                     <ArrowRight />{{ $t('period-closing.pendencies.move') }}
                   </Button>
@@ -570,7 +570,7 @@ function createPeriod() {
           </li>
         </ul>
         <div class="grid gap-2 border-t pt-4">
-          <Button type="button" class="w-full" :disabled="!ready" @click="closing = true">
+          <Button type="button" class="w-full" :disabled="!ready" @click="openClosing()">
             <Lock />{{ $t('period-closing.checklist.close', { name: monthOf(selected?.name) }) }}
           </Button>
           <p class="text-muted-foreground text-xs">
@@ -586,6 +586,7 @@ function createPeriod() {
       :targets="summary?.targetPeriods ?? []"
       :suggested="summary?.nextOpenPeriod ?? null"
       :loading="loading"
+      :messages="moveErrors.messages.value"
       @close="moving = null"
       @confirm="move"
     />
@@ -594,6 +595,7 @@ function createPeriod() {
       :name="selected?.name ?? ''"
       :result="result"
       :loading="loading"
+      :messages="closeErrors.messages.value"
       @close="closing = false"
       @confirm="closePeriod()"
     />

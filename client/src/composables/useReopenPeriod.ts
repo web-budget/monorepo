@@ -17,6 +17,7 @@ export function useReopenPeriod(reload: () => Promise<unknown> | unknown) {
   const loading = computed(() => store.loading)
 
   function open(period: ReopenablePeriod) {
+    messages.value = []
     target.value = period
   }
 
