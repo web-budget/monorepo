@@ -59,6 +59,7 @@ provide(
                 variant="outline"
                 class="max-md:flex-1"
                 :disabled="submitting"
+                @mousedown.prevent
                 @click="emit('back')"
               >
                 {{ $t('form.cancel') }}

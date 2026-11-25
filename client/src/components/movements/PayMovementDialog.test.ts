@@ -332,6 +332,15 @@ describe('PayMovementDialog', () => {
     expect(wrapper.emitted('close')).toHaveLength(1)
   })
 
+  it('does not take the focus from the field when the cancel button is pressed', async () => {
+    await render(expense)
+    const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
+
+    buttonWithText('Cancelar')!.dispatchEvent(press)
+
+    expect(press.defaultPrevented).toBe(true)
+  })
+
   it('emits close from the cancel button', async () => {
     const { wrapper } = await render(expense)
 
