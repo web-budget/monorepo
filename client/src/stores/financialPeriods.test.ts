@@ -176,6 +176,7 @@ describe('useFinancialPeriodsStore', () => {
       recorded: true,
       toPay: 0,
       overdueExpenses: 0,
+      paidOnCard: 0,
     })
     vi.mocked(financialPeriodsApi.reopen).mockResolvedValue(undefined)
     const store = useFinancialPeriodsStore()

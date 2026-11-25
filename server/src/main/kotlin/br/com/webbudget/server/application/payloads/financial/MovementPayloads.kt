@@ -161,7 +161,8 @@ data class FinancialPeriodResultView(
     val result: BigDecimal,
     val recorded: Boolean,
     val toPay: BigDecimal,
-    val overdueExpenses: Int
+    val overdueExpenses: Int,
+    val paidOnCard: BigDecimal
 )
 
 data class MovementRecurringView(

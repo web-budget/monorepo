@@ -308,6 +308,7 @@ export interface FinancialPeriodResultView {
   recorded: boolean
   toPay: number
   overdueExpenses: number
+  paidOnCard: number
 }
 
 export interface ClosingPeriodView {
