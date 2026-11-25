@@ -18,8 +18,10 @@ const props = withDefaults(
     messages: string[]
     fields?: string[]
     submitLabel: string
+    wideAside?: boolean
   }>(),
   {
+    wideAside: false,
     description: undefined,
     submitting: false,
     dirty: false,
@@ -41,7 +43,14 @@ provide(
       <template v-if="$slots.badge" #badge><slot name="badge" /></template>
     </PageHeader>
     <ServerErrorAlert :messages="messages" />
-    <div :class="$slots.aside && 'grid items-start gap-5 md:grid-cols-[minmax(0,1fr)_280px]'">
+    <div
+      :class="
+        $slots.aside &&
+        (wideAside
+          ? 'grid items-start gap-5 xl:grid-cols-[minmax(0,1fr)_320px]'
+          : 'grid items-start gap-5 md:grid-cols-[minmax(0,1fr)_280px]')
+      "
+    >
       <form novalidate @submit.prevent="emit('submit')">
         <Card class="gap-0 py-0">
           <fieldset :disabled="loading || submitting" class="min-w-0">

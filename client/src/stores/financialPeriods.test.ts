@@ -17,6 +17,7 @@ const row: FinancialPeriodListView = {
   expired: false,
 }
 const view: FinancialPeriodView = { ...row, revenuesGoal: 1000, expensesGoal: 800 }
+const report = { launched: [{ recurringMovement: 'r-1' }], skipped: [] } as never
 const page = { content: [row], page: { size: 15, number: 0, totalElements: 1, totalPages: 1 } }
 
 describe('useFinancialPeriodsStore', () => {
@@ -54,13 +55,19 @@ describe('useFinancialPeriodsStore', () => {
   })
 
   it('creates, loads, edits and removes a period', async () => {
-    vi.mocked(financialPeriodsApi.create).mockResolvedValue('new-id')
+    vi.mocked(financialPeriodsApi.create).mockResolvedValue({
+      id: 'new-id',
+      recurringLaunch: report,
+    })
     vi.mocked(financialPeriodsApi.findById).mockResolvedValue(view)
     vi.mocked(financialPeriodsApi.update).mockResolvedValue({ ...view, expensesGoal: 900 })
     vi.mocked(financialPeriodsApi.remove).mockResolvedValue()
     const store = useFinancialPeriodsStore()
 
-    await store.create({ name: '01/2026', startingAt: '2026-01-01', endingAt: '2026-01-31' })
+    await expect(
+      store.create({ name: '01/2026', startingAt: '2026-01-01', endingAt: '2026-01-31' }),
+    ).resolves.toBe('new-id')
+    expect(store.recurringLaunch).toEqual(report)
     expect(financialPeriodsApi.create).toHaveBeenCalledWith({
       name: '01/2026',
       startingAt: '2026-01-01',
@@ -77,6 +84,16 @@ describe('useFinancialPeriodsStore', () => {
     expect(store.financialPeriod).toBeNull()
   })
 
+  it('keeps what the creation launched until it is reset', async () => {
+    vi.mocked(financialPeriodsApi.create).mockResolvedValue({ id: 'x', recurringLaunch: report })
+    const store = useFinancialPeriodsStore()
+
+    await store.create({ name: 'a', startingAt: '2026-01-01', endingAt: '2026-01-31' })
+    expect(store.recurringLaunch).toEqual(report)
+
+    store.reset()
+  })
+
   it('reset() goes back to the open periods filter', async () => {
     vi.mocked(financialPeriodsApi.findAll).mockResolvedValue(page)
     const store = useFinancialPeriodsStore()
@@ -85,6 +102,7 @@ describe('useFinancialPeriodsStore', () => {
 
     store.reset()
 
+    expect(store.recurringLaunch).toEqual({ launched: [], skipped: [] })
     expect(store.pageRequest.status).toBe('OPEN')
     expect(store.pageResponse.content).toEqual([])
   })

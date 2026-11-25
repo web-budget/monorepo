@@ -11,6 +11,7 @@ interface MovementTarget {
   type: MovementType
   value: number
   invoicePayment?: boolean
+  suggestedCard?: string | null
   financialPeriod?: { id: string; name: string }
 }
 
@@ -31,6 +32,12 @@ export function useMovementActions(reload: () => Promise<unknown> | unknown) {
 
   function closePay() {
     payTarget.value = null
+  }
+
+  async function openPayWithSuggestion(target: MovementTarget) {
+    await run(async () => {
+      openPay({ ...target, suggestedCard: await store.suggestedCardOf(target.id) })
+    })
   }
 
   async function pay(target: MovementTarget, form: PaymentForm) {
@@ -82,6 +89,7 @@ export function useMovementActions(reload: () => Promise<unknown> | unknown) {
     payTarget,
     undoTarget,
     openPay,
+    openPayWithSuggestion,
     closePay,
     pay,
     openUndo,

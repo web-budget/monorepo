@@ -32,6 +32,7 @@ interface PayableMovement {
   type: MovementType
   value: number
   invoicePayment?: boolean
+  suggestedCard?: string | null
   financialPeriod?: { id: string; name: string }
 }
 
@@ -51,11 +52,12 @@ const balanceErrors = useServerErrors()
 const openInvoice = useOpenInvoice()
 
 function initialValues() {
+  const suggestedCard = props.movement?.suggestedCard
   return {
     paidOn: formatLocalDate(new Date()),
-    via: 'WALLET' as const,
+    via: suggestedCard ? ('CARD' as const) : ('WALLET' as const),
     wallet: props.wallets[0]?.id ?? '',
-    card: props.cards[0]?.id ?? '',
+    card: suggestedCard ?? props.cards[0]?.id ?? '',
     discount: 0,
   }
 }

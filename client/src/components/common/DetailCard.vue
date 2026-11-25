@@ -42,6 +42,7 @@ const emit = defineEmits<{ edit: []; delete: [] }>()
         >
           <Trash2 />{{ $t('crud.actions.remove') }}
         </Button>
+        <slot name="middle-actions" />
         <Button
           v-if="!readonly && !hideEdit"
           type="button"

@@ -52,7 +52,7 @@
       "movement-already-paid": "O movimento já foi pago e não pode ser alterado",
       "movement-not-paid": "O movimento não tem pagamento",
       "classification-type-mismatch": "A classificação não é do mesmo tipo do movimento",
-      "inactive-classification": "A classificação está inativa",
+      "inactive-classification": "A classificação está inativa. Se ela é de um recorrente, corrija ou desative o recorrente.",
       "inactive-cost-center": "O centro de custo está inativo",
       "inactive-wallet": "A carteira está inativa",
       "invalid-discount": "O desconto precisa estar entre zero e o valor, sem chegar nele",
@@ -67,7 +67,11 @@
       "invoice-payment-not-payable-by-card": "O pagamento de fatura não se paga no cartão",
       "invoice-payment-locked": "O pagamento de fatura não pode ser alterado",
       "card-payment-only-for-expenses": "Só despesa se paga no cartão",
-      "payment-requires-wallet-or-card": "Escolha a carteira ou o cartão do pagamento"
+      "payment-requires-wallet-or-card": "Escolha a carteira ou o cartão do pagamento",
+      "recurring-movement-with-launches": "O recorrente já tem lançamentos e não pode ser excluído. Desative-o para parar de lançar.",
+      "card-recurring-must-be-expense": "Só a despesa pode ter cartão sugerido",
+      "inactive-card": "O cartão está inativo",
+      "launch-value-only-for-variable": "Só o recorrente variável aceita um valor no lançamento"
     },
     "not-found": {
       "detail": "Não encontrado",
@@ -615,7 +619,185 @@
   },
   "recurrent-movement": {
     "title": "Recorrentes",
-    "menu": "Recorrentes"
+    "menu": "Recorrentes",
+    "list": {
+      "description": "Modelos que lançam movimentos e compras a cada período.",
+      "empty-title": "Nenhum recorrente ainda",
+      "empty-description": "Crie o primeiro recorrente.",
+      "plural": "os recorrentes",
+      "found": "{count} recorrente encontrado para “{query}” | {count} recorrentes encontrados para “{query}”",
+      "launch": "Lançar em lote",
+      "error-description": "O servidor não respondeu. Seus filtros continuam na URL.",
+      "no-result": "Nenhum recorrente com esses filtros",
+      "no-result-hint": "Mude os filtros ou limpe a busca.",
+      "no-result-action": "Limpar filtros",
+      "noun": "recorrente | recorrentes"
+    },
+    "search": {
+      "placeholder": "Nome, centro de custo ou classificação"
+    },
+    "status-tabs": {
+      "active": "Ativos",
+      "finished": "Encerrados"
+    },
+    "filters": {
+      "type": "Tipo",
+      "all-types": "Todos os tipos",
+      "incomes": "Receitas",
+      "expenses": "Despesas",
+      "clear": "Limpar"
+    },
+    "table-columns": {
+      "name": "Nome",
+      "value": "Valor (R$)",
+      "value-kind": "Tipo de valor",
+      "installments": "Parcelas",
+      "launch": "Lançamento",
+      "situation": "Situação"
+    },
+    "last-value": "último",
+    "value-kind": {
+      "FIXED": "Fixo",
+      "VARIABLE": "Variável"
+    },
+    "installments": {
+      "indefinite": "Indeterminado"
+    },
+    "launch": {
+      "auto": "Automático",
+      "manual": "Manual",
+      "breadcrumb": "Lançando",
+      "title": "Lançar recorrentes",
+      "description": "Escolha os recorrentes e lance de uma vez.",
+      "period": "Período",
+      "period-none": "Nenhum",
+      "due-hint": "Vencem em {date}.",
+      "no-open-period": "Não há período aberto",
+      "no-open-period-hint": "Crie um período para lançar os recorrentes.",
+      "create-period": "Criar período",
+      "select": "Selecionar {name}",
+      "value-of": "Valor de {name}",
+      "available": "Disponível",
+      "launched": "Já lançado",
+      "selected": "{count} selecionado | {count} selecionados",
+      "effect": "efeito no período",
+      "submit": "Lançar {count} recorrente | Lançar {count} recorrentes",
+      "launched-auto": "Lançado automaticamente",
+      "nothing-manual": "Neste período não sobrou nada manual para lançar.",
+      "none-selected": "Nenhum selecionado",
+      "submit-none": "Lançar recorrentes",
+      "recurring-movement": "Recorrente"
+    },
+    "status": {
+      "active": "Ativo",
+      "ended": "Encerrado"
+    },
+    "actions": {
+      "details": "Detalhes",
+      "edit": "Editar",
+      "readjust": "Reajustar valor",
+      "remove": "Excluir"
+    },
+    "readjust": {
+      "title": "Reajustar “{name}”",
+      "description": "Vale a partir do próximo lançamento.",
+      "value": "Novo valor",
+      "current": "Valor atual {value}.",
+      "reason": "Motivo",
+      "confirm": "Reajustar",
+      "reason-example": "Opcional. Ex.: reajuste anual"
+    },
+    "remove": {
+      "title": "Excluir “{name}”?",
+      "description": "Só dá para excluir um recorrente sem lançamentos. Não dá para desfazer."
+    },
+    "toast": {
+      "created": "Recorrente criado",
+      "created-detail": "Entra sozinho no próximo período.",
+      "updated": "Alterações salvas",
+      "updated-detail": "“{name}” foi atualizado.",
+      "removed": "Recorrente excluído",
+      "removed-detail": "“{name}” saiu da lista.",
+      "readjusted": "Valor reajustado",
+      "readjusted-detail": "Vale a partir do próximo lançamento.",
+      "launched": "Recorrentes lançados",
+      "launched-detail": "{count} lançamento criado em {period}. | {count} lançamentos criados em {period}.",
+      "skipped": "Alguns recorrentes não entraram"
+    },
+    "form": {
+      "new": "Criando",
+      "editing": "Editando",
+      "title-new": "Novo recorrente",
+      "title-editing": "Editando recorrente",
+      "detailing": "Detalhando",
+      "type": "Tipo",
+      "type-hint": "O tipo não muda depois de criado.",
+      "name": "Nome",
+      "value": "Valor",
+      "suggested-value": "Valor sugerido",
+      "value-note": "Para mudar o valor, use Reajustar valor no detalhe.",
+      "cost-center": "Centro de custo",
+      "classification-of-type": {
+        "INCOME": "Classificação de receita",
+        "EXPENSE": "Classificação de despesa"
+      },
+      "value-kind": "Modalidade",
+      "repetition-hint": "O recorrente termina sozinho depois da última parcela.",
+      "installments-heading": "Número de parcelas",
+      "indefinite": "Prazo indeterminado",
+      "installments": "Parcelas",
+      "first-installment": "Parcela atual",
+      "auto-launch": "Lançar automaticamente ao criar o período",
+      "auto-launch-hint": "Vence no último dia do período.",
+      "active-label": "Ativo",
+      "active-hint": "Inativar para parar de lançar",
+      "name-example": {
+        "income": "Ex.: Salário",
+        "expense": "Ex.: Videoflix"
+      },
+      "value-kind-description": {
+        "FIXED": "Sempre o mesmo valor, com reajustes quando houver.",
+        "VARIABLE": "Sugere o último valor pago."
+      },
+      "first-installment-hint": "Começa a contar desta parcela."
+    },
+    "sections": {
+      "type": "Tipo",
+      "identification": "Identificação",
+      "value-kind": "Modalidade",
+      "repetition": "Repetição",
+      "launch": "Lançamento",
+      "value-and-repetition": "Valor e repetição",
+      "history": "Histórico de valores"
+    },
+    "detail": {
+      "name": "Nome",
+      "type": "Tipo",
+      "cost-center": "Centro de custo",
+      "classification": "Classificação",
+      "current-value": "Valor atual",
+      "value-kind": "Tipo de valor",
+      "installments": "Parcelas",
+      "launch": "Lançamento",
+      "due": "Vencimento",
+      "due-last-day": "Último dia do período",
+      "launch-auto": "Automático ao criar o período",
+      "launch-manual": "Manual, em lote"
+    },
+    "history": {
+      "valid-from": "Vale a partir de",
+      "value": "Valor (R$)",
+      "reason": "Motivo",
+      "current": "vigente",
+      "suggested": "Valor sugerido no próximo lançamento:",
+      "noun": "reajuste | reajustes",
+      "fixed": "Valor fixo."
+    },
+    "skipped": {
+      "inactive": "inativo",
+      "finished": "encerrado",
+      "already-launched-in-period": "já lançado no período"
+    }
   },
   "credit-card-invoice": {
     "title": "Fatura do cartão",
@@ -955,10 +1137,13 @@
     },
     "toast": {
       "created": "Período criado",
+      "created-detail": "{launched} e {invoices}.",
       "updated": "Alterações salvas",
       "updated-detail": "“{name}” foi atualizado.",
       "removed": "Período financeiro excluído",
-      "removed-detail": "“{name}” saiu da lista."
+      "removed-detail": "“{name}” saiu da lista.",
+      "launched-count": "{count} recorrente lançado | {count} recorrentes lançados",
+      "invoices-count": "{count} fatura aberta | {count} faturas abertas"
     },
     "sections": {
       "identification": "Identificação",
@@ -982,6 +1167,11 @@
       "launched": "Lançados",
       "open": "Em aberto",
       "paid": "Pagos"
+    },
+    "creation": {
+      "title": "Ao criar este período",
+      "recurring": "Recorrentes automáticos lançados:",
+      "invoices": "Faturas abertas criadas:"
     }
   },
   "classification": {
@@ -1135,7 +1325,8 @@
     "roles-required": "Escolha pelo menos uma área.",
     "discount-too-high": "O desconto precisa ser menor que o valor.",
     "adjustment-not-zero": "O ajuste não pode ser zero.",
-    "transfer-same-wallet": "Origem e destino precisam ser carteiras diferentes."
+    "transfer-same-wallet": "Origem e destino precisam ser carteiras diferentes.",
+    "first-installment-after-last": "A parcela atual não pode passar do número de parcelas."
   },
   "crud": {
     "required-hint": "Campos com * são obrigatórios.",
@@ -1347,6 +1538,7 @@
       "card": "Cartão",
       "method-wallet": "Carteira",
       "method-card": "Cartão de crédito",
+      "recurring": "Recorrente",
       "discount-none": "---"
     },
     "notices": {
@@ -1587,6 +1779,10 @@
       "value": "Valor",
       "cost-center": "Centro de custo",
       "classification": "Classificação de despesa",
+      "installment": "Compra parcelada",
+      "installments": "Número de parcelas",
+      "installment-value": "Valor da parcela",
+      "submit-installments": "Criar parcelamento",
       "title-new": "Nova compra no cartão",
       "name-example": "Ex.: Mercado do bairro",
       "period-hint": "Só períodos abertos.",
@@ -1596,7 +1792,9 @@
     },
     "sections": {
       "card": "Cartão e período",
-      "purchase": "Compra"
+      "purchase": "Compra",
+      "installments": "Parcelamento",
+      "installments-help": "Compra parcelada vira um recorrente."
     },
     "detail": {
       "value": "Valor",
@@ -1617,7 +1815,9 @@
       "updated": "Alterações salvas",
       "updated-detail": "“{name}” foi atualizada.",
       "removed": "Compra excluída",
-      "removed-detail": "“{name}” saiu da fatura."
+      "removed-detail": "“{name}” saiu da fatura.",
+      "installment-created": "Parcelamento criado",
+      "installment-created-detail": "Entra sozinho no próximo período."
     },
     "remove": {
       "title": "Excluir a compra “{name}”?",
@@ -1631,6 +1831,11 @@
       "description": "Nada foi lançado.",
       "action": "Ver a fatura",
       "title-missing": "Não há fatura aberta de {card} em {period}"
+    },
+    "installment-notice": {
+      "title": "Como a parcela entra",
+      "description": "Cria um recorrente: cada parcela entra como movimento em aberto e vai para a fatura quando paga no cartão.",
+      "action": "Lançar a primeira parcela"
     }
   }
 }

@@ -95,12 +95,18 @@ function resetFilter() {
         </button>
       </div>
     </form>
-    <StatusTabs
-      v-if="props.statusOptions.length > 0"
-      :status="props.status"
-      :options="props.statusOptions"
-      :counts="props.counts"
-      @select="selectStatus"
-    />
+    <div
+      v-if="props.statusOptions.length > 0 || $slots.default"
+      class="flex flex-wrap items-center gap-3"
+    >
+      <StatusTabs
+        v-if="props.statusOptions.length > 0"
+        :status="props.status"
+        :options="props.statusOptions"
+        :counts="props.counts"
+        @select="selectStatus"
+      />
+      <slot />
+    </div>
   </div>
 </template>

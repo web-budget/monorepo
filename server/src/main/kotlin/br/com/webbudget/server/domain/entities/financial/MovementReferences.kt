@@ -43,3 +43,9 @@ class WalletReference(
     val active: Boolean,
     val currentBalance: BigDecimal
 )
+
+class RecurringMovementReference(
+    val externalId: UUID,
+    val name: String,
+    val card: CardReference?
+)

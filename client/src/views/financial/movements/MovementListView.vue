@@ -514,7 +514,7 @@ onMounted(async () => {
             :type="item.type"
             :period-open="item.financialPeriod.status === 'OPEN'"
             @details="changeToDetail({ data: item, index: 0 })"
-            @pay="actions.openPay(item)"
+            @pay="actions.openPayWithSuggestion(item)"
             @edit="changeToUpdate(item.id)"
             @undo="actions.openUndo(item)"
             @remove="remove(item)"

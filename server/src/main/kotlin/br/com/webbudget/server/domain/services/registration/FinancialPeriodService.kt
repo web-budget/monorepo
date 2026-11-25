@@ -1,5 +1,6 @@
 package br.com.webbudget.server.domain.services.registration
 
+import br.com.webbudget.server.domain.entities.financial.RecurringLaunchReport
 import br.com.webbudget.server.domain.entities.registration.FinancialPeriod
 import br.com.webbudget.server.domain.validators.OnCreateValidation
 import br.com.webbudget.server.domain.validators.OnDeleteValidation
@@ -11,7 +12,11 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.util.UUID
 
-data class FinancialPeriodCreated(val financialPeriodId: Long)
+class FinancialPeriodCreated(val financialPeriodId: Long) {
+    var recurringLaunch: RecurringLaunchReport? = null
+}
+
+data class FinancialPeriodCreation(val externalId: UUID, val recurringLaunch: RecurringLaunchReport?)
 
 data class FinancialPeriodDeleting(val financialPeriodId: Long)
 
@@ -29,15 +34,17 @@ class FinancialPeriodService(
 ) {
 
     @Transactional
-    fun create(financialPeriod: FinancialPeriod): UUID {
+    fun create(financialPeriod: FinancialPeriod): FinancialPeriodCreation {
 
         creationValidators.forEach { it.validate(financialPeriod) }
 
         val created = financialPeriodRepository.insert(financialPeriod)
 
-        eventPublisher.publishEvent(FinancialPeriodCreated(created.id!!))
+        val event = FinancialPeriodCreated(created.id!!)
 
-        return created.externalId!!
+        eventPublisher.publishEvent(event)
+
+        return FinancialPeriodCreation(created.externalId!!, event.recurringLaunch)
     }
 
     @Transactional

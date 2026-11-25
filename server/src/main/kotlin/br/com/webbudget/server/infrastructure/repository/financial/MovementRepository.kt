@@ -3,12 +3,16 @@ package br.com.webbudget.server.infrastructure.repository.financial
 import br.com.webbudget.server.domain.entities.financial.Invoice
 import br.com.webbudget.server.domain.entities.financial.Movement
 import br.com.webbudget.server.domain.entities.financial.Payment
+import br.com.webbudget.server.domain.entities.financial.RecurringMovementReference
 import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
+import br.com.webbudget.server.infrastructure.repository.containsIgnoringAccents
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.financial.tables.references.INVOICES
 import br.com.webbudget.server.jooq.financial.tables.references.MOVEMENTS
 import br.com.webbudget.server.jooq.financial.tables.references.PAYMENTS
+import br.com.webbudget.server.jooq.financial.tables.references.RECURRING_LAUNCHES
+import br.com.webbudget.server.jooq.financial.tables.references.RECURRING_MOVEMENTS
 import br.com.webbudget.server.jooq.registration.tables.references.CARDS
 import br.com.webbudget.server.jooq.registration.tables.references.CLASSIFICATIONS
 import br.com.webbudget.server.jooq.registration.tables.references.COST_CENTERS
@@ -40,6 +44,9 @@ class MovementRepository(
     private val cards = CARDS.`as`("cards")
     private val invoices = INVOICES.`as`("invoices")
     private val invoiceCards = CARDS.`as`("invoice_cards")
+    private val recurringLaunches = RECURRING_LAUNCHES.`as`("recurring_launches")
+    private val recurringMovements = RECURRING_MOVEMENTS.`as`("recurring_movements")
+    private val recurringCards = CARDS.`as`("recurring_cards")
 
     fun findByExternalId(externalId: UUID): Movement? = selectJoined()
         .where(movements.EXTERNAL_ID.eq(externalId))
@@ -54,9 +61,9 @@ class MovementRepository(
             listOfNotNull(
                 filter.text?.let { text ->
                     DSL.or(
-                        movements.NAME.containsIgnoreCase(text),
-                        costCenters.NAME.containsIgnoreCase(text),
-                        classifications.NAME.containsIgnoreCase(text)
+                        movements.NAME.containsIgnoringAccents(text),
+                        costCenters.NAME.containsIgnoringAccents(text),
+                        classifications.NAME.containsIgnoringAccents(text)
                     )
                 },
                 filter.type?.let { type -> movements.TYPE.eq(type.name) },
@@ -179,6 +186,9 @@ class MovementRepository(
         .leftJoin(cards).on(cards.ID.eq(payments.ID_CARD))
         .leftJoin(invoices).on(invoices.ID.eq(movements.ID_INVOICE))
         .leftJoin(invoiceCards).on(invoiceCards.ID.eq(invoices.ID_CARD))
+        .leftJoin(recurringLaunches).on(recurringLaunches.ID_MOVEMENT.eq(movements.ID))
+        .leftJoin(recurringMovements).on(recurringMovements.ID.eq(recurringLaunches.ID_RECURRING_MOVEMENT))
+        .leftJoin(recurringCards).on(recurringCards.ID.eq(recurringMovements.ID_CARD))
 
     private fun Record.toMovement(): Movement {
 
@@ -196,6 +206,16 @@ class MovementRepository(
         val costCenterRecord = into(costCenters)
         val financialPeriod = into(financialPeriods).toFinancialPeriodReference()
         val invoiceRecord = into(invoices)
+        val recurringRecord = into(recurringMovements)
+        val recurringCardRecord = into(recurringCards)
+
+        val recurringReference = recurringRecord.id?.let {
+            RecurringMovementReference(
+                externalId = recurringRecord.externalId!!,
+                name = recurringRecord.name!!,
+                card = recurringCardRecord.id?.let { recurringCardRecord.toCardReference() }
+            )
+        }
 
         val invoice = invoiceRecord.id?.let {
             Invoice(into(invoiceCards).toCardReference(), financialPeriod, Invoice.Status.valueOf(invoiceRecord.status!!))
@@ -207,7 +227,8 @@ class MovementRepository(
             costCenter = costCenterRecord.id?.let { costCenterRecord.toCostCenterReference() },
             financialPeriod = financialPeriod,
             payment = payment,
-            invoice = invoice
+            invoice = invoice,
+            recurringMovement = recurringReference
         )
     }
 }

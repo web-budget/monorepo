@@ -39,6 +39,17 @@ describe('SearchControls', () => {
     expect(wrapper.find('form').element.nextElementSibling).toBeNull()
   })
 
+  it('keeps the slot beside the search when there are no statuses', () => {
+    const wrapper = mount(SearchControls, {
+      props: { filter: '', status: 'ACTIVE', statusOptions: [] },
+      slots: { default: '<span data-slot="extra">Tipo</span>' },
+      global: { plugins: [i18n] },
+    })
+
+    expect(wrapper.find('[aria-pressed]').exists()).toBe(false)
+    expect(wrapper.find('[data-slot="extra"]').text()).toBe('Tipo')
+  })
+
   it('marks the current status as pressed', () => {
     const wrapper = render({ status: 'INACTIVE' })
 

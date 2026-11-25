@@ -9,6 +9,7 @@ import FormSection from '@/components/forms/FormSection.vue'
 import InputField from '@/components/forms/InputField.vue'
 import MoneyField from '@/components/forms/MoneyField.vue'
 import SelectField from '@/components/forms/SelectField.vue'
+import InstallmentPurchaseSection from '@/components/invoices/InstallmentPurchaseSection.vue'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { useActiveCards } from '@/composables/useActiveCards'
@@ -19,10 +20,12 @@ import {
   cardPurchaseFormDefaults,
   cardPurchaseFormSchema,
   toCardPurchaseCreateForm,
+  toInstallmentRecurringForm,
   toCardPurchaseFormValues,
   toCardPurchaseUpdateForm,
 } from '@/schemas/cardPurchaseSchema'
 import { useCardPurchasesStore } from '@/stores/cardPurchases'
+import { useRecurringMovementsStore } from '@/stores/recurringMovements'
 import { cardLabel } from '@/utils/invoices'
 import { defaultPeriod } from '@/utils/movements'
 import { queryValue } from '@/utils/queryValue'
@@ -32,6 +35,7 @@ const props = defineProps<{ id?: string }>()
 const { t } = useI18n()
 const route = useRoute()
 const store = useCardPurchasesStore()
+const recurringStore = useRecurringMovementsStore()
 const options = useMovementFilterOptions()
 const activeCards = useActiveCards()
 const openInvoice = useOpenInvoice()
@@ -49,13 +53,36 @@ const { messages, fields, submitting, loadingRecord, dirty, changeToList, onSubm
     form,
     findOne: store.findOne,
     toFormValues: toCardPurchaseFormValues,
-    create: (values) => store.create(toCardPurchaseCreateForm(values)),
+    create: (values) =>
+      values.installmentPurchase
+        ? recurringStore.create(toInstallmentRecurringForm(values))
+        : store.create(toCardPurchaseCreateForm(values)),
+    successTitle: (updating, values) =>
+      !updating && values.installmentPurchase
+        ? 'card-purchase.toast.installment-created'
+        : undefined,
+    successDetail: (updating, values) => {
+      if (updating) {
+        return 'card-purchase.toast.updated-detail'
+      }
+      return values.installmentPurchase
+        ? 'card-purchase.toast.installment-created-detail'
+        : 'card-purchase.toast.created-detail'
+    },
     update: (id, values) => store.update(id, toCardPurchaseUpdateForm(values)),
     detailAfterUpdate: true,
     createDefaults,
   })
 
 const updating = computed(() => props.id !== undefined)
+const submitLabel = computed(() => {
+  if (updating.value) {
+    return t('form.save')
+  }
+  return form.values.installmentPurchase
+    ? t('card-purchase.form.submit-installments')
+    : t('card-purchase.form.submit')
+})
 
 async function createDefaults() {
   await optionsReady
@@ -124,7 +151,7 @@ const optionsReady = run(async () => {
     :dirty="dirty"
     :messages="messages"
     :fields="fields"
-    :submit-label="updating ? t('form.save') : t('card-purchase.form.submit')"
+    :submit-label="submitLabel"
     @submit="onSubmit"
     @back="changeToList"
   >
@@ -203,5 +230,6 @@ const optionsReady = run(async () => {
         required
       />
     </FormSection>
+    <InstallmentPurchaseSection v-if="!updating" />
   </FormCard>
 </template>

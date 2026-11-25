@@ -2,12 +2,16 @@ package br.com.webbudget.server.infrastructure.repository.financial
 
 import br.com.webbudget.server.domain.entities.financial.CardPurchase
 import br.com.webbudget.server.domain.entities.financial.Invoice
+import br.com.webbudget.server.domain.entities.financial.PurchaseRecurring
 import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
+import br.com.webbudget.server.infrastructure.repository.containsIgnoringAccents
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.financial.tables.references.CARD_PURCHASES
 import br.com.webbudget.server.jooq.financial.tables.references.INVOICES
 import br.com.webbudget.server.jooq.financial.tables.references.MOVEMENTS
+import br.com.webbudget.server.jooq.financial.tables.references.RECURRING_LAUNCHES
+import br.com.webbudget.server.jooq.financial.tables.references.RECURRING_MOVEMENTS
 import br.com.webbudget.server.jooq.registration.tables.references.CARDS
 import br.com.webbudget.server.jooq.registration.tables.references.CLASSIFICATIONS
 import br.com.webbudget.server.jooq.registration.tables.references.COST_CENTERS
@@ -36,6 +40,8 @@ class CardPurchaseRepository(
     private val classifications = CLASSIFICATIONS.`as`("classifications")
     private val costCenters = COST_CENTERS.`as`("cost_centers")
     private val movements = MOVEMENTS.`as`("movements")
+    private val recurringLaunches = RECURRING_LAUNCHES.`as`("recurring_launches")
+    private val recurringMovements = RECURRING_MOVEMENTS.`as`("recurring_movements")
 
     fun findByExternalId(externalId: UUID): CardPurchase? = selectJoined()
         .where(purchases.EXTERNAL_ID.eq(externalId))
@@ -51,7 +57,7 @@ class CardPurchaseRepository(
 
         val condition = DSL.and(
             listOfNotNull(
-                criteria.text?.let { purchases.NAME.containsIgnoreCase(it) },
+                criteria.text?.let { purchases.NAME.containsIgnoringAccents(it) },
                 criteria.card?.let { cards.EXTERNAL_ID.eq(it) },
                 criteria.invoice?.let { invoices.EXTERNAL_ID.eq(it) },
                 criteria.financialPeriod?.let { financialPeriods.EXTERNAL_ID.eq(it) },
@@ -140,6 +146,17 @@ class CardPurchaseRepository(
         .join(classifications).on(classifications.ID.eq(purchases.ID_CLASSIFICATION))
         .join(costCenters).on(costCenters.ID.eq(purchases.ID_COST_CENTER))
         .leftJoin(movements).on(movements.ID.eq(purchases.ID_MOVEMENT))
+        .leftJoin(recurringLaunches).on(recurringLaunches.ID_MOVEMENT.eq(purchases.ID_MOVEMENT))
+        .leftJoin(recurringMovements).on(recurringMovements.ID.eq(recurringLaunches.ID_RECURRING_MOVEMENT))
+
+    private fun Record.toPurchaseRecurring(): PurchaseRecurring? {
+
+        val recurringRecord = into(recurringMovements)
+
+        return recurringRecord.externalId?.let {
+            PurchaseRecurring(it, recurringRecord.name!!, into(recurringLaunches).installment!!, recurringRecord.installments)
+        }
+    }
 
     private fun Record.toCardPurchase(): CardPurchase {
 
@@ -161,7 +178,8 @@ class CardPurchaseRepository(
             financialPeriod = period,
             invoice = invoice,
             movementId = purchaseRecord.idMovement,
-            movementExternalId = into(movements).externalId
+            movementExternalId = into(movements).externalId,
+            recurring = toPurchaseRecurring()
         ).also { purchase ->
             purchase.restore(
                 purchaseRecord.id,

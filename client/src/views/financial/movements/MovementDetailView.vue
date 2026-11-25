@@ -61,8 +61,16 @@ const canPay = computed(() => movement.value?.status === 'OPEN' && !periodClosed
 const canUndo = computed(() => paidInOpenPeriod.value)
 
 function openPay() {
-  const { id, name, type, value, invoice, financialPeriod } = movement.value!
-  actions.openPay({ id, name, type, value, invoicePayment: Boolean(invoice), financialPeriod })
+  const { id, name, type, value, invoice, financialPeriod, recurringMovement } = movement.value!
+  actions.openPay({
+    id,
+    name,
+    type,
+    value,
+    invoicePayment: Boolean(invoice),
+    financialPeriod,
+    suggestedCard: recurringMovement?.card?.id,
+  })
 }
 
 const viewTarget = computed(() => {
@@ -189,6 +197,14 @@ const viewTarget = computed(() => {
           <DateTimeDisplay fix-time :value="movement.dueDate" />
         </DetailField>
         <DetailField :label="$t('movement.detail.period')" :value="movement.financialPeriod.name" />
+        <DetailField v-if="movement.recurringMovement" :label="$t('movement.detail.recurring')">
+          <RouterLink
+            :to="`/financial/recurring-movements/${movement.recurringMovement.id}/detail`"
+            class="underline underline-offset-2"
+          >
+            {{ movement.recurringMovement.name }}
+          </RouterLink>
+        </DetailField>
         <DetailField :label="$t('movement.detail.cost-center')">
           <template v-if="movement.costCenter">{{ movement.costCenter.fullName }}</template>
           <span v-else class="text-muted-foreground">—</span>

@@ -6,6 +6,7 @@ import br.com.webbudget.server.domain.entities.administration.Role
 import br.com.webbudget.server.domain.entities.administration.User
 import br.com.webbudget.server.domain.entities.administration.UserStatus
 import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
+import br.com.webbudget.server.infrastructure.repository.containsIgnoringAccents
 import br.com.webbudget.server.infrastructure.repository.excluding
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
@@ -71,7 +72,7 @@ class UserRepository(
         val condition = listOfNotNull(
             active?.let { users.ACTIVE.eq(it) },
             status?.let { users.STATUS.eq(it.name) },
-            filter?.let { text -> likeIgnoreCase(users.NAME, text).or(likeIgnoreCase(users.EMAIL, text)) }
+            filter?.let { text -> users.NAME.containsIgnoringAccents(text).or(users.EMAIL.containsIgnoringAccents(text)) }
         ).fold(DSL.noCondition()) { accumulated, current -> accumulated.and(current) }
 
         val sortable = mapOf(
@@ -240,7 +241,4 @@ class UserRepository(
         val grants = grantRepository.findByUserIds(listOf(record.id!!))
         return record.toUser(grants[record.id].orEmpty())
     }
-
-    private fun likeIgnoreCase(field: org.jooq.Field<String?>, text: String): Condition =
-        DSL.lower(field).like("%${text.lowercase()}%")
 }

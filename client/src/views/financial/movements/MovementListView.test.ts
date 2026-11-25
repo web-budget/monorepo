@@ -194,6 +194,7 @@ async function menuItems(wrapper: Awaited<ReturnType<typeof render>>['wrapper'],
 
 describe('MovementListView', () => {
   beforeEach(() => {
+    vi.mocked(movementsApi.findById).mockResolvedValue({} as never)
     vi.clearAllMocks()
     document.body.replaceChildren()
     useCompactViewport(false)

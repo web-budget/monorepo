@@ -20,7 +20,6 @@ class FinancialSchemaTest : BaseIntegrationTest() {
 
         assertThat(tables).doesNotContain(
             "period_movements",
-            "recurring_movements",
             "transferences",
             "wallet_balances",
             "credit_card_invoices"

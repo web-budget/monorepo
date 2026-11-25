@@ -43,6 +43,14 @@ class MovementReferenceRepository(
             ?.toFinancialPeriodReference()
     }
 
+    fun findFinancialPeriod(id: Long): FinancialPeriodReference? {
+        val financialPeriods = FINANCIAL_PERIODS.`as`("financial_periods")
+        return dsl.selectFrom(financialPeriods)
+            .where(financialPeriods.ID.eq(id))
+            .fetchOne()
+            ?.toFinancialPeriodReference()
+    }
+
     fun findWallet(externalId: UUID): WalletReference? {
         val wallets = WALLETS.`as`("wallets")
         return dsl.selectFrom(wallets)

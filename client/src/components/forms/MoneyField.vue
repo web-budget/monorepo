@@ -119,7 +119,7 @@ function readInput(
             :value="signed ? show(value) : format(value)"
             :placeholder="placeholder"
             :disabled="disabled"
-            class="h-full min-w-0 flex-1 bg-transparent px-3 text-right font-mono tabular-nums outline-none disabled:cursor-not-allowed"
+            class="h-full min-w-0 flex-1 bg-transparent px-3 placeholder:text-muted-foreground text-right font-mono tabular-nums outline-none disabled:cursor-not-allowed"
             @input="readInput($event, value, handleChange, errors.length > 0, signed)"
             @blur="handleBlur"
           />

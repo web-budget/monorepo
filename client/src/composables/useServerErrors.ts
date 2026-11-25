@@ -17,8 +17,7 @@ export function useServerErrors() {
   }
 
   async function run(action: () => Promise<unknown>): Promise<boolean> {
-    messages.value = []
-    fields.value = []
+    clear()
     try {
       await action()
       return true

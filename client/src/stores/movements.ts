@@ -71,6 +71,8 @@ export const useMovementsStore = defineStore('movements', () => {
     create: resource.create,
     update: resource.update,
     remove: resource.remove,
+    suggestedCardOf: async (id: string) =>
+      (await movementsApi.findById(id)).recurringMovement?.card?.id ?? null,
     pay: (id: string, form: PaymentForm) =>
       resource.track(async () => {
         resource.current.value = await movementsApi.pay(id, form)

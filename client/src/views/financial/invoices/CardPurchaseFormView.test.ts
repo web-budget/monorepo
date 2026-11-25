@@ -6,6 +6,7 @@ import { cardsApi } from '@/api/cards'
 import { classificationsApi } from '@/api/classifications'
 import { costCentersApi } from '@/api/costCenters'
 import { financialPeriodsApi } from '@/api/financialPeriods'
+import { recurringMovementsApi } from '@/api/recurringMovements'
 import { invoicesApi } from '@/api/invoices'
 import SelectField from '@/components/forms/SelectField.vue'
 import { Select } from '@/components/ui/select'
@@ -25,6 +26,7 @@ vi.mock('@/api/cards')
 vi.mock('@/api/financialPeriods')
 vi.mock('@/api/costCenters')
 vi.mock('@/api/classifications')
+vi.mock('@/api/recurringMovements')
 vi.mock('@/api/invoices')
 vi.mock('vue-sonner', () => ({
   toast: {
@@ -153,7 +155,9 @@ describe('CardPurchaseFormView', () => {
     expect(wrapper.findAll('h2').map((title) => title.text())).toEqual([
       'Cartão e período',
       'Compra',
+      'Parcelamento',
     ])
+    expect(wrapper.text()).toContain('Compra parcelada vira um recorrente.')
     expect(wrapper.find('button[type="submit"]').text()).toBe('Lançar compra')
     expect(field(wrapper, 'name').attributes('placeholder')).toBe('Ex.: Mercado do bairro')
     expect(wrapper.text()).toContain('Só períodos abertos.')
@@ -212,6 +216,74 @@ describe('CardPurchaseFormView', () => {
     expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('')
     expect(selects(wrapper)[0]!.props('modelValue')).toBe('c-1')
     expect(selects(wrapper)[1]!.props('modelValue')).toBe('p-11')
+  })
+
+  it('shows the installments, the value of each one and how they enter when the key is on', async () => {
+    const { wrapper } = await render()
+    expect(field(wrapper, 'installments').exists()).toBe(false)
+    expect(wrapper.find('[data-slot="installment-notice"]').exists()).toBe(false)
+
+    await wrapper.find('button[role="switch"]').trigger('click')
+
+    expect((field(wrapper, 'installments').element as HTMLInputElement).value).toBe('12')
+    expect(field(wrapper, 'installmentValue').exists()).toBe(true)
+    const notice = wrapper.find('[data-slot="installment-notice"]')
+    expect(notice.text()).toContain('Como a parcela entra')
+    expect(notice.text()).toContain(
+      'Cria um recorrente: cada parcela entra como movimento em aberto e vai para a fatura quando paga no cartão.',
+    )
+    expect(notice.find('a').attributes('href')).toBe('/financial/recurring-movements/launch')
+    expect(notice.find('a').text()).toBe('Lançar a primeira parcela')
+    expect(wrapper.find('button[type="submit"]').text()).toBe('Criar parcelamento')
+  })
+
+  it('creates the recurring movement on the card, without asking for the value of the purchase', async () => {
+    vi.mocked(recurringMovementsApi.create).mockResolvedValue('r-9')
+    const { wrapper, router } = await render()
+    selects(wrapper)[0]!.vm.$emit('update:modelValue', 'c-1')
+    await field(wrapper, 'name').setValue('Notebook')
+    selects(wrapper)[2]!.vm.$emit('update:modelValue', 'cc-1')
+    selects(wrapper)[3]!.vm.$emit('update:modelValue', 'cl-1')
+    await wrapper.find('button[role="switch"]').trigger('click')
+    await field(wrapper, 'installments').setValue('6')
+    await field(wrapper, 'installmentValue').setValue('24990')
+
+    await submit(wrapper)
+
+    expect(cardPurchasesApi.create).not.toHaveBeenCalled()
+    expect(recurringMovementsApi.create).toHaveBeenCalledWith({
+      name: 'Notebook',
+      type: 'EXPENSE',
+      valueKind: 'FIXED',
+      value: 249.9,
+      installments: 6,
+      firstInstallment: 1,
+      autoLaunch: true,
+      classification: 'cl-1',
+      costCenter: 'cc-1',
+      card: 'c-1',
+    })
+    expect(toast.success).toHaveBeenCalledWith('Parcelamento criado', {
+      description: 'Entra sozinho no próximo período.',
+      duration: 4000,
+    })
+    expect(router.currentRoute.value.name).not.toBe('purchases.detail')
+    expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('')
+  })
+
+  it('asks for the installments and the value of each one', async () => {
+    const { wrapper } = await render()
+    selects(wrapper)[0]!.vm.$emit('update:modelValue', 'c-1')
+    await field(wrapper, 'name').setValue('Notebook')
+    selects(wrapper)[2]!.vm.$emit('update:modelValue', 'cc-1')
+    selects(wrapper)[3]!.vm.$emit('update:modelValue', 'cl-1')
+    await wrapper.find('button[role="switch"]').trigger('click')
+    await field(wrapper, 'installments').setValue('1')
+
+    await submit(wrapper)
+
+    expect(recurringMovementsApi.create).not.toHaveBeenCalled()
+    expect(wrapper.text()).toContain('Campo obrigatório')
   })
 
   it('requires the date of the purchase', async () => {
@@ -316,6 +388,7 @@ describe('CardPurchaseFormView', () => {
     const { wrapper, router } = await render({ id: 'cp-1' })
 
     expect(wrapper.find('h1').text()).toBe('Editar compra')
+    expect(wrapper.findAll('h2').map((title) => title.text())).not.toContain('Parcelamento')
     expect(wrapper.find('[data-slot="page-description"]').text()).toBe('Mercado')
     expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('Mercado')
     expect(wrapper.find('button[type="submit"]').text()).toBe('Salvar')

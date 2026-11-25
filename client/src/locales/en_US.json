@@ -52,7 +52,7 @@
       "movement-already-paid": "The movement is already paid and cannot be changed",
       "movement-not-paid": "The movement has no payment",
       "classification-type-mismatch": "The classification is not of the same type as the movement",
-      "inactive-classification": "The classification is inactive",
+      "inactive-classification": "The classification is inactive. If it belongs to a recurring movement, fix or deactivate the recurring movement.",
       "inactive-cost-center": "The cost center is inactive",
       "inactive-wallet": "The wallet is inactive",
       "invalid-discount": "The discount must be between zero and the value, never equal to it",
@@ -67,7 +67,11 @@
       "invoice-payment-not-payable-by-card": "An invoice payment cannot be paid on a card",
       "invoice-payment-locked": "The invoice payment cannot be changed",
       "card-payment-only-for-expenses": "Only expenses can be paid on a card",
-      "payment-requires-wallet-or-card": "Choose the wallet or the card of the payment"
+      "payment-requires-wallet-or-card": "Choose the wallet or the card of the payment",
+      "recurring-movement-with-launches": "The recurring movement already has launches and cannot be deleted. Deactivate it to stop launching.",
+      "card-recurring-must-be-expense": "Only an expense can have a suggested card",
+      "inactive-card": "The card is inactive",
+      "launch-value-only-for-variable": "Only a variable recurring movement takes a value when launched"
     },
     "not-found": {
       "detail": "Not found",
@@ -615,7 +619,185 @@
   },
   "recurrent-movement": {
     "title": "Recurring",
-    "menu": "Recurring"
+    "menu": "Recurring",
+    "list": {
+      "description": "Templates that launch movements and purchases every period.",
+      "empty-title": "No recurring movements yet",
+      "empty-description": "Create the first recurring movement.",
+      "plural": "the recurring movements",
+      "found": "{count} recurring movement found for “{query}” | {count} recurring movements found for “{query}”",
+      "launch": "Launch in batch",
+      "error-description": "The server did not respond. Your filters stay in the URL.",
+      "no-result": "No recurring movements match these filters",
+      "no-result-hint": "Change the filters or clear the search.",
+      "no-result-action": "Clear filters",
+      "noun": "recurring movement | recurring movements"
+    },
+    "search": {
+      "placeholder": "Name, cost center or classification"
+    },
+    "status-tabs": {
+      "active": "Active",
+      "finished": "Finished"
+    },
+    "filters": {
+      "type": "Type",
+      "all-types": "All types",
+      "incomes": "Incomes",
+      "expenses": "Expenses",
+      "clear": "Clear"
+    },
+    "table-columns": {
+      "name": "Name",
+      "value": "Value (R$)",
+      "value-kind": "Value type",
+      "installments": "Installments",
+      "launch": "Launch",
+      "situation": "Status"
+    },
+    "last-value": "last",
+    "value-kind": {
+      "FIXED": "Fixed",
+      "VARIABLE": "Variable"
+    },
+    "installments": {
+      "indefinite": "Indefinite"
+    },
+    "launch": {
+      "auto": "Automatic",
+      "manual": "Manual",
+      "breadcrumb": "Launching",
+      "title": "Launch recurring movements",
+      "description": "Choose the recurring movements and launch them at once.",
+      "period": "Period",
+      "period-none": "None",
+      "due-hint": "Due on {date}.",
+      "no-open-period": "There is no open period",
+      "no-open-period-hint": "Create a period to launch the recurring movements.",
+      "create-period": "Create period",
+      "select": "Select {name}",
+      "value-of": "Value of {name}",
+      "available": "Available",
+      "launched": "Already launched",
+      "selected": "{count} selected | {count} selected",
+      "effect": "effect on the period",
+      "submit": "Launch {count} recurring movement | Launch {count} recurring movements",
+      "launched-auto": "Launched automatically",
+      "nothing-manual": "Nothing manual is left to launch in this period.",
+      "none-selected": "None selected",
+      "submit-none": "Launch recurring movements",
+      "recurring-movement": "Recurring movement"
+    },
+    "status": {
+      "active": "Active",
+      "ended": "Ended"
+    },
+    "actions": {
+      "details": "Details",
+      "edit": "Edit",
+      "readjust": "Readjust value",
+      "remove": "Delete"
+    },
+    "readjust": {
+      "title": "Readjust “{name}”",
+      "description": "Valid from the next launch.",
+      "value": "New value",
+      "current": "Current value {value}.",
+      "reason": "Reason",
+      "confirm": "Readjust",
+      "reason-example": "Optional. E.g.: annual readjustment"
+    },
+    "remove": {
+      "title": "Delete “{name}”?",
+      "description": "Only a recurring movement without launches can be deleted. This cannot be undone."
+    },
+    "toast": {
+      "created": "Recurring movement created",
+      "created-detail": "It enters on its own in the next period.",
+      "updated": "Changes saved",
+      "updated-detail": "“{name}” was updated.",
+      "removed": "Recurring movement deleted",
+      "removed-detail": "“{name}” left the list.",
+      "readjusted": "Value readjusted",
+      "readjusted-detail": "Valid from the next launch.",
+      "launched": "Recurring movements launched",
+      "launched-detail": "{count} entry created in {period}. | {count} entries created in {period}.",
+      "skipped": "Some recurring movements were left out"
+    },
+    "form": {
+      "new": "Creating",
+      "editing": "Editing",
+      "title-new": "New recurring movement",
+      "title-editing": "Editing recurring movement",
+      "detailing": "Viewing",
+      "type": "Type",
+      "type-hint": "The type does not change once created.",
+      "name": "Name",
+      "value": "Value",
+      "suggested-value": "Suggested value",
+      "value-note": "To change the value, use Readjust value in the detail.",
+      "cost-center": "Cost center",
+      "classification-of-type": {
+        "INCOME": "Income classification",
+        "EXPENSE": "Expense classification"
+      },
+      "value-kind": "Type of value",
+      "repetition-hint": "The recurring movement ends by itself after the last installment.",
+      "installments-heading": "Number of installments",
+      "indefinite": "Indefinite term",
+      "installments": "Installments",
+      "first-installment": "Current installment",
+      "auto-launch": "Launch automatically when the period is created",
+      "auto-launch-hint": "Due on the last day of the period.",
+      "active-label": "Active",
+      "active-hint": "Deactivate to stop launching",
+      "name-example": {
+        "income": "E.g.: Salary",
+        "expense": "E.g.: Videoflix"
+      },
+      "value-kind-description": {
+        "FIXED": "Always the same value, with readjustments when there are any.",
+        "VARIABLE": "Suggests the last value paid."
+      },
+      "first-installment-hint": "Starts counting from this installment."
+    },
+    "sections": {
+      "type": "Type",
+      "identification": "Identification",
+      "value-kind": "Type of value",
+      "repetition": "Repetition",
+      "launch": "Launch",
+      "value-and-repetition": "Value and repetition",
+      "history": "Value history"
+    },
+    "detail": {
+      "name": "Name",
+      "type": "Type",
+      "cost-center": "Cost center",
+      "classification": "Classification",
+      "current-value": "Current value",
+      "value-kind": "Value type",
+      "installments": "Installments",
+      "launch": "Launch",
+      "due": "Due date",
+      "due-last-day": "Last day of the period",
+      "launch-auto": "Automatic when the period is created",
+      "launch-manual": "Manual, in batch"
+    },
+    "history": {
+      "valid-from": "Valid from",
+      "value": "Value (R$)",
+      "reason": "Reason",
+      "current": "current",
+      "suggested": "Value suggested on the next launch:",
+      "noun": "readjustment | readjustments",
+      "fixed": "Fixed value."
+    },
+    "skipped": {
+      "inactive": "inactive",
+      "finished": "finished",
+      "already-launched-in-period": "already launched in the period"
+    }
   },
   "credit-card-invoice": {
     "title": "Card invoice",
@@ -955,10 +1137,13 @@
     },
     "toast": {
       "created": "Period created",
+      "created-detail": "{launched} and {invoices}.",
       "updated": "Changes saved",
       "updated-detail": "“{name}” was updated.",
       "removed": "Financial period deleted",
-      "removed-detail": "“{name}” left the list."
+      "removed-detail": "“{name}” left the list.",
+      "launched-count": "{count} recurring movement launched | {count} recurring movements launched",
+      "invoices-count": "{count} invoice opened | {count} invoices opened"
     },
     "sections": {
       "identification": "Identification",
@@ -982,6 +1167,11 @@
       "launched": "Posted",
       "open": "Open",
       "paid": "Paid"
+    },
+    "creation": {
+      "title": "When this period is created",
+      "recurring": "Automatic recurring movements launched:",
+      "invoices": "Invoices opened:"
     }
   },
   "classification": {
@@ -1135,7 +1325,8 @@
     "roles-required": "Choose at least one area.",
     "discount-too-high": "The discount must be lower than the value.",
     "adjustment-not-zero": "The adjustment cannot be zero.",
-    "transfer-same-wallet": "Origin and destination must be different wallets."
+    "transfer-same-wallet": "Origin and destination must be different wallets.",
+    "first-installment-after-last": "The current installment cannot pass the number of installments."
   },
   "crud": {
     "required-hint": "Fields with * are required.",
@@ -1347,6 +1538,7 @@
       "card": "Card",
       "method-wallet": "Wallet",
       "method-card": "Credit card",
+      "recurring": "Recurring",
       "discount-none": "---"
     },
     "notices": {
@@ -1587,6 +1779,10 @@
       "value": "Value",
       "cost-center": "Cost center",
       "classification": "Expense classification",
+      "installment": "Installment purchase",
+      "installments": "Number of installments",
+      "installment-value": "Installment value",
+      "submit-installments": "Create installment plan",
       "title-new": "New card purchase",
       "name-example": "E.g.: Neighborhood market",
       "period-hint": "Open periods only.",
@@ -1596,7 +1792,9 @@
     },
     "sections": {
       "card": "Card and period",
-      "purchase": "Purchase"
+      "purchase": "Purchase",
+      "installments": "Installments",
+      "installments-help": "An installment purchase becomes a recurring movement."
     },
     "detail": {
       "value": "Value",
@@ -1617,7 +1815,9 @@
       "updated": "Changes saved",
       "updated-detail": "“{name}” was updated.",
       "removed": "Purchase deleted",
-      "removed-detail": "“{name}” left the invoice."
+      "removed-detail": "“{name}” left the invoice.",
+      "installment-created": "Installment plan created",
+      "installment-created-detail": "It enters on its own in the next period."
     },
     "remove": {
       "title": "Delete the purchase “{name}”?",
@@ -1631,6 +1831,11 @@
       "description": "Nothing was posted.",
       "action": "View the invoice",
       "title-missing": "There is no open invoice for {card} in {period}"
+    },
+    "installment-notice": {
+      "title": "How the installment enters",
+      "description": "Creates a recurring movement: each installment enters as an open movement and goes to the invoice when paid by card.",
+      "action": "Launch the first installment"
     }
   }
 }

@@ -2,6 +2,7 @@ package br.com.webbudget.server.infrastructure.repository.registration
 
 import br.com.webbudget.server.domain.entities.registration.Classification
 import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
+import br.com.webbudget.server.infrastructure.repository.containsIgnoringAccents
 import br.com.webbudget.server.infrastructure.repository.excluding
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
@@ -32,8 +33,8 @@ class ClassificationRepository(
 
         val textCondition = filter?.let { text ->
             DSL.or(
-                classifications.NAME.containsIgnoreCase(text),
-                classifications.DESCRIPTION.containsIgnoreCase(text)
+                classifications.NAME.containsIgnoringAccents(text),
+                classifications.DESCRIPTION.containsIgnoringAccents(text)
             )
         }
 
