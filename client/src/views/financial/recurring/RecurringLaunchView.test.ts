@@ -366,6 +366,15 @@ describe('RecurringLaunchView', () => {
     expect(bar(wrapper).text()).toContain('1 selecionado')
   })
 
+  it('does not take the focus from the field when Cancelar is pressed', async () => {
+    const { wrapper } = await render()
+    const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
+
+    buttonWithText(wrapper, 'Cancelar').element.dispatchEvent(press)
+
+    expect(press.defaultPrevented).toBe(true)
+  })
+
   it('cancels back to the list and forgets the selection', async () => {
     const { wrapper, router } = await render()
     await checkbox(wrapper, 'Aluguel').trigger('click')

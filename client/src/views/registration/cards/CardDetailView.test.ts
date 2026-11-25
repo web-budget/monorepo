@@ -64,7 +64,7 @@ describe('CardDetailView', () => {
       'Elo',
       '••4321',
       '10',
-      'Main',
+      'Main, ACME',
     ])
   })
 

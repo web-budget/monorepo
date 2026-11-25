@@ -1,6 +1,7 @@
 package br.com.webbudget.server.application.controllers.registration
 
 import br.com.webbudget.server.BaseIntegrationTest
+import br.com.webbudget.server.domain.entities.registration.Card
 import br.com.webbudget.server.infrastructure.repository.registration.CardRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
