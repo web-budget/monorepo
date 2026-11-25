@@ -1,6 +1,7 @@
 package br.com.webbudget.server.infrastructure.repository.financial
 
 import br.com.webbudget.server.domain.entities.financial.Invoice
+import br.com.webbudget.server.domain.entities.financial.ClosingSummary
 import br.com.webbudget.server.domain.entities.financial.Movement
 import br.com.webbudget.server.domain.entities.financial.Payment
 import br.com.webbudget.server.domain.entities.financial.RecurringMovementReference
@@ -44,6 +45,7 @@ class MovementRepository(
     private val cards = CARDS.`as`("cards")
     private val invoices = INVOICES.`as`("invoices")
     private val invoiceCards = CARDS.`as`("invoice_cards")
+    private val invoiceFinancialPeriods = FINANCIAL_PERIODS.`as`("invoice_financial_periods")
     private val recurringLaunches = RECURRING_LAUNCHES.`as`("recurring_launches")
     private val recurringMovements = RECURRING_MOVEMENTS.`as`("recurring_movements")
     private val recurringCards = CARDS.`as`("recurring_cards")
@@ -101,6 +103,36 @@ class MovementRepository(
         return pagedModelOf(content, pageable, total.toLong())
     }
 
+    fun existsOpenInFinancialPeriod(financialPeriodId: Long): Boolean = dsl.fetchExists(
+        dsl.selectOne().from(MOVEMENTS)
+            .where(MOVEMENTS.ID_FINANCIAL_PERIOD.eq(financialPeriodId))
+            .and(MOVEMENTS.STATUS.eq(Movement.Status.OPEN.name))
+    )
+
+    fun summarizeOpenByType(financialPeriodId: Long): Map<Movement.Type, ClosingSummary.OpenTotal> = dsl
+        .select(movements.TYPE, DSL.count(), DSL.sum(movements.VALUE))
+        .from(movements)
+        .where(movements.ID_FINANCIAL_PERIOD.eq(financialPeriodId))
+        .and(movements.STATUS.eq(Movement.Status.OPEN.name))
+        .groupBy(movements.TYPE)
+        .fetch()
+        .associate { record ->
+            Movement.Type.valueOf(record.value1()!!) to ClosingSummary.OpenTotal(record.value2()!!, record.value3() ?: BigDecimal.ZERO)
+        }
+
+    fun sumPaidValueByPeriodAndType(financialPeriodIds: Collection<Long>): Map<Long, Map<Movement.Type, BigDecimal>> = dsl
+        .select(movements.ID_FINANCIAL_PERIOD, movements.TYPE, DSL.sum(payments.VALUE_PAID))
+        .from(movements)
+        .join(payments).on(payments.ID_MOVEMENT.eq(movements.ID))
+        .where(movements.ID_FINANCIAL_PERIOD.`in`(financialPeriodIds))
+        .and(payments.METHOD.eq(Payment.Method.WALLET.name))
+        .groupBy(movements.ID_FINANCIAL_PERIOD, movements.TYPE)
+        .fetch()
+        .groupBy({ record -> record.value1()!! }) { record ->
+            Movement.Type.valueOf(record.value2()!!) to (record.value3() ?: BigDecimal.ZERO)
+        }
+        .mapValues { entry -> entry.value.toMap() }
+
     fun sumPaidValueByType(financialPeriodId: Long): Map<Movement.Type, BigDecimal> = dsl
         .select(movements.TYPE, DSL.sum(payments.VALUE_PAID))
         .from(movements)
@@ -110,6 +142,16 @@ class MovementRepository(
         .groupBy(movements.TYPE)
         .fetch()
         .associate { record -> Movement.Type.valueOf(record.value1()!!) to (record.value2() ?: BigDecimal.ZERO) }
+
+    fun sumPaidOnCard(financialPeriodId: Long): BigDecimal = dsl
+        .select(DSL.coalesce(DSL.sum(payments.VALUE_PAID), BigDecimal.ZERO))
+        .from(movements)
+        .join(payments).on(payments.ID_MOVEMENT.eq(movements.ID))
+        .where(movements.ID_FINANCIAL_PERIOD.eq(financialPeriodId))
+        .and(movements.TYPE.eq(Movement.Type.EXPENSE.name))
+        .and(payments.METHOD.eq(Payment.Method.CARD.name))
+        .fetchSingle()
+        .value1()!!
 
     fun sumOpenExpenses(financialPeriodId: Long, today: LocalDate): OpenExpenses {
 
@@ -151,6 +193,7 @@ class MovementRepository(
 
     fun update(movement: Movement): Movement {
         val record = dsl.update(MOVEMENTS)
+            .set(MOVEMENTS.ID_FINANCIAL_PERIOD, movement.financialPeriod.id)
             .set(MOVEMENTS.NAME, movement.name)
             .set(MOVEMENTS.VALUE, movement.value)
             .set(MOVEMENTS.DUE_DATE, movement.dueDate)
@@ -186,6 +229,7 @@ class MovementRepository(
         .leftJoin(cards).on(cards.ID.eq(payments.ID_CARD))
         .leftJoin(invoices).on(invoices.ID.eq(movements.ID_INVOICE))
         .leftJoin(invoiceCards).on(invoiceCards.ID.eq(invoices.ID_CARD))
+        .leftJoin(invoiceFinancialPeriods).on(invoiceFinancialPeriods.ID.eq(invoices.ID_FINANCIAL_PERIOD))
         .leftJoin(recurringLaunches).on(recurringLaunches.ID_MOVEMENT.eq(movements.ID))
         .leftJoin(recurringMovements).on(recurringMovements.ID.eq(recurringLaunches.ID_RECURRING_MOVEMENT))
         .leftJoin(recurringCards).on(recurringCards.ID.eq(recurringMovements.ID_CARD))
@@ -218,7 +262,7 @@ class MovementRepository(
         }
 
         val invoice = invoiceRecord.id?.let {
-            Invoice(into(invoiceCards).toCardReference(), financialPeriod, Invoice.Status.valueOf(invoiceRecord.status!!))
+            Invoice(into(invoiceCards).toCardReference(), into(invoiceFinancialPeriods).toFinancialPeriodReference(), Invoice.Status.valueOf(invoiceRecord.status!!))
                 .also { it.restore(invoiceRecord.id, invoiceRecord.externalId, invoiceRecord.version, invoiceRecord.createdOn, invoiceRecord.lastUpdate) }
         }
 
@@ -250,3 +294,4 @@ data class MovementCriteria(
     val dueTo: LocalDate? = null,
     val invoicePayments: Boolean? = null
 )
+

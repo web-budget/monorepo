@@ -7,6 +7,7 @@ import br.com.webbudget.server.domain.exceptions.ResourceNotFoundException
 import br.com.webbudget.server.infrastructure.config.security.RequiresRole
 import br.com.webbudget.server.infrastructure.repository.financial.MovementReferenceRepository
 import br.com.webbudget.server.infrastructure.repository.financial.MovementRepository
+import br.com.webbudget.server.infrastructure.repository.financial.PeriodResultRepository
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -21,6 +22,7 @@ import java.util.UUID
 @RequestMapping("/financial/financial-periods")
 class FinancialPeriodResultController(
     private val movementRepository: MovementRepository,
+    private val periodResultRepository: PeriodResultRepository,
     private val movementReferenceRepository: MovementReferenceRepository
 ) {
 
@@ -29,6 +31,12 @@ class FinancialPeriodResultController(
 
         val financialPeriod = movementReferenceRepository.findFinancialPeriod(id)
             ?: throw ResourceNotFoundException()
+
+        val recorded = periodResultRepository.findByFinancialPeriod(financialPeriod.id)
+
+        if (recorded != null) {
+            return ResponseEntity.ok(FinancialPeriodResultView(recorded.revenues, recorded.expenses, recorded.result, true, BigDecimal.ZERO, 0, BigDecimal.ZERO))
+        }
 
         val paid = movementRepository.sumPaidValueByType(financialPeriod.id)
         val revenues = paid[Movement.Type.INCOME] ?: BigDecimal.ZERO
@@ -42,7 +50,9 @@ class FinancialPeriodResultController(
                 expenses = expenses,
                 result = revenues.subtract(expenses),
                 toPay = open.total,
-                overdueExpenses = open.overdueCount
+                overdueExpenses = open.overdueCount,
+                paidOnCard = movementRepository.sumPaidOnCard(financialPeriod.id),
+                recorded = false
             )
         )
     }

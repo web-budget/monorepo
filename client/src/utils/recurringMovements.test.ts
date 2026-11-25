@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest'
 import {
   displayedValue,
+  extraLaunchInstallments,
   installmentProgress,
   isLaunchedIn,
+  maxExtraLaunches,
   monthAndYear,
   toneOf,
 } from '@/utils/recurringMovements'
@@ -59,5 +61,28 @@ describe('isLaunchedIn', () => {
     expect(isLaunchedIn({ launchedInPeriod: 'm-1' })).toBe(true)
     expect(isLaunchedIn({ launchedInPeriod: null })).toBe(false)
     expect(isLaunchedIn({})).toBe(false)
+  })
+})
+
+describe('maxExtraLaunches', () => {
+  it('is the installments left of a deadline recurring movement', () => {
+    expect(maxExtraLaunches({ installments: 4, nextInstallment: 3 })).toBe(2)
+    expect(maxExtraLaunches({ installments: 4, nextInstallment: 1 })).toBe(4)
+  })
+
+  it('is zero once the deadline is over and twelve without one', () => {
+    expect(maxExtraLaunches({ installments: 4 })).toBe(0)
+    expect(maxExtraLaunches({ installments: null, nextInstallment: 7 })).toBe(12)
+    expect(maxExtraLaunches({})).toBe(12)
+  })
+})
+
+describe('extraLaunchInstallments', () => {
+  it('counts from the next installment', () => {
+    expect(extraLaunchInstallments({ nextInstallment: 3 }, 2)).toEqual([3, 4])
+  })
+
+  it('starts at one when the server leaves the next installment out', () => {
+    expect(extraLaunchInstallments({}, 2)).toEqual([1, 2])
   })
 })

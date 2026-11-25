@@ -284,6 +284,7 @@ export interface FinancialPeriodView {
   endingAt: string
   status: FinancialPeriodStatus
   expired: boolean
+  reopenable: boolean
   revenuesGoal: number | null
   expensesGoal: number | null
 }
@@ -295,6 +296,7 @@ export interface FinancialPeriodListView {
   endingAt: string
   status: FinancialPeriodStatus
   expired: boolean
+  reopenable: boolean
   revenuesGoal?: number | null
   expensesGoal?: number | null
 }
@@ -303,8 +305,60 @@ export interface FinancialPeriodResultView {
   revenues: number
   expenses: number
   result: number
+  recorded: boolean
   toPay: number
   overdueExpenses: number
+  paidOnCard: number
+}
+
+export interface ClosingPeriodView {
+  id: string
+  name: string
+  startingAt: string
+  endingAt: string
+}
+
+export interface ClosingInvoiceView {
+  id: string
+  card: { id: string; name: string; lastFourDigits: string }
+  value: number
+  purchaseCount: number
+  status: InvoiceStatus
+}
+
+export interface ClosingSummaryView {
+  openMovements: { count: number; income: number; expense: number }
+  invoices: ClosingInvoiceView[]
+  openInvoices: ClosingInvoiceView[]
+  emptyInvoices: ClosingInvoiceView[]
+  nextOpenPeriod: ClosingPeriodView | null
+  targetPeriods: ClosingPeriodView[]
+  canClose: boolean
+}
+
+export interface PeriodResultView {
+  id: string
+  name: string
+  financialPeriod: ClosingPeriodView
+  revenues: number
+  expenses: number
+  result: number
+}
+
+export interface PeriodResultQuery {
+  from?: string
+  to?: string
+  filter?: string
+  page?: number
+  size?: number
+  sort?: string
+}
+
+export interface AccumulatedView {
+  recorded: number
+  provisional: number
+  accumulated: number
+  provisionalPeriods: { financialPeriod: ClosingPeriodView; result: number }[]
 }
 
 export type Language = 'PT_BR' | 'EN_US'
@@ -744,6 +798,12 @@ export interface RecurringMovementQuery {
 
 export interface RecurringLaunchItem {
   id: string
+  value?: number
+}
+
+export interface RecurringExtraLaunchForm {
+  financialPeriod: string
+  quantity: number
   value?: number
 }
 

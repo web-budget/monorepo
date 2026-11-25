@@ -1,15 +1,19 @@
 package br.com.webbudget.server.domain.services.financial
 
 import br.com.webbudget.server.domain.entities.financial.Invoice
+import br.com.webbudget.server.domain.entities.financial.MovementMove
+import br.com.webbudget.server.domain.entities.financial.FinancialPeriodReference
 import br.com.webbudget.server.domain.entities.financial.Movement
 import br.com.webbudget.server.domain.entities.financial.Payment
 import br.com.webbudget.server.domain.entities.financial.WalletEntry.Direction
 import br.com.webbudget.server.domain.entities.financial.WalletEntry.Origin
 import br.com.webbudget.server.domain.validators.OnCreateValidation
 import br.com.webbudget.server.domain.validators.OnDeleteValidation
+import br.com.webbudget.server.domain.validators.OnMoveValidation
 import br.com.webbudget.server.domain.validators.OnPayValidation
 import br.com.webbudget.server.domain.validators.OnUndoPaymentValidation
 import br.com.webbudget.server.domain.validators.OnUpdateValidation
+import br.com.webbudget.server.domain.validators.financial.MovementMoveValidator
 import br.com.webbudget.server.domain.validators.financial.MovementValidator
 import br.com.webbudget.server.infrastructure.repository.financial.InvoiceRepository
 import br.com.webbudget.server.infrastructure.repository.financial.MovementRepository
@@ -34,6 +38,10 @@ class MovementService(
     private val deletionValidators: List<MovementValidator>,
     @OnPayValidation
     private val paymentValidators: List<MovementValidator>,
+    @OnMoveValidation
+    private val moveValidators: List<MovementValidator>,
+    @OnMoveValidation
+    private val moveTargetValidators: List<MovementMoveValidator>,
     @OnUndoPaymentValidation
     private val undoPaymentValidators: List<MovementValidator>
 ) {
@@ -107,6 +115,17 @@ class MovementService(
         }
 
         return movement
+    }
+
+    @Transactional
+    fun move(movement: Movement, target: FinancialPeriodReference): Movement {
+
+        moveValidators.forEach { it.validate(movement) }
+        moveTargetValidators.forEach { it.validate(MovementMove(movement, target)) }
+
+        movement.financialPeriod = target
+
+        return movementRepository.update(movement)
     }
 
     @Transactional

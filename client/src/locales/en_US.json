@@ -68,10 +68,21 @@
       "invoice-payment-locked": "The invoice payment cannot be changed",
       "card-payment-only-for-expenses": "Only expenses can be paid on a card",
       "payment-requires-wallet-or-card": "Choose the wallet or the card of the payment",
+      "no-open-period-after": "There is no open period after the period of the movement",
+      "move-target-same-period": "The movement is already in that period",
+      "move-target-not-open": "The target period is not open",
+      "invoice-payment-moved": "An invoice payment outside the period of its invoice cannot be deleted. Move it back or reopen the period",
+      "financial-period-with-open-movements": "The period still has open movements",
+      "financial-period-with-open-invoices": "The period still has an open invoice with purchases",
+      "financial-period-not-closed": "The period is not closed",
+      "only-the-last-closed-period-can-be-reopened": "Only the last closed period can be reopened",
       "recurring-movement-with-launches": "The recurring movement already has launches and cannot be deleted. Deactivate it to stop launching.",
       "card-recurring-must-be-expense": "Only an expense can have a suggested card",
       "inactive-card": "The card is inactive",
-      "launch-value-only-for-variable": "Only a variable recurring movement takes a value when launched"
+      "launch-value-only-for-variable": "Only a variable recurring movement takes a value when launched",
+      "recurring-movement-inactive": "The recurring movement is inactive",
+      "recurring-movement-finished": "The recurring movement has already launched every installment",
+      "launch-quantity-out-of-range": "The quantity is above what can be launched"
     },
     "not-found": {
       "detail": "Not found",
@@ -696,6 +707,7 @@
       "details": "Details",
       "edit": "Edit",
       "readjust": "Readjust value",
+      "launch-in-period": "Launch in period",
       "remove": "Delete"
     },
     "readjust": {
@@ -706,6 +718,22 @@
       "reason": "Reason",
       "confirm": "Readjust",
       "reason-example": "Optional. E.g.: annual readjustment"
+    },
+    "launch-extra": {
+      "title": "Launch “{name}” in the period",
+      "description": "Creates more open movements in the same period. The batch and the automatic launch stay at one per period.",
+      "period": "Period",
+      "quantity": "Quantity",
+      "quantity-installments": "From 1 to {maximum}, the installments left.",
+      "quantity-endless": "From 1 to {maximum}.",
+      "value": "Value",
+      "value-hint": "Optional. Blank uses the suggested value, {value}.",
+      "preview": "Will create:",
+      "preview-installments": "{name} {installments}, due {date}.",
+      "preview-endless": "{name}, due {date}. | {count} movements of {name}, due {date}.",
+      "and": "and",
+      "no-period": "There is no open period. Create a period to launch.",
+      "confirm": "Launch"
     },
     "remove": {
       "title": "Delete “{name}”?",
@@ -721,6 +749,7 @@
       "readjusted": "Value readjusted",
       "readjusted-detail": "Valid from the next launch.",
       "launched": "Recurring movements launched",
+      "extra-launched": "{count} movement created | {count} movements created",
       "launched-detail": "{count} entry created in {period}. | {count} entries created in {period}.",
       "skipped": "Some recurring movements were left out"
     },
@@ -809,7 +838,7 @@
       "purchases": "Purchases",
       "due-date": "Due date",
       "no-purchases": "No purchases on this invoice",
-      "payment-bar": "Invoice payment:"
+      "payment-bar": "Paid by movement:"
     },
     "list": {
       "description": "Purchases of each card by period.",
@@ -912,7 +941,106 @@
   },
   "period-closing": {
     "title": "Closing",
-    "menu": "Closing"
+    "menu": "Closing",
+    "breadcrumb": "Closing",
+    "title-of": "Closing of {name}",
+    "description": "Settle the pending items and record the result.",
+    "period": "Period to close",
+    "empty": {
+      "title": "No period to close",
+      "description": "All periods are closed.",
+      "create": "Create period"
+    },
+    "summary": {
+      "revenues": "Paid revenues",
+      "revenues-note": "Only what was received",
+      "expenses": "Paid expenses",
+      "expenses-note": "Includes paid invoice payments",
+      "result": "Result",
+      "result-note": "Revenues − expenses",
+      "accumulated": "Accumulated",
+      "accumulated-note": "Previous + current"
+    },
+    "pendencies": {
+      "title": "Pending items",
+      "hint": "Pay or move to another open period.",
+      "none": "Everything that was open was paid or moved.",
+      "movement": "Movement",
+      "due-date": "Due date",
+      "value": "Value (R$)",
+      "invoice": "invoice",
+      "overdue": "overdue",
+      "move": "Move",
+      "move-disabled": "There is no open period after this one",
+      "no-next": "There is no open period after {name}",
+      "no-next-hint": "Pay everything or create a period to move to.",
+      "create-period": "Create period",
+      "remaining": "{count} remaining | {count} remaining",
+      "resolved": "Settled",
+      "actions": "What to do",
+      "none-title": "No pending items",
+      "due-on": "Due on"
+    },
+    "invoices": {
+      "title": "Invoices",
+      "hint": "An open invoice with purchases blocks the closing.",
+      "none": "No active card in this period.",
+      "close": "Close invoice",
+      "note": {
+        "blocking": "Blocks the closing",
+        "empty": "Closes by itself with zero value",
+        "payment": "Invoice payment in the pending items",
+        "paid": "Paid"
+      },
+      "purchases": "{count} purchase | {count} purchases"
+    },
+    "checklist": {
+      "title": "To close",
+      "pendencies": "Pending items settled",
+      "invoices": "Invoices settled",
+      "next-period": "Next period open",
+      "close": "Close {name}",
+      "pendencies-open": "{count} left to pay or move | {count} left to pay or move",
+      "pendencies-done": "Nothing open",
+      "invoices-open": "{count} invoice with an entry still open | {count} invoices with entries still open",
+      "invoices-done": "No invoice blocks it",
+      "next-period-missing": "There is none: pay everything or create one"
+    },
+    "move": {
+      "title": "Move “{name}”",
+      "period": "Period",
+      "expired": "expired",
+      "confirm": "Move"
+    },
+    "close": {
+      "title": "Close {name}?",
+      "description": "Records the result and freezes the period.",
+      "confirm": "Close period"
+    },
+    "reopen": {
+      "title": "Reopen {name}?",
+      "description": "Only the last closed period can be reopened.",
+      "confirm": "Reopen period",
+      "only-last": "last only",
+      "erases-result": "Erases the period result.",
+      "unfreezes": "Unfreezes movements, purchases and invoices.",
+      "invoices-closed-by-hand": "Invoices closed by hand stay closed.",
+      "empty-invoices": "Empty invoices go back to open.",
+      "only-last-hint": "Only the last closed period can be reopened"
+    },
+    "actions": {
+      "close": "Close period",
+      "close-named": "Close {name}",
+      "reopen": "Reopen"
+    },
+    "toast": {
+      "moved": "Movement moved",
+      "moved-detail": "“{name}” went to {period}.",
+      "closed": "{name} closed",
+      "closed-detail": "Result {result} recorded. Empty invoices closed with zero value.",
+      "reopened": "{name} reopened",
+      "reopened-detail": "The result left the table and the period accepts entries again."
+    }
   },
   "wallet": {
     "title": "Wallets",
@@ -1124,7 +1252,7 @@
       "found": "{count} financial period found for “{query}” | {count} financial periods found for “{query}”",
       "expired-notice": {
         "title": "{count} expired period: {names} | {count} expired periods: {names}",
-        "description": "It still accepts postings. | They still accept postings."
+        "description": "It still accepts postings."
       },
       "noun": "period | periods",
       "tabs-note": "The result only exists after closing.",
@@ -1158,7 +1286,8 @@
     "result": {
       "revenues": "Revenues",
       "expenses": "Expenses",
-      "result": "Result"
+      "result": "Result",
+      "provisional": "provisional"
     },
     "actions": {
       "view-movements": "View movements"
@@ -1426,6 +1555,7 @@
       "received-note": "Paid income",
       "paid": "Paid",
       "paid-note": "Paid expenses",
+      "paid-note-on-card": "Paid expenses · {amount} on card",
       "result": "Result",
       "result-note": "Income − expenses",
       "to-pay": "To pay",
@@ -1434,7 +1564,8 @@
     },
     "expired-notice": {
       "title": "{name} expired on {date} and is still open",
-      "description": "It still accepts postings."
+      "description": "It still accepts postings.",
+      "go-to-closing": "Go to closing"
     },
     "list": {
       "description": "Income and expenses of {period}.",

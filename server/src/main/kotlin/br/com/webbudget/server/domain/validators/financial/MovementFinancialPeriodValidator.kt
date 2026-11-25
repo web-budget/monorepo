@@ -5,6 +5,7 @@ import br.com.webbudget.server.domain.exceptions.DomainException
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.FINANCIAL_PERIOD_NOT_OPEN
 import br.com.webbudget.server.domain.validators.OnCreateValidation
 import br.com.webbudget.server.domain.validators.OnDeleteValidation
+import br.com.webbudget.server.domain.validators.OnMoveValidation
 import br.com.webbudget.server.domain.validators.OnPayValidation
 import br.com.webbudget.server.domain.validators.OnUndoPaymentValidation
 import br.com.webbudget.server.domain.validators.OnUpdateValidation
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component
 @OnDeleteValidation
 @OnPayValidation
 @OnUndoPaymentValidation
+@OnMoveValidation
 class MovementFinancialPeriodValidator : MovementValidator {
 
     override fun validate(value: Movement) {

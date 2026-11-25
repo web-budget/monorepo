@@ -68,10 +68,21 @@
       "invoice-payment-locked": "O pagamento de fatura não pode ser alterado",
       "card-payment-only-for-expenses": "Só despesa se paga no cartão",
       "payment-requires-wallet-or-card": "Escolha a carteira ou o cartão do pagamento",
+      "no-open-period-after": "Não há período aberto depois do período do movimento",
+      "move-target-same-period": "O movimento já está nesse período",
+      "move-target-not-open": "O período de destino não está aberto",
+      "invoice-payment-moved": "O pagamento de fatura fora do período da fatura não se exclui. Mova-o de volta ou reabra o período",
+      "financial-period-with-open-movements": "O período ainda tem movimentos em aberto",
+      "financial-period-with-open-invoices": "O período ainda tem fatura aberta com compras",
+      "financial-period-not-closed": "O período não está encerrado",
+      "only-the-last-closed-period-can-be-reopened": "Só o último período encerrado reabre",
       "recurring-movement-with-launches": "O recorrente já tem lançamentos e não pode ser excluído. Desative-o para parar de lançar.",
       "card-recurring-must-be-expense": "Só a despesa pode ter cartão sugerido",
       "inactive-card": "O cartão está inativo",
-      "launch-value-only-for-variable": "Só o recorrente variável aceita um valor no lançamento"
+      "launch-value-only-for-variable": "Só o recorrente variável aceita um valor no lançamento",
+      "recurring-movement-inactive": "O recorrente está inativo",
+      "recurring-movement-finished": "O recorrente já lançou todas as parcelas",
+      "launch-quantity-out-of-range": "A quantidade passa do que dá para lançar"
     },
     "not-found": {
       "detail": "Não encontrado",
@@ -696,6 +707,7 @@
       "details": "Detalhes",
       "edit": "Editar",
       "readjust": "Reajustar valor",
+      "launch-in-period": "Lançar no período",
       "remove": "Excluir"
     },
     "readjust": {
@@ -706,6 +718,22 @@
       "reason": "Motivo",
       "confirm": "Reajustar",
       "reason-example": "Opcional. Ex.: reajuste anual"
+    },
+    "launch-extra": {
+      "title": "Lançar “{name}” no período",
+      "description": "Cria mais lançamentos em aberto no mesmo período. O lote e o lançamento automático continuam um por período.",
+      "period": "Período",
+      "quantity": "Quantidade",
+      "quantity-installments": "De 1 a {maximum}, as parcelas que faltam.",
+      "quantity-endless": "De 1 a {maximum}.",
+      "value": "Valor",
+      "value-hint": "Opcional. Em branco usa o valor sugerido, {value}.",
+      "preview": "Vai criar:",
+      "preview-installments": "{name} {installments}, vencendo em {date}.",
+      "preview-endless": "{name}, vencendo em {date}. | {count} lançamentos de {name}, vencendo em {date}.",
+      "and": "e",
+      "no-period": "Não há período aberto. Crie um período para lançar.",
+      "confirm": "Lançar"
     },
     "remove": {
       "title": "Excluir “{name}”?",
@@ -721,6 +749,7 @@
       "readjusted": "Valor reajustado",
       "readjusted-detail": "Vale a partir do próximo lançamento.",
       "launched": "Recorrentes lançados",
+      "extra-launched": "{count} lançamento criado | {count} lançamentos criados",
       "launched-detail": "{count} lançamento criado em {period}. | {count} lançamentos criados em {period}.",
       "skipped": "Alguns recorrentes não entraram"
     },
@@ -809,7 +838,7 @@
       "purchases": "Compras",
       "due-date": "Vencimento",
       "no-purchases": "Nenhuma compra nesta fatura",
-      "payment-bar": "Pagamento de fatura:"
+      "payment-bar": "Pago no movimento:"
     },
     "list": {
       "description": "Compras de cada cartão por período.",
@@ -912,7 +941,106 @@
   },
   "period-closing": {
     "title": "Fechamento",
-    "menu": "Fechamento"
+    "menu": "Fechamento",
+    "breadcrumb": "Fechando",
+    "title-of": "Fechamento de {name}",
+    "description": "Resolva as pendências e grave o resultado.",
+    "period": "Período a fechar",
+    "empty": {
+      "title": "Nenhum período para fechar",
+      "description": "Todos os períodos estão encerrados.",
+      "create": "Criar período"
+    },
+    "summary": {
+      "revenues": "Receitas pagas",
+      "revenues-note": "Só o que foi recebido",
+      "expenses": "Despesas pagas",
+      "expenses-note": "Inclui pagamentos de fatura pagos",
+      "result": "Resultado",
+      "result-note": "Receitas − despesas",
+      "accumulated": "Acumulado",
+      "accumulated-note": "Anteriores + atual"
+    },
+    "pendencies": {
+      "title": "Pendências",
+      "hint": "Pague ou mova para outro período aberto.",
+      "none": "Tudo o que estava em aberto foi pago ou movido.",
+      "movement": "Movimento",
+      "due-date": "Vencimento",
+      "value": "Valor (R$)",
+      "invoice": "fatura",
+      "overdue": "vencido",
+      "move": "Mover",
+      "move-disabled": "Não há período aberto depois deste",
+      "no-next": "Não há período aberto depois de {name}",
+      "no-next-hint": "Pague tudo ou crie um período para mover.",
+      "create-period": "Criar período",
+      "remaining": "{count} restante | {count} restantes",
+      "resolved": "Resolvidas",
+      "actions": "O que fazer",
+      "none-title": "Nenhuma pendência",
+      "due-on": "Vence em"
+    },
+    "invoices": {
+      "title": "Faturas",
+      "hint": "Fatura aberta com compras bloqueia o fechamento.",
+      "none": "Nenhum cartão ativo neste período.",
+      "close": "Fechar fatura",
+      "note": {
+        "blocking": "Bloqueia o fechamento",
+        "empty": "Fecha sozinha com valor zero",
+        "payment": "Pagamento de fatura nas pendências",
+        "paid": "Paga"
+      },
+      "purchases": "{count} compra | {count} compras"
+    },
+    "checklist": {
+      "title": "Para fechar",
+      "pendencies": "Pendências resolvidas",
+      "invoices": "Faturas resolvidas",
+      "next-period": "Período seguinte aberto",
+      "close": "Fechar {name}",
+      "pendencies-open": "{count} falta pagar ou mover | {count} faltam pagar ou mover",
+      "pendencies-done": "Nada em aberto",
+      "invoices-open": "{count} fatura com lançamento ainda aberta | {count} faturas com lançamento ainda abertas",
+      "invoices-done": "Nenhuma fatura bloqueia",
+      "next-period-missing": "Não há: pague tudo ou crie um"
+    },
+    "move": {
+      "title": "Mover “{name}”",
+      "period": "Período",
+      "expired": "expirado",
+      "confirm": "Mover"
+    },
+    "close": {
+      "title": "Fechar {name}?",
+      "description": "Grava o resultado e congela o período.",
+      "confirm": "Fechar período"
+    },
+    "reopen": {
+      "title": "Reabrir {name}?",
+      "description": "Só o último período encerrado pode ser reaberto.",
+      "confirm": "Reabrir período",
+      "only-last": "só o último",
+      "erases-result": "Apaga o resultado do período.",
+      "unfreezes": "Descongela movimentos, compras e faturas.",
+      "invoices-closed-by-hand": "Faturas fechadas à mão continuam fechadas.",
+      "empty-invoices": "Faturas vazias voltam a ficar abertas.",
+      "only-last-hint": "Só o último período encerrado reabre"
+    },
+    "actions": {
+      "close": "Fechar período",
+      "close-named": "Fechar {name}",
+      "reopen": "Reabrir"
+    },
+    "toast": {
+      "moved": "Movimento movido",
+      "moved-detail": "“{name}” foi para {period}.",
+      "closed": "{name} encerrado",
+      "closed-detail": "Resultado {result} gravado. Faturas vazias fecharam com valor zero.",
+      "reopened": "{name} reaberto",
+      "reopened-detail": "O resultado saiu da tabela e o período voltou a aceitar lançamentos."
+    }
   },
   "wallet": {
     "title": "Carteiras",
@@ -1124,7 +1252,7 @@
       "found": "{count} período financeiro encontrado para “{query}” | {count} períodos financeiros encontrados para “{query}”",
       "expired-notice": {
         "title": "{count} período expirado: {names} | {count} períodos expirados: {names}",
-        "description": "Ainda aceita lançamentos. | Ainda aceitam lançamentos."
+        "description": "Ainda aceita lançamentos."
       },
       "noun": "período | períodos",
       "tabs-note": "Resultado só existe depois do fechamento.",
@@ -1158,7 +1286,8 @@
     "result": {
       "revenues": "Receitas",
       "expenses": "Despesas",
-      "result": "Resultado"
+      "result": "Resultado",
+      "provisional": "provisório"
     },
     "actions": {
       "view-movements": "Ver movimentos"
@@ -1426,6 +1555,7 @@
       "received-note": "Receitas pagas",
       "paid": "Pago",
       "paid-note": "Despesas pagas",
+      "paid-note-on-card": "Despesas pagas · {amount} no cartão",
       "result": "Resultado",
       "result-note": "Receitas − despesas",
       "to-pay": "A pagar",
@@ -1434,7 +1564,8 @@
     },
     "expired-notice": {
       "title": "{name} expirou em {date} e continua aberto",
-      "description": "Ainda aceita lançamentos."
+      "description": "Ainda aceita lançamentos.",
+      "go-to-closing": "Ir ao fechamento"
     },
     "list": {
       "description": "Receitas e despesas de {period}.",

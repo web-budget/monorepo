@@ -6,6 +6,7 @@ import br.com.webbudget.server.application.payloads.ErrorCodes.IS_NULL
 import br.com.webbudget.server.application.payloads.ErrorCodes.IS_NULL_OR_BLANK
 import br.com.webbudget.server.application.payloads.ErrorCodes.MAX_CHARS
 import br.com.webbudget.server.domain.entities.financial.Movement
+import com.fasterxml.jackson.annotation.JsonInclude
 import jakarta.validation.Valid
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
@@ -158,12 +159,50 @@ data class FinancialPeriodResultView(
     val revenues: BigDecimal,
     val expenses: BigDecimal,
     val result: BigDecimal,
+    val recorded: Boolean,
     val toPay: BigDecimal,
-    val overdueExpenses: Int
+    val overdueExpenses: Int,
+    val paidOnCard: BigDecimal
 )
 
 data class MovementRecurringView(
     val id: UUID,
     val name: String,
     val card: PaymentCardView?
+)
+
+data class MovementMoveForm(
+    val financialPeriod: UUID?
+)
+
+data class ClosingOpenMovementsView(
+    val count: Int,
+    val income: BigDecimal,
+    val expense: BigDecimal
+)
+
+data class ClosingInvoiceView(
+    val id: UUID,
+    val card: PaymentCardView,
+    val value: BigDecimal,
+    val purchaseCount: Int,
+    val status: String
+)
+
+data class ClosingPeriodView(
+    val id: UUID,
+    val name: String,
+    val startingAt: LocalDate,
+    val endingAt: LocalDate
+)
+
+data class ClosingSummaryView(
+    val openMovements: ClosingOpenMovementsView,
+    val invoices: List<ClosingInvoiceView>,
+    val openInvoices: List<ClosingInvoiceView>,
+    val emptyInvoices: List<ClosingInvoiceView>,
+    @field:JsonInclude(JsonInclude.Include.ALWAYS)
+    val nextOpenPeriod: ClosingPeriodView?,
+    val targetPeriods: List<ClosingPeriodView>,
+    val canClose: Boolean
 )

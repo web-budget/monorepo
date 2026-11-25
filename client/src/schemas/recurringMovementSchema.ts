@@ -4,6 +4,7 @@ import { optionalNumberSchema } from '@/schemas/fields'
 import { MOVEMENT_TYPES } from '@/schemas/movementSchema'
 import type {
   MovementType,
+  RecurringExtraLaunchForm,
   RecurringMovementCreateForm,
   RecurringMovementUpdateForm,
   RecurringMovementView,
@@ -132,4 +133,37 @@ export type ReadjustFormValues = z.infer<typeof readjustSchema>
 export function toRecurringValueForm(values: ReadjustFormValues): RecurringValueForm {
   const reason = values.reason?.trim()
   return { value: values.value, reason: reason ? reason : null }
+}
+
+export const launchInPeriodFormSchema = (maximum: number) =>
+  toTypedSchema(
+    z.object({
+      financialPeriod: z.string().min(1),
+      quantity: z.preprocess(
+        (value) =>
+          value === '' || value === null || value === undefined ? undefined : Number(value),
+        z.number().int().min(1).max(maximum),
+      ),
+      value: optionalNumberSchema(z.number().positive()),
+    }),
+  )
+
+export interface LaunchInPeriodFormValues {
+  financialPeriod: string
+  quantity: number
+  value?: number | null
+}
+
+export function toRecurringExtraLaunchForm(
+  values: LaunchInPeriodFormValues,
+  variable: boolean,
+): RecurringExtraLaunchForm {
+  const form: RecurringExtraLaunchForm = {
+    financialPeriod: values.financialPeriod,
+    quantity: values.quantity,
+  }
+  if (variable && values.value != null) {
+    form.value = values.value
+  }
+  return form
 }

@@ -3,6 +3,7 @@ import { createdId } from './createdId'
 import type {
   PagedResponse,
   PageQuery,
+  RecurringExtraLaunchForm,
   RecurringLaunchEntryView,
   RecurringLaunchItem,
   RecurringLaunchReport,
@@ -60,6 +61,12 @@ export const recurringMovementsApi = {
         financialPeriod,
         recurringMovements: items,
       })
+      .then((response) => response.data)
+  },
+
+  launchExtra(id: string, form: RecurringExtraLaunchForm): Promise<RecurringLaunchReport> {
+    return apiClient
+      .post<RecurringLaunchReport>(`${PATH}/${encodeURIComponent(id)}/launch-extra`, form)
       .then((response) => response.data)
   },
 

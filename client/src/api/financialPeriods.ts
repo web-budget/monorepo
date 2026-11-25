@@ -7,6 +7,7 @@ import type {
   FinancialPeriodResultView,
   FinancialPeriodView,
   FinancialPeriodCreateForm,
+  ClosingSummaryView,
   FinancialPeriodUpdateForm,
   PagedResponse,
   PageQuery,
@@ -40,6 +41,22 @@ export const financialPeriodsApi = {
 
   remove(id: string): Promise<void> {
     return apiClient.delete(`${PATH}/${id}`).then(() => undefined)
+  },
+
+  findClosing(id: string): Promise<ClosingSummaryView> {
+    return apiClient
+      .get<ClosingSummaryView>(`/financial/financial-periods/${id}/closing`)
+      .then((r) => r.data)
+  },
+
+  close(id: string): Promise<FinancialPeriodResultView> {
+    return apiClient
+      .patch<FinancialPeriodResultView>(`/financial/financial-periods/${id}/close`)
+      .then((r) => r.data)
+  },
+
+  reopen(id: string): Promise<void> {
+    return apiClient.patch(`/financial/financial-periods/${id}/reopen`).then(() => undefined)
   },
 
   findCreationPreview(): Promise<FinancialPeriodCreationPreview> {

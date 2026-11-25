@@ -162,6 +162,32 @@ class ListingSortOrderTest : BaseIntegrationTest() {
     @Sql(
         "/sql/financial/clear-tables.sql",
         "/sql/financial/create-registration-data.sql",
+        "/sql/financial/create-period-results.sql"
+    )
+    @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
+    fun `should list the period results from the newest to the oldest by default`() {
+
+        assertNames(
+            "/financial/period-results",
+            "",
+            "Financial test 12/2024", "Financial test 08/2024", "Financial test 07/2024"
+        )
+        assertNames(
+            "/financial/period-results",
+            "sort=name,asc",
+            "Financial test 07/2024", "Financial test 08/2024", "Financial test 12/2024"
+        )
+        assertNames(
+            "/financial/period-results",
+            "sort=name,desc",
+            "Financial test 12/2024", "Financial test 08/2024", "Financial test 07/2024"
+        )
+    }
+
+    @Test
+    @Sql(
+        "/sql/financial/clear-tables.sql",
+        "/sql/financial/create-registration-data.sql",
         "/sql/financial/create-accented-recurring-movements.sql"
     )
     @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)

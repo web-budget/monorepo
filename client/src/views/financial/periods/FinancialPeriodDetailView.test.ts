@@ -27,11 +27,20 @@ const period: FinancialPeriodView = {
   endingAt: '2026-01-31',
   status: 'OPEN',
   expired: false,
+  reopenable: false,
   revenuesGoal: 5000,
   expensesGoal: null,
 }
 
-const result = { revenues: 3000, expenses: 3500, result: -500, toPay: 0, overdueExpenses: 0 }
+const result = {
+  revenues: 3000,
+  expenses: 3500,
+  result: -500,
+  toPay: 0,
+  overdueExpenses: 0,
+  paidOnCard: 0,
+  recorded: false,
+}
 
 function serveMovementTotals() {
   vi.mocked(movementsApi.findAll).mockImplementation((query) => {
@@ -77,6 +86,19 @@ describe('FinancialPeriodDetailView', () => {
     expect(wrapper.text()).toContain('3.000,00')
     expect(wrapper.text()).toContain('3.500,00')
     expect(wrapper.text()).toMatch(/−R\$\s500,00/)
+    expect(wrapper.text()).not.toContain('+')
+  })
+
+  it('shows a positive result without sign', async () => {
+    vi.mocked(financialPeriodsApi.findById).mockResolvedValue({ ...period, status: 'CLOSED' })
+    vi.mocked(financialPeriodsApi.findResult).mockResolvedValue({ ...result, result: 500 })
+    serveMovementTotals()
+    const { wrapper } = await mountView(FinancialPeriodDetailView, 'financial-periods', {
+      id: 'p-1',
+    })
+
+    expect(wrapper.text()).toMatch(/Resultado\s*R\$\s500,00/)
+    expect(wrapper.text()).not.toMatch(/[+−]R\$/)
   })
 
   it('counts the launched, open and paid movements', async () => {
@@ -95,6 +117,100 @@ describe('FinancialPeriodDetailView', () => {
     const link = wrapper.find('[data-slot="detail-footer"] a')
     expect(link.text()).toBe('Ver movimentos')
     expect(link.attributes('href')).toBe('/financial/movements?period=p-1')
+  })
+
+  it('offers to close an open period from the footer', async () => {
+    const { wrapper, router } = await render()
+    const push = vi.spyOn(router, 'push').mockResolvedValue(undefined)
+
+    const footer = wrapper.find('[data-slot="detail-footer"]')
+    expect(footer.findAll('a, button').map((item) => item.text())).toEqual([
+      'Ver movimentos',
+      'Fechar período',
+    ])
+    await footer.findAll('button')[0]!.trigger('click')
+
+    expect(push).toHaveBeenCalledWith({ name: 'closing', query: { period: 'p-1' } })
+  })
+
+  it('offers no closing and no reopening on a closed period that cannot be reopened', async () => {
+    const { wrapper } = await render({ ...period, status: 'CLOSED' })
+
+    expect(
+      wrapper
+        .find('[data-slot="detail-footer"]')
+        .findAll('a, button')
+        .map((item) => item.text()),
+    ).toEqual(['Ver movimentos'])
+  })
+
+  it('reopens the last closed period after confirming, tells it and reloads the period', async () => {
+    const { wrapper } = await render({ ...period, status: 'CLOSED', reopenable: true })
+    vi.mocked(financialPeriodsApi.reopen).mockResolvedValue(undefined)
+    vi.mocked(financialPeriodsApi.findById).mockResolvedValue({ ...period, status: 'OPEN' })
+
+    await wrapper
+      .find('[data-slot="detail-footer"]')
+      .findAll('button')
+      .find((button) => button.text() === 'Reabrir')!
+      .trigger('click')
+    await flushPromises()
+    expect(document.body.textContent).toContain('Reabrir January?')
+    expect(document.body.textContent).toContain('Só o último período encerrado pode ser reaberto.')
+    expect(document.body.textContent).toContain('Apaga o resultado do período.')
+    ;[...document.body.querySelectorAll<HTMLButtonElement>('[role="dialog"] button')]
+      .find((button) => button.textContent?.trim() === 'Reabrir período')!
+      .click()
+    await flushPromises()
+    await flushPromises()
+
+    expect(financialPeriodsApi.reopen).toHaveBeenCalledWith('p-1')
+    expect(toast.success).toHaveBeenCalledWith('January reaberto', {
+      description: 'O resultado saiu da tabela e o período voltou a aceitar lançamentos.',
+      duration: 4000,
+    })
+    expect(financialPeriodsApi.findById).toHaveBeenCalledTimes(2)
+    expect(wrapper.find('[data-slot="page-title"]').element.parentElement!.textContent).toContain(
+      'Aberto',
+    )
+  })
+
+  it('keeps the reopening dialog open and shows the refusal of the server', async () => {
+    const { wrapper } = await render({ ...period, status: 'CLOSED', reopenable: true })
+    vi.mocked(financialPeriodsApi.reopen).mockRejectedValue(
+      problem(409, { error: 'only-the-last-closed-period-can-be-reopened' }),
+    )
+
+    await wrapper
+      .find('[data-slot="detail-footer"]')
+      .findAll('button')
+      .find((button) => button.text() === 'Reabrir')!
+      .trigger('click')
+    await flushPromises()
+    ;[...document.body.querySelectorAll<HTMLButtonElement>('[role="dialog"] button')]
+      .find((button) => button.textContent?.trim() === 'Reabrir período')!
+      .click()
+    await flushPromises()
+    await flushPromises()
+
+    expect(document.body.querySelector('[role="dialog"]')).not.toBeNull()
+    expect(
+      document.body.querySelector('[role="dialog"] [data-slot="server-error"]')?.textContent,
+    ).toContain('Um erro inesperado aconteceu')
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
+    ;[...document.body.querySelectorAll<HTMLButtonElement>('[role="dialog"] button')]
+      .find((button) => button.textContent?.trim() === 'Cancelar')!
+      .click()
+    await flushPromises()
+    expect(document.body.querySelector('[role="dialog"]')).toBeNull()
+
+    await wrapper
+      .find('[data-slot="detail-footer"]')
+      .findAll('button')
+      .find((button) => button.text() === 'Reabrir')!
+      .trigger('click')
+    await flushPromises()
+    expect(document.body.querySelector('[role="dialog"] [data-slot="server-error"]')).toBeNull()
   })
 
   it('shows the closed result and offers no edit or removal', async () => {

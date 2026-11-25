@@ -53,6 +53,7 @@ const november: FinancialPeriodListView = {
   endingAt: '2026-11-30',
   status: 'OPEN',
   expired: false,
+  reopenable: false,
 }
 const october: FinancialPeriodListView = {
   id: 'p-10',
@@ -61,6 +62,7 @@ const october: FinancialPeriodListView = {
   endingAt: '2026-10-31',
   status: 'OPEN',
   expired: true,
+  reopenable: false,
 }
 const september: FinancialPeriodListView = {
   id: 'p-09',
@@ -69,6 +71,7 @@ const september: FinancialPeriodListView = {
   endingAt: '2026-09-30',
   status: 'CLOSED',
   expired: false,
+  reopenable: false,
 }
 
 const costCenters = [{ id: 'cc-1', name: 'Casa', fullName: 'Casa' }] as CostCenterListView[]
@@ -94,6 +97,7 @@ const movements: MovementListView[] = [
     classification: housing,
     costCenter: house,
     financialPeriod: period,
+    invoicePayment: false,
   },
   {
     id: 'm-2',
@@ -106,6 +110,7 @@ const movements: MovementListView[] = [
     classification: salary,
     costCenter: house,
     financialPeriod: period,
+    invoicePayment: false,
   },
 ]
 
@@ -139,6 +144,8 @@ const periodResult: FinancialPeriodResultView = {
   result: 8303.88,
   toPay: 1250.5,
   overdueExpenses: 2,
+  paidOnCard: 0,
+  recorded: false,
 }
 
 function serve(periods = [november, october], content = movements) {
@@ -326,6 +333,15 @@ describe('MovementListView', () => {
       )
     })
 
+    it('goes to the closing of the expired period from the warning', async () => {
+      const { wrapper, router } = await render(undefined, [october])
+      const push = vi.spyOn(router, 'push').mockResolvedValue(undefined)
+
+      await wrapper.find('[data-slot="go-to-closing"]').trigger('click')
+
+      expect(push).toHaveBeenCalledWith({ name: 'closing', query: { period: 'p-10' } })
+    })
+
     it('does not warn about a period that has not expired', async () => {
       const { wrapper } = await render()
 
@@ -381,6 +397,28 @@ describe('MovementListView', () => {
       const result = wrapper.findAll('[data-slot="summary"] [data-slot="currency"]')[2]!
       expect(result.text()).toMatch(/^−R\$\s50,00$/)
       expect(result.attributes('data-direction')).toBe('expense')
+    })
+
+    it('keeps the plain note on the paid card when nothing was paid on card', async () => {
+      const { wrapper } = await render()
+
+      const note = wrapper.find('[data-slot="paid-note"]')
+      expect(note.text()).toBe('Despesas pagas')
+      expect(note.find('[data-slot="currency"]').exists()).toBe(false)
+    })
+
+    it('says how much was paid on card in the note of the paid card, without sign', async () => {
+      serve()
+      vi.mocked(financialPeriodsApi.findResult).mockResolvedValue({
+        ...periodResult,
+        paidOnCard: 240.87,
+      })
+      const { wrapper } = await mountView(MovementListViewUnderTest, 'movements')
+
+      const note = wrapper.find('[data-slot="paid-note"]')
+      expect(note.text()).toMatch(/^Despesas pagas · R\$\s240,87 no cartão$/)
+      expect(note.text()).not.toMatch(/[−+]/)
+      expect(note.find('[data-slot="currency"]').attributes('data-direction')).toBeUndefined()
     })
 
     it('shows what is left to pay and how many expenses are overdue', async () => {

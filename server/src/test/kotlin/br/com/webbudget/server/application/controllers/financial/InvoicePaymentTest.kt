@@ -47,7 +47,7 @@ class InvoicePaymentTest : BaseIntegrationTest() {
 
         val payment = dsl.selectFrom(MOVEMENTS).fetchSingle()
 
-        assertThat(payment.name).isEqualTo("Financial test card - Financial test 12/2024")
+        assertThat(payment.name).isEqualTo("Pagamento de fatura, Financial test card")
         assertThat(payment.type).isEqualTo("EXPENSE")
         assertThat(payment.value).isEqualByComparingTo("125.50")
         assertThat(payment.status).isEqualTo("OPEN")
@@ -78,7 +78,7 @@ class InvoicePaymentTest : BaseIntegrationTest() {
             .jsonPath("$.dueDate").isEqualTo("2025-01-10")
             .jsonPath("$.purchaseCount").isEqualTo(2)
             .jsonPath("$.payment.id").isEqualTo(paymentId())
-            .jsonPath("$.payment.name").isEqualTo("Financial test card - Financial test 12/2024")
+            .jsonPath("$.payment.name").isEqualTo("Pagamento de fatura, Financial test card")
             .jsonPath("$.payment.value").isEqualTo(125.5)
 
         restTestClient.get()

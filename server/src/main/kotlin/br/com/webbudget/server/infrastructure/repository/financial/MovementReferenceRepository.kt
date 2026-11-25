@@ -12,6 +12,7 @@ import br.com.webbudget.server.jooq.registration.tables.references.FINANCIAL_PER
 import br.com.webbudget.server.jooq.registration.tables.references.WALLETS
 import org.jooq.DSLContext
 import org.springframework.stereotype.Repository
+import java.time.LocalDate
 import java.util.UUID
 
 @Repository
@@ -49,6 +50,34 @@ class MovementReferenceRepository(
             .where(financialPeriods.ID.eq(id))
             .fetchOne()
             ?.toFinancialPeriodReference()
+    }
+
+    fun findNextOpenFinancialPeriod(endingAt: LocalDate): FinancialPeriodReference? {
+        val financialPeriods = FINANCIAL_PERIODS.`as`("financial_periods")
+        return dsl.selectFrom(financialPeriods)
+            .where(financialPeriods.STATUS.eq(FinancialPeriodReference.Status.OPEN.name))
+            .and(financialPeriods.STARTING_AT.gt(endingAt))
+            .orderBy(financialPeriods.STARTING_AT)
+            .limit(1)
+            .fetchOne()
+            ?.toFinancialPeriodReference()
+    }
+
+    fun findOpenFinancialPeriods(): List<FinancialPeriodReference> {
+        val financialPeriods = FINANCIAL_PERIODS.`as`("financial_periods")
+        return dsl.selectFrom(financialPeriods)
+            .where(financialPeriods.STATUS.eq(FinancialPeriodReference.Status.OPEN.name))
+            .orderBy(financialPeriods.STARTING_AT)
+            .fetch { record -> record.toFinancialPeriodReference() }
+    }
+
+    fun findOpenFinancialPeriodsExcept(id: Long): List<FinancialPeriodReference> {
+        val financialPeriods = FINANCIAL_PERIODS.`as`("financial_periods")
+        return dsl.selectFrom(financialPeriods)
+            .where(financialPeriods.STATUS.eq(FinancialPeriodReference.Status.OPEN.name))
+            .and(financialPeriods.ID.ne(id))
+            .orderBy(financialPeriods.STARTING_AT)
+            .fetch { record -> record.toFinancialPeriodReference() }
     }
 
     fun findWallet(externalId: UUID): WalletReference? {

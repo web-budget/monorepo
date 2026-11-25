@@ -56,7 +56,7 @@ class InvoiceService(
         closingValidators.forEach { it.validate(invoice) }
 
         val payment = Movement(
-            name = "${invoice.card.name} - ${invoice.financialPeriod.name}".take(MAX_NAME_LENGTH),
+            name = "Pagamento de fatura, ${invoice.card.name}".take(MAX_NAME_LENGTH),
             type = Movement.Type.EXPENSE,
             value = invoice.value,
             dueDate = invoice.paymentDueDate(),

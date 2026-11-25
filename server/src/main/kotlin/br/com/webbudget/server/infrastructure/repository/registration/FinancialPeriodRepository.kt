@@ -64,6 +64,34 @@ class FinancialPeriodRepository(
             .and(FINANCIAL_PERIODS.STATUS.`in`(statuses.map { it.name }))
     )
 
+    fun findLastClosedExternalId(): UUID? = dsl.select(FINANCIAL_PERIODS.EXTERNAL_ID)
+        .from(FINANCIAL_PERIODS)
+        .where(FINANCIAL_PERIODS.STATUS.eq(Status.CLOSED.name))
+        .orderBy(FINANCIAL_PERIODS.ENDING_AT.desc(), FINANCIAL_PERIODS.ID.desc())
+        .limit(1)
+        .fetchOne()
+        ?.value1()
+
+    fun existsClosedEndingAfter(endingAt: LocalDate): Boolean = dsl.fetchExists(
+        dsl.selectOne().from(FINANCIAL_PERIODS)
+            .where(FINANCIAL_PERIODS.STATUS.eq(Status.CLOSED.name))
+            .and(FINANCIAL_PERIODS.ENDING_AT.gt(endingAt))
+    )
+
+    fun updateStatus(financialPeriodId: Long, from: Status, to: Status) {
+        val updated = dsl.update(FINANCIAL_PERIODS)
+            .set(FINANCIAL_PERIODS.STATUS, to.name)
+            .set(FINANCIAL_PERIODS.VERSION, FINANCIAL_PERIODS.VERSION.plus(1))
+            .set(FINANCIAL_PERIODS.LAST_UPDATE, LocalDateTime.now())
+            .where(FINANCIAL_PERIODS.ID.eq(financialPeriodId))
+            .and(FINANCIAL_PERIODS.STATUS.eq(from.name))
+            .execute()
+
+        if (updated == 0) {
+            throw concurrentUpdate()
+        }
+    }
+
     fun insert(financialPeriod: FinancialPeriod): FinancialPeriod {
         val record = dsl.insertInto(FINANCIAL_PERIODS)
             .set(FINANCIAL_PERIODS.EXTERNAL_ID, UUID.randomUUID())

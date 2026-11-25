@@ -4,6 +4,7 @@ import br.com.webbudget.server.application.mappers.financial.MovementMapper
 import br.com.webbudget.server.application.payloads.financial.MovementCreateForm
 import br.com.webbudget.server.application.payloads.financial.MovementFilter
 import br.com.webbudget.server.application.payloads.financial.MovementListView
+import br.com.webbudget.server.application.payloads.financial.MovementMoveForm
 import br.com.webbudget.server.application.payloads.financial.MovementUpdateForm
 import br.com.webbudget.server.application.payloads.financial.MovementView
 import br.com.webbudget.server.application.payloads.financial.PaymentForm
@@ -106,6 +107,19 @@ class MovementController(
         val paid = movementService.pay(findMovement(id), movementMapper.mapToDomain(form))
 
         return ResponseEntity.ok(movementMapper.mapToView(paid))
+    }
+
+    @PatchMapping("/{id}/move")
+    fun move(
+        @PathVariable id: UUID,
+        @RequestBody(required = false) form: MovementMoveForm?
+    ): ResponseEntity<MovementView> {
+
+        val movement = findMovement(id)
+
+        val moved = movementService.move(movement, movementMapper.mapToTarget(form, movement))
+
+        return ResponseEntity.ok(movementMapper.mapToView(moved))
     }
 
     @PatchMapping("/{id}/undo-payment")

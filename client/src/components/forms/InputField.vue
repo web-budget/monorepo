@@ -37,14 +37,14 @@ const props = withDefaults(
   },
 )
 
-function openCalendar(event: FocusEvent) {
+function openCalendar(event: MouseEvent) {
   if (props.type !== 'date') {
     return
   }
   try {
     ;(event.target as HTMLInputElement).showPicker?.()
   } catch {
-    // showPicker throws NotAllowedError when the focus does not come from a user gesture
+    // showPicker throws NotAllowedError when the browser refuses to open the picker
   }
 }
 </script>
@@ -78,7 +78,7 @@ function openCalendar(event: FocusEvent) {
           :maxlength="maxlength"
           :disabled="disabled"
           :class="mono && 'font-mono'"
-          @focus="openCalendar"
+          @click="openCalendar"
           @update:model-value="handleChange($event, errors.length > 0)"
           @blur="handleBlur"
         />

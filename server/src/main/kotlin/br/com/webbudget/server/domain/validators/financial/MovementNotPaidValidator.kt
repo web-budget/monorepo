@@ -4,6 +4,7 @@ import br.com.webbudget.server.domain.entities.financial.Movement
 import br.com.webbudget.server.domain.exceptions.DomainException
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.MOVEMENT_ALREADY_PAID
 import br.com.webbudget.server.domain.validators.OnDeleteValidation
+import br.com.webbudget.server.domain.validators.OnMoveValidation
 import br.com.webbudget.server.domain.validators.OnPayValidation
 import br.com.webbudget.server.domain.validators.OnUpdateValidation
 import org.springframework.stereotype.Component
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component
 @OnUpdateValidation
 @OnDeleteValidation
 @OnPayValidation
+@OnMoveValidation
 class MovementNotPaidValidator : MovementValidator {
 
     override fun validate(value: Movement) {

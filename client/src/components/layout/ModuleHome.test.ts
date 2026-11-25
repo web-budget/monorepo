@@ -74,13 +74,12 @@ describe('ModuleHome', () => {
     expect(wrapper.findAll('a[data-slot="module-card"]')).toHaveLength(1)
   })
 
-  it('shows the financial items without a screen as coming soon', () => {
+  it('links every financial item, none of them as coming soon', () => {
     const wrapper = render(financialSection)
 
-    expect(wrapper.findAll('a')).toHaveLength(6)
+    expect(wrapper.findAll('a')).toHaveLength(7)
     const cards = wrapper.findAll('[aria-disabled="true"]')
-    expect(cards).toHaveLength(1)
-    expect(cards.every((card) => card.text().includes('Em breve'))).toBe(true)
+    expect(cards).toHaveLength(0)
   })
 
   it('lays the cards out on an auto-fill grid of at least 320px', () => {
