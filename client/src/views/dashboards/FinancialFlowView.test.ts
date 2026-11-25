@@ -147,19 +147,41 @@ describe('FinancialFlowView', () => {
     expect(rows).toHaveLength(2)
     expect(rows[0]!.findAll('td').map((cell) => cell.text())).toEqual([
       'Out/2026',
-      '+800,00',
-      '−300,00',
-      '+500,00',
+      '800,00',
+      '300,00',
+      '500,00',
       'Provisório',
     ])
     expect(rows[1]!.findAll('td').map((cell) => cell.text())).toEqual([
       'Set/2026',
-      '+1.000,00',
-      '−400,00',
-      '+600,00',
+      '1.000,00',
+      '400,00',
+      '600,00',
       'Gravado',
     ])
+    expect(wrapper.find('tbody').text()).not.toMatch(/[+−]/)
+    const [revenues, expenses, result] = rows[0]!.findAll('[data-slot="currency"]')
+    expect(revenues!.classes()).toContain('text-income')
+    expect(expenses!.classes()).toContain('text-expense')
+    expect(result!.classes()).not.toContain('text-income')
+    expect(result!.classes()).not.toContain('text-expense')
     expect(rows[0]!.find('[data-slot="badge"]').classes()).not.toContain('before:size-1.5')
+  })
+
+  it('signs the result only when it is negative, in red, in the table and in the card', async () => {
+    vi.mocked(dashboardsApi.findFinancialFlow).mockResolvedValue({
+      ...flow,
+      totals: { revenues: 300, expenses: 700, result: -400 },
+      periods: [{ ...flow.periods[0]!, revenues: 300, expenses: 700, result: -400 }],
+    })
+    const { wrapper } = await render()
+
+    const card = wrapper.find('[data-slot="totals"]').findAll('[data-slot="currency"]')[2]!
+    expect(card.text()).toMatch(/^−\s+R\$\s*400,00$/)
+    expect(card.classes()).toContain('text-expense')
+    const cell = wrapper.findAll('tbody tr')[0]!.findAll('td')[3]!
+    expect(cell.text()).toBe('−400,00')
+    expect(cell.find('[data-slot="currency"]').classes()).toContain('text-expense')
   })
 
   it('shows a period without expenses as a plain zero', async () => {
