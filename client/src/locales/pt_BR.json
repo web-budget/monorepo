@@ -817,7 +817,7 @@
       "purchases": "Compras",
       "due-date": "Vencimento",
       "no-purchases": "Nenhuma compra nesta fatura",
-      "payment-bar": "Pagamento de fatura:"
+      "payment-bar": "Pago no movimento:"
     },
     "list": {
       "description": "Compras de cada cartão por período.",
@@ -925,6 +925,11 @@
     "title-of": "Fechamento de {name}",
     "description": "Resolva as pendências e grave o resultado.",
     "period": "Período a fechar",
+    "empty": {
+      "title": "Nenhum período para fechar",
+      "description": "Todos os períodos estão encerrados.",
+      "create": "Criar período"
+    },
     "summary": {
       "revenues": "Receitas pagas",
       "revenues-note": "Só o que foi recebido",
@@ -933,8 +938,7 @@
       "result": "Resultado",
       "result-note": "Receitas − despesas",
       "accumulated": "Acumulado",
-      "accumulated-note": "Fechados mais provisório dos abertos",
-      "title": "Resumo do período"
+      "accumulated-note": "Anteriores + atual"
     },
     "pendencies": {
       "title": "Pendências",
@@ -979,9 +983,7 @@
       "pendencies-done": "Nada em aberto",
       "invoices-open": "{count} fatura com lançamento ainda aberta | {count} faturas com lançamento ainda abertas",
       "invoices-done": "Nenhuma fatura bloqueia",
-      "next-period-missing": "Não há: pague tudo ou crie um",
-      "ready": "Tudo certo.",
-      "blocked": "Resolva os itens acima."
+      "next-period-missing": "Não há: pague tudo ou crie um"
     },
     "move": {
       "title": "Mover “{name}”",
