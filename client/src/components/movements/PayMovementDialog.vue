@@ -40,6 +40,7 @@ const props = defineProps<{
   wallets: WalletListView[]
   cards: CardListView[]
   loading: boolean
+  messages: string[]
   balanceOf: (walletId: string) => Promise<number>
 }>()
 
@@ -141,6 +142,7 @@ const submit = form.handleSubmit((values) => {
           </DialogTitle>
           <DialogDescription class="sr-only">{{ movement?.name }}</DialogDescription>
         </DialogHeader>
+        <ServerErrorAlert :messages="[...messages, ...balanceErrors.messages.value]" />
         <InputField name="paidOn" type="date" :label="t('movement.pay.paid-on')" required />
         <SegmentedField
           v-if="cardAllowed"
@@ -180,7 +182,6 @@ const submit = form.handleSubmit((values) => {
           required
         />
         <MoneyField name="discount" :label="t('movement.pay.discount')" />
-        <ServerErrorAlert :messages="balanceErrors.messages.value" />
         <dl
           class="bg-muted/50 grid gap-1.5 rounded-md border p-3 text-sm"
           data-slot="payment-summary"

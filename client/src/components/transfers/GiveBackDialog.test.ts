@@ -18,10 +18,10 @@ function balanceOf(id: string) {
   return Promise.resolve(balances[id]!)
 }
 
-async function render(target: TransferView | null = null) {
+async function render(target: TransferView | null = null, messages: string[] = []) {
   const { plugins } = createTestPlugins()
   const wrapper = mount(GiveBackDialog, {
-    props: { transfer: null, loading: false, balanceOf },
+    props: { transfer: null, loading: false, messages, balanceOf },
     attachTo: document.body,
     global: { plugins },
   })
@@ -36,6 +36,13 @@ async function render(target: TransferView | null = null) {
 describe('GiveBackDialog', () => {
   beforeEach(() => {
     document.body.replaceChildren()
+  })
+
+  it('shows the server errors of the return in the dialog', async () => {
+    await render(transfer, ['A transferência já foi devolvida.'])
+
+    const alert = document.body.querySelector('[role="dialog"] [data-slot="server-error"]')
+    expect(alert!.textContent).toContain('A transferência já foi devolvida.')
   })
 
   it('stays closed without a transfer', async () => {

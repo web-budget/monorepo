@@ -3,6 +3,7 @@ import { Info, Undo2 } from 'lucide-vue-next'
 import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
+import ServerErrorAlert from '@/components/forms/ServerErrorAlert.vue'
 import { Alert, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
@@ -15,7 +16,7 @@ import {
 } from '@/components/ui/dialog'
 import type { MovementView } from '@/types'
 
-const props = defineProps<{ movement: MovementView | null; loading: boolean }>()
+const props = defineProps<{ movement: MovementView | null; loading: boolean; messages: string[] }>()
 
 const emit = defineEmits<{ close: []; confirm: [movement: MovementView] }>()
 
@@ -46,6 +47,7 @@ const reversalValue = computed(() => props.movement?.payment?.valuePaid ?? 0)
           </i18n-t>
         </DialogDescription>
       </DialogHeader>
+      <ServerErrorAlert :messages="messages" />
       <Alert data-slot="reversal">
         <Info />
         <AlertTitle>

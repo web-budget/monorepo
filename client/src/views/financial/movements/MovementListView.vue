@@ -525,6 +525,7 @@ onMounted(async () => {
     <UndoPaymentDialog
       :movement="actions.undoTarget.value"
       :loading="loading"
+      :messages="actions.undoMessages.value"
       @close="actions.closeUndo()"
       @confirm="actions.undoPayment"
     />
@@ -534,6 +535,7 @@ onMounted(async () => {
       :cards="activeCards.cards.value"
       :loading="loading"
       :balance-of="activeWallets.balanceOf"
+      :messages="actions.payMessages.value"
       @close="actions.closePay()"
       @pay="actions.pay"
     />

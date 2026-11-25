@@ -4,6 +4,7 @@ import { useForm } from 'vee-validate'
 import { computed, watch } from 'vue'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
 import MoneyField from '@/components/forms/MoneyField.vue'
+import ServerErrorAlert from '@/components/forms/ServerErrorAlert.vue'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -22,7 +23,11 @@ interface AdjustableWallet {
   balance: number
 }
 
-const props = defineProps<{ wallet: AdjustableWallet | null; loading: boolean }>()
+const props = defineProps<{
+  wallet: AdjustableWallet | null
+  loading: boolean
+  messages: string[]
+}>()
 
 const emit = defineEmits<{ close: []; adjust: [wallet: AdjustableWallet, form: AdjustmentForm] }>()
 
@@ -53,6 +58,7 @@ const submit = form.handleSubmit((values) => {
           <DialogTitle>{{ $t('statement.adjust.title', { name: wallet?.name }) }}</DialogTitle>
           <DialogDescription class="sr-only">{{ wallet?.name }}</DialogDescription>
         </DialogHeader>
+        <ServerErrorAlert :messages="messages" />
         <MoneyField
           name="value"
           :label="$t('statement.adjust.value')"

@@ -863,7 +863,23 @@ describe('MovementListView', () => {
       await flushPromises()
 
       expect(dialog.props('movement')).not.toBeNull()
-      expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
+      expect(dialog.props('messages')).toHaveLength(1)
+      expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
+    })
+
+    it('clears the payment error when the dialog is opened again', async () => {
+      vi.mocked(movementsApi.pay).mockRejectedValue(problem(400, { error: 'invalid-discount' }))
+      const { wrapper } = await render()
+      await chooseRowAction(wrapper, 0, 'Pagar')
+      const dialog = wrapper.getComponent(PayMovementDialog)
+      dialog.vm.$emit('pay', dialog.props('movement'), { wallet: 'w-1' })
+      await flushPromises()
+      dialog.vm.$emit('close')
+      await flushPromises()
+
+      await chooseRowAction(wrapper, 0, 'Pagar')
+
+      expect(wrapper.getComponent(PayMovementDialog).props('messages')).toEqual([])
     })
 
     it('shows the server error when the wallets cannot be loaded', async () => {
@@ -922,7 +938,8 @@ describe('MovementListView', () => {
       await flushPromises()
 
       expect(dialog.props('movement')).not.toBeNull()
-      expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
+      expect(dialog.props('messages')).toHaveLength(1)
+      expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
     })
 
     it('shows the server error when the movement of the undo cannot be loaded', async () => {

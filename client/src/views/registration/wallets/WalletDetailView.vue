@@ -29,6 +29,7 @@ const { wallet } = storeToRefs(store)
 const statement = useStatementStore()
 const { showSuccess } = useNotification()
 const adjustErrors = useServerErrors()
+const reloadErrors = useServerErrors()
 const adjusting = ref(false)
 
 const { messages, changeToUpdate, remove } = useCrudDetail({
@@ -40,12 +41,21 @@ const { messages, changeToUpdate, remove } = useCrudDetail({
   remove: store.remove,
 })
 
+function openAdjust() {
+  adjustErrors.clear()
+  adjusting.value = true
+}
+
+function closeAdjust() {
+  adjusting.value = false
+}
+
 async function adjust(target: { id: string }, form: { value: number }) {
   if (await adjustErrors.run(() => statement.adjust(target.id, form))) {
     adjusting.value = false
     const notice = adjustmentNotice(form.value, wallet.value?.name, n)
     showSuccess('statement.toast.adjusted', notice.detail, true, notice.params)
-    await adjustErrors.run(() => store.findOne(props.id))
+    await reloadErrors.run(() => store.findOne(props.id))
   }
 }
 </script>
@@ -55,7 +65,7 @@ async function adjust(target: { id: string }, form: { value: number }) {
     :title="wallet?.name ?? $t('wallet.form.detailing')"
     :active="wallet?.active"
     feminine-status
-    :messages="[...messages, ...adjustErrors.messages.value]"
+    :messages="[...messages, ...reloadErrors.messages.value]"
     @edit="changeToUpdate"
     @delete="remove"
   >
@@ -77,7 +87,7 @@ async function adjust(target: { id: string }, form: { value: number }) {
           <ArrowLeftRight />{{ $t('wallet.actions.transfer') }}
         </RouterLink>
       </Button>
-      <Button type="button" variant="outline" :disabled="!wallet.active" @click="adjusting = true">
+      <Button type="button" variant="outline" :disabled="!wallet.active" @click="openAdjust()">
         <Scale />{{ $t('wallet.actions.adjust-balance') }}
       </Button>
     </template>
@@ -119,7 +129,8 @@ async function adjust(target: { id: string }, form: { value: number }) {
         : null
     "
     :loading="statement.loading"
-    @close="adjusting = false"
+    :messages="adjustErrors.messages.value"
+    @close="closeAdjust()"
     @adjust="adjust"
   />
 </template>

@@ -152,7 +152,8 @@ describe('WalletDetailView', () => {
     await flushPromises()
 
     expect(dialog.props('wallet')).not.toBeNull()
-    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
+    expect(dialog.props('messages')).toHaveLength(1)
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
   })
 
   it('closes the dialog without adjusting', async () => {

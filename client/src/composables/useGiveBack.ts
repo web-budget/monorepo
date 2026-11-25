@@ -11,11 +11,12 @@ export function useGiveBack() {
   const store = useTransfersStore()
   const { balanceOf } = useActiveWallets()
   const { showSuccess } = useNotification()
-  const { messages, run } = useServerErrors()
+  const { messages, clear, run } = useServerErrors()
 
   const target = ref<TransferView | null>(null)
 
   function open(transfer: TransferView) {
+    clear()
     target.value = transfer
   }
 

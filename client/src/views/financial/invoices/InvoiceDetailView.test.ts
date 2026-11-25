@@ -224,7 +224,8 @@ describe('InvoiceDetailView', () => {
     await flushPromises()
 
     expect(wrapper.findComponent(CloseInvoiceDialog).props('open')).toBe(true)
-    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
+    expect(wrapper.findComponent(CloseInvoiceDialog).props('messages')).toHaveLength(1)
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
     expect(toast.success).not.toHaveBeenCalled()
   })
 

@@ -7,11 +7,11 @@ import { createTestPlugins } from '@/test/mounting'
 
 const wallet = { id: 'w-1', name: 'Conta corrente', balance: 1000 }
 
-async function render(target: typeof wallet | null = wallet) {
+async function render(target: typeof wallet | null = wallet, messages: string[] = []) {
   installZodErrorMap()
   const { plugins } = createTestPlugins()
   const wrapper = mount(AdjustBalanceDialog, {
-    props: { wallet: target, loading: false },
+    props: { wallet: target, loading: false, messages },
     attachTo: document.body,
     global: { plugins },
   })
@@ -43,6 +43,13 @@ function summary() {
 describe('AdjustBalanceDialog', () => {
   beforeEach(() => {
     document.body.replaceChildren()
+  })
+
+  it('shows the server errors at the top of the dialog body', async () => {
+    await render(wallet, ['A carteira está inativa'])
+
+    const alert = document.body.querySelector('[role="dialog"] [data-slot="server-error"]')
+    expect(alert!.textContent).toContain('A carteira está inativa')
   })
 
   it('stays closed without a wallet', async () => {

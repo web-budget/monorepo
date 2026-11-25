@@ -706,7 +706,8 @@ describe('StatementView', () => {
       await flushPromises()
 
       expect(dialog.props('wallet')).not.toBeNull()
-      expect(wrapper.find('[data-slot="server-error"]').text()).toContain('zero')
+      expect(dialog.props('messages').join(' ')).toContain('zero')
+      expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
     })
 
     it('closes the dialog without adjusting', async () => {
