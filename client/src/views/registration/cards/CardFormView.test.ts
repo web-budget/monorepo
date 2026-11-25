@@ -261,6 +261,15 @@ describe('CardFormView', () => {
     )
   })
 
+  it('does not take the focus from the field when Cancelar is pressed', async () => {
+    const { wrapper } = await mountView(CardFormView, 'cards')
+    const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
+
+    buttonWithText(wrapper, 'Cancelar').element.dispatchEvent(press)
+
+    expect(press.defaultPrevented).toBe(true)
+  })
+
   it('goes back to the listing with Cancelar', async () => {
     const { wrapper, router } = await mountView(CardFormView, 'cards')
 

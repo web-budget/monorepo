@@ -57,6 +57,18 @@ describe('GiveBackDialog', () => {
     expect(to).toMatch(/Saldo posterior\s*R\$\s1.000,00/)
   })
 
+  it('does not take the focus from the field when the cancel button is pressed', async () => {
+    await render(transfer)
+    const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
+
+    const cancel = [...document.body.querySelectorAll('button')].find(
+      (button) => button.textContent?.trim() === 'Cancelar',
+    )!
+    cancel.dispatchEvent(press)
+
+    expect(press.defaultPrevented).toBe(true)
+  })
+
   it('emits confirm with the transfer and close from the cancel button', async () => {
     const wrapper = await render(transfer)
     const buttons = [...document.body.querySelectorAll('button')]
