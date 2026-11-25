@@ -2,6 +2,7 @@ import { toTypedSchema } from '@/schemas/typedSchema'
 import { z } from 'zod'
 import { blankToNull, optionId, selectedOptionSchema } from '@/schemas/fields'
 import type { CardCreateForm, CardUpdateForm, CardView } from '@/types'
+import { walletLabel } from '@/utils/walletLabel'
 
 export const MAXIMUM_INVOICE_PAYMENT_DAY = 30
 
@@ -42,7 +43,7 @@ export function toCardFormValues(card: CardView): Partial<CardFormValues> {
   return {
     active: card.active,
     name: card.name,
-    wallet: card.wallet ? { id: card.wallet.id, label: card.wallet.name } : null,
+    wallet: card.wallet ? { id: card.wallet.id, label: walletLabel(card.wallet) } : null,
     invoicePaymentDay: card.invoicePaymentDay,
     lastFourDigits: card.lastFourDigits,
     flag: card.flag,

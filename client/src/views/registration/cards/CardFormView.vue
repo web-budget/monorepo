@@ -17,6 +17,7 @@ import {
 } from '@/schemas/cardSchema'
 import { useCardsStore } from '@/stores/cards'
 import { useWalletsStore } from '@/stores/wallets'
+import { walletLabel } from '@/utils/walletLabel'
 
 const props = defineProps<{ id?: string }>()
 
@@ -41,7 +42,7 @@ const { messages, fields, submitting, loadingRecord, dirty, changeToList, onSubm
 
 const updating = computed(() => props.id !== undefined)
 const walletOptions = computed(() =>
-  wallets.value.map((wallet) => ({ id: wallet.id, label: wallet.name })),
+  wallets.value.map((wallet) => ({ id: wallet.id, label: walletLabel(wallet) })),
 )
 </script>
 

@@ -5,6 +5,7 @@ import DetailField from '@/components/common/DetailField.vue'
 import DetailSection from '@/components/common/DetailSection.vue'
 import { useCrudDetail } from '@/composables/useCrudDetail'
 import { useCardsStore } from '@/stores/cards'
+import { walletLabel } from '@/utils/walletLabel'
 
 const props = defineProps<{ id: string }>()
 
@@ -41,7 +42,10 @@ const { messages, changeToUpdate, remove } = useCrudDetail({
           :value="card.invoicePaymentDay"
           mono
         />
-        <DetailField :label="$t('card.form.wallet')" :value="card.wallet?.name" />
+        <DetailField
+          :label="$t('card.form.wallet')"
+          :value="card.wallet ? walletLabel(card.wallet) : undefined"
+        />
       </DetailSection>
     </template>
   </DetailCard>
