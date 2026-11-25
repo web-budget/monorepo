@@ -605,6 +605,7 @@ function createPeriod() {
       :cards="activeCards.cards.value"
       :loading="loading"
       :balance-of="activeWallets.balanceOf"
+      :messages="actions.payMessages.value"
       @close="actions.closePay()"
       @pay="actions.pay"
     />
@@ -621,6 +622,7 @@ function createPeriod() {
       :due-date="closeInvoice.dueDate.value"
       :wallet-name="closeInvoice.card.value?.wallet?.name ?? null"
       :loading="loading"
+      :messages="closeInvoice.closeMessages.value"
       @close="closeInvoice.close()"
       @confirm="closeInvoice.confirm()"
     />

@@ -504,7 +504,8 @@ describe('PeriodClosingView', () => {
     dialogButton('Fechar fatura').click()
     await settle()
     expect(document.body.querySelector('[role="dialog"]')).not.toBeNull()
-    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
+    expect(dialogError()).toContain('A fatura não está aberta')
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
     dialogButton('Cancelar').click()
     await flushPromises()
 
@@ -556,6 +557,20 @@ describe('PeriodClosingView', () => {
 
     expect(movementsApi.pay).toHaveBeenCalledWith('m-1', { wallet: 'w-1', paidOn: '2026-11-21' })
     expect(financialPeriodsApi.findClosing).toHaveBeenCalledTimes(2)
+  })
+
+  it('keeps the payment dialog open and shows what the server refuses inside it', async () => {
+    const { wrapper } = await render()
+    vi.mocked(movementsApi.pay).mockRejectedValue(problem(400, { error: 'invoice-not-open' }))
+
+    await buttonWithText(wrapper, 'Pagar').trigger('click')
+    const dialog = wrapper.getComponent(PayMovementDialog)
+    dialog.vm.$emit('pay', dialog.props('movement'), { wallet: 'w-1', paidOn: '2026-11-21' })
+    await settle()
+
+    expect(dialog.props('movement')).not.toBeNull()
+    expect(dialog.props('messages')).toEqual([expect.stringContaining('A fatura não está aberta')])
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
   })
 
   it('flags the invoice payment when paying it', async () => {
