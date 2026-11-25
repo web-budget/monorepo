@@ -96,7 +96,7 @@ describe('CardFormView', () => {
     expect(walletsApi.findAll).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'ACTIVE', sort: 'name,asc' }),
     )
-    expect(options(wrapper, 1)).toEqual([{ value: 'w-1', label: 'Main' }])
+    expect(options(wrapper, 1)).toEqual([{ value: 'w-1', label: 'Main, ACME' }])
     expect(selects(wrapper)[1]!.props('modelValue')).toBe('__none__')
   })
 
@@ -250,7 +250,7 @@ describe('CardFormView', () => {
     expect((field(wrapper, 'invoicePaymentDay').element as HTMLInputElement).value).toBe('10')
     expect(options(wrapper, 0).map((option) => option.label)).toContain('Hipercard')
     expect(selects(wrapper)[0]!.props('modelValue')).toBe('Hipercard')
-    expect(options(wrapper, 1).map((option) => option.label)).toEqual(['Main', 'Old wallet'])
+    expect(options(wrapper, 1).map((option) => option.label)).toEqual(['Main, ACME', 'Old wallet, ACME'])
     expect(selects(wrapper)[1]!.props('modelValue')).toBe('w-9')
   })
 
@@ -259,7 +259,7 @@ describe('CardFormView', () => {
 
     const { wrapper } = await mountView(CardFormView, 'cards', { id: 'k-1' })
 
-    expect(options(wrapper, 1)).toEqual([{ value: 'w-1', label: 'Main' }])
+    expect(options(wrapper, 1)).toEqual([{ value: 'w-1', label: 'Main, ACME' }])
     expect(selects(wrapper)[1]!.props('modelValue')).toBe('w-1')
   })
 
@@ -275,7 +275,7 @@ describe('CardFormView', () => {
       },
     )
 
-    expect(options(wrapper, 1)).toEqual([{ value: 'w-1', label: 'Main' }])
+    expect(options(wrapper, 1)).toEqual([{ value: 'w-1', label: 'Main, ACME' }])
   })
   it('saves the changes of a card and its status, and goes to the detail', async () => {
     vi.mocked(cardsApi.findById).mockResolvedValue({ ...card, wallet: null })
@@ -321,6 +321,15 @@ describe('CardFormView', () => {
     expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
       'Tente novamente mais tarde',
     )
+  })
+
+  it('does not take the focus from the field when Cancelar is pressed', async () => {
+    const { wrapper } = await mountView(CardFormView, 'cards')
+    const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
+
+    buttonWithText(wrapper, 'Cancelar').element.dispatchEvent(press)
+
+    expect(press.defaultPrevented).toBe(true)
   })
 
   it('goes back to the listing with Cancelar', async () => {
