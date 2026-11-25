@@ -151,6 +151,7 @@ const header = computed(() => {
             variant="ghost"
             size="icon-sm"
             :aria-label="$t('account.close')"
+            @mousedown.prevent
             @click="close()"
           >
             <X />

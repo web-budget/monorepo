@@ -139,6 +139,15 @@ describe('AccountDialog', () => {
     expect(content().textContent).toContain('Você entra com o Google')
   })
 
+  it('does not take the focus from the field when the close button is pressed', async () => {
+    await show('profile')
+    const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
+
+    content().querySelector('button[aria-label="Fechar"]')!.dispatchEvent(press)
+
+    expect(press.defaultPrevented).toBe(true)
+  })
+
   it('closes with the close button', async () => {
     await show('profile')
 
