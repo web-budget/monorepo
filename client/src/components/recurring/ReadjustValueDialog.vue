@@ -82,7 +82,7 @@ const submit = form.handleSubmit((values) => {
           :maxlength="150"
         />
         <DialogFooter>
-          <Button type="button" variant="outline" @click="emit('close')">
+          <Button type="button" variant="outline" @mousedown.prevent @click="emit('close')">
             {{ $t('form.cancel') }}
           </Button>
           <Button type="submit" :disabled="loading">
