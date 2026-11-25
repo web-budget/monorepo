@@ -117,6 +117,18 @@ describe('AdjustBalanceDialog', () => {
     expect(wrapper.emitted('adjust')).toEqual([[wallet, { value: 0.03 }]])
   })
 
+  it('does not take the focus from the field when the cancel button is pressed', async () => {
+    await render()
+    const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
+
+    const cancel = [...document.body.querySelectorAll('button')].find(
+      (button) => button.textContent?.trim() === 'Cancelar',
+    )!
+    cancel.dispatchEvent(press)
+
+    expect(press.defaultPrevented).toBe(true)
+  })
+
   it('emits close from the cancel button and from dismissing', async () => {
     const wrapper = await render()
 

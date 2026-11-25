@@ -244,10 +244,14 @@ describe('StatementView', () => {
     expect(wrapper.find('[data-slot="balance"]').text()).toMatch(/R\$\s4\.781,65/)
     expect(wrapper.find('[data-slot="balance"]').text()).toContain('Atualizado em 20/11/2026 10:05')
     expect(wrapper.find('[data-slot="credits"]').text()).toContain('Créditos no filtro')
-    expect(wrapper.find('[data-slot="credits"]').text()).toMatch(/\+R\$\s18\.886,53/)
+    const credits = wrapper.find('[data-slot="credits"] [data-slot="currency"]')
+    expect(credits.text()).toMatch(/^R\$\s18\.886,53$/)
+    expect(credits.classes()).toContain('text-income')
     expect(wrapper.find('[data-slot="credits"]').text()).toContain('7 linhas')
     expect(wrapper.find('[data-slot="debits"]').text()).toContain('Débitos no filtro')
-    expect(wrapper.find('[data-slot="debits"]').text()).toMatch(/−R\$\s14\.074,16/)
+    const debits = wrapper.find('[data-slot="debits"] [data-slot="currency"]')
+    expect(debits.text()).toMatch(/^R\$\s14\.074,16$/)
+    expect(debits.classes()).toContain('text-expense')
     expect(wrapper.find('[data-slot="debits"]').text()).toContain('1 linha')
   })
 
@@ -285,16 +289,43 @@ describe('StatementView', () => {
       expect(rows[0]!.text()).toContain('20/11/2026 14:02')
       expect(rows[0]!.text()).toContain('Despesa')
       expect(rows[0]!.text()).toContain('Conta de luz')
-      expect(rows[0]!.text()).toContain('−218,35')
+      expect(rows[0]!.text()).toContain('218,35')
+      expect(rows[0]!.text()).not.toMatch(/[−+]/)
       expect(rows[0]!.text()).not.toContain('R$')
       expect(rows[0]!.text()).toContain('5.000,00')
       expect(rows[0]!.text()).toContain('4.781,65')
       expect(rows[1]!.text()).toContain('Estorno de Academia')
-      expect(rows[1]!.text()).toContain('+129,90')
+      expect(rows[1]!.text()).toContain('129,90')
+      expect(rows[1]!.text()).not.toMatch(/[−+]/)
       expect(rows[1]!.attributes('data-state')).toBe('selected')
       expect(rows[0]!.attributes('data-state')).toBeUndefined()
       expect(rows[2]!.text()).toContain('Ajuste')
       expect(rows[2]!.text()).toContain('Ajuste de saldo')
+    })
+
+    it('colors the value by direction, with no sign', async () => {
+      const { wrapper } = await render()
+
+      const rows = wrapper.findAll('tbody tr')
+      expect(rows[0]!.find('[data-slot="currency"]').classes()).toContain('text-expense')
+      expect(rows[1]!.find('[data-slot="currency"]').classes()).toContain('text-income')
+    })
+
+    it('signs and colors only a negative balance in the balance columns', async () => {
+      const { wrapper } = await render(undefined, [
+        { ...entries[0]!, previousBalance: -100, resultingBalance: -318.35 },
+        { ...entries[1]!, previousBalance: -50, resultingBalance: 0 },
+        { ...entries[2]!, previousBalance: 10, resultingBalance: 20 },
+      ])
+
+      const cells = (row: number) =>
+        wrapper.findAll('tbody tr')[row]!.findAll('[data-slot="currency"]').slice(1)
+      expect(cells(0).map((cell) => cell.text())).toEqual(['−100,00', '−318,35'])
+      expect(cells(0).every((cell) => cell.classes().includes('text-expense'))).toBe(true)
+      expect(cells(1).map((cell) => cell.text())).toEqual(['−50,00', '0,00'])
+      expect(cells(1)[1]!.classes()).not.toContain('text-expense')
+      expect(cells(2).map((cell) => cell.text())).toEqual(['10,00', '20,00'])
+      expect(cells(2).some((cell) => cell.classes().includes('text-expense'))).toBe(false)
     })
 
     it('says to, from, return to and return from on the transfers', async () => {

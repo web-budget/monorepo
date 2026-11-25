@@ -221,10 +221,6 @@ const columns = computed(() => [
   },
 ])
 
-function signedValue(entry: WalletEntryView) {
-  return entry.direction === 'CREDIT' ? entry.value : -entry.value
-}
-
 const REFERENCE_PATHS = { MOVEMENT: 'movements', TRANSFER: 'transfers' } as const
 
 function originPath(entry: WalletEntryView) {
@@ -344,7 +340,7 @@ async function adjust(target: { id: string }, form: { value: number }) {
           <span class="text-muted-foreground text-xs">{{ $t('statement.credits') }}</span>
           <CurrencyDisplay
             :value="summary?.credits.total ?? 0"
-            signed
+            tone="income"
             glued
             class="text-xl font-semibold tracking-tight"
           />
@@ -361,8 +357,8 @@ async function adjust(target: { id: string }, form: { value: number }) {
         <Card class="gap-1 p-4" data-slot="debits">
           <span class="text-muted-foreground text-xs">{{ $t('statement.debits') }}</span>
           <CurrencyDisplay
-            :value="-(summary?.debits.total ?? 0)"
-            signed
+            :value="summary?.debits.total ?? 0"
+            tone="expense"
             glued
             class="text-xl font-semibold tracking-tight"
           />
@@ -493,14 +489,28 @@ async function adjust(target: { id: string }, form: { value: number }) {
               :is="item.direction === 'CREDIT' ? ArrowDownLeft : ArrowUpRight"
               :class="['size-3.5', item.direction === 'CREDIT' ? 'text-income' : 'text-expense']"
             />
-            <CurrencyDisplay :value="signedValue(item)" signed bare glued />
+            <CurrencyDisplay
+              :value="item.value"
+              :tone="item.direction === 'CREDIT' ? 'income' : 'expense'"
+              bare
+            />
           </span>
         </template>
         <template #cell-previousBalance="{ item }">
-          <CurrencyDisplay :value="item.previousBalance" bare />
+          <CurrencyDisplay
+            :value="item.previousBalance"
+            :signed="item.previousBalance < 0"
+            bare
+            glued
+          />
         </template>
         <template #cell-resultingBalance="{ item }">
-          <CurrencyDisplay :value="item.resultingBalance" bare />
+          <CurrencyDisplay
+            :value="item.resultingBalance"
+            :signed="item.resultingBalance < 0"
+            bare
+            glued
+          />
         </template>
         <template #cell-reference="{ item }">
           <RouterLink

@@ -80,6 +80,18 @@ describe('MoveMovementDialog', () => {
     expect(confirmButton().disabled).toBe(true)
   })
 
+  it('does not take the focus from the field when Cancelar is pressed', async () => {
+    await render()
+    const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
+
+    const cancel = [...document.body.querySelectorAll('button')].find(
+      (button) => button.textContent?.trim() === 'Cancelar',
+    )!
+    cancel.dispatchEvent(press)
+
+    expect(press.defaultPrevented).toBe(true)
+  })
+
   it('asks to close with Escape', async () => {
     const wrapper = await render()
 

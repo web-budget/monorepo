@@ -81,7 +81,7 @@ const onSubmit = form.handleSubmit(async (values) => {
           </FormItem>
         </FormField>
         <DialogFooter>
-          <Button type="button" variant="outline" @click="emit('close')">
+          <Button type="button" variant="outline" @mousedown.prevent @click="emit('close')">
             {{ $t('form.cancel') }}
           </Button>
           <Button type="submit" :disabled="store.loading">{{ $t('users.password.submit') }}</Button>

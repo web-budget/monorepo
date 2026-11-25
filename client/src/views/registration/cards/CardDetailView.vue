@@ -9,6 +9,7 @@ import DetailSection from '@/components/common/DetailSection.vue'
 import { Button } from '@/components/ui/button'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { useCardsStore } from '@/stores/cards'
+import { walletLabel } from '@/utils/walletLabel'
 
 const props = defineProps<{ id: string }>()
 
@@ -57,7 +58,7 @@ function viewInvoices() {
           :value="card.invoicePaymentDay"
           mono
         />
-        <DetailField :label="$t('card.detail.wallet')" :value="card.wallet?.name" />
+        <DetailField :label="$t('card.detail.wallet')" :value="card.wallet ? walletLabel(card.wallet) : undefined" />
       </DetailSection>
     </template>
   </DetailCard>
