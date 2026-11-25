@@ -9,22 +9,18 @@ const props = withDefaults(
     signed?: boolean
     bare?: boolean
     glued?: boolean
-    neutral?: boolean
     tone?: 'income' | 'expense'
   }>(),
-  { zeroIfNull: false, signed: false, bare: false, glued: false, neutral: false },
+  { zeroIfNull: false, signed: false, bare: false, glued: false },
 )
 
 const { n } = useI18n()
 
 const amount = computed(() => props.value ?? (props.zeroIfNull ? 0 : null))
 
-const direction = computed(() => {
-  if (!props.signed || !amount.value) return null
-  return amount.value > 0 ? 'income' : 'expense'
-})
+const negative = computed(() => props.signed && Number(amount.value) < 0)
 
-const color = computed(() => direction.value ?? props.tone ?? null)
+const color = computed(() => (negative.value ? 'expense' : (props.tone ?? null)))
 
 function plain(value: number) {
   const formatted = n(value, 'currency')
@@ -32,9 +28,8 @@ function plain(value: number) {
 }
 
 function format(value: number) {
-  if (direction.value === null) return plain(value)
-  const sign = direction.value === 'income' ? '+' : '−'
-  return `${sign}${props.glued ? '' : ' '}${plain(Math.abs(value))}`
+  if (!negative.value) return plain(value)
+  return `−${props.glued ? '' : ' '}${plain(Math.abs(value))}`
 }
 </script>
 
@@ -45,8 +40,8 @@ function format(value: number) {
     :data-direction="color ?? undefined"
     :class="[
       'font-mono tabular-nums',
-      !neutral && color === 'income' && 'text-income',
-      !neutral && color === 'expense' && 'text-expense',
+      color === 'income' && 'text-income',
+      color === 'expense' && 'text-expense',
     ]"
     >{{ format(amount) }}</span
   >

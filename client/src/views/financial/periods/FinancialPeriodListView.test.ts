@@ -114,6 +114,7 @@ describe('FinancialPeriodListView', () => {
     expect(rows[1]!.text()).toContain('Aberto · expirado')
     expect(rows[2]!.text()).toContain('Encerrado')
     expect(rows[2]!.text()).toContain('1.500,00')
+    expect(rows[2]!.text()).not.toMatch(/[+−]/)
     expect(rows[2]!.text()).not.toContain('provisório')
     expect(financialPeriodsApi.findResult).toHaveBeenCalledTimes(1)
     expect(financialPeriodsApi.findResult).toHaveBeenCalledWith('p-3')

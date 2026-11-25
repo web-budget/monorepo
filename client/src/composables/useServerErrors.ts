@@ -11,6 +11,11 @@ export function useServerErrors() {
     fields.value = []
   }
 
+  function clear() {
+    messages.value = []
+    fields.value = []
+  }
+
   async function run(action: () => Promise<unknown>): Promise<boolean> {
     messages.value = []
     fields.value = []
@@ -27,5 +32,5 @@ export function useServerErrors() {
     }
   }
 
-  return { messages, fields, clearFields, run }
+  return { messages, fields, clear, clearFields, run }
 }

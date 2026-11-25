@@ -1273,8 +1273,8 @@
       "paid": "Payment recorded",
       "paid-detail": "It left {wallet}, new line on the statement.",
       "payment-undone": "Payment undone",
-      "payment-undone-detail": "The reversal is already on the statement and the movement is open again.",
-      "created-paid-detail": "Posted already paid: the money left the wallet.",
+      "payment-undone-detail": "The payment was reversed and the movement is open again.",
+      "created-paid-detail": "Recorded as paid, with the payment registered.",
       "received": "Receipt registered",
       "received-detail": "It entered {wallet}, new line on the statement.",
       "paid-on-card-detail": "It entered the invoice of {card}."
@@ -1545,7 +1545,7 @@
       "adjustment": "Adjustment",
       "balance-after": "Balance after",
       "confirm": "Adjust",
-      "value-example": "+0.03 or −0.02"
+      "value-example": "0.03 or −0.02"
     },
     "toast": {
       "adjusted": "Balance adjusted",

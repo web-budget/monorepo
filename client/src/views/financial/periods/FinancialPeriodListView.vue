@@ -238,7 +238,7 @@ const listCopy = computed(() => ({
           <CurrencyDisplay
             v-if="item.status === 'CLOSED' && results[item.id] !== undefined"
             :value="results[item.id] as number"
-            signed
+            :signed="(results[item.id] as number) < 0"
             glued
             bare
           />

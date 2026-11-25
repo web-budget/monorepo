@@ -67,6 +67,9 @@ const {
 const {
   messages: actionMessages,
   approveTarget,
+  approveMessages,
+  openApprove,
+  closeApprove,
   approve,
   block,
   unblock,
@@ -216,7 +219,7 @@ onMounted(() => store.findRoles().catch(() => undefined))
             :user="item"
             :own="isOwnAccount(item)"
             @edit="changeToUpdate(item.id)"
-            @approve="approveTarget = item"
+            @approve="openApprove(item)"
             @block="block(item)"
             @unblock="unblock(item)"
             @reset-password="passwordTarget = item"
@@ -230,7 +233,8 @@ onMounted(() => store.findRoles().catch(() => undefined))
         :user="approveTarget"
         :roles="store.roles"
         :loading="loading"
-        @close="approveTarget = null"
+        :messages="approveMessages"
+        @close="closeApprove()"
         @approve="approve"
       />
     </div>
