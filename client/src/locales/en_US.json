@@ -1545,7 +1545,7 @@
       "adjustment": "Adjustment",
       "balance-after": "Balance after",
       "confirm": "Adjust",
-      "value-example": "+0.03 or −0.02"
+      "value-example": "0.03 or −0.02"
     },
     "toast": {
       "adjusted": "Balance adjusted",

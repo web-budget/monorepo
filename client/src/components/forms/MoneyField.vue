@@ -50,7 +50,7 @@ function show(value: number | null | undefined) {
   if (value === null || value === undefined) {
     return pendingMinus.value ? '−' : ''
   }
-  return `${value < 0 ? '−' : '+'}${format(Math.abs(value))}`
+  return value < 0 ? `−${format(Math.abs(value))}` : format(value)
 }
 
 function readSigned(input: HTMLInputElement, value: number | null | undefined) {

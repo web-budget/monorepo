@@ -104,6 +104,8 @@ onMounted(async () => {
         <DetailField :label="$t('financial-period.result.result')">
           <CurrencyDisplay
             :value="periodResult.result"
+            :signed="periodResult.result < 0"
+            glued
             zero-if-null
             class="text-base font-semibold"
           />

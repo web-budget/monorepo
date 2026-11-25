@@ -33,15 +33,16 @@ describe('CurrencyDisplay signed', () => {
     })
   }
 
-  it('prefixes income with a plus sign and colors it as income', () => {
+  it('never adds a plus sign to a positive value', () => {
     const wrapper = renderSigned(2300)
 
-    expect(wrapper.text()).toMatch(/^\+ R\$\s*2\.300,00$/)
-    expect(wrapper.classes()).toContain('text-income')
-    expect(wrapper.attributes('data-direction')).toBe('income')
+    expect(wrapper.text()).toMatch(/^R\$\s*2\.300,00$/)
+    expect(wrapper.classes()).not.toContain('text-income')
+    expect(wrapper.classes()).not.toContain('text-expense')
+    expect(wrapper.attributes('data-direction')).toBeUndefined()
   })
 
-  it('prefixes expense with a minus sign and colors it as expense', () => {
+  it('prefixes a negative value with a minus sign and colors it as expense', () => {
     const wrapper = renderSigned(-2300)
 
     expect(wrapper.text()).toMatch(/^− R\$\s*2\.300,00$/)
@@ -100,7 +101,7 @@ describe('CurrencyDisplay tone', () => {
     expect(wrapper.classes()).toContain('text-expense')
   })
 
-  it('lets the sign direction win over the tone', () => {
+  it('lets the minus sign of a negative value win over the tone', () => {
     const wrapper = mount(CurrencyDisplay, {
       props: { value: -50, signed: true, tone: 'income' },
       global: { plugins: [i18n] },
@@ -110,12 +111,13 @@ describe('CurrencyDisplay tone', () => {
     expect(wrapper.classes()).toContain('text-expense')
   })
 
-  it('drops the color when neutral', () => {
+  it('keeps the tone and adds no sign when signed is given for a positive value', () => {
     const wrapper = mount(CurrencyDisplay, {
-      props: { value: 10, tone: 'income', neutral: true },
+      props: { value: 50, signed: true, tone: 'income' },
       global: { plugins: [i18n] },
     })
 
-    expect(wrapper.classes()).not.toContain('text-income')
+    expect(wrapper.text()).toMatch(/^R\$\s*50,00$/)
+    expect(wrapper.classes()).toContain('text-income')
   })
 })

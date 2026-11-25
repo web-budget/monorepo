@@ -32,7 +32,8 @@ const adjustment = computed(() => {
   const value = Number(form.values.value)
   return Number.isFinite(value) ? value : 0
 })
-const balanceAfter = computed(() => (props.wallet?.balance ?? 0) + adjustment.value)
+const walletBalance = computed(() => props.wallet?.balance ?? 0)
+const balanceAfter = computed(() => walletBalance.value + adjustment.value)
 
 watch(
   () => props.wallet,
@@ -65,15 +66,15 @@ const submit = form.handleSubmit((values) => {
         >
           <div class="flex justify-between gap-3">
             <dt class="text-muted-foreground">{{ $t('statement.adjust.wallet-balance') }}</dt>
-            <dd><CurrencyDisplay :value="wallet?.balance ?? 0" /></dd>
+            <dd><CurrencyDisplay :value="walletBalance" :signed="walletBalance < 0" glued /></dd>
           </div>
           <div class="flex justify-between gap-3">
             <dt class="text-muted-foreground">{{ $t('statement.adjust.adjustment') }}</dt>
-            <dd><CurrencyDisplay :value="adjustment" signed glued /></dd>
+            <dd><CurrencyDisplay :value="adjustment" :signed="adjustment < 0" glued /></dd>
           </div>
           <div class="flex justify-between gap-3 border-t pt-1.5 font-semibold">
             <dt>{{ $t('statement.adjust.balance-after') }}</dt>
-            <dd><CurrencyDisplay :value="balanceAfter" /></dd>
+            <dd><CurrencyDisplay :value="balanceAfter" :signed="balanceAfter < 0" glued /></dd>
           </div>
         </dl>
         <DialogFooter>

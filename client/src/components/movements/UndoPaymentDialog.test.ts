@@ -82,14 +82,14 @@ describe('UndoPaymentDialog', () => {
   it('shows the reversal of an expense as a credit', async () => {
     await render(paidExpense)
 
-    expect(reversal()).toMatch(/Estorno de \+R\$\s90,00/)
+    expect(reversal()).toMatch(/Estorno de R\$\s90,00/)
     expect(document.body.querySelector('[data-slot="reversal"] .text-income')).not.toBeNull()
   })
 
   it('shows the reversal of an income as a debit', async () => {
     await render(paidIncome)
 
-    expect(reversal()).toMatch(/Estorno de −R\$\s8\.300,00/)
+    expect(reversal()).toMatch(/Estorno de R\$\s8\.300,00/)
     expect(document.body.querySelector('[data-slot="reversal"] .text-expense')).not.toBeNull()
   })
 
@@ -102,7 +102,7 @@ describe('UndoPaymentDialog', () => {
   it('copes with a movement that has no payment', async () => {
     await render(withoutPayment)
 
-    expect(reversal()).toMatch(/Estorno de \+R\$\s0,00/)
+    expect(reversal()).toMatch(/Estorno de R\$\s0,00/)
   })
 
   it('emits confirm with the movement', async () => {

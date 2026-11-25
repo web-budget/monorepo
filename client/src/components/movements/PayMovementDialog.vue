@@ -191,7 +191,7 @@ const submit = form.handleSubmit((values) => {
           </div>
           <div v-else-if="balance !== null" class="flex justify-between gap-3">
             <dt class="text-muted-foreground">{{ t('movement.pay.wallet-balance') }}</dt>
-            <dd><CurrencyDisplay :value="balance" /></dd>
+            <dd><CurrencyDisplay :value="balance" :signed="balance < 0" glued /></dd>
           </div>
           <div class="flex justify-between gap-3">
             <dt class="text-muted-foreground">{{ t('movement.pay.movement-value') }}</dt>
@@ -212,7 +212,7 @@ const submit = form.handleSubmit((values) => {
             class="flex justify-between gap-3 font-semibold"
           >
             <dt>{{ t('movement.pay.balance-after') }}</dt>
-            <dd><CurrencyDisplay :value="balanceAfter" /></dd>
+            <dd><CurrencyDisplay :value="balanceAfter" :signed="balanceAfter < 0" glued /></dd>
           </div>
         </dl>
         <DialogFooter>
