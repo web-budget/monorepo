@@ -79,7 +79,10 @@
       "recurring-movement-with-launches": "The recurring movement already has launches and cannot be deleted. Deactivate it to stop launching.",
       "card-recurring-must-be-expense": "Only an expense can have a suggested card",
       "inactive-card": "The card is inactive",
-      "launch-value-only-for-variable": "Only a variable recurring movement takes a value when launched"
+      "launch-value-only-for-variable": "Only a variable recurring movement takes a value when launched",
+      "recurring-movement-inactive": "The recurring movement is inactive",
+      "recurring-movement-finished": "The recurring movement has already launched every installment",
+      "launch-quantity-out-of-range": "The quantity is above what can be launched"
     },
     "not-found": {
       "detail": "Not found",
@@ -704,6 +707,7 @@
       "details": "Details",
       "edit": "Edit",
       "readjust": "Readjust value",
+      "launch-in-period": "Launch in period",
       "remove": "Delete"
     },
     "readjust": {
@@ -714,6 +718,22 @@
       "reason": "Reason",
       "confirm": "Readjust",
       "reason-example": "Optional. E.g.: annual readjustment"
+    },
+    "launch-extra": {
+      "title": "Launch “{name}” in the period",
+      "description": "Creates more open movements in the same period. The batch and the automatic launch stay at one per period.",
+      "period": "Period",
+      "quantity": "Quantity",
+      "quantity-installments": "From 1 to {maximum}, the installments left.",
+      "quantity-endless": "From 1 to {maximum}.",
+      "value": "Value",
+      "value-hint": "Optional. Blank uses the suggested value, {value}.",
+      "preview": "Will create:",
+      "preview-installments": "{name} {installments}, due {date}.",
+      "preview-endless": "{name}, due {date}. | {count} movements of {name}, due {date}.",
+      "and": "and",
+      "no-period": "There is no open period. Create a period to launch.",
+      "confirm": "Launch"
     },
     "remove": {
       "title": "Delete “{name}”?",
@@ -729,6 +749,7 @@
       "readjusted": "Value readjusted",
       "readjusted-detail": "Valid from the next launch.",
       "launched": "Recurring movements launched",
+      "extra-launched": "{count} movement created | {count} movements created",
       "launched-detail": "{count} entry created in {period}. | {count} entries created in {period}.",
       "skipped": "Some recurring movements were left out"
     },

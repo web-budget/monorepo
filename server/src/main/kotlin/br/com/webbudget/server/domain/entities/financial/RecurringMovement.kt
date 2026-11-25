@@ -34,6 +34,9 @@ class RecurringMovement(
     val launchValue: BigDecimal
         get() = if (valueKind == ValueKind.VARIABLE) lastPaidValue ?: value else value
 
+    fun maxExtraLaunches(): Int =
+        if (installments == null) MAX_EXTRA_LAUNCHES else installments!! - nextInstallment!! + 1
+
     fun movementName(installment: Int): String {
 
         val total = installments ?: return name
@@ -47,6 +50,7 @@ class RecurringMovement(
 
     companion object {
         const val MAX_NAME_LENGTH = 150
+        const val MAX_EXTRA_LAUNCHES = 12
     }
 }
 

@@ -5,6 +5,7 @@ import { useCrudResource } from '@/composables/useCrudResource'
 import type {
   MovementType,
   PageQuery,
+  RecurringExtraLaunchForm,
   RecurringLaunchEntryView,
   RecurringMovementQuery,
   RecurringMovementStatusFilter,
@@ -79,6 +80,10 @@ export const useRecurringMovementsStore = defineStore('recurringMovements', () =
     })
   }
 
+  function launchExtra(id: string, form: RecurringExtraLaunchForm) {
+    return resource.track(() => recurringMovementsApi.launchExtra(id, form))
+  }
+
   function reset() {
     filters.value = {}
     values.value = createPageResponse()
@@ -103,6 +108,7 @@ export const useRecurringMovementsStore = defineStore('recurringMovements', () =
     findValues,
     findLaunches,
     readjust,
+    launchExtra,
     reset,
   }
 })

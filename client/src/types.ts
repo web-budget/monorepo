@@ -801,6 +801,12 @@ export interface RecurringLaunchItem {
   value?: number
 }
 
+export interface RecurringExtraLaunchForm {
+  financialPeriod: string
+  quantity: number
+  value?: number
+}
+
 export type RecurringSkipReason = 'inactive' | 'finished' | 'already-launched-in-period'
 
 export interface RecurringLaunchReport {

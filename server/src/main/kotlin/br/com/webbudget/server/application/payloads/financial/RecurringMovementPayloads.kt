@@ -83,6 +83,16 @@ data class RecurringLaunchForm(
     val recurringMovements: List<RecurringLaunchItemForm>?
 )
 
+data class RecurringExtraLaunchForm(
+    @field:NotNull(message = IS_NULL)
+    val financialPeriod: UUID?,
+    @field:NotNull(message = IS_NULL)
+    @field:Positive(message = IS_NOT_POSITIVE)
+    val quantity: Int?,
+    @field:Positive(message = IS_NOT_POSITIVE)
+    val value: BigDecimal?
+)
+
 data class RecurringMovementFilter(
     val filter: String? = null,
     val type: Movement.Type? = null,

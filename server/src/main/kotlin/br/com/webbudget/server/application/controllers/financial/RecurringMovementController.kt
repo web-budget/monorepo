@@ -1,6 +1,7 @@
 package br.com.webbudget.server.application.controllers.financial
 
 import br.com.webbudget.server.application.mappers.financial.RecurringMovementMapper
+import br.com.webbudget.server.application.payloads.financial.RecurringExtraLaunchForm
 import br.com.webbudget.server.application.payloads.financial.RecurringLaunchEntryView
 import br.com.webbudget.server.application.payloads.financial.RecurringLaunchForm
 import br.com.webbudget.server.application.payloads.financial.RecurringLaunchView
@@ -131,6 +132,22 @@ class RecurringMovementController(
             ?: throw ResourceNotFoundException()
 
         val report = recurringLaunchService.launch(financialPeriod, recurringMovementMapper.mapToDomain(form))
+
+        return ResponseEntity.ok(recurringMovementMapper.mapToView(report))
+    }
+
+    @PostMapping("/{id}/launch-extra")
+    fun launchExtra(
+        @PathVariable id: UUID,
+        @RequestBody @Valid form: RecurringExtraLaunchForm
+    ): ResponseEntity<RecurringLaunchView> {
+
+        val recurringMovement = findRecurringMovement(id)
+
+        val financialPeriod = movementReferenceRepository.findFinancialPeriod(form.financialPeriod!!)
+            ?: throw ResourceNotFoundException()
+
+        val report = recurringLaunchService.launchExtra(recurringMovement, financialPeriod, form.quantity!!, form.value)
 
         return ResponseEntity.ok(recurringMovementMapper.mapToView(report))
     }

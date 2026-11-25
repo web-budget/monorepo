@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <changeSet id="25-1000-1" author="${claude}">
+        <sql>
+            ALTER TABLE financial.recurring_launches
+                DROP CONSTRAINT uk_recurring_launches_on_recurring_movement_and_period;
+            ALTER TABLE financial.recurring_launches
+                ADD CONSTRAINT uk_recurring_launches_on_recurring_movement_and_installment UNIQUE (id_recurring_movement, installment);
+        </sql>
+        <rollback>
+            <sql>
+                ALTER TABLE financial.recurring_launches
+                    DROP CONSTRAINT uk_recurring_launches_on_recurring_movement_and_installment;
+                ALTER TABLE financial.recurring_launches
+                    ADD CONSTRAINT uk_recurring_launches_on_recurring_movement_and_period UNIQUE (id_recurring_movement, id_financial_period);
+            </sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
