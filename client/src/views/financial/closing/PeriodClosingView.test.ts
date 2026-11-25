@@ -204,6 +204,12 @@ async function render(
 
 type Wrapper = Awaited<ReturnType<typeof render>>['wrapper']
 
+function dialogError() {
+  return (
+    document.body.querySelector('[role="dialog"] [data-slot="server-error"]')?.textContent ?? ''
+  )
+}
+
 function dialogButton(label: string) {
   const button = [
     ...document.body.querySelectorAll<HTMLButtonElement>('[role="dialog"] button'),
@@ -267,22 +273,23 @@ describe('PeriodClosingView', () => {
     const summary = wrapper.find('[data-slot="summary"]').text()
     expect(summary).toContain('Resumo do período')
     expect(summary).toContain('Receitas pagas')
-    expect(summary).toMatch(/\+R\$\s1\.000,00/)
-    expect(summary).toMatch(/−R\$\s400,00/)
-    expect(summary).toMatch(/\+R\$\s600,00/)
-    expect(summary).toMatch(/\+R\$\s2\.000,00/)
+    expect(summary).toMatch(/Receitas pagasR\$\s1\.000,00/)
+    expect(summary).toMatch(/Despesas pagasR\$\s400,00/)
+    expect(summary).toMatch(/ResultadoR\$\s600,00/)
+    expect(summary).toMatch(/AcumuladoR\$\s2\.000,00/)
+    expect(summary).not.toMatch(/[+−]R\$/)
     expect(summary).toContain('Fechados mais provisório dos abertos')
   })
 
-  it('keeps the sign on zero and on negative values, painting only revenues and expenses', async () => {
+  it('signs only a negative result and accumulated, painting revenues and expenses by tone', async () => {
     const { wrapper } = await render('/financial/closing', blocked, {
       totals: { revenues: 0, expenses: 0, result: -400, accumulated: -400 },
     })
 
     const cards = wrapper.find('[data-slot="summary"]').findAll('[data-slot="currency"]')
     expect(cards.map((card) => card.text().split(String.fromCharCode(160)).join(' '))).toEqual([
-      '+R$ 0,00',
-      '−R$ 0,00',
+      'R$ 0,00',
+      'R$ 0,00',
       '−R$ 400,00',
       '−R$ 400,00',
     ])
@@ -290,7 +297,25 @@ describe('PeriodClosingView', () => {
       cards.map((card) =>
         card.classes().filter((name) => name.startsWith('text-income') || name === 'text-expense'),
       ),
-    ).toEqual([['text-income'], ['text-expense'], [], []])
+    ).toEqual([['text-income'], ['text-expense'], ['text-expense'], ['text-expense']])
+  })
+
+  it('leaves a zero or positive result and accumulated unsigned and in the default color', async () => {
+    const { wrapper } = await render('/financial/closing', blocked, {
+      totals: { revenues: 100, expenses: 100, result: 0, accumulated: 50 },
+    })
+
+    const cards = wrapper.find('[data-slot="summary"]').findAll('[data-slot="currency"]')
+    expect(cards.map((card) => card.text().split(String.fromCharCode(160)).join(' '))).toEqual([
+      'R$ 100,00',
+      'R$ 100,00',
+      'R$ 0,00',
+      'R$ 50,00',
+    ])
+    expect(cards.slice(2).map((card) => card.attributes('data-direction'))).toEqual([
+      undefined,
+      undefined,
+    ])
   })
 
   it('lists the pending items, marking the overdue and the invoice payment', async () => {
@@ -305,13 +330,17 @@ describe('PeriodClosingView', () => {
     ])
     expect(rows[0]!.text()).toContain('vencido')
     expect(rows[0]!.text()).toContain('20/10/2026')
-    expect(rows[0]!.text()).toContain('−100,00')
+    expect(rows[0]!.text()).toContain('100,00')
+    expect(rows[0]!.text()).not.toMatch(/[+−]/)
+    expect(rows[0]!.find('[data-slot="currency"]').classes()).toContain('text-expense')
     expect(rows[0]!.text()).not.toContain('R$')
     expect(rows[0]!.text()).not.toContain('fatura')
     expect(rows[1]!.text()).toContain('fatura')
     expect(rows[1]!.text()).not.toContain('vencido')
     expect(rows[2]!.text()).toContain('Receber')
-    expect(rows[2]!.text()).toContain('+200,00')
+    expect(rows[2]!.text()).toContain('200,00')
+    expect(rows[2]!.text()).not.toMatch(/[+−]/)
+    expect(rows[2]!.find('[data-slot="currency"]').classes()).toContain('text-income')
     expect(movementsApi.findAll).toHaveBeenCalledWith(
       expect.objectContaining({ statuses: ['OPEN'], financialPeriods: ['p-10'] }),
     )
@@ -354,7 +383,9 @@ describe('PeriodClosingView', () => {
     const cards = wrapper.findAll('[data-slot="pendency-card"]')
     expect(cards).toHaveLength(3)
     expect(cards[0]!.text()).toContain('Vence em 20/10/2026 · vencido')
-    expect(cards[0]!.text()).toContain('−100,00')
+    expect(cards[0]!.text()).toContain('100,00')
+    expect(cards[0]!.text()).not.toMatch(/[+−]/)
+    expect(cards[0]!.find('[data-slot="currency"]').classes()).toContain('text-expense')
     expect(cards[1]!.text()).toContain('fatura')
     expect(cards[1]!.text()).not.toContain('vencido')
     expect(cards[2]!.text()).toContain('Receber')
@@ -570,7 +601,14 @@ describe('PeriodClosingView', () => {
     await settle()
 
     expect(document.body.querySelector('[role="dialog"]')).not.toBeNull()
-    expect(wrapper.find('[data-slot="server-error"]').text()).toContain('Mova-o de volta')
+    expect(dialogError()).toContain('Mova-o de volta')
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
+
+    dialogButton('Cancelar').click()
+    await flushPromises()
+    await rowOf(wrapper, 'Conta de luz').findAll('button')[1]!.trigger('click')
+    await flushPromises()
+    expect(dialogError()).toBe('')
   })
 
   it('cancels the move dialog and does not move without a chosen period', async () => {
@@ -694,7 +732,7 @@ describe('PeriodClosingView', () => {
       'Outubro encerrado',
       expect.objectContaining({
         description: expect.stringMatching(
-          /^Resultado \+R\$\s600,00 gravado\. Faturas vazias fecharam com valor zero\.$/,
+          /^Resultado R\$\s600,00 gravado\. Faturas vazias fecharam com valor zero\.$/,
         ),
       }),
     )
@@ -733,13 +771,16 @@ describe('PeriodClosingView', () => {
     await flushPromises()
     dialogButton('Fechar período').click()
     await settle()
-    expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
-      'O período ainda tem movimentos em aberto',
-    )
+    expect(document.body.querySelector('[role="dialog"]')).not.toBeNull()
+    expect(dialogError()).toContain('O período ainda tem movimentos em aberto')
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
     dialogButton('Cancelar').click()
     await flushPromises()
-
     expect(document.body.querySelector('[role="dialog"]')).toBeNull()
+
+    await buttonWithText(wrapper, 'Fechar Outubro').trigger('click')
+    await flushPromises()
+    expect(dialogError()).toBe('')
   })
 
   it('follows the period of the URL when it changes from outside', async () => {

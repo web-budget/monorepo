@@ -221,9 +221,7 @@ const listCopy = computed(() => ({
           {{ $t('financial-period.list.tabs-note') }}
         </span>
       </Card>
-      <ServerErrorAlert
-        :messages="[...messages, ...expiredErrors.messages.value, ...reopening.messages.value]"
-      />
+      <ServerErrorAlert :messages="[...messages, ...expiredErrors.messages.value]" />
       <ListState
         v-if="listState !== 'table'"
         :kind="listState"
@@ -273,7 +271,7 @@ const listCopy = computed(() => ({
           <CurrencyDisplay
             v-if="item.status === 'CLOSED' && results[item.id] !== undefined"
             :value="results[item.id] as number"
-            signed
+            :signed="(results[item.id] as number) < 0"
             glued
             bare
           />
@@ -319,6 +317,7 @@ const listCopy = computed(() => ({
     <ReopenPeriodDialog
       :period="reopening.target.value"
       :loading="reopening.loading.value"
+      :messages="reopening.messages.value"
       @close="reopening.close()"
       @confirm="reopening.confirm()"
     />

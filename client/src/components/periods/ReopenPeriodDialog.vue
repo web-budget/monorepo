@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Check, Info, LockOpen } from 'lucide-vue-next'
 import { ref, watch } from 'vue'
+import ServerErrorAlert from '@/components/forms/ServerErrorAlert.vue'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -11,7 +12,10 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 
-const props = defineProps<{ period: { name: string } | null; loading: boolean }>()
+const props = withDefaults(
+  defineProps<{ period: { name: string } | null; loading: boolean; messages?: string[] }>(),
+  { messages: () => [] },
+)
 
 const emit = defineEmits<{ close: []; confirm: [] }>()
 
@@ -42,6 +46,7 @@ const effects = [
           <DialogTitle>{{ $t('period-closing.reopen.title', { name: shown?.name }) }}</DialogTitle>
           <DialogDescription>{{ $t('period-closing.reopen.description') }}</DialogDescription>
         </DialogHeader>
+        <ServerErrorAlert :messages="messages" />
         <ul class="grid gap-2 text-sm" data-slot="reopen-effects">
           <li v-for="effect in effects" :key="effect.key" class="flex gap-2">
             <component :is="effect.icon" :class="['mt-0.5 size-4 shrink-0', effect.tone]" />
