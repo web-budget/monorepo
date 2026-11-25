@@ -12,7 +12,7 @@ import ServerErrorAlert from '@/components/forms/ServerErrorAlert.vue'
 import ItemsTable from '@/components/listing/ItemsTable.vue'
 import ListState from '@/components/listing/ListState.vue'
 import PeriodStatusBadge from '@/components/listing/PeriodStatusBadge.vue'
-import StatusTabs from '@/components/listing/StatusTabs.vue'
+import SearchControls from '@/components/listing/SearchControls.vue'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
@@ -28,7 +28,7 @@ import { useCrudList } from '@/composables/useCrudList'
 import { useReopenPeriod } from '@/composables/useReopenPeriod'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { useFinancialPeriodsStore } from '@/stores/financialPeriods'
-import type { FinancialPeriodListView, FinancialPeriodStatusFilter } from '@/types'
+import type { FinancialPeriodListView } from '@/types'
 import { monthOf } from '@/utils/periods'
 
 const { t } = useI18n()
@@ -46,6 +46,7 @@ const {
   messages,
   loadMessages,
   searchSummary,
+  clearSearch,
   listState,
   busy,
   counts,
@@ -62,6 +63,7 @@ const {
   initialStatus: 'OPEN',
   statuses: ['OPEN', 'CLOSED', 'ALL'],
   sortFields: ['name', 'startingAt', 'endingAt', 'status'],
+  countsFollowFilters: true,
   defaultSort: { sortField: 'startingAt', direction: 'desc' },
   pageRequest,
   pageResponse,
@@ -159,11 +161,6 @@ const columns = computed(() => [
   },
 ])
 
-function selectStatus(status: string) {
-  pageRequest.value.status = status as FinancialPeriodStatusFilter
-  return search()
-}
-
 const listCopy = computed(() => ({
   emptyTitle: t('financial-period.list.empty-title'),
   emptyDescription: t('financial-period.list.empty-description'),
@@ -210,16 +207,20 @@ const listCopy = computed(() => ({
           </span>
         </AlertDescription>
       </Alert>
-      <Card class="flex-row flex-wrap items-center justify-between gap-3 p-4" data-slot="tabs-card">
-        <StatusTabs
-          :status="pageRequest.status"
-          :options="statusOptions"
+      <Card class="p-4" data-slot="tabs-card">
+        <SearchControls
+          v-model:status="pageRequest.status"
+          v-model:filter="pageRequest.filterText"
+          :placeholder="$t('financial-period.search.placeholder')"
+          :status-options="statusOptions"
           :counts="counts"
-          @select="selectStatus"
-        />
-        <span class="text-muted-foreground text-xs">
-          {{ $t('financial-period.list.tabs-note') }}
-        </span>
+          @on-filter-change="search()"
+          @on-filter-reset="search()"
+        >
+          <span class="text-muted-foreground text-xs">
+            {{ $t('financial-period.list.tabs-note') }}
+          </span>
+        </SearchControls>
       </Card>
       <ServerErrorAlert :messages="[...messages, ...expiredErrors.messages.value]" />
       <ListState
@@ -231,7 +232,7 @@ const listCopy = computed(() => ({
         :message="loadMessages[0]"
         :copy="listCopy"
         @create="changeToAdd()"
-        @clear="selectStatus('ALL')"
+        @clear="clearSearch()"
         @retry="reload()"
       />
       <ItemsTable

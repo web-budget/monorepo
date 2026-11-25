@@ -259,26 +259,26 @@ describe('PeriodClosingView', () => {
     expect(unknown.wrapper.find('h1').text()).toBe('Fechamento de Outubro')
   })
 
-  it('opens on the open period of today when nothing has expired', async () => {
+  it('opens on the oldest open period when nothing has expired', async () => {
     const { wrapper } = await render('/financial/closing', blocked, {
       list: periods.map((period) => ({ ...period, expired: false })),
     })
 
-    expect(wrapper.find('h1').text()).toBe('Fechamento de Novembro')
+    expect(wrapper.find('h1').text()).toBe('Fechamento de Outubro')
   })
 
   it('shows the paid revenues and expenses, the result and the accumulated', async () => {
     const { wrapper } = await render()
 
     const summary = wrapper.find('[data-slot="summary"]').text()
-    expect(summary).toContain('Resumo do período')
+    expect(summary).not.toContain('Resumo do período')
     expect(summary).toContain('Receitas pagas')
     expect(summary).toMatch(/Receitas pagasR\$\s1\.000,00/)
     expect(summary).toMatch(/Despesas pagasR\$\s400,00/)
     expect(summary).toMatch(/ResultadoR\$\s600,00/)
     expect(summary).toMatch(/AcumuladoR\$\s2\.000,00/)
     expect(summary).not.toMatch(/[+−]R\$/)
-    expect(summary).toContain('Fechados mais provisório dos abertos')
+    expect(summary).toContain('Anteriores + atual')
   })
 
   it('signs only a negative result and accumulated, painting revenues and expenses by tone', async () => {
@@ -418,7 +418,7 @@ describe('PeriodClosingView', () => {
     expect(checklist.text()).toContain('1 fatura com lançamento ainda aberta')
     expect(checklist.text()).toContain('Período seguinte aberto')
     expect(checklist.text()).toContain('Novembro')
-    expect(checklist.text()).toContain('Resolva os itens acima.')
+    expect(checklist.text()).not.toContain('Resolva os itens acima.')
     expect(buttonWithText(wrapper, 'Fechar Outubro').attributes('disabled')).toBeDefined()
   })
 
@@ -443,7 +443,7 @@ describe('PeriodClosingView', () => {
 
     expect(buttonWithText(wrapper, 'Fechar Outubro').attributes('disabled')).toBeUndefined()
     expect(wrapper.find('h1').text()).toBe('Fechamento de Outubro de 2026')
-    expect(wrapper.find('[data-slot="checklist"]').text()).toContain('Tudo certo.')
+    expect(wrapper.find('[data-slot="checklist"]').text()).not.toContain('Tudo certo.')
     expect(wrapper.find('[data-slot="checklist"]').text()).toContain('Nada em aberto')
     expect(wrapper.find('[data-slot="checklist"]').text()).toContain('Nenhuma fatura bloqueia')
   })
@@ -719,7 +719,7 @@ describe('PeriodClosingView', () => {
     )
   })
 
-  it('closes the period after confirming, tells the result and goes to the periods', async () => {
+  it('closes the period after confirming, tells the result and moves on to the oldest open one', async () => {
     const { wrapper, router } = await render('/financial/closing', ready, {
       pendencies: [],
     })
@@ -739,6 +739,11 @@ describe('PeriodClosingView', () => {
     expect(document.body.querySelector('[data-slot="close-summary"]')!.textContent).toMatch(
       /Resultado.*600,00/,
     )
+    vi.mocked(financialPeriodsApi.findAll).mockResolvedValue(
+      pageOf(
+        periods.map((period) => (period.id === 'p-10' ? { ...period, status: 'CLOSED' } : period)),
+      ),
+    )
     dialogButton('Fechar período').click()
     await settle()
 
@@ -751,7 +756,46 @@ describe('PeriodClosingView', () => {
         ),
       }),
     )
-    expect(router.currentRoute.value.name).toBe('financial-periods')
+    expect(router.currentRoute.value.name).toBe('closing')
+    expect(router.currentRoute.value.query.period).toBe('p-11')
+    expect(financialPeriodsApi.findClosing).toHaveBeenLastCalledWith('p-11')
+    expect(wrapper.find('h1').text()).toBe('Fechamento de Novembro')
+    expect(wrapper.find('[data-slot="no-period"]').exists()).toBe(false)
+  })
+
+  it('shows the empty state when the last open period is closed', async () => {
+    const { wrapper, router } = await render('/financial/closing?period=p-11', ready, {
+      pendencies: [],
+      list: [periods[0]!, periods[2]!],
+    })
+    vi.mocked(financialPeriodsApi.close).mockResolvedValue({
+      revenues: 0,
+      expenses: 0,
+      result: 0,
+      recorded: true,
+      toPay: 0,
+      overdueExpenses: 0,
+    })
+    vi.mocked(financialPeriodsApi.findAll).mockResolvedValue(
+      pageOf(periods.map((period) => ({ ...period, status: 'CLOSED' }))),
+    )
+
+    await buttonWithText(wrapper, 'Fechar Novembro').trigger('click')
+    await flushPromises()
+    dialogButton('Fechar período').click()
+    await settle()
+
+    expect(wrapper.find('h1').text()).toBe('Fechamento')
+    expect(router.currentRoute.value.query.period).toBeUndefined()
+    expect(wrapper.find('[data-slot="no-period"]').text()).toContain('Nenhum período para fechar')
+    expect(wrapper.find('[data-slot="no-period"]').text()).toContain(
+      'Todos os períodos estão encerrados.',
+    )
+    expect(wrapper.find('[data-slot="checklist"]').exists()).toBe(false)
+    expect(wrapper.find('[data-slot="summary"]').exists()).toBe(false)
+    expect(wrapper.find('[data-slot="pendencies"]').exists()).toBe(false)
+    expect(wrapper.find('[data-slot="invoices"]').exists()).toBe(false)
+    expect(wrapper.findComponent({ name: 'FilterSelect' }).exists()).toBe(true)
   })
 
   it('signs a negative result in the toast', async () => {
@@ -827,12 +871,36 @@ describe('PeriodClosingView', () => {
     expect(wrapper.find('h1').text()).toBe('Fechamento')
   })
 
-  it('shows the title alone and loads nothing when no period is open', async () => {
-    const { wrapper } = await render('/financial/closing', blocked, { list: [periods[2]!] })
+  it('shows the empty state and loads nothing when no period is open', async () => {
+    const { wrapper, router } = await render('/financial/closing', blocked, { list: [periods[2]!] })
 
     expect(wrapper.find('h1').text()).toBe('Fechamento')
     expect(financialPeriodsApi.findClosing).not.toHaveBeenCalled()
-    expect(buttonWithText(wrapper, 'Fechar').attributes('disabled')).toBeDefined()
+    expect(wrapper.find('[data-slot="no-period"]').text()).toContain('Nenhum período para fechar')
+    expect(wrapper.find('[data-slot="checklist"]').exists()).toBe(false)
+
+    await buttonWithText(wrapper, 'Criar período').trigger('click')
+    await flushPromises()
+    expect(router.currentRoute.value.name).toBe('financial-periods.create')
+  })
+
+  it('does not flash the empty state while the periods are loading or when they fail', async () => {
+    serve()
+    vi.mocked(financialPeriodsApi.findAll).mockRejectedValue(problem(500))
+    const { router, plugins } = createTestPlugins({
+      routes: [
+        ...crudTestRoutes('financial-periods'),
+        { path: '/financial/closing', name: 'closing', component: PeriodClosingView },
+      ],
+      stubActions: false,
+      initialState: {},
+    })
+    await router.push('/financial/closing')
+    const wrapper = mount(PeriodClosingView, { attachTo: document.body, global: { plugins } })
+    await settle()
+
+    expect(wrapper.find('[data-slot="no-period"]').exists()).toBe(false)
+    expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
   })
 
   it('shows the error when the closing information cannot be loaded', async () => {

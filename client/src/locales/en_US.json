@@ -817,7 +817,7 @@
       "purchases": "Purchases",
       "due-date": "Due date",
       "no-purchases": "No purchases on this invoice",
-      "payment-bar": "Invoice payment:"
+      "payment-bar": "Paid by movement:"
     },
     "list": {
       "description": "Purchases of each card by period.",
@@ -925,6 +925,11 @@
     "title-of": "Closing of {name}",
     "description": "Settle the pending items and record the result.",
     "period": "Period to close",
+    "empty": {
+      "title": "No period to close",
+      "description": "All periods are closed.",
+      "create": "Create period"
+    },
     "summary": {
       "revenues": "Paid revenues",
       "revenues-note": "Only what was received",
@@ -933,8 +938,7 @@
       "result": "Result",
       "result-note": "Revenues − expenses",
       "accumulated": "Accumulated",
-      "accumulated-note": "Closed ones plus the provisional of the open ones",
-      "title": "Period summary"
+      "accumulated-note": "Previous + current"
     },
     "pendencies": {
       "title": "Pending items",
@@ -979,9 +983,7 @@
       "pendencies-done": "Nothing open",
       "invoices-open": "{count} invoice with an entry still open | {count} invoices with entries still open",
       "invoices-done": "No invoice blocks it",
-      "next-period-missing": "There is none: pay everything or create one",
-      "ready": "All set.",
-      "blocked": "Settle the items above."
+      "next-period-missing": "There is none: pay everything or create one"
     },
     "move": {
       "title": "Move “{name}”",
