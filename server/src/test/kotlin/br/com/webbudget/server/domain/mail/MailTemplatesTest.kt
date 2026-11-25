@@ -267,8 +267,8 @@ class MailTemplatesTest {
     fun `should render the due date notices in both languages with one row per movement`() {
 
         val lines = listOf(
-            DueLine("10/12  Aluguel", "− R$ 1.200,50"),
-            DueLine("10/12  Salário", "+ R$ 8.000,00")
+            DueLine("10/12  Aluguel", "R$ 1.200,50", "expense"),
+            DueLine("10/12  Salário", "R$ 8.000,00", "income")
         )
 
         fun renderNotice(template: String, locale: String): String {
@@ -290,7 +290,10 @@ class MailTemplatesTest {
         val daily = renderNotice("due-date-daily", "pt-BR")
 
         assertThat(daily).contains("<html lang=\"pt-BR\"", "Vencimentos de hoje", "Olá, Maria Souza. Estes movimentos em aberto vencem hoje.")
-        assertThat(daily).contains("10/12  Aluguel", "− R$ 1.200,50", "10/12  Salário", "+ R$ 8.000,00", "Abrir os movimentos")
+        assertThat(daily).contains("10/12  Aluguel", "R$ 1.200,50", "10/12  Salário", "R$ 8.000,00", "Abrir os movimentos")
+        assertThat(daily).doesNotContain("− R$", "+ R$")
+        assertThat(daily).containsPattern("color: #bd3931;\"[^>]*>R\\$ 1\\.200,50<")
+        assertThat(daily).containsPattern("color: #0b7643;\"[^>]*>R\\$ 8\\.000,00<")
         assertThat(daily).contains("href=\"https://webbudget.example.com/financeiro/movimentos\"", "Você recebe estes avisos porque eles estão ligados no seu perfil.")
         assertCleanOutput(daily)
 
@@ -312,7 +315,8 @@ class MailTemplatesTest {
 
         val plainText = MailPlainText.from(daily)
 
-        assertThat(plainText).contains("10/12 Aluguel: − R$ 1.200,50", "Abrir os movimentos: https://webbudget.example.com/financeiro/movimentos")
+        assertThat(plainText).doesNotContain("− R$", "+ R$")
+        assertThat(plainText).contains("10/12 Aluguel: R$ 1.200,50", "10/12 Salário: R$ 8.000,00", "Abrir os movimentos: https://webbudget.example.com/financeiro/movimentos")
     }
 
     private fun assertCleanOutput(html: String) {

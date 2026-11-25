@@ -56,6 +56,17 @@ describe('MoveMovementDialog', () => {
     ])
   })
 
+  it('shows the server errors inside the dialog and nothing without them', async () => {
+    const wrapper = await render()
+    expect(document.body.querySelector('[data-slot="server-error"]')).toBeNull()
+
+    await wrapper.setProps({ messages: ['Mova-o de volta'] })
+
+    expect(
+      document.body.querySelector('[role="dialog"] [data-slot="server-error"]')!.textContent,
+    ).toContain('Mova-o de volta')
+  })
+
   it('moves to the chosen period', async () => {
     const wrapper = await render()
 

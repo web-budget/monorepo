@@ -35,7 +35,7 @@ watch(
         ? `${transfer.fromWallet.name} → ${transfer.toWallet.name}`
         : $t('transfer.form.detailing')
     "
-    :messages="[...messages, ...giveBack.messages.value]"
+    :messages="messages"
     readonly
   >
     <template v-if="transfer && (transfer.returnOf || transfer.returnedBy)" #badge>
@@ -96,6 +96,7 @@ watch(
     :transfer="giveBack.target.value"
     :loading="store.loading"
     :balance-of="giveBack.balanceOf"
+    :messages="giveBack.messages.value"
     @close="giveBack.close()"
     @confirm="giveBack.confirm"
   />

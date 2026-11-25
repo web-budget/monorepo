@@ -36,6 +36,17 @@ describe('ReopenPeriodDialog', () => {
     expect(text).toContain('Faturas vazias voltam a ficar abertas.')
   })
 
+  it('shows the server errors at the top of the body and nothing without them', async () => {
+    const wrapper = await render()
+    expect(document.body.querySelector('[data-slot="server-error"]')).toBeNull()
+
+    await wrapper.setProps({ messages: ['Só o último período encerrado reabre'] })
+
+    expect(document.body.querySelector('[data-slot="server-error"]')!.textContent).toContain(
+      'Só o último período encerrado reabre',
+    )
+  })
+
   it('stays closed without a period', async () => {
     await render(null)
 

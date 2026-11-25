@@ -57,7 +57,8 @@ class DueDateNoticeNotifier(
         val lines = movements.map { movement ->
             DueLine(
                 label = "${formatShortDate(movement.dueDate, language)}  ${movement.name}",
-                value = formatValue(movement, language)
+                value = formatValue(movement, language),
+                tone = if (movement.type == Movement.Type.INCOME) "income" else "expense"
             )
         }
 
@@ -91,13 +92,12 @@ class DueDateNoticeNotifier(
             maximumFractionDigits = 2
         }
 
-        val sign = if (movement.type == Movement.Type.INCOME) "+" else "−"
-
-        return "$sign R$ ${number.format(movement.value.abs().setScale(2, java.math.RoundingMode.HALF_UP))}"
+        return "R$ ${number.format(movement.value.abs().setScale(2, java.math.RoundingMode.HALF_UP))}"
     }
 
     class DueLine(
         val label: String,
-        val value: String
+        val value: String,
+        val tone: String
     )
 }

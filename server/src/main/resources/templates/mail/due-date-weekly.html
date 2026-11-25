@@ -7,7 +7,7 @@
     <p th:replace="~{parts :: paragraph(#{due-date-weekly.lead(${userName}, ${from}, ${to})})}"></p>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="width: 100%; margin: 4px 0 8px 0; border-top: 1px solid #d1dad5;">
         <th:block th:each="line : ${lines}">
-            <tr th:replace="~{parts :: ledgerRow(${line.label}, ${line.value}, true)}"></tr>
+            <tr th:replace="~{parts :: amountRow(${line.label}, ${line.value}, ${line.tone})}"></tr>
         </th:block>
     </table>
     <table th:replace="~{parts :: button(#{due-date-weekly.cta}, ${movementsUrl})}"></table>
