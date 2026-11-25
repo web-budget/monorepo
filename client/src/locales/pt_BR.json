@@ -164,7 +164,7 @@
     "invalid-code": "Código inválido. Confira se o relógio do celular está certo e tente de novo.",
     "trust": {
       "label": "Confiar neste dispositivo",
-      "hint": "O código não é pedido de novo neste navegador. Você pode revogar em Dispositivos confiáveis."
+      "hint": "O código não é pedido de novo neste navegador. Você pode revogar em Minha conta, na aba Segurança."
     },
     "submit": "Entrar",
     "submitting": "Verificando…",
@@ -191,12 +191,84 @@
       "description": "A senha ou o código não conferem, ou o pedido expirou. Por segurança, entre com o Google de novo para recomeçar."
     }
   },
+  "account": {
+    "title": "Minha conta",
+    "close": "Fechar",
+    "back": "Voltar",
+    "tabs": {
+      "profile": "Perfil",
+      "preferences": "Preferências",
+      "notifications": "Notificações",
+      "password": "Senha",
+      "security": "Segurança"
+    },
+    "profile": {
+      "description": "O e-mail não muda.",
+      "name": "Nome",
+      "email": "E-mail",
+      "save": "Salvar",
+      "saved": "Perfil salvo"
+    },
+    "notifications": {
+      "label": "Receber os avisos de vencimento por e-mail",
+      "on": "Ligado.",
+      "off": "Desligado.",
+      "daily-lead": "Diário:",
+      "daily": "um e-mail por dia, só quando algo vence naquele dia.",
+      "weekly-lead": "Semanal:",
+      "weekly": "toda sexta, um resumo dos vencimentos da semana seguinte. Sem vencimentos, nada é enviado.",
+      "saved": "Perfil salvo",
+      "saved-on": "Os avisos de vencimento continuam ligados.",
+      "saved-off": "Os avisos de vencimento foram desligados."
+    },
+    "preferences": {
+      "language": "Idioma",
+      "help": "Aplica-se à interface e aos e-mails.",
+      "saved": "Salvo no seu perfil."
+    },
+    "password": {
+      "title": "Trocar senha",
+      "description": "Para a conta {email}.",
+      "notice": "Ao trocar a senha, as outras sessões são encerradas.",
+      "current": "Senha atual",
+      "new": "Nova senha",
+      "confirmation": "Confirme a nova senha",
+      "save": "Salvar nova senha",
+      "saving": "Salvando…",
+      "saved": "Senha trocada",
+      "saved-detail": "As outras sessões foram encerradas.",
+      "bytes": "{count}. Acentos e emojis contam mais de um.",
+      "bytes-count": "{count} de {maximum} bytes",
+      "failure": {
+        "wrong": {
+          "title": "Não foi possível trocar a senha",
+          "description": "A senha atual não confere. Confira e tente de novo."
+        },
+        "limit": {
+          "title": "Muitas tentativas seguidas",
+          "description": "Tente novamente em alguns segundos."
+        }
+      }
+    },
+    "google": {
+      "title": "Você entra com o Google",
+      "description": "Esta conta não tem senha no webBudget: o acesso é pela conta Google {email}. A senha e a verificação em duas etapas são as do Google."
+    },
+    "security": {
+      "two-factor": "Verificação em duas etapas",
+      "active": "Ativa",
+      "inactive": "Desativada",
+      "pending": "Pendente",
+      "help": "Pedida no login com senha, pelo aplicativo autenticador. Trocou de celular? Peça a um administrador para resetar.",
+      "help-google": "Pedida no login com senha; o login com o Google não pede o código. Trocou de celular? Peça a um administrador para resetar.",
+      "not-required": "Esta instalação não pede o código do autenticador.",
+      "pending-help": "O autenticador é cadastrado no próximo login com senha.",
+      "devices-help": "O login nestes dispositivos não pede o código."
+    }
+  },
   "devices": {
     "title": "Dispositivos confiáveis",
-    "description": "Nestes dispositivos o login não pede o código do autenticador.",
-    "description-with-devices": "Nestes dispositivos o login não pede o código do autenticador. Revogue os que você não reconhece.",
     "dates": "Último uso em {lastUsed} · confiado em {created}",
-    "close": "Fechar",
     "empty": {
       "title": "Nenhum dispositivo confiável",
       "description": "Marque “Confiar neste dispositivo” ao informar o código do autenticador no login."
@@ -1419,7 +1491,7 @@
     "dark-theme": "Tema escuro",
     "light-theme": "Tema claro",
     "logout": "Sair",
-    "trusted-devices": "Dispositivos confiáveis",
+    "account": "Minha conta",
     "breadcrumb": "Trilha de navegação",
     "coming-soon": "Em breve",
     "loading": "Carregando...",
@@ -1430,10 +1502,7 @@
     "theme-light": "Claro",
     "theme-dark": "Escuro",
     "theme-system": "Sistema",
-    "language": "Idioma",
-    "language-pt-BR": "Português (Brasil)",
-    "language-en-US": "Inglês (Estados Unidos)",
-    "profile": "Perfil"
+    "language": "Idioma"
   },
   "confirm": {
     "title": "Confirmação"
@@ -1970,37 +2039,6 @@
       "title": "Como a parcela entra",
       "description": "Cria um recorrente: cada parcela entra como movimento em aberto e vai para a fatura quando paga no cartão.",
       "action": "Lançar a primeira parcela"
-    }
-  },
-  "profile": {
-    "breadcrumb": "Editando perfil",
-    "title": "Perfil",
-    "description": "Seus dados e avisos.",
-    "data-hint": "O e-mail não muda.",
-    "sections": {
-      "data": "Dados",
-      "notices": "Avisos de vencimento"
-    },
-    "form": {
-      "name": "Nome",
-      "email": "E-mail",
-      "language": "Idioma",
-      "notices": "Receber os avisos de vencimento por e-mail",
-      "notices-on": "Ligado.",
-      "notices-off": "Desligado."
-    },
-    "languages": {
-      "pt-BR": "Português (Brasil)",
-      "en-US": "English"
-    },
-    "notices": {
-      "daily": "Diário: um e-mail por dia, só quando algo vence naquele dia.",
-      "weekly": "Semanal: toda sexta, um resumo dos vencimentos da semana seguinte. Sem vencimentos, nada é enviado."
-    },
-    "toast": {
-      "saved": "Perfil salvo",
-      "notices-on": "Os avisos de vencimento continuam ligados.",
-      "notices-off": "Os avisos de vencimento foram desligados."
     }
   }
 }

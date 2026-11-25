@@ -5,9 +5,11 @@ import br.com.webbudget.server.domain.entities.administration.Language
 import br.com.webbudget.server.domain.entities.administration.User
 import br.com.webbudget.server.domain.entities.administration.UserStatus
 import br.com.webbudget.server.domain.exceptions.AccountDisabledException
+import br.com.webbudget.server.domain.exceptions.AccountWithoutPasswordException
 import br.com.webbudget.server.domain.exceptions.AuthenticationFailedException
 import br.com.webbudget.server.domain.exceptions.GoogleLoginRejectedException
 import br.com.webbudget.server.domain.exceptions.InvalidCredentialsException
+import br.com.webbudget.server.domain.exceptions.InvalidCurrentPasswordException
 import br.com.webbudget.server.domain.exceptions.InvalidGoogleLinkTokenException
 import br.com.webbudget.server.domain.exceptions.InvalidTotpCodeException
 import br.com.webbudget.server.domain.exceptions.ResourceNotFoundException
@@ -19,6 +21,7 @@ import br.com.webbudget.server.infrastructure.config.security.GoogleAuthProperti
 import br.com.webbudget.server.infrastructure.config.security.GoogleLinkTokenStore
 import br.com.webbudget.server.infrastructure.config.security.IpAttemptLimiter
 import br.com.webbudget.server.infrastructure.config.security.LoginAttemptLimiter
+import br.com.webbudget.server.infrastructure.config.security.PasswordChangeAttemptLimiter
 import br.com.webbudget.server.infrastructure.config.security.SecurityProperties
 import br.com.webbudget.server.infrastructure.config.security.TotpAttemptLimiter
 import br.com.webbudget.server.infrastructure.config.security.toAuthorities
@@ -40,6 +43,7 @@ class AuthService(
     private val ipAttemptLimiter: IpAttemptLimiter,
     private val loginAttemptLimiter: LoginAttemptLimiter,
     private val totpAttemptLimiter: TotpAttemptLimiter,
+    private val passwordChangeAttemptLimiter: PasswordChangeAttemptLimiter,
     private val totpService: TotpService,
     private val trustedDeviceService: TrustedDeviceService,
     private val securityProperties: SecurityProperties,
@@ -239,6 +243,36 @@ class AuthService(
         return currentUserProvider.getSessionUser()
     }
 
+    @Transactional
+    fun changePassword(
+        currentPassword: String,
+        newPassword: String,
+        request: HttpServletRequest,
+        response: HttpServletResponse
+    ) {
+
+        val sessionUser = currentUserProvider.getSessionUser()
+        val attemptKey = sessionUser.externalId.toString()
+
+        passwordChangeAttemptLimiter.checkNotLocked(attemptKey)
+
+        val user = userRepository.findByExternalId(sessionUser.externalId)!!
+        val storedHash = user.password ?: throw AccountWithoutPasswordException()
+
+        if (!passwordEncoder.matches(currentPassword, storedHash)) {
+            passwordChangeAttemptLimiter.recordFailure(attemptKey)
+            throw InvalidCurrentPasswordException()
+        }
+
+        passwordChangeAttemptLimiter.recordSuccess(attemptKey)
+
+        val updated = userService.updatePassword(user, newPassword)
+
+        securityNoticeNotifier.notifyPasswordChanged(updated, PasswordChangedBy.USER)
+
+        storeSession(CurrentUser.from(updated), request, response)
+    }
+
     fun logout(request: HttpServletRequest) {
         request.session.invalidate()
         SecurityContextHolder.clearContext()
@@ -328,6 +362,15 @@ class AuthService(
 
         request.getSession(true)
         request.changeSessionId()
+
+        return storeSession(user, request, response)
+    }
+
+    private fun storeSession(
+        user: CurrentUser,
+        request: HttpServletRequest,
+        response: HttpServletResponse
+    ): CurrentUser {
 
         val context = SecurityContextHolder.createEmptyContext()
         context.authentication = UsernamePasswordAuthenticationToken(user, null, user.toAuthorities())

@@ -33,3 +33,8 @@ export function matchLocale(tag: string): SupportedLocale | undefined {
 export function detectBrowserLocale(tags: readonly string[]): SupportedLocale {
   return tags.map(matchLocale).find((locale) => locale !== undefined) ?? DEFAULT_LOCALE
 }
+
+export const LANGUAGE_NAMES: Record<SupportedLocale, string> = {
+  'pt-BR': 'Português (Brasil)',
+  'en-US': 'English',
+}

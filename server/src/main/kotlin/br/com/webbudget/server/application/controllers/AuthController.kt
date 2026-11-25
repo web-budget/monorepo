@@ -6,6 +6,7 @@ import br.com.webbudget.server.application.payloads.DueDateNoticesForm
 import br.com.webbudget.server.application.payloads.LanguageForm
 import br.com.webbudget.server.application.payloads.LoginForm
 import br.com.webbudget.server.application.payloads.LoginStepView
+import br.com.webbudget.server.application.payloads.PasswordChangeForm
 import br.com.webbudget.server.application.payloads.ProfileForm
 import br.com.webbudget.server.application.payloads.RegisterForm
 import br.com.webbudget.server.application.payloads.SessionView
@@ -21,6 +22,7 @@ import br.com.webbudget.server.domain.services.administration.LoginResult
 import br.com.webbudget.server.domain.services.administration.TrustedDeviceService
 import br.com.webbudget.server.infrastructure.config.security.ClientIpResolver
 import br.com.webbudget.server.infrastructure.config.security.GoogleAuthProperties
+import br.com.webbudget.server.infrastructure.config.security.SecurityProperties
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
 import jakarta.validation.Valid
@@ -43,8 +45,11 @@ class AuthController(
     private val clientIpResolver: ClientIpResolver,
     private val accountRegistrationService: AccountRegistrationService,
     private val trustedDeviceService: TrustedDeviceService,
-    private val googleAuthProperties: GoogleAuthProperties
+    private val googleAuthProperties: GoogleAuthProperties,
+    private val securityProperties: SecurityProperties
 ) {
+
+    private val totpRequired: Boolean get() = securityProperties.totp.required
 
     @PostMapping("/login")
     fun login(
@@ -64,7 +69,7 @@ class AuthController(
         )
 
         return when (result) {
-            is LoginResult.Authenticated -> ResponseEntity.ok(SessionView.from(result.user))
+            is LoginResult.Authenticated -> ResponseEntity.ok(SessionView.from(result.user, totpRequired))
             is LoginResult.EnrollmentRequired -> ResponseEntity.status(HttpStatus.ACCEPTED).body(LoginStepView.NEEDS_ENROLLMENT)
             is LoginResult.TotpRequired -> ResponseEntity.status(HttpStatus.ACCEPTED).body(LoginStepView.NEEDS_TOTP)
         }
@@ -90,7 +95,7 @@ class AuthController(
         )
 
         return when (result) {
-            is GoogleLinkResult.Linked -> ResponseEntity.ok(SessionView.from(result.user))
+            is GoogleLinkResult.Linked -> ResponseEntity.ok(SessionView.from(result.user, totpRequired))
             is GoogleLinkResult.TotpRequired -> ResponseEntity.status(HttpStatus.ACCEPTED).body(LoginStepView.NEEDS_TOTP)
         }
     }
@@ -119,7 +124,7 @@ class AuthController(
             response
         )
 
-        return ResponseEntity.ok(SessionView.from(user))
+        return ResponseEntity.ok(SessionView.from(user, totpRequired))
     }
 
     @GetMapping("/trusted-devices")
@@ -157,19 +162,31 @@ class AuthController(
     }
 
     @GetMapping("/session")
-    fun session(): ResponseEntity<SessionView> = ResponseEntity.ok(SessionView.from(authService.currentSession()))
+    fun session(): ResponseEntity<SessionView> = ResponseEntity.ok(SessionView.from(authService.currentSession(), totpRequired))
 
     @PatchMapping("/profile")
     fun changeProfile(@RequestBody @Valid form: ProfileForm): ResponseEntity<SessionView> =
-        ResponseEntity.ok(SessionView.from(authService.changeName(form.name!!)))
+        ResponseEntity.ok(SessionView.from(authService.changeName(form.name!!), totpRequired))
 
     @PatchMapping("/language")
     fun changeLanguage(@RequestBody @Valid form: LanguageForm): ResponseEntity<SessionView> =
-        ResponseEntity.ok(SessionView.from(authService.changeLanguage(form.language!!)))
+        ResponseEntity.ok(SessionView.from(authService.changeLanguage(form.language!!), totpRequired))
+
+    @PatchMapping("/password")
+    fun changePassword(
+        @RequestBody @Valid form: PasswordChangeForm,
+        request: HttpServletRequest,
+        response: HttpServletResponse
+    ): ResponseEntity<Void> {
+
+        authService.changePassword(form.currentPassword!!, form.newPassword!!, request, response)
+
+        return ResponseEntity.noContent().build()
+    }
 
     @PatchMapping("/due-date-notices")
     fun changeDueDateNotices(@RequestBody @Valid form: DueDateNoticesForm): ResponseEntity<SessionView> =
-        ResponseEntity.ok(SessionView.from(authService.changeDueDateNotices(form.enabled!!)))
+        ResponseEntity.ok(SessionView.from(authService.changeDueDateNotices(form.enabled!!), totpRequired))
 
     @PostMapping("/logout")
     fun logout(request: HttpServletRequest): ResponseEntity<Void> {

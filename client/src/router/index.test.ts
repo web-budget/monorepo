@@ -31,7 +31,7 @@ describe('router', () => {
       .map((record) => record.components?.default)
       .filter((component) => typeof component === 'function')
 
-    expect(loaders).toHaveLength(65)
+    expect(loaders).toHaveLength(64)
     for (const loader of loaders) {
       expect(await (loader as () => Promise<unknown>)()).toHaveProperty('default')
     }
@@ -223,6 +223,14 @@ describe('dashboards routes', () => {
       title: `dashboards.${key}`,
       description: `dashboards.description.${key}`,
     })
+  })
+})
+
+describe('router old addresses', () => {
+  it('sends the old profile page to the start route', () => {
+    const record = router.getRoutes().find((candidate) => candidate.path === '/profile')
+
+    expect(record?.redirect).toEqual({ name: 'start' })
   })
 })
 

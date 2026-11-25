@@ -55,6 +55,9 @@ web-budget:
     login:
       max-attempts: ${LOGIN_LOCKOUT_MAX_ATTEMPTS:5}
       base-duration: ${LOGIN_LOCKOUT_BASE_DURATION:60s}
+    password-change:
+      max-attempts: ${PASSWORD_CHANGE_LOCKOUT_MAX_ATTEMPTS:5}
+      base-duration: ${PASSWORD_CHANGE_LOCKOUT_BASE_DURATION:60s}
     ip-lockout:
       max-attempts: ${IP_LOCKOUT_MAX_ATTEMPTS:20}
       base-duration: ${IP_LOCKOUT_BASE_DURATION:60s}
