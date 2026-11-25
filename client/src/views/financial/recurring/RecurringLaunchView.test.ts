@@ -236,7 +236,9 @@ describe('RecurringLaunchView', () => {
     expect(rows[0]!.text()).toContain('Aluguel')
     expect(rows[0]!.text()).not.toContain('5/')
     expect(rows[0]!.text()).toContain('Fixo')
-    expect(rows[0]!.text()).toContain('−1.200,00')
+    expect(rows[0]!.text()).toContain('1.200,00')
+    expect(rows[0]!.text()).not.toMatch(/[−+-]s?1.200/)
+    expect(rows[0]!.find('[data-slot="currency"]').attributes('data-direction')).toBe('expense')
     expect(rows[0]!.text()).not.toContain('R$ 1')
     expect(rows[0]!.text()).toContain('Disponível')
     expect(checkbox(wrapper, 'Aluguel').attributes('disabled')).toBeUndefined()
@@ -248,7 +250,9 @@ describe('RecurringLaunchView', () => {
     expect(rows[3]!.text()).toContain('Já lançado')
     expect(rows[3]!.find('input').exists()).toBe(false)
     expect(checkbox(wrapper, 'Internet').attributes('disabled')).toBeDefined()
-    expect(rows[4]!.text()).toContain('+5.000,00')
+    expect(rows[4]!.text()).toContain('5.000,00')
+    expect(rows[4]!.text()).not.toMatch(/[−+-]s?5.000/)
+    expect(rows[4]!.find('[data-slot="currency"]').attributes('data-direction')).toBe('income')
     expect(rows[4]!.text()).toContain('Lançado automaticamente')
     expect(checkbox(wrapper, 'Salário').attributes('disabled')).toBeDefined()
   })
@@ -279,6 +283,24 @@ describe('RecurringLaunchView', () => {
 
     await checkbox(wrapper, 'Celular novo').trigger('click')
     expect(bar(wrapper).text()).toContain('2 selecionados')
+  })
+
+  it('signs the effect only when it is negative', async () => {
+    const wage = { ...salary, id: 'r-9', name: 'Bônus', launchedInPeriod: undefined }
+    const { wrapper } = await render('/recurring-movements/launch', [rent, wage])
+    const effect = () => bar(wrapper).find('[data-slot="currency"]')
+
+    await checkbox(wrapper, 'Bônus').trigger('click')
+    expect(effect().text()).toBe('5.000,00')
+    expect(effect().attributes('data-direction')).toBeUndefined()
+
+    await checkbox(wrapper, 'Aluguel').trigger('click')
+    expect(effect().text()).toBe('3.800,00')
+    expect(effect().attributes('data-direction')).toBeUndefined()
+
+    await checkbox(wrapper, 'Bônus').trigger('click')
+    expect(effect().text()).toBe('−1.200,00')
+    expect(effect().attributes('data-direction')).toBe('expense')
   })
 
   it('toggles the selection by clicking the row, but never a launched one', async () => {
@@ -423,7 +445,8 @@ describe('RecurringLaunchView', () => {
     const cards = wrapper.findAll('[data-layout="compact"] > div')
     expect(cards).toHaveLength(5)
     expect(cards[0]!.text()).toContain('Aluguel')
-    expect(cards[0]!.text()).toContain('−1.200,00')
+    expect(cards[0]!.text()).toContain('1.200,00')
+    expect(cards[0]!.text()).not.toMatch(/[−+-]s?1.200/)
     expect(cards[0]!.text()).toContain('Fixo')
     expect(cards[2]!.find('input').exists()).toBe(false)
     expect(cards[2]!.text()).toContain('Variável')

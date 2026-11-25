@@ -4,6 +4,7 @@ import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
 import { Badge } from '@/components/ui/badge'
 import { Card } from '@/components/ui/card'
 import type { FinancialPeriodCreationPreview } from '@/types'
+import { toneOf } from '@/utils/recurringMovements'
 
 defineProps<{ preview: FinancialPeriodCreationPreview }>()
 </script>
@@ -32,13 +33,8 @@ defineProps<{ preview: FinancialPeriodCreationPreview }>()
           </span>
           <CurrencyDisplay
             class="shrink-0"
-            :value="
-              recurringMovement.type === 'INCOME'
-                ? recurringMovement.value
-                : -recurringMovement.value
-            "
-            signed
-            glued
+            :value="recurringMovement.value"
+            :tone="toneOf(recurringMovement)"
             bare
           />
         </li>
