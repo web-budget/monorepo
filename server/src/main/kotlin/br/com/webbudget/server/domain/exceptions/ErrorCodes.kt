@@ -87,5 +87,4 @@ object ErrorCodes {
     const val IMPORT_NOT_SAVED = "import-not-saved"
     const val IMPORT_WITH_PENDING_LINES = "import-with-pending-lines"
     const val IMPORT_UNDO_BLOCKED = "import-undo-blocked"
-    const val IMPORT_TARGET_NOT_SUPPORTED = "import-target-not-supported"
 }

@@ -202,7 +202,7 @@ class CardImportSaveTest : ImportTestSupport() {
         restTestClient.post().uri("$IMPORTS_URL/$FAILED_IMPORT/undo").exchange().isConflict("import-not-saved")
         restTestClient.post().uri("$IMPORTS_URL/${UUID.randomUUID()}/save").exchange().isNotFound()
         restTestClient.post().uri("$IMPORTS_URL/${UUID.randomUUID()}/undo").exchange().isNotFound()
-        restTestClient.post().uri("$IMPORTS_URL/$SAVED_IMPORT/undo").exchange().isBadRequest("import-target-not-supported")
+        restTestClient.post().uri("$IMPORTS_URL/$SAVED_IMPORT/undo").exchange().isConflict("import-undo-blocked")
     }
 
     @Test

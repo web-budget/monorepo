@@ -8,7 +8,6 @@ import br.com.webbudget.server.domain.entities.financial.ImportNameMemory
 import br.com.webbudget.server.domain.entities.financial.ImportSave
 import br.com.webbudget.server.domain.exceptions.DomainException
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.FINANCIAL_PERIOD_NOT_OPEN
-import br.com.webbudget.server.domain.exceptions.ErrorCodes.IMPORT_TARGET_NOT_SUPPORTED
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.IMPORT_UNDO_BLOCKED
 import br.com.webbudget.server.domain.validators.OnSaveValidation
 import br.com.webbudget.server.domain.validators.OnUndoValidation
@@ -81,11 +80,7 @@ class ImportSaveService(
     }
 
     fun undoBlockers(import: Import): List<ImportBlocker> =
-        if (import.status == Import.Status.SAVED && savers.any { it.supports(import) }) {
-            blockers(import, importLineRepository.findAll(import))
-        } else {
-            emptyList()
-        }
+        if (import.status == Import.Status.SAVED) blockers(import, importLineRepository.findAll(import)) else emptyList()
 
     private fun blockers(import: Import, lines: List<ImportLine>): List<ImportBlocker> {
 
@@ -94,8 +89,7 @@ class ImportSaveService(
         return periodBlockers + saverOf(import).blockers(import, lines)
     }
 
-    private fun saverOf(import: Import): ImportSaver = savers.firstOrNull { it.supports(import) }
-        ?: throw DomainException("The destination of the import cannot be saved yet", IMPORT_TARGET_NOT_SUPPORTED)
+    private fun saverOf(import: Import): ImportSaver = savers.first { it.supports(import) }
 
     private fun remembered(line: ImportLine): Boolean =
         !line.alreadyImported && !line.alreadyRegistered && !(line.action == ImportAction.IGNORE && line.isCredit)
