@@ -78,6 +78,12 @@ class CardImportSaveTest : ImportTestSupport() {
         assertThat(saved[6].idCreatedMovement).isNull()
         assertThat(saved[6].previousValue).isNull()
 
+        val shown = lines(id)
+
+        assertThat(shown[0]["created"].asList().map { it.asMap()["name"] }).containsExactly("Streaming Exemplo 1/3")
+        assertThat(shown[1]["created"].asList().map { it.asMap()["kind"] }).containsExactly("PURCHASE")
+        assertThat(shown[6]["created"]).isEqualTo(emptyList<Any>())
+
         val memory = dsl.selectFrom(IMPORT_NAME_MEMORIES)
             .where(IMPORT_NAME_MEMORIES.NORMALIZED_NAME.eq("celular novo exemplo"))
             .fetchSingle()
@@ -129,6 +135,8 @@ class CardImportSaveTest : ImportTestSupport() {
         assertThat(saved[0].previousValue).isEqualByComparingTo("80.00")
         assertThat(saved[1].previousValue).isEqualByComparingTo("80.00")
         assertThat(saved[2].idCreatedRecurring).isEqualTo(recurring.id)
+
+        assertThat(lines(id)[2]["created"].asList().map { it.asMap()["kind"] }).containsExactlyInAnyOrder("MOVEMENT", "RECURRING")
 
         restTestClient.post().uri("$IMPORTS_URL/$id/undo").exchange()
             .expectStatus().isOk
@@ -283,6 +291,9 @@ class CardImportSaveTest : ImportTestSupport() {
 
         assertBlockers(id, "recurring-launched-elsewhere")
     }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun Any?.asList(): List<Any?> = this as List<Any?>
 
     private fun draft(): String {
 

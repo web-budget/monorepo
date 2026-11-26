@@ -263,7 +263,7 @@ class ImportControllerTest : ImportTestSupport() {
 
         upload("card-statement.ofx", card = CARD)
 
-        restTestClient.get().uri("$ENDPOINT_URL?statuses=READY").exchange()
+        restTestClient.get().uri("$IMPORTS_URL?statuses=READY").exchange()
             .expectStatus().isOk
             .expectBody()
             .jsonPath("$.content[0].lines").isEqualTo(7)
