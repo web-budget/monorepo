@@ -106,7 +106,7 @@ describe('ModuleHome', () => {
   it('links every financial item, none of them as coming soon', () => {
     const wrapper = render(financialSection)
 
-    expect(wrapper.findAll('a')).toHaveLength(7)
+    expect(wrapper.findAll('a')).toHaveLength(8)
     const cards = wrapper.findAll('[aria-disabled="true"]')
     expect(cards).toHaveLength(0)
   })

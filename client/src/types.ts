@@ -842,3 +842,90 @@ export interface FinancialPeriodCreation {
   id: string
   recurringLaunch: RecurringLaunchReport
 }
+
+export type ImportStatus = 'PROCESSING' | 'READY' | 'FAILED' | 'SAVED' | 'UNDONE'
+
+export type ImportStatusFilter = ImportStatus | 'ALL'
+
+export type ImportTarget = 'CARD' | 'WALLET'
+
+export type ImportAction =
+  | 'CREATE'
+  | 'LINK'
+  | 'LAUNCH_RECURRING'
+  | 'CREATE_RECURRING'
+  | 'INVOICE_PAYMENT'
+  | 'TRANSFER'
+  | 'IGNORE'
+
+export interface ImportCardView {
+  id: string
+  name: string
+  lastFourDigits: string
+}
+
+export interface ImportWalletView {
+  id: string
+  name: string
+}
+
+export interface ImportListView {
+  id: string
+  fileName: string
+  target: ImportTarget
+  card?: ImportCardView
+  wallet?: ImportWalletView
+  financialPeriod: MovementFinancialPeriodView
+  status: ImportStatus
+  error?: string
+  lines: number
+  pending: number
+  createdOn: string
+  savedOn?: string
+  undoneOn?: string
+}
+
+export interface ImportCounts {
+  processing: number
+  ready: number
+  failed: number
+  saved: number
+  undone: number
+  total: number
+}
+
+export interface ImportCreated {
+  id: string
+}
+
+export interface ImportQuery {
+  filter?: string
+  statuses?: ImportStatus[]
+  target?: ImportTarget
+  card?: string
+  wallet?: string
+  financialPeriod?: string
+  page?: number
+  size?: number
+  sort?: string
+}
+
+export interface ImportView {
+  id: string
+  fileName: string
+  target: ImportTarget
+  card?: ImportCardView
+  wallet?: ImportWalletView
+  financialPeriod: MovementFinancialPeriodView
+  status: ImportStatus
+  error?: string
+  fileType?: string
+  startingOn?: string
+  endingOn?: string
+  ledgerBalance?: number
+  ledgerBalanceOn?: string
+  createdOn: string
+  lastUpdate?: string
+  savedOn?: string
+  undoneOn?: string
+}

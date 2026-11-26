@@ -394,6 +394,7 @@
     "items": {
       "recurrent-movement": "Post movements and purchases every period.",
       "credit-card-invoice": "Purchases of each card by period.",
+      "import": "OFX files of invoices and statements, checked before they are saved.",
       "period-closing": "Settle pending items and record the result.",
       "wallet": "Bank accounts, investments and cash.",
       "card": "Credit cards.",
@@ -409,6 +410,8 @@
     "attention": {
       "overdue": "{count} overdue | {count} overdue",
       "closed-invoice": "{count} closed to pay | {count} closed to pay",
+      "imports-ready": "{count} to check",
+      "imports-failed": "{count} failed",
       "expired": "{count} expired | {count} expired",
       "pending": "{period} pending"
     }
@@ -890,6 +893,136 @@
       "already-launched-in-period": "already launched in the period"
     }
   },
+  "imports": {
+    "title": "Imports",
+    "menu": "Imports",
+    "search": "File, card or wallet name",
+    "actions": {
+      "create": "Create"
+    },
+    "list": {
+      "description": "OFX files of invoices and statements, checked before they are saved.",
+      "empty-title": "No imports yet",
+      "empty-description": "Upload the OFX of a card invoice or of an account statement.",
+      "plural": "the imports",
+      "noun": "import | imports",
+      "pending": "{count} to resolve",
+      "error-description": "The server did not answer. Your filters stay in the URL.",
+      "no-result-query": "No import found for “{query}”",
+      "no-result-filter": "No import with these filters",
+      "no-result-hint": "Change the filters or clear the search.",
+      "no-result-action": "Clear filters"
+    },
+    "status": {
+      "PROCESSING": "Processing",
+      "READY": "Ready",
+      "FAILED": "Failed",
+      "SAVED": "Saved",
+      "UNDONE": "Undone"
+    },
+    "status-tabs": {
+      "READY": "Ready",
+      "PROCESSING": "Processing",
+      "FAILED": "Failed",
+      "SAVED": "Saved",
+      "UNDONE": "Undone"
+    },
+    "filters": {
+      "destination": "Destination",
+      "period": "Period",
+      "all": "All",
+      "closed": "{name} · closed",
+      "clear": "Clear"
+    },
+    "columns": {
+      "file": "File",
+      "destination": "Destination",
+      "period": "Period",
+      "lines": "Lines",
+      "sent-on": "Sent on",
+      "status": "Status"
+    },
+    "form": {
+      "title": "New import",
+      "description": "Fields with * are required.",
+      "breadcrumb": "Importing",
+      "destination": "Destination",
+      "kind": {
+        "card": "Card invoice",
+        "wallet": "Wallet statement"
+      },
+      "card": "Card",
+      "wallet": "Wallet",
+      "period": "Period",
+      "expired": "{name} · expired",
+      "period-hint": "Everything that is created goes into this period.",
+      "file": "File",
+      "file-info": "OFX · {size}",
+      "drop": "Drop the file or click to choose",
+      "only-ofx": "OFX only.",
+      "replace-file": "Replace the file",
+      "send": "Import",
+      "no-invoice": {
+        "title": "There is no open invoice for {card} in {period}",
+        "text": "Choose another period or open the invoice.",
+        "action": "See invoices"
+      },
+      "draft": {
+        "title": "There is already {kind} for {destination} in {period}",
+        "kind": {
+          "PROCESSING": "an import being processed",
+          "READY": "a draft"
+        },
+        "text": "Finish or discard what is open.",
+        "action": "Open draft"
+      }
+    },
+    "toast": {
+      "sent": "Import sent"
+    },
+    "detail": {
+      "breadcrumb": "Viewing",
+      "section": "Import",
+      "file": "File",
+      "processing": "Reading the file",
+      "retry": "Import again",
+      "later": {
+        "READY": "The draft to check comes in the next step.",
+        "SAVED": "The summary of the saved import comes in the next step.",
+        "UNDONE": "The summary of the undone import comes in the next step."
+      }
+    },
+    "errors": {
+      "invalid-ofx-file": {
+        "title": "The file is not an OFX",
+        "text": "Export it again from the bank, as OFX."
+      },
+      "unsupported-ofx-type": {
+        "title": "The file is neither a credit card nor an account statement",
+        "text": "Export the OFX of a card invoice or of an account statement."
+      },
+      "card-statement-on-wallet": {
+        "title": "The file is from a credit card, and the destination is a wallet",
+        "text": "Import again with a card as the destination."
+      },
+      "account-statement-on-card": {
+        "title": "The file is from an account, and the destination is a card invoice",
+        "text": "Import again with a wallet as the destination."
+      },
+      "no-open-invoice": {
+        "title": "The {period} invoice of {card} is not open",
+        "text": "Reopen the invoice or import into another period."
+      },
+      "financial-period-not-open": {
+        "title": "{period} is not open",
+        "text": "Import again into an open period."
+      },
+      "import-processing-failed": {
+        "title": "The file could not be read",
+        "text": "Check the file and import again."
+      }
+    }
+  },
   "credit-card-invoice": {
     "title": "Card invoice",
     "menu": "Card invoice",
@@ -981,25 +1114,7 @@
       "reopened": "Invoice reopened",
       "reopened-detail": "The invoice payment was deleted."
     },
-    "due-date-open": "after closing",
-    "import": {
-      "breadcrumb": "Importing",
-      "title": "Import invoice",
-      "description": "Upload the CSV or OFX, classify and save.",
-      "steps": {
-        "upload": "Upload",
-        "processing": "Processing",
-        "draft": "Draft"
-      },
-      "card": "Card",
-      "period": "Invoice period",
-      "period-hint": "The card invoice must be open in this period.",
-      "drop": "Drag the invoice file or click to choose",
-      "formats": "CSV or OFX, up to 5 MB.",
-      "send": "Upload file",
-      "recent": "Recent imports",
-      "recent-empty": "No imports yet."
-    }
+    "due-date-open": "after closing"
   },
   "period-closing": {
     "title": "Closing",
@@ -1918,6 +2033,7 @@
       "no-result-action": "Clear filters"
     },
     "actions": {
+      "import": "Import statement",
       "adjust": "Adjust balance",
       "transfer": "Transfer"
     },

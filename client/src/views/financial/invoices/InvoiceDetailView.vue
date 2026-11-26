@@ -90,7 +90,7 @@ function newPurchaseTarget() {
 
 function importTarget() {
   return {
-    name: 'invoices.import',
+    name: 'imports.create',
     query: { card: invoice.value?.card.id, period: invoice.value?.financialPeriod.id },
   }
 }

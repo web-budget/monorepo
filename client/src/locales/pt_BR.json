@@ -394,6 +394,7 @@
     "items": {
       "recurrent-movement": "Lançam movimentos e compras a cada período.",
       "credit-card-invoice": "Compras de cada cartão por período.",
+      "import": "Arquivos OFX da fatura e do extrato, conferidos antes de salvar.",
       "period-closing": "Resolver pendências e gravar o resultado.",
       "wallet": "Contas bancárias, investimentos e dinheiro em espécie.",
       "card": "Cartões de crédito.",
@@ -409,6 +410,8 @@
     "attention": {
       "overdue": "{count} vencido | {count} vencidos",
       "closed-invoice": "{count} fechada a pagar | {count} fechadas a pagar",
+      "imports-ready": "{count} para conferir",
+      "imports-failed": "{count} com erro",
       "expired": "{count} expirado | {count} expirados",
       "pending": "{period} pendente"
     }
@@ -890,6 +893,136 @@
       "already-launched-in-period": "já lançado no período"
     }
   },
+  "imports": {
+    "title": "Importações",
+    "menu": "Importações",
+    "search": "Nome do arquivo, cartão ou carteira",
+    "actions": {
+      "create": "Criar"
+    },
+    "list": {
+      "description": "Arquivos OFX da fatura e do extrato, conferidos antes de salvar.",
+      "empty-title": "Nenhuma importação ainda",
+      "empty-description": "Envie o OFX da fatura de um cartão ou do extrato de uma conta.",
+      "plural": "as importações",
+      "noun": "importação | importações",
+      "pending": "{count} a resolver",
+      "error-description": "O servidor não respondeu. Seus filtros continuam na URL.",
+      "no-result-query": "Nenhuma importação encontrada para “{query}”",
+      "no-result-filter": "Nenhuma importação com esses filtros",
+      "no-result-hint": "Mude os filtros ou limpe a busca.",
+      "no-result-action": "Limpar filtros"
+    },
+    "status": {
+      "PROCESSING": "Processando",
+      "READY": "Pronta",
+      "FAILED": "Com erro",
+      "SAVED": "Salva",
+      "UNDONE": "Desfeita"
+    },
+    "status-tabs": {
+      "READY": "Prontas",
+      "PROCESSING": "Processando",
+      "FAILED": "Com erro",
+      "SAVED": "Salvas",
+      "UNDONE": "Desfeitas"
+    },
+    "filters": {
+      "destination": "Destino",
+      "period": "Período",
+      "all": "Todos",
+      "closed": "{name} · encerrado",
+      "clear": "Limpar"
+    },
+    "columns": {
+      "file": "Arquivo",
+      "destination": "Destino",
+      "period": "Período",
+      "lines": "Linhas",
+      "sent-on": "Enviada em",
+      "status": "Situação"
+    },
+    "form": {
+      "title": "Nova importação",
+      "description": "Campos com * são obrigatórios.",
+      "breadcrumb": "Importando",
+      "destination": "Destino",
+      "kind": {
+        "card": "Fatura de cartão",
+        "wallet": "Extrato de carteira"
+      },
+      "card": "Cartão",
+      "wallet": "Carteira",
+      "period": "Período",
+      "expired": "{name} · expirado",
+      "period-hint": "Tudo o que for criado entra neste período.",
+      "file": "Arquivo",
+      "file-info": "OFX · {size}",
+      "drop": "Arraste o arquivo ou clique para escolher",
+      "only-ofx": "Só OFX.",
+      "replace-file": "Trocar o arquivo",
+      "send": "Importar",
+      "no-invoice": {
+        "title": "Não há fatura aberta de {card} em {period}",
+        "text": "Escolha outro período ou abra a fatura.",
+        "action": "Ver faturas"
+      },
+      "draft": {
+        "title": "Já existe {kind} de {destination} em {period}",
+        "kind": {
+          "PROCESSING": "uma importação em processamento",
+          "READY": "um rascunho"
+        },
+        "text": "Termine ou descarte o que está aberto.",
+        "action": "Abrir rascunho"
+      }
+    },
+    "toast": {
+      "sent": "Importação enviada"
+    },
+    "detail": {
+      "breadcrumb": "Detalhando",
+      "section": "Importação",
+      "file": "Arquivo",
+      "processing": "Lendo o arquivo",
+      "retry": "Importar de novo",
+      "later": {
+        "READY": "O rascunho para conferir fica na próxima etapa.",
+        "SAVED": "O resumo da importação salva fica na próxima etapa.",
+        "UNDONE": "O resumo da importação desfeita fica na próxima etapa."
+      }
+    },
+    "errors": {
+      "invalid-ofx-file": {
+        "title": "O arquivo não é um OFX",
+        "text": "Exporte de novo no banco, em OFX."
+      },
+      "unsupported-ofx-type": {
+        "title": "O arquivo não é de cartão de crédito nem de conta",
+        "text": "Exporte o OFX da fatura de um cartão ou do extrato de uma conta."
+      },
+      "card-statement-on-wallet": {
+        "title": "O arquivo é de cartão de crédito, e o destino é uma carteira",
+        "text": "Importe de novo com um cartão como destino."
+      },
+      "account-statement-on-card": {
+        "title": "O arquivo é de conta, e o destino é a fatura de um cartão",
+        "text": "Importe de novo com uma carteira como destino."
+      },
+      "no-open-invoice": {
+        "title": "A fatura de {period} do {card} não está aberta",
+        "text": "Reabra a fatura ou importe em outro período."
+      },
+      "financial-period-not-open": {
+        "title": "{period} não está aberto",
+        "text": "Importe de novo em um período aberto."
+      },
+      "import-processing-failed": {
+        "title": "Não foi possível ler o arquivo",
+        "text": "Confira o arquivo e importe de novo."
+      }
+    }
+  },
   "credit-card-invoice": {
     "title": "Fatura do cartão",
     "menu": "Fatura do cartão",
@@ -981,25 +1114,7 @@
       "reopened": "Fatura reaberta",
       "reopened-detail": "O pagamento de fatura foi excluído."
     },
-    "due-date-open": "após fechar",
-    "import": {
-      "breadcrumb": "Importando",
-      "title": "Importar fatura",
-      "description": "Envie o CSV ou OFX, classifique e salve.",
-      "steps": {
-        "upload": "Envio",
-        "processing": "Processando",
-        "draft": "Rascunho"
-      },
-      "card": "Cartão",
-      "period": "Período da fatura",
-      "period-hint": "A fatura do cartão precisa estar aberta neste período.",
-      "drop": "Arraste o arquivo da fatura ou clique para escolher",
-      "formats": "CSV ou OFX, até 5 MB.",
-      "send": "Enviar arquivo",
-      "recent": "Importações recentes",
-      "recent-empty": "Nenhuma importação ainda."
-    }
+    "due-date-open": "após fechar"
   },
   "period-closing": {
     "title": "Fechamento",
@@ -1918,6 +2033,7 @@
       "no-result-action": "Limpar filtros"
     },
     "actions": {
+      "import": "Importar extrato",
       "adjust": "Ajustar saldo",
       "transfer": "Transferir"
     },
