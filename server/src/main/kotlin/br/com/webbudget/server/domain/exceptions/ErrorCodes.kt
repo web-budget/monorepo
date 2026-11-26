@@ -46,6 +46,7 @@ object ErrorCodes {
     const val TRANSFER_BETWEEN_SAME_WALLET = "transfer-between-same-wallet"
     const val TRANSFER_ALREADY_RETURNED = "transfer-already-returned"
     const val TRANSFER_IS_A_RETURN = "transfer-is-a-return"
+    const val INITIAL_SETUP_ALREADY_CHOSEN = "initial-setup-already-chosen"
     const val INVALID_ADJUSTMENT_VALUE = "invalid-adjustment-value"
     const val NO_OPEN_INVOICE = "no-open-invoice"
     const val INVOICE_NOT_OPEN = "invoice-not-open"

@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <!-- No instance leaves marked as already chosen: the ones with data also see the offer. -->
+    <changeSet id="26-1100-1" author="${claude}">
+        <sql>
+            CREATE TABLE administration.initial_setup (
+                id smallint NOT NULL DEFAULT 1,
+                choice varchar(20) NOT NULL,
+                id_user bigint NOT NULL,
+                chosen_on timestamp NOT NULL,
+                CONSTRAINT initial_setup_pkey PRIMARY KEY (id),
+                CONSTRAINT ck_initial_setup_on_single_row CHECK (id = 1),
+                CONSTRAINT ck_initial_setup_on_choice CHECK (choice IN ('USE_TEMPLATE', 'START_EMPTY')),
+                CONSTRAINT fk_users_on_initial_setup FOREIGN KEY (id_user) REFERENCES administration.users (id)
+            );
+        </sql>
+        <rollback>
+            <sql>DROP TABLE administration.initial_setup;</sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

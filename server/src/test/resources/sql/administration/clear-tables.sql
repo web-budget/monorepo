@@ -1,3 +1,4 @@
+DELETE FROM administration.initial_setup;
 DELETE FROM administration.password_recover_attempts;
 DELETE FROM administration.account_activation_attempt;
 DELETE FROM administration.trusted_devices;

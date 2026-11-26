@@ -2,6 +2,7 @@ package br.com.webbudget.server.application.controllers
 
 import br.com.webbudget.server.BaseIntegrationTest
 import br.com.webbudget.server.domain.entities.administration.Role
+import br.com.webbudget.server.infrastructure.config.security.RequiresMainAdmin
 import br.com.webbudget.server.infrastructure.config.security.RequiresRole
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -41,6 +42,7 @@ class RequiresRoleCoverageTest : BaseIntegrationTest() {
             routeOf("/private/{version}/unprotected", UnprotectedController::class.java),
             routeOf("/private/{version}/class-protected", ClassProtectedController::class.java),
             routeOf("/private/{version}/method-protected", MethodProtectedController::class.java),
+            routeOf("/private/{version}/main-admin-protected", MainAdminProtectedController::class.java),
             routeOf("/private/{version}/auth/session", UnprotectedController::class.java)
         )
 
@@ -58,6 +60,8 @@ class RequiresRoleCoverageTest : BaseIntegrationTest() {
 
     private fun hasRequiredRole(handler: HandlerMethod): Boolean =
         AnnotatedElementUtils.hasAnnotation(handler.method, RequiresRole::class.java) ||
+            AnnotatedElementUtils.hasAnnotation(handler.method, RequiresMainAdmin::class.java) ||
+            AnnotatedElementUtils.hasAnnotation(handler.beanType, RequiresMainAdmin::class.java) ||
             AnnotatedElementUtils.hasAnnotation(handler.beanType, RequiresRole::class.java)
 
     private fun routeOf(path: String, controller: Class<*>): Pair<RequestMappingInfo, HandlerMethod> {
@@ -86,6 +90,14 @@ class RequiresRoleCoverageTest : BaseIntegrationTest() {
 
         @GetMapping
         @RequiresRole(Role.FINANCIAL)
+        fun handle(): ResponseEntity<Void> = ResponseEntity.ok().build()
+    }
+
+    @RestController
+    @RequiresMainAdmin
+    class MainAdminProtectedController {
+
+        @GetMapping
         fun handle(): ResponseEntity<Void> = ResponseEntity.ok().build()
     }
 

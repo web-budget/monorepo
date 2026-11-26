@@ -9,4 +9,6 @@ class RoleGuard(
 ) {
 
     fun hasRole(role: String): Boolean = role in currentUserProvider.getCurrentUser().roles
+
+    fun isMainAdmin(): Boolean = currentUserProvider.getCurrentUser().isMainAdmin()
 }

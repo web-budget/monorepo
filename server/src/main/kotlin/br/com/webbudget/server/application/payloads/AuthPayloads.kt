@@ -161,12 +161,13 @@ data class SessionView(
     val hasPassword: Boolean,
     val googleLinked: Boolean,
     val totpEnabled: Boolean,
-    val totpRequired: Boolean
+    val totpRequired: Boolean,
+    val initialSetupPending: Boolean
 ) {
 
     companion object {
 
-        fun from(user: CurrentUser, totpRequired: Boolean): SessionView = SessionView(
+        fun from(user: CurrentUser, totpRequired: Boolean, initialSetupPending: Boolean): SessionView = SessionView(
             name = user.name,
             email = user.email,
             status = user.status,
@@ -176,7 +177,8 @@ data class SessionView(
             hasPassword = user.hasPassword,
             googleLinked = user.googleLinked,
             totpEnabled = user.totpEnabled,
-            totpRequired = totpRequired
+            totpRequired = totpRequired,
+            initialSetupPending = initialSetupPending
         )
     }
 }

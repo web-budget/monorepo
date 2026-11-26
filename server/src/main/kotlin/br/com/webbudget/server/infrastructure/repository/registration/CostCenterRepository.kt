@@ -36,6 +36,12 @@ class CostCenterRepository(
         return record.into(costCenters).toCostCenter(parent)
     }
 
+    fun findRootByName(name: String): CostCenter? = dsl.selectFrom(COST_CENTERS)
+        .where(COST_CENTERS.NAME.equalIgnoreCase(name))
+        .and(COST_CENTERS.ID_PARENT.isNull)
+        .fetchOne()
+        ?.toCostCenter()
+
     fun findChildren(parent: CostCenter): List<CostCenter> {
         val costCenters = COST_CENTERS.`as`("cost_centers")
         return dsl.selectFrom(costCenters)

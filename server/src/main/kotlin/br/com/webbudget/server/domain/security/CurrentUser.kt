@@ -23,6 +23,8 @@ data class CurrentUser(
     val roles: Set<String>
 ) : Serializable {
 
+    fun isMainAdmin(): Boolean = email == User.ADMIN_USERNAME
+
     companion object {
 
         fun from(user: User): CurrentUser = CurrentUser(
