@@ -30,7 +30,13 @@
       },
       "invalid-user-status-transition": "The account changed status while the screen was open. Refresh the list.",
       "transfer-already-returned": "The transfer was already returned.",
-      "transfer-is-a-return": "A return cannot be returned."
+      "transfer-is-a-return": "A return cannot be returned.",
+      "import-draft-already-exists": "There is already a draft for this destination in this period",
+      "import-not-editable": "The import is no longer a draft, refresh the screen",
+      "import-not-discardable": "A saved import cannot be discarded, undo the import",
+      "import-not-ready": "The import is not a draft to save",
+      "import-not-saved": "The import is not saved",
+      "import-undo-blocked": "Something changed after saving and the import cannot be undone"
     },
     "unprocessable-entity": {
       "title": "Request failed",
@@ -82,7 +88,11 @@
       "launch-value-only-for-variable": "Only a variable recurring movement takes a value when launched",
       "recurring-movement-inactive": "The recurring movement is inactive",
       "recurring-movement-finished": "The recurring movement has already launched every installment",
-      "launch-quantity-out-of-range": "The quantity is above what can be launched"
+      "launch-quantity-out-of-range": "The quantity is above what can be launched",
+      "import-target-required": "The import needs a card or a wallet, only one of the two",
+      "import-action-not-allowed": "This action is not valid for this destination and line",
+      "import-link-not-available": "The chosen entry is no longer available for this line",
+      "import-with-pending-lines": "There are still {pending} lines to resolve"
     },
     "not-found": {
       "detail": "Not found",
@@ -987,9 +997,143 @@
       "processing": "Reading the file",
       "retry": "Import again",
       "later": {
-        "READY": "The draft to check comes in the next step.",
         "SAVED": "The summary of the saved import comes in the next step.",
         "UNDONE": "The summary of the undone import comes in the next step."
+      }
+    },
+    "draft": {
+      "breadcrumb": "Reviewing",
+      "search": "Name or bank description",
+      "saved-at": "Saved at {time}",
+      "sent-on": "sent on",
+      "noun": "line | lines",
+      "tabs": {
+        "PENDING": "To resolve",
+        "IGNORED": "Ignored",
+        "ALL": "All"
+      },
+      "select-visible": "Select the visible lines",
+      "select-all": "Select all",
+      "select-line": "Select {name}",
+      "incoming": "Incoming",
+      "outgoing": "Outgoing",
+      "memory": "Suggested from memory",
+      "and": " and ",
+      "choose": "Choose",
+      "close": "Close",
+      "all-resolved": "All resolved",
+      "pending": "{count} line to resolve | {count} lines to resolve",
+      "save": "Save",
+      "save-blocked": "Resolve the line to save | Resolve the {count} lines to save",
+      "saved": "Import saved",
+      "transfer-to": "To {wallet}",
+      "missing": "Missing {what}",
+      "columns": {
+        "date": "Date",
+        "name": "Name",
+        "value": "Amount (R$)",
+        "action": "Action",
+        "detail": "Detail"
+      },
+      "actions": {
+        "CREATE": "Create",
+        "LINK": "Link",
+        "LAUNCH_RECURRING": "Launch recurring",
+        "CREATE_RECURRING": "Create recurring",
+        "INVOICE_PAYMENT": "Invoice payment",
+        "TRANSFER": "Transfer",
+        "IGNORE": "Ignore"
+      },
+      "badges": {
+        "already-imported": "Already imported",
+        "already-registered": "Already registered",
+        "credit": "Credit without purchase",
+        "difference": "Difference of {value}"
+      },
+      "reasons": {
+        "cost-center": "cost center",
+        "classification": "classification",
+        "installments": "installments",
+        "wallet": "wallet",
+        "link": {
+          "LINK": "the linked entry",
+          "INVOICE_PAYMENT": "invoice payment",
+          "LAUNCH_RECURRING": "the recurring"
+        }
+      },
+      "ignored": {
+        "user": "Ignored by you",
+        "payment-received": "Payment of the previous invoice",
+        "iof-pair": "IOF of a foreign purchase",
+        "credit": "Card credit, not turned into an entry",
+        "already-imported": "Already imported on {date}",
+        "already-registered": "Already registered"
+      },
+      "totals": {
+        "lines": "Lines",
+        "ignored": "{count} ignored | {count} ignored",
+        "pending": "To resolve",
+        "file": "File total",
+        "without-payment": "Without the payment received",
+        "invoice-after": "Invoice after saving",
+        "ledger": "File balance",
+        "ledger-on": "On {date}",
+        "balance-after": "Balance after saving",
+        "difference": "Difference of {value}",
+        "credits": "{value} in ignored credits"
+      },
+      "recurring": {
+        "alert": "{count} launched recurring did not come in the file | {count} launched recurrings did not come in the file",
+        "show": "See entry | See entries",
+        "title": "Recurrings that did not come in the file",
+        "open": "Open"
+      },
+      "bulk": {
+        "label": "Bulk actions",
+        "selected": "{count} line selected | {count} lines selected",
+        "action": "Action",
+        "keep": "Keep",
+        "apply": "Apply",
+        "clear": "Clear selection",
+        "changed": "{count} line changed | {count} lines changed",
+        "skipped": "{count} line does not accept this action and stayed as it was | {count} lines do not accept this action and stayed as they were"
+      },
+      "fields": {
+        "name": "Name",
+        "action": "Action",
+        "cost-center": "Cost center",
+        "classification": "Expense classification",
+        "income-classification": "Income classification",
+        "installment": "Current installment",
+        "installments": "Number of installments",
+        "wallet-to": "To the wallet",
+        "link": {
+          "LINK": "Entry",
+          "INVOICE_PAYMENT": "Invoice payment",
+          "LAUNCH_RECURRING": "Recurring"
+        }
+      },
+      "dialog": {
+        "title": "Line of"
+      },
+      "difference-alert": {
+        "title": "Launched with {linked}, the file has {file}",
+        "text": "The file amount prevails."
+      },
+      "list": {
+        "no-result-query": "No line found for “{query}”",
+        "none-pending": "No line to resolve",
+        "none-ignored": "No ignored line",
+        "no-result-hint": "Change the search or see all the lines.",
+        "clear-search": "Clear search",
+        "show-all": "See all"
+      },
+      "discard": {
+        "action": "Discard",
+        "title": "Discard the draft?",
+        "description": "Nothing is launched and the choices in the draft are lost.",
+        "confirm": "Discard",
+        "done": "Draft discarded"
       }
     },
     "errors": {

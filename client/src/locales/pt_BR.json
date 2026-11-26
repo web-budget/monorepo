@@ -30,7 +30,13 @@
       },
       "invalid-user-status-transition": "A conta mudou de status enquanto a tela estava aberta. Atualize a lista.",
       "transfer-already-returned": "A transferência já foi devolvida.",
-      "transfer-is-a-return": "Uma devolução não se devolve."
+      "transfer-is-a-return": "Uma devolução não se devolve.",
+      "import-draft-already-exists": "Já existe um rascunho para este destino neste período",
+      "import-not-editable": "A importação não é mais um rascunho, atualize a tela",
+      "import-not-discardable": "Uma importação salva não se descarta, desfaça a importação",
+      "import-not-ready": "A importação não é um rascunho para salvar",
+      "import-not-saved": "A importação não está salva",
+      "import-undo-blocked": "Algo mudou depois do salvamento e a importação não pode ser desfeita"
     },
     "unprocessable-entity": {
       "title": "Falha na requisição",
@@ -82,7 +88,11 @@
       "launch-value-only-for-variable": "Só o recorrente variável aceita um valor no lançamento",
       "recurring-movement-inactive": "O recorrente está inativo",
       "recurring-movement-finished": "O recorrente já lançou todas as parcelas",
-      "launch-quantity-out-of-range": "A quantidade passa do que dá para lançar"
+      "launch-quantity-out-of-range": "A quantidade passa do que dá para lançar",
+      "import-target-required": "A importação precisa de um cartão ou de uma carteira, só um dos dois",
+      "import-action-not-allowed": "Essa ação não vale para este destino e esta linha",
+      "import-link-not-available": "O lançamento escolhido não está mais disponível para esta linha",
+      "import-with-pending-lines": "Ainda há {pending} linhas a resolver"
     },
     "not-found": {
       "detail": "Não encontrado",
@@ -987,9 +997,143 @@
       "processing": "Lendo o arquivo",
       "retry": "Importar de novo",
       "later": {
-        "READY": "O rascunho para conferir fica na próxima etapa.",
         "SAVED": "O resumo da importação salva fica na próxima etapa.",
         "UNDONE": "O resumo da importação desfeita fica na próxima etapa."
+      }
+    },
+    "draft": {
+      "breadcrumb": "Conferindo",
+      "search": "Nome ou descrição do banco",
+      "saved-at": "Salvo às {time}",
+      "sent-on": "enviada em",
+      "noun": "linha | linhas",
+      "tabs": {
+        "PENDING": "A resolver",
+        "IGNORED": "Ignoradas",
+        "ALL": "Todas"
+      },
+      "select-visible": "Selecionar as linhas visíveis",
+      "select-all": "Selecionar todas",
+      "select-line": "Selecionar {name}",
+      "incoming": "Entrada",
+      "outgoing": "Saída",
+      "memory": "Sugerida pela memória",
+      "and": " e ",
+      "choose": "Escolher",
+      "close": "Fechar",
+      "all-resolved": "Tudo resolvido",
+      "pending": "{count} linha a resolver | {count} linhas a resolver",
+      "save": "Salvar",
+      "save-blocked": "Resolva a linha para salvar | Resolva as {count} linhas para salvar",
+      "saved": "Importação salva",
+      "transfer-to": "Para {wallet}",
+      "missing": "Falta {what}",
+      "columns": {
+        "date": "Data",
+        "name": "Nome",
+        "value": "Valor (R$)",
+        "action": "Ação",
+        "detail": "Detalhe"
+      },
+      "actions": {
+        "CREATE": "Criar",
+        "LINK": "Vincular",
+        "LAUNCH_RECURRING": "Lançar recorrente",
+        "CREATE_RECURRING": "Criar recorrente",
+        "INVOICE_PAYMENT": "Pagamento de fatura",
+        "TRANSFER": "Transferência",
+        "IGNORE": "Ignorar"
+      },
+      "badges": {
+        "already-imported": "Já importada",
+        "already-registered": "Já registrada",
+        "credit": "Crédito sem compra",
+        "difference": "Diferença de {value}"
+      },
+      "reasons": {
+        "cost-center": "centro de custo",
+        "classification": "classificação",
+        "installments": "parcelas",
+        "wallet": "carteira",
+        "link": {
+          "LINK": "o lançamento vinculado",
+          "INVOICE_PAYMENT": "pagamento de fatura",
+          "LAUNCH_RECURRING": "o recorrente"
+        }
+      },
+      "ignored": {
+        "user": "Ignorada por você",
+        "payment-received": "Pagamento da fatura anterior",
+        "iof-pair": "IOF de uma compra no exterior",
+        "credit": "Crédito do cartão, não vira lançamento",
+        "already-imported": "Já importada em {date}",
+        "already-registered": "Já registrada"
+      },
+      "totals": {
+        "lines": "Linhas",
+        "ignored": "{count} ignorada | {count} ignoradas",
+        "pending": "A resolver",
+        "file": "Total do arquivo",
+        "without-payment": "Sem o pagamento recebido",
+        "invoice-after": "Fatura depois de salvar",
+        "ledger": "Saldo do arquivo",
+        "ledger-on": "Em {date}",
+        "balance-after": "Saldo depois de salvar",
+        "difference": "Diferença de {value}",
+        "credits": "{value} em créditos ignorados"
+      },
+      "recurring": {
+        "alert": "{count} recorrente lançado não veio no arquivo | {count} recorrentes lançados não vieram no arquivo",
+        "show": "Ver lançamento | Ver lançamentos",
+        "title": "Recorrentes que não vieram no arquivo",
+        "open": "Em aberto"
+      },
+      "bulk": {
+        "label": "Ações em lote",
+        "selected": "{count} linha selecionada | {count} linhas selecionadas",
+        "action": "Ação",
+        "keep": "Manter",
+        "apply": "Aplicar",
+        "clear": "Limpar seleção",
+        "changed": "{count} linha alterada | {count} linhas alteradas",
+        "skipped": "{count} linha não aceita essa ação e ficou como estava | {count} linhas não aceitam essa ação e ficaram como estavam"
+      },
+      "fields": {
+        "name": "Nome",
+        "action": "Ação",
+        "cost-center": "Centro de custo",
+        "classification": "Classificação de despesa",
+        "income-classification": "Classificação de receita",
+        "installment": "Parcela atual",
+        "installments": "Número de parcelas",
+        "wallet-to": "Para a carteira",
+        "link": {
+          "LINK": "Lançamento",
+          "INVOICE_PAYMENT": "Pagamento de fatura",
+          "LAUNCH_RECURRING": "Recorrente"
+        }
+      },
+      "dialog": {
+        "title": "Linha de"
+      },
+      "difference-alert": {
+        "title": "Lançado com {linked}, o arquivo tem {file}",
+        "text": "Vale o valor do arquivo."
+      },
+      "list": {
+        "no-result-query": "Nenhuma linha encontrada para “{query}”",
+        "none-pending": "Nenhuma linha a resolver",
+        "none-ignored": "Nenhuma linha ignorada",
+        "no-result-hint": "Mude a busca ou veja todas as linhas.",
+        "clear-search": "Limpar busca",
+        "show-all": "Ver todas"
+      },
+      "discard": {
+        "action": "Descartar",
+        "title": "Descartar o rascunho?",
+        "description": "Nada é lançado e as escolhas do rascunho se perdem.",
+        "confirm": "Descartar",
+        "done": "Rascunho descartado"
       }
     },
     "errors": {

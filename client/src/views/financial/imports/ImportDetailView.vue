@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { CircleAlert, FileUp, LoaderCircle } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
-import { computed } from 'vue'
+import { computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import PageContainer from '@/components/common/PageContainer.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
@@ -25,6 +25,16 @@ const { messages } = useImportPolling(() => props.id)
 
 const item = computed(() => (current.value?.id === props.id ? current.value : null))
 const errorCode = computed(() => importErrorCode(item.value!.error))
+
+watch(
+  () => item.value?.status,
+  (status) => {
+    if (status === 'READY') {
+      void router.replace({ name: 'imports.draft', params: { id: props.id } })
+    }
+  },
+  { immediate: true },
+)
 
 function retry() {
   return router.push({ name: 'imports.create', query: retryQuery(item.value!) })
@@ -77,7 +87,7 @@ function retry() {
         </Alert>
         <Card class="gap-0 py-0"><ImportInfo :item="item" /></Card>
       </template>
-      <Card v-else class="gap-0 py-0">
+      <Card v-else-if="item.status !== 'READY'" class="gap-0 py-0">
         <ImportInfo :item="item" />
         <p class="text-muted-foreground px-5 py-4 text-sm" data-slot="later">
           {{ $t(`imports.detail.later.${item.status}`) }}

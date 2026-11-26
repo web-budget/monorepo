@@ -129,6 +129,13 @@ export const financialRoutes: RouteRecordRaw[] = [
             meta: { breadcrumb: 'imports.detail.breadcrumb' },
             component: () => import('@/views/financial/imports/ImportDetailView.vue'),
           },
+          {
+            path: ':id/draft',
+            name: 'imports.draft',
+            props: true,
+            meta: { breadcrumb: 'imports.draft.breadcrumb' },
+            component: () => import('@/views/financial/imports/ImportDraftView.vue'),
+          },
         ],
       },
       {

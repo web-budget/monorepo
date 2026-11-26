@@ -2,7 +2,7 @@ import { flushPromises } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { importsApi } from '@/api/imports'
 import { IMPORT_POLLING_INTERVAL } from '@/composables/useImportPolling'
-import { buttonWithText, mountView, problem } from '@/test/crud'
+import { buttonWithText, mountView, namedTestRoutes, problem } from '@/test/crud'
 import type { ImportView } from '@/types'
 import ImportDetailScreen from '@/views/financial/imports/ImportDetailView.vue'
 
@@ -42,10 +42,10 @@ describe('ImportDetailView', () => {
   })
 
   it('shows the file with its destination, the period and the status', async () => {
-    const { wrapper } = await render(entry({}))
+    const { wrapper } = await render(entry({ status: 'SAVED' }))
 
     expect(wrapper.find('h1').text()).toBe('fatura-visa-novembro.ofx')
-    expect(wrapper.find('[data-slot="import-status"]').text()).toBe('Pronta')
+    expect(wrapper.find('[data-slot="import-status"]').text()).toBe('Salva')
     expect(wrapper.text()).toContain('Visa Platinum ••4821')
     expect(wrapper.text()).toContain('Novembro de 2026')
     expect(wrapper.text()).toContain('26/11/2026 09:02')
@@ -53,7 +53,6 @@ describe('ImportDetailView', () => {
   })
 
   it.each([
-    ['READY', 'O rascunho para conferir fica na próxima etapa.'],
     ['SAVED', 'O resumo da importação salva fica na próxima etapa.'],
     ['UNDONE', 'O resumo da importação desfeita fica na próxima etapa.'],
   ] as const)('keeps a simple state for the %s import', async (status, text) => {
@@ -66,7 +65,14 @@ describe('ImportDetailView', () => {
     vi.mocked(importsApi.findById)
       .mockResolvedValueOnce(entry({ status: 'PROCESSING' }))
       .mockResolvedValueOnce(entry({ status: 'READY' }))
-    const { wrapper } = await mountView(ImportDetailScreen, 'imports', { id: 'i-1' })
+    const { wrapper, router } = await mountView(
+      ImportDetailScreen,
+      'imports',
+      { id: 'i-1' },
+      {},
+      undefined,
+      namedTestRoutes('imports.draft'),
+    )
 
     expect(wrapper.find('[data-slot="processing"]').text()).toContain('Lendo o arquivo')
     expect(wrapper.find('[data-slot="import-status"]').text()).toBe('Processando')
@@ -75,7 +81,23 @@ describe('ImportDetailView', () => {
     await flushPromises()
 
     expect(wrapper.find('[data-slot="processing"]').exists()).toBe(false)
-    expect(wrapper.find('[data-slot="import-status"]').text()).toBe('Pronta')
+    expect(router.currentRoute.value.name).toBe('imports.draft')
+  })
+
+  it('opens the draft to review when the import is ready', async () => {
+    vi.mocked(importsApi.findById).mockResolvedValue(entry({ status: 'READY' }))
+    const { wrapper, router } = await mountView(
+      ImportDetailScreen,
+      'imports',
+      { id: 'i-1' },
+      {},
+      undefined,
+      namedTestRoutes('imports.draft'),
+    )
+
+    expect(router.currentRoute.value.name).toBe('imports.draft')
+    expect(router.currentRoute.value.params.id).toBe('i-1')
+    expect(wrapper.find('[data-slot="later"]').exists()).toBe(false)
   })
 
   it.each([

@@ -1,7 +1,12 @@
 import { apiClient } from './client'
 import type {
+  ImportCandidateView,
   ImportCounts,
   ImportCreated,
+  ImportLineQuery,
+  ImportLinesBatchForm,
+  ImportLineUpdateForm,
+  ImportLineView,
   ImportListView,
   ImportQuery,
   ImportView,
@@ -39,5 +44,42 @@ export const importsApi = {
 
   remove(id: string): Promise<void> {
     return apiClient.delete(`${PATH}/${encodeURIComponent(id)}`).then(() => undefined)
+  },
+
+  findLines(id: string, query: ImportLineQuery): Promise<PagedResponse<ImportLineView>> {
+    return apiClient
+      .get<PagedResponse<ImportLineView>>(`${PATH}/${encodeURIComponent(id)}/lines`, {
+        params: { ...query, actions: query.actions?.join(',') },
+      })
+      .then((response) => response.data)
+  },
+
+  updateLine(id: string, lineId: string, form: ImportLineUpdateForm): Promise<ImportLineView> {
+    return apiClient
+      .patch<ImportLineView>(
+        `${PATH}/${encodeURIComponent(id)}/lines/${encodeURIComponent(lineId)}`,
+        form,
+      )
+      .then((response) => response.data)
+  },
+
+  updateLines(id: string, form: ImportLinesBatchForm): Promise<void> {
+    return apiClient
+      .patch(`${PATH}/${encodeURIComponent(id)}/lines`, form)
+      .then(() => undefined)
+  },
+
+  candidates(id: string, lineId: string): Promise<ImportCandidateView[]> {
+    return apiClient
+      .get<ImportCandidateView[]>(
+        `${PATH}/${encodeURIComponent(id)}/lines/${encodeURIComponent(lineId)}/candidates`,
+      )
+      .then((response) => response.data)
+  },
+
+  save(id: string): Promise<ImportView> {
+    return apiClient
+      .post<ImportView>(`${PATH}/${encodeURIComponent(id)}/save`)
+      .then((response) => response.data)
   },
 }

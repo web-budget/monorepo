@@ -1,4 +1,4 @@
-import type { ImportListView, ImportTarget } from '@/types'
+import type { ImportAction, ImportLineView, ImportListView, ImportTarget } from '@/types'
 import { cardLabel } from '@/utils/invoices'
 
 export const IMPORT_ERROR_CODES = [
@@ -42,4 +42,42 @@ export function retryQuery(
 
 export function fileSize(bytes: number): string {
   return `${Math.max(1, Math.round(bytes / 1024))} KB`
+}
+
+export const CARD_ACTIONS: ImportAction[] = [
+  'CREATE',
+  'LINK',
+  'LAUNCH_RECURRING',
+  'CREATE_RECURRING',
+  'IGNORE',
+]
+
+export const WALLET_ACTIONS: ImportAction[] = [
+  'CREATE',
+  'LINK',
+  'INVOICE_PAYMENT',
+  'TRANSFER',
+  'IGNORE',
+]
+
+export const LINKING_ACTIONS: ImportAction[] = ['LINK', 'INVOICE_PAYMENT', 'LAUNCH_RECURRING']
+
+export function isIncoming(line: Pick<ImportLineView, 'value'>): boolean {
+  return line.value > 0
+}
+
+export function actionsOf(target: ImportTarget): ImportAction[] {
+  return target === 'CARD' ? CARD_ACTIONS : WALLET_ACTIONS
+}
+
+export function missingKey(line: Pick<ImportLineView, 'action'>, reason: string): string {
+  return reason === 'link' ? `link.${line.action}` : reason
+}
+
+export function fileDifference(line: Pick<ImportLineView, 'value' | 'link'>): number {
+  return Math.abs(line.value) - (line.link?.value ?? 0)
+}
+
+export function timeOf(timestamp: string, locale: string): string {
+  return new Date(timestamp).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
 }

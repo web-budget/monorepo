@@ -2,7 +2,14 @@ import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { importsApi } from '@/api/imports'
 import type {
+  ImportAction,
+  ImportCandidateView,
   ImportCounts,
+  ImportLineQuery,
+  ImportLinesBatchForm,
+  ImportLineStatusFilter,
+  ImportLineUpdateForm,
+  ImportLineView,
   ImportQuery,
   ImportStatus,
   ImportStatusFilter,
@@ -46,8 +53,26 @@ export function toImportQuery(query: PageQuery, filters: ExtraQuery): ImportQuer
   }
 }
 
+export const LINE_STATUSES: ImportLineStatusFilter[] = ['PENDING', 'IGNORED', 'ALL']
+
+export function toImportLineQuery(query: PageQuery): ImportLineQuery {
+  const status = query.status as ImportLineStatusFilter | undefined
+  return {
+    filter: query.filter || undefined,
+    pending: status === 'PENDING' ? true : undefined,
+    actions: status === 'IGNORED' ? (['IGNORE'] satisfies ImportAction[]) : undefined,
+    page: query.page,
+    size: query.size,
+    sort: query.sort,
+  }
+}
+
 function newPageRequest() {
   return createPageRequest<ImportStatusFilter>({ status: 'READY' })
+}
+
+function newLineRequest() {
+  return createPageRequest<ImportLineStatusFilter>({ status: 'PENDING', sortField: 'postedOn', direction: 'asc' })
 }
 
 export const useImportsStore = defineStore('imports', () => {
@@ -56,6 +81,8 @@ export const useImportsStore = defineStore('imports', () => {
   const pageRequest = ref<PageRequest<ImportStatusFilter>>(newPageRequest())
   const pageResponse = ref<PageResponse<ImportListView>>(createPageResponse())
   const counts = ref<ImportCounts | null>(null)
+  const lineRequest = ref<PageRequest<ImportLineStatusFilter>>(newLineRequest())
+  const lineResponse = ref<PageResponse<ImportLineView>>(createPageResponse())
   const pending = ref(0)
   const loading = computed(() => pending.value > 0)
 
@@ -95,6 +122,35 @@ export const useImportsStore = defineStore('imports', () => {
     })
   }
 
+  function findLines(id: string): Promise<void> {
+    return track(async () => {
+      const { content, page } = await importsApi.findLines(
+        id,
+        toImportLineQuery(toPageQuery(lineRequest.value)),
+      )
+      lineResponse.value = { content, ...page }
+    })
+  }
+
+  function updateLine(id: string, lineId: string, form: ImportLineUpdateForm): Promise<ImportLineView> {
+    return track(() => importsApi.updateLine(id, lineId, form))
+  }
+
+  function updateLines(id: string, form: ImportLinesBatchForm): Promise<void> {
+    return track(() => importsApi.updateLines(id, form))
+  }
+
+  function candidates(id: string, lineId: string): Promise<ImportCandidateView[]> {
+    return track(() => importsApi.candidates(id, lineId))
+  }
+
+  function save(id: string): Promise<ImportView> {
+    return track(async () => {
+      current.value = await importsApi.save(id)
+      return current.value
+    })
+  }
+
   function create(form: FormData): Promise<string> {
     return track(async () => (await importsApi.create(form)).id)
   }
@@ -109,6 +165,8 @@ export const useImportsStore = defineStore('imports', () => {
     pageRequest.value = newPageRequest()
     pageResponse.value = createPageResponse()
     counts.value = null
+    lineRequest.value = newLineRequest()
+    lineResponse.value = createPageResponse()
   }
 
   return {
@@ -117,8 +175,15 @@ export const useImportsStore = defineStore('imports', () => {
     pageRequest,
     pageResponse,
     counts,
+    lineRequest,
+    lineResponse,
     loading,
     findAll,
+    findLines,
+    updateLine,
+    updateLines,
+    candidates,
+    save,
     loadCounts,
     findOne,
     create,
