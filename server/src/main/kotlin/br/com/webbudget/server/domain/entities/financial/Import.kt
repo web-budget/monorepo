@@ -32,8 +32,6 @@ class Import(
     val expectedFileType: OfxStatementType
         get() = if (isCard) OfxStatementType.CREDIT_CARD else OfxStatementType.BANK_ACCOUNT
 
-    fun isDraft(): Boolean = status == Status.PROCESSING || status == Status.READY
-
     enum class Target { CARD, WALLET }
 
     enum class Status { PROCESSING, READY, FAILED, SAVED, UNDONE }
@@ -104,9 +102,6 @@ class ImportLine(
     val absoluteValue: BigDecimal
         get() = value.abs()
 
-    val identity: OfxTransactionIdentity
-        get() = OfxTransactionIdentity(fitId, value.stripTrailingZeros(), description)
-
     fun pendingReasons(): List<String> = when (action) {
         ImportAction.CREATE -> classificationReasons()
         ImportAction.CREATE_RECURRING -> classificationReasons() + if (installments == null) listOf(INSTALLMENTS) else emptyList()
@@ -135,13 +130,6 @@ class ImportLine(
         )
     }
 
-    fun allowsLink(candidate: ImportCandidate): Boolean = when (action) {
-        ImportAction.LINK -> allowsLinkTarget(candidate)
-        ImportAction.INVOICE_PAYMENT -> candidate.kind == ImportCandidateKind.MOVEMENT && candidate.invoicePayment
-        ImportAction.LAUNCH_RECURRING -> candidate.kind == ImportCandidateKind.RECURRING
-        else -> false
-    }
-
     fun refreshDifferentValue() {
         differentValue = isLinkedToValue() && link!!.value.compareTo(absoluteValue) != 0
     }
@@ -150,14 +138,6 @@ class ImportLine(
         targetWallet = null
         link = null
         differentValue = false
-    }
-
-    private fun allowsLinkTarget(candidate: ImportCandidate): Boolean = when (candidate.kind) {
-        ImportCandidateKind.MOVEMENT -> !candidate.invoicePayment &&
-            candidate.movementType == if (isCredit) Movement.Type.INCOME else Movement.Type.EXPENSE
-        ImportCandidateKind.PURCHASE -> import.isCard
-        ImportCandidateKind.TRANSFER -> !import.isCard && !isCredit
-        ImportCandidateKind.RECURRING -> false
     }
 
     private fun isLinkedToValue(): Boolean =

@@ -9,7 +9,6 @@ import br.com.webbudget.server.domain.exceptions.ErrorCodes.CLASSIFICATION_TYPE_
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.FINANCIAL_PERIOD_NOT_OPEN
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.IMPORT_ACTION_NOT_ALLOWED
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.IMPORT_DRAFT_ALREADY_EXISTS
-import br.com.webbudget.server.domain.exceptions.ErrorCodes.IMPORT_LINK_NOT_ALLOWED
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.IMPORT_NOT_EDITABLE
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.IMPORT_TARGET_REQUIRED
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.INACTIVE_CARD
@@ -143,20 +142,6 @@ class ImportLineClassificationValidator : ImportLineValidator {
 
         if (value.costCenter?.active == false) {
             throw DomainException("The cost center is inactive", INACTIVE_COST_CENTER)
-        }
-    }
-}
-
-@Component
-@OnUpdateValidation
-class ImportLineLinkValidator : ImportLineValidator {
-
-    override fun validate(value: ImportLine) {
-
-        val link = value.link ?: return
-
-        if (!value.allowsLink(link)) {
-            throw DomainException("The link does not fit the action and the sign of the line", IMPORT_LINK_NOT_ALLOWED)
         }
     }
 }

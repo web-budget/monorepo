@@ -82,6 +82,5 @@ object ErrorCodes {
     const val IMPORT_NOT_EDITABLE = "import-not-editable"
     const val IMPORT_NOT_DISCARDABLE = "import-not-discardable"
     const val IMPORT_ACTION_NOT_ALLOWED = "import-action-not-allowed"
-    const val IMPORT_LINK_NOT_ALLOWED = "import-link-not-allowed"
     const val IMPORT_LINK_NOT_AVAILABLE = "import-link-not-available"
 }
