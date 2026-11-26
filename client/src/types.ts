@@ -1040,3 +1040,11 @@ export interface ImportBlocker {
   position?: number
   name?: string
 }
+
+export type ImportResultFilter =
+  | 'CREATED'
+  | 'LINKED'
+  | 'RECURRING'
+  | 'TRANSFERS'
+  | 'IGNORED'
+  | 'ALL'

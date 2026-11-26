@@ -11,6 +11,7 @@ import type {
   ImportLineUpdateForm,
   ImportLineView,
   ImportQuery,
+  ImportResultFilter,
   ImportStatus,
   ImportStatusFilter,
   ImportView,
@@ -67,12 +68,47 @@ export function toImportLineQuery(query: PageQuery): ImportLineQuery {
   }
 }
 
+export const RESULT_STATUSES: ImportResultFilter[] = [
+  'CREATED',
+  'LINKED',
+  'RECURRING',
+  'TRANSFERS',
+  'IGNORED',
+  'ALL',
+]
+
+const RESULT_ACTIONS: Record<Exclude<ImportResultFilter, 'ALL'>, ImportAction[]> = {
+  CREATED: ['CREATE'],
+  LINKED: ['LINK', 'INVOICE_PAYMENT'],
+  RECURRING: ['LAUNCH_RECURRING', 'CREATE_RECURRING'],
+  TRANSFERS: ['TRANSFER'],
+  IGNORED: ['IGNORE'],
+}
+
+export function toImportResultQuery(query: PageQuery): ImportLineQuery {
+  const status = query.status as ImportResultFilter
+  return {
+    page: query.page,
+    size: query.size,
+    sort: query.sort,
+    actions: status === 'ALL' ? undefined : RESULT_ACTIONS[status],
+  }
+}
+
 function newPageRequest() {
   return createPageRequest<ImportStatusFilter>({ status: 'READY' })
 }
 
 function newLineRequest() {
   return createPageRequest<ImportLineStatusFilter>({ status: 'PENDING', sortField: 'postedOn', direction: 'asc' })
+}
+
+function newResultRequest() {
+  return createPageRequest<ImportResultFilter>({
+    status: 'CREATED',
+    sortField: 'postedOn',
+    direction: 'asc',
+  })
 }
 
 export const useImportsStore = defineStore('imports', () => {
@@ -83,6 +119,8 @@ export const useImportsStore = defineStore('imports', () => {
   const counts = ref<ImportCounts | null>(null)
   const lineRequest = ref<PageRequest<ImportLineStatusFilter>>(newLineRequest())
   const lineResponse = ref<PageResponse<ImportLineView>>(createPageResponse())
+  const resultRequest = ref<PageRequest<ImportResultFilter>>(newResultRequest())
+  const resultResponse = ref<PageResponse<ImportLineView>>(createPageResponse())
   const pending = ref(0)
   const loading = computed(() => pending.value > 0)
 
@@ -132,6 +170,23 @@ export const useImportsStore = defineStore('imports', () => {
     })
   }
 
+  function findResults(id: string): Promise<void> {
+    return track(async () => {
+      const { content, page } = await importsApi.findLines(
+        id,
+        toImportResultQuery(toPageQuery(resultRequest.value)),
+      )
+      resultResponse.value = { content, ...page }
+    })
+  }
+
+  function undo(id: string): Promise<ImportView> {
+    return track(async () => {
+      current.value = await importsApi.undo(id)
+      return current.value
+    })
+  }
+
   function updateLine(id: string, lineId: string, form: ImportLineUpdateForm): Promise<ImportLineView> {
     return track(() => importsApi.updateLine(id, lineId, form))
   }
@@ -167,6 +222,8 @@ export const useImportsStore = defineStore('imports', () => {
     counts.value = null
     lineRequest.value = newLineRequest()
     lineResponse.value = createPageResponse()
+    resultRequest.value = newResultRequest()
+    resultResponse.value = createPageResponse()
   }
 
   return {
@@ -177,9 +234,13 @@ export const useImportsStore = defineStore('imports', () => {
     counts,
     lineRequest,
     lineResponse,
+    resultRequest,
+    resultResponse,
     loading,
     findAll,
     findLines,
+    findResults,
+    undo,
     updateLine,
     updateLines,
     candidates,

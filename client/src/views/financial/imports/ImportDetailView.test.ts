@@ -42,23 +42,13 @@ describe('ImportDetailView', () => {
   })
 
   it('shows the file with its destination, the period and the status', async () => {
-    const { wrapper } = await render(entry({ status: 'SAVED' }))
+    const { wrapper } = await render(entry({ status: 'PROCESSING' }))
 
     expect(wrapper.find('h1').text()).toBe('fatura-visa-novembro.ofx')
-    expect(wrapper.find('[data-slot="import-status"]').text()).toBe('Salva')
+    expect(wrapper.find('[data-slot="import-status"]').text()).toBe('Processando')
     expect(wrapper.text()).toContain('Visa Platinum ••4821')
     expect(wrapper.text()).toContain('Novembro de 2026')
-    expect(wrapper.text()).toContain('26/11/2026 09:02')
     expect(importsApi.findById).toHaveBeenCalledWith('i-1', false)
-  })
-
-  it.each([
-    ['SAVED', 'O resumo da importação salva fica na próxima etapa.'],
-    ['UNDONE', 'O resumo da importação desfeita fica na próxima etapa.'],
-  ] as const)('keeps a simple state for the %s import', async (status, text) => {
-    const { wrapper } = await render(entry({ status }))
-
-    expect(wrapper.find('[data-slot="later"]').text()).toBe(text)
   })
 
   it('reads the file while it is processing and passes to the next state by itself', async () => {
@@ -86,7 +76,7 @@ describe('ImportDetailView', () => {
 
   it('opens the draft to review when the import is ready', async () => {
     vi.mocked(importsApi.findById).mockResolvedValue(entry({ status: 'READY' }))
-    const { wrapper, router } = await mountView(
+    const { router } = await mountView(
       ImportDetailScreen,
       'imports',
       { id: 'i-1' },
@@ -97,7 +87,6 @@ describe('ImportDetailView', () => {
 
     expect(router.currentRoute.value.name).toBe('imports.draft')
     expect(router.currentRoute.value.params.id).toBe('i-1')
-    expect(wrapper.find('[data-slot="later"]').exists()).toBe(false)
   })
 
   it.each([
@@ -146,7 +135,7 @@ describe('ImportDetailView', () => {
 
   it('shows a wallet import', async () => {
     const { wrapper } = await render(
-      entry({ target: 'WALLET', card: undefined, wallet: checking, status: 'SAVED' }),
+      entry({ target: 'WALLET', card: undefined, wallet: checking, status: 'PROCESSING' }),
     )
 
     expect(wrapper.text()).toContain('Conta corrente')

@@ -995,11 +995,7 @@
       "section": "Import",
       "file": "File",
       "processing": "Reading the file",
-      "retry": "Import again",
-      "later": {
-        "SAVED": "The summary of the saved import comes in the next step.",
-        "UNDONE": "The summary of the undone import comes in the next step."
-      }
+      "retry": "Import again"
     },
     "draft": {
       "breadcrumb": "Reviewing",
@@ -1134,6 +1130,77 @@
         "description": "Nothing is launched and the choices in the draft are lost.",
         "confirm": "Discard",
         "done": "Draft discarded"
+      }
+    },
+    "saved": {
+      "saved-on": "saved on",
+      "undone-on": "Undone on",
+      "undone": "Import undone",
+      "undone-card": "The {period} invoice is back to what it was.",
+      "undone-wallet": "{wallet} is back to what it was.",
+      "blocked": "Undoing is blocked",
+      "none": "No line in this tab",
+      "open": "Open the entry of {name}",
+      "cards": {
+        "created": "Created",
+        "linked": "Linked",
+        "recurring": "Recurrings",
+        "transfers": "Transfers",
+        "ignored": "Ignored"
+      },
+      "tabs": {
+        "CREATED": "Created",
+        "LINKED": "Linked",
+        "RECURRING": "Recurrings",
+        "TRANSFERS": "Transfers",
+        "IGNORED": "Ignored",
+        "ALL": "All"
+      },
+      "columns": {
+        "result": "Result",
+        "open": "Open"
+      },
+      "result": {
+        "of": " of {month}",
+        "create-card": "Purchase created on the invoice",
+        "create-income": "Income created, already received",
+        "create-expense": "Expense created, already paid",
+        "link-card": "Linked to “{name}”{other}, paid on the card",
+        "link-income": "Linked to “{name}”{other}, received by the line",
+        "link-expense": "Linked to “{name}”{other}, paid by the line",
+        "link-transfer": "Linked to the transfer already registered",
+        "launch-recurring": "Installment launched from “{name}” and paid on the card",
+        "create-recurring": "Recurring created ({installment}/{installments}) and installment paid on the card",
+        "invoice-payment": "Paid “{name}”",
+        "transfer": "Transfer to {wallet}"
+      },
+      "undo": {
+        "action": "Undo import",
+        "confirm": "Undo",
+        "title": "Undo the import of {file}?",
+        "card": {
+          "created": "Deletes {count} purchase created on the invoice. | Deletes {count} purchases created on the invoice.",
+          "linked": "Takes {count} linked entry off the invoice, which goes back to open with the value it had. | Takes {count} linked entries off the invoice, which go back to open with the value they had.",
+          "extra": "Deletes {count} installment launched by the import and the recurrings it created. | Deletes {count} installments launched by the import and the recurrings it created."
+        },
+        "wallet": {
+          "created": "Deletes {count} movement created, with the reversal in the statement. | Deletes {count} movements created, with the reversal in the statement.",
+          "linked": "Undoes the payment of {count} linked entry, which goes back to open. | Undoes the payment of {count} linked entries, which go back to open.",
+          "extra": "Returns {count} transfer created by the import. | Returns {count} transfers created by the import.",
+          "note": "Links to transfers already registered are only undone; the transfer stays."
+        }
+      },
+      "blockers": {
+        "unknown": "Something changed after saving.",
+        "financial-period-not-open": "{period} is not open.",
+        "invoice-not-open": "The {period} invoice of {card} is not open.",
+        "created-purchase-changed": "The purchase created by “{name}” (line {position}) was changed after saving.",
+        "linked-entry-changed": "The entry linked to “{name}” (line {position}) was changed after saving.",
+        "launched-movement-changed": "The entry of the installment of “{name}” (line {position}) was changed after saving.",
+        "recurring-launched-elsewhere": "The recurring of “{name}” (line {position}) already launched installments in another period.",
+        "created-movement-changed": "The movement created by “{name}” (line {position}) was changed after saving.",
+        "linked-period-not-open": "The period of the entry linked to “{name}” (line {position}) is not open.",
+        "created-transfer-changed": "The transfer created by “{name}” (line {position}) was changed after saving."
       }
     },
     "errors": {

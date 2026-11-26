@@ -77,6 +77,12 @@ export const importsApi = {
       .then((response) => response.data)
   },
 
+  undo(id: string): Promise<ImportView> {
+    return apiClient
+      .post<ImportView>(`${PATH}/${encodeURIComponent(id)}/undo`)
+      .then((response) => response.data)
+  },
+
   save(id: string): Promise<ImportView> {
     return apiClient
       .post<ImportView>(`${PATH}/${encodeURIComponent(id)}/save`)

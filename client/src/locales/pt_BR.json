@@ -995,11 +995,7 @@
       "section": "Importação",
       "file": "Arquivo",
       "processing": "Lendo o arquivo",
-      "retry": "Importar de novo",
-      "later": {
-        "SAVED": "O resumo da importação salva fica na próxima etapa.",
-        "UNDONE": "O resumo da importação desfeita fica na próxima etapa."
-      }
+      "retry": "Importar de novo"
     },
     "draft": {
       "breadcrumb": "Conferindo",
@@ -1134,6 +1130,77 @@
         "description": "Nada é lançado e as escolhas do rascunho se perdem.",
         "confirm": "Descartar",
         "done": "Rascunho descartado"
+      }
+    },
+    "saved": {
+      "saved-on": "salva em",
+      "undone-on": "Desfeita em",
+      "undone": "Importação desfeita",
+      "undone-card": "A fatura de {period} voltou ao que era antes.",
+      "undone-wallet": "{wallet} voltou ao que era antes.",
+      "blocked": "Desfazer está bloqueado",
+      "none": "Nenhuma linha nesta aba",
+      "open": "Abrir o lançamento de {name}",
+      "cards": {
+        "created": "Criadas",
+        "linked": "Vinculadas",
+        "recurring": "Recorrentes",
+        "transfers": "Transferências",
+        "ignored": "Ignoradas"
+      },
+      "tabs": {
+        "CREATED": "Criadas",
+        "LINKED": "Vinculadas",
+        "RECURRING": "Recorrentes",
+        "TRANSFERS": "Transferências",
+        "IGNORED": "Ignoradas",
+        "ALL": "Todas"
+      },
+      "columns": {
+        "result": "Resultado",
+        "open": "Abrir"
+      },
+      "result": {
+        "of": " de {month}",
+        "create-card": "Compra criada na fatura",
+        "create-income": "Receita criada, já recebida",
+        "create-expense": "Despesa criada, já paga",
+        "link-card": "Vinculada a “{name}”{other}, paga no cartão",
+        "link-income": "Vinculada a “{name}”{other}, recebida pela linha",
+        "link-expense": "Vinculada a “{name}”{other}, paga pela linha",
+        "link-transfer": "Vinculada à transferência já registrada",
+        "launch-recurring": "Parcela lançada de “{name}” e paga no cartão",
+        "create-recurring": "Recorrente criado ({installment}/{installments}) e parcela paga no cartão",
+        "invoice-payment": "Pagou “{name}”",
+        "transfer": "Transferência para {wallet}"
+      },
+      "undo": {
+        "action": "Desfazer importação",
+        "confirm": "Desfazer",
+        "title": "Desfazer a importação de {file}?",
+        "card": {
+          "created": "Exclui {count} compra criada da fatura. | Exclui {count} compras criadas da fatura.",
+          "linked": "Tira da fatura {count} lançamento vinculado, que volta para em aberto com o valor de antes. | Tira da fatura {count} lançamentos vinculados, que voltam para em aberto com o valor de antes.",
+          "extra": "Exclui {count} parcela lançada pela importação e os recorrentes que ela criou. | Exclui {count} parcelas lançadas pela importação e os recorrentes que ela criou."
+        },
+        "wallet": {
+          "created": "Exclui {count} movimento criado, com o estorno no extrato. | Exclui {count} movimentos criados, com o estorno no extrato.",
+          "linked": "Desfaz o pagamento de {count} lançamento vinculado, que volta para em aberto. | Desfaz o pagamento de {count} lançamentos vinculados, que voltam para em aberto.",
+          "extra": "Devolve {count} transferência criada pela importação. | Devolve {count} transferências criadas pela importação.",
+          "note": "Vínculos com transferências já registradas só são desfeitos; a transferência fica."
+        }
+      },
+      "blockers": {
+        "unknown": "Algo mudou depois do salvamento.",
+        "financial-period-not-open": "{period} não está aberto.",
+        "invoice-not-open": "A fatura de {period} do {card} não está aberta.",
+        "created-purchase-changed": "A compra criada por “{name}” (linha {position}) foi alterada depois de salva.",
+        "linked-entry-changed": "O lançamento vinculado a “{name}” (linha {position}) foi alterado depois de salvo.",
+        "launched-movement-changed": "O lançamento da parcela de “{name}” (linha {position}) foi alterado depois de salvo.",
+        "recurring-launched-elsewhere": "O recorrente de “{name}” (linha {position}) já lançou parcelas em outro período.",
+        "created-movement-changed": "O movimento criado por “{name}” (linha {position}) foi alterado depois de salvo.",
+        "linked-period-not-open": "O período do lançamento vinculado a “{name}” (linha {position}) não está aberto.",
+        "created-transfer-changed": "A transferência criada por “{name}” (linha {position}) foi alterada depois de salva."
       }
     },
     "errors": {

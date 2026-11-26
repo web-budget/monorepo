@@ -1,4 +1,10 @@
-import type { ImportAction, ImportLineView, ImportListView, ImportTarget } from '@/types'
+import type {
+  ImportAction,
+  ImportCandidateKind,
+  ImportLineView,
+  ImportListView,
+  ImportTarget,
+} from '@/types'
 import { cardLabel } from '@/utils/invoices'
 
 export const IMPORT_ERROR_CODES = [
@@ -80,4 +86,23 @@ export function fileDifference(line: Pick<ImportLineView, 'value' | 'link'>): nu
 
 export function timeOf(timestamp: string, locale: string): string {
   return new Date(timestamp).toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
+}
+
+const CANDIDATE_ROUTES: Record<ImportCandidateKind, string> = {
+  MOVEMENT: 'movements.detail',
+  PURCHASE: 'purchases.detail',
+  TRANSFER: 'transfers.detail',
+  RECURRING: 'recurring-movements.detail',
+}
+
+export function resultTarget(
+  line: Pick<ImportLineView, 'action' | 'created' | 'link'>,
+): { name: string; params: { id: string } } | null {
+  const target =
+    line.action === 'IGNORE'
+      ? undefined
+      : (line.created.find((candidate) => candidate.kind !== 'RECURRING') ??
+        line.link ??
+        line.created[0])
+  return target ? { name: CANDIDATE_ROUTES[target.kind], params: { id: target.id } } : null
 }
