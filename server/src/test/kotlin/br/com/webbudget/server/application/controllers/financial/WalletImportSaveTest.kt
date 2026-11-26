@@ -79,6 +79,12 @@ class WalletImportSaveTest : ImportTestSupport() {
         assertThat(saved[4].idCreatedTransfer).isNull()
         assertThat(dsl.fetchCount(TRANSFERS)).isEqualTo(3)
 
+        val shown = lines(id)
+
+        assertThat(shown[0]["created"].asMap2()).containsExactly("TRANSFER")
+        assertThat(shown[3]["created"].asMap2()).containsExactly("MOVEMENT")
+        assertThat(shown[4]["created"]).isEqualTo(emptyList<Any>())
+
         assertThat(
             dsl.selectFrom(IMPORT_NAME_MEMORIES).where(IMPORT_NAME_MEMORIES.NORMALIZED_NAME.eq("empresa ficticia ltda")).fetchSingle().idRecurringMovement
         ).isEqualTo(9202L)
@@ -214,6 +220,9 @@ class WalletImportSaveTest : ImportTestSupport() {
 
         assertBlockers(id, "linked-period-not-open", "linked-period-not-open")
     }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun Any?.asMap2(): List<Any?> = (this as List<Map<String, Any?>>).map { it["kind"] }
 
     private fun balance(walletId: Long): BigDecimal =
         dsl.select(WALLETS.CURRENT_BALANCE).from(WALLETS).where(WALLETS.ID.eq(walletId)).fetchSingle().value1()!!
