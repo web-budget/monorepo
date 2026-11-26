@@ -86,9 +86,11 @@ class ImportController(
 
         val page = importRepository.findAll(filter.toCriteria(), pageable)
 
-        val lines = importRepository.countLines(page.content.map { it.id!! })
+        val ids = page.content.map { it.id!! }
+        val lines = importRepository.countLines(ids)
+        val pending = importLineRepository.pendingCounts(ids)
 
-        return ResponseEntity.ok(page.map { importMapper.mapToListView(it, lines[it.id] ?: 0) })
+        return ResponseEntity.ok(page.map { importMapper.mapToListView(it, lines[it.id] ?: 0, pending[it.id] ?: 0) })
     }
 
     @GetMapping("/counts")

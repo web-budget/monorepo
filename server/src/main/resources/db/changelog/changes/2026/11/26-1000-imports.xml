@@ -88,6 +88,8 @@
                 id_created_purchase bigint,
                 id_created_transfer bigint,
                 id_created_recurring bigint,
+                ignore_reason varchar(30),
+                ignore_reason_on date,
                 previous_value numeric(15, 2),
                 CONSTRAINT import_lines_pkey PRIMARY KEY (id),
                 CONSTRAINT import_lines_external_id_key UNIQUE (external_id),

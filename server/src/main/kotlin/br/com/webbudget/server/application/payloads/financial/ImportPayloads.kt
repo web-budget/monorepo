@@ -29,6 +29,7 @@ data class ImportListView(
     val status: String,
     val error: String?,
     val lines: Int,
+    val pending: Int,
     val createdOn: LocalDateTime,
     val savedOn: LocalDateTime?,
     val undoneOn: LocalDateTime?
@@ -104,6 +105,11 @@ data class ImportView(
     val warnings: ImportWarningsView
 )
 
+data class ImportIgnoreReasonView(
+    val code: String,
+    val date: LocalDate?
+)
+
 data class ImportLineView(
     val id: UUID,
     val position: Int,
@@ -124,6 +130,8 @@ data class ImportLineView(
     val classification: MovementClassificationView?,
     val wallet: PaymentWalletView?,
     val link: ImportCandidateView?,
+    val created: List<ImportCandidateView>,
+    val ignoreReason: ImportIgnoreReasonView?,
     val pending: List<String>
 )
 

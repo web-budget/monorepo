@@ -45,8 +45,8 @@ class ImportSuggesterTest {
 
         val context = context(
             importedBefore = listOf(
-                ImportedLine("a", BigDecimal("-10.00"), "Shop one", LocalDate.of(2026, 11, 1), "Shop one"),
-                ImportedLine("other", BigDecimal("-20.00"), "Shop two old", LocalDate.of(2026, 11, 2), "Shop two")
+                ImportedLine("a", BigDecimal("-10.00"), "Shop one", LocalDate.of(2026, 11, 1), "Shop one", LocalDate.of(2026, 10, 5)),
+                ImportedLine("other", BigDecimal("-20.00"), "Shop two old", LocalDate.of(2026, 11, 2), "Shop two", null)
             )
         )
 
@@ -61,6 +61,9 @@ class ImportSuggesterTest {
         )
 
         assertThat(cardLines.map { it.alreadyImported }).containsExactly(true, true, false)
+        assertThat(cardLines.map { it.ignoreReason }).containsExactly(ImportLine.ALREADY_IMPORTED, ImportLine.ALREADY_IMPORTED, null)
+        assertThat(cardLines[0].ignoreReasonOn).isEqualTo(LocalDate.of(2026, 10, 5))
+        assertThat(cardLines[1].ignoreReasonOn).isNull()
         assertThat(cardLines.map { it.action }).containsExactly(ImportAction.IGNORE, ImportAction.IGNORE, ImportAction.CREATE)
 
         val walletLines = suggester.suggest(
@@ -102,6 +105,10 @@ class ImportSuggesterTest {
             ImportAction.IGNORE
         )
         assertThat(lines.map { it.position }).containsExactly(1, 2, 3, 4, 5, 6, 7)
+        assertThat(lines.map { it.ignoreReason }).containsExactly(
+            ImportLine.PAYMENT_RECEIVED, ImportLine.IOF_PAIR, ImportLine.IOF_PAIR, null, ImportLine.CREDIT, ImportLine.IOF_PAIR, ImportLine.IOF_PAIR
+        )
+        assertThat(lines[1].ignoreReasonOn).isEqualTo(LocalDate.of(2026, 11, 1))
     }
 
     @Test
@@ -308,6 +315,7 @@ class ImportSuggesterTest {
         assertThat(lines[0].alreadyRegistered).isTrue()
         assertThat(lines[1].action).isEqualTo(ImportAction.IGNORE)
         assertThat(lines[1].alreadyRegistered).isTrue()
+        assertThat(lines[1].ignoreReason).isEqualTo(ImportLine.ALREADY_REGISTERED)
         assertThat(lines[2].action).isEqualTo(ImportAction.CREATE)
         assertThat(lines[3].action).isEqualTo(ImportAction.CREATE)
         assertThat(lines[3].alreadyRegistered).isFalse()

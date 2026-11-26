@@ -7,11 +7,13 @@ import br.com.webbudget.server.domain.entities.financial.ImportCandidateKind
 import br.com.webbudget.server.domain.entities.financial.ImportLine
 import br.com.webbudget.server.domain.entities.financial.ImportNameMemory
 import br.com.webbudget.server.domain.entities.financial.ImportSuggestionContext
+import br.com.webbudget.server.domain.entities.financial.ImportedLine
 import br.com.webbudget.server.domain.entities.financial.Movement
 import br.com.webbudget.server.domain.entities.financial.OfxTransaction
 import br.com.webbudget.server.domain.entities.financial.OfxTransactionKind
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
+import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 import kotlin.math.abs
 
@@ -38,7 +40,7 @@ class ImportSuggester {
                 kind = transaction.kind
             )
 
-            suggestLine(line, index in pairedFees, state)
+            suggestLine(line, pairedFees[index]?.let { transactions[it].postedOn }, state)
 
             line.refreshDifferentValue()
 
@@ -46,11 +48,11 @@ class ImportSuggester {
         }
     }
 
-    private fun suggestLine(line: ImportLine, pairedFee: Boolean, state: State) {
+    private fun suggestLine(line: ImportLine, pairedFeeDate: LocalDate?, state: State) {
 
         val rules: List<(ImportLine) -> Boolean> = if (state.import.isCard) {
             listOf(
-                { current -> ignoreWhen(current, pairedFee || current.isCredit) },
+                { current -> ignoreCardLine(current, pairedFeeDate) },
                 { current -> linkRecurringLaunch(current, state) },
                 { current -> linkByMemory(current, state) },
                 { current -> launchRecurring(current, state) },
@@ -65,9 +67,13 @@ class ImportSuggester {
             )
         }
 
-        if (isImportedBefore(line, state)) {
+        val importedBefore = importedBefore(line, state)
+
+        if (importedBefore != null) {
             line.action = ImportAction.IGNORE
             line.alreadyImported = true
+            line.ignoreReason = ImportLine.ALREADY_IMPORTED
+            line.ignoreReasonOn = importedBefore.importedOn
             return
         }
 
@@ -76,16 +82,23 @@ class ImportSuggester {
         }
     }
 
-    private fun ignoreWhen(line: ImportLine, condition: Boolean): Boolean {
+    private fun ignoreCardLine(line: ImportLine, pairedFeeDate: LocalDate?): Boolean {
 
-        if (condition) {
-            line.action = ImportAction.IGNORE
+        val reason = when {
+            line.kind == OfxTransactionKind.PAYMENT_RECEIVED -> ImportLine.PAYMENT_RECEIVED
+            pairedFeeDate != null -> ImportLine.IOF_PAIR
+            line.isCredit -> ImportLine.CREDIT
+            else -> return false
         }
 
-        return condition
+        line.action = ImportAction.IGNORE
+        line.ignoreReason = reason
+        line.ignoreReasonOn = pairedFeeDate
+
+        return true
     }
 
-    private fun isImportedBefore(line: ImportLine, state: State): Boolean = state.context.importedBefore.any { before ->
+    private fun importedBefore(line: ImportLine, state: State): ImportedLine? = state.context.importedBefore.firstOrNull { before ->
         val sameIdentity = before.fitId == line.fitId &&
             before.value.compareTo(line.value) == 0 &&
             before.description == line.description
@@ -199,6 +212,7 @@ class ImportSuggester {
 
         if (line.isCredit) {
             line.action = ImportAction.IGNORE
+            line.ignoreReason = ImportLine.ALREADY_REGISTERED
             state.use(candidate)
         } else {
             link(line, candidate, state)
@@ -273,13 +287,13 @@ class ImportSuggester {
     private fun sameName(candidate: ImportCandidate, line: ImportLine): Boolean =
         ImportNameMemory.normalize(candidate.name) == ImportNameMemory.normalize(line.name)
 
-    private fun pairedFees(transactions: List<OfxTransaction>): Set<Int> {
+    private fun pairedFees(transactions: List<OfxTransaction>): Map<Int, Int> {
 
         val refunds = transactions.withIndex()
             .filter { it.value.kind == OfxTransactionKind.INTERNATIONAL_PURCHASE_FEE_REFUND }
             .toMutableList()
 
-        val paired = mutableSetOf<Int>()
+        val paired = mutableMapOf<Int, Int>()
 
         transactions.withIndex()
             .filter { it.value.kind == OfxTransactionKind.INTERNATIONAL_PURCHASE_FEE }
@@ -287,8 +301,8 @@ class ImportSuggester {
                 val refund = refunds.firstOrNull { sameAmount(it.value.amount, fee.value.amount) }
                 if (refund != null) {
                     refunds.remove(refund)
-                    paired.add(fee.index)
-                    paired.add(refund.index)
+                    paired[fee.index] = refund.index
+                    paired[refund.index] = fee.index
                 }
             }
 

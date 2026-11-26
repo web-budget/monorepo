@@ -92,6 +92,11 @@ class ImportControllerTest : BaseIntegrationTest() {
         assertThat(lines[6]["installment"]).isEqualTo(10)
         assertThat(lines[6]["differentValue"]).isEqualTo(false)
         assertThat(lines[5]["allowedActions"]).isEqualTo(listOf("IGNORE"))
+        assertThat(lines[3]["ignoreReason"].asMap()).isEqualTo(mapOf("code" to "iof-pair", "date" to "2026-11-10"))
+        assertThat(lines[4]["ignoreReason"].asMap()).isEqualTo(mapOf("code" to "iof-pair", "date" to "2026-11-05"))
+        assertThat(lines[5]["ignoreReason"].asMap()).isEqualTo(mapOf("code" to "payment-received"))
+        assertThat(lines[6]["ignoreReason"]).isNull()
+        assertThat(lines[0]["created"]).isEqualTo(emptyList<Any>())
     }
 
     @Test
@@ -130,6 +135,8 @@ class ImportControllerTest : BaseIntegrationTest() {
         assertThat(lines[5]["link"].asMap()["name"]).isEqualTo("Pagamento de fatura, Financial test card")
         assertThat(lines[6]["alreadyImported"]).isEqualTo(true)
         assertThat(lines[2]["allowedActions"]).isEqualTo(listOf("CREATE", "LINK", "IGNORE"))
+        assertThat(lines[2]["ignoreReason"].asMap()).isEqualTo(mapOf("code" to "already-registered"))
+        assertThat(lines[6]["ignoreReason"].asMap()).isEqualTo(mapOf("code" to "already-imported", "date" to "2026-11-01"))
     }
 
     @Test
@@ -249,6 +256,18 @@ class ImportControllerTest : BaseIntegrationTest() {
             .jsonPath("$.content[3].savedOn").isNotEmpty
             .jsonPath("$.content[1].undoneOn").isNotEmpty
             .jsonPath("$.content[2].error").isEqualTo("invalid-ofx-file")
+    }
+
+    @Test
+    fun `should count the lines and the lines to resolve of each import in the list`() {
+
+        upload("card-statement.ofx", card = CARD)
+
+        restTestClient.get().uri("$ENDPOINT_URL?statuses=READY").exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.content[0].lines").isEqualTo(7)
+            .jsonPath("$.content[0].pending").isEqualTo(1)
     }
 
     @Test

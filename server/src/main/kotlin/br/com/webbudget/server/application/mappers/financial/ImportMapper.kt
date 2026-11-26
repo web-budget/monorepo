@@ -1,6 +1,7 @@
 package br.com.webbudget.server.application.mappers.financial
 
 import br.com.webbudget.server.application.payloads.financial.ImportCandidateView
+import br.com.webbudget.server.application.payloads.financial.ImportIgnoreReasonView
 import br.com.webbudget.server.application.payloads.financial.ImportLineTotalsView
 import br.com.webbudget.server.application.payloads.financial.ImportLineUpdateForm
 import br.com.webbudget.server.application.payloads.financial.ImportLineView
@@ -38,7 +39,7 @@ class ImportMapper(
     private val movementReferenceRepository: MovementReferenceRepository
 ) {
 
-    fun mapToListView(import: Import, lines: Int): ImportListView = ImportListView(
+    fun mapToListView(import: Import, lines: Int, pending: Int): ImportListView = ImportListView(
         id = import.externalId!!,
         fileName = import.fileName,
         target = import.target.name,
@@ -48,6 +49,7 @@ class ImportMapper(
         status = import.status.name,
         error = import.error,
         lines = lines,
+        pending = pending,
         createdOn = import.createdOn!!,
         savedOn = import.savedOn,
         undoneOn = import.undoneOn
@@ -108,6 +110,9 @@ class ImportMapper(
         classification = line.classification?.let { mapToClassificationView(it) },
         wallet = line.targetWallet?.let { PaymentWalletView(it.externalId, it.name) },
         link = line.link?.let { mapToCandidateView(it) },
+        created = line.created.map { mapToCandidateView(it) },
+        ignoreReason = line.ignoreReason?.takeIf { line.action == ImportAction.IGNORE }
+            ?.let { ImportIgnoreReasonView(it, line.ignoreReasonOn) },
         pending = line.pendingReasons()
     )
 

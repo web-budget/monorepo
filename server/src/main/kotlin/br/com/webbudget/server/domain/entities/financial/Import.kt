@@ -93,7 +93,10 @@ class ImportLine(
     var createdPurchaseId: Long? = null,
     var createdTransferId: Long? = null,
     var createdRecurringId: Long? = null,
-    var previousValue: BigDecimal? = null
+    var previousValue: BigDecimal? = null,
+    var ignoreReason: String? = null,
+    var ignoreReasonOn: LocalDate? = null,
+    var created: List<ImportCandidate> = emptyList()
 ) : PersistentEntity() {
 
     val isCredit: Boolean
@@ -155,6 +158,11 @@ class ImportLine(
         const val LINK = "link"
         const val WALLET = "wallet"
         const val INSTALLMENTS = "installments"
+        const val PAYMENT_RECEIVED = "payment-received"
+        const val IOF_PAIR = "iof-pair"
+        const val CREDIT = "credit"
+        const val ALREADY_IMPORTED = "already-imported"
+        const val ALREADY_REGISTERED = "already-registered"
     }
 }
 
@@ -196,7 +204,8 @@ class ImportedLine(
     val value: BigDecimal,
     val description: String,
     val postedOn: LocalDate,
-    val name: String
+    val name: String,
+    val importedOn: LocalDate?
 )
 
 class ImportSuggestionContext(

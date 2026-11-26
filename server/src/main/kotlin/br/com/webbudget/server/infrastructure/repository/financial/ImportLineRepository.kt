@@ -100,14 +100,30 @@ class ImportLineRepository(
         )
     }
 
+    fun pendingCounts(importIds: Collection<Long>): Map<Long, Int> = dsl
+        .select(lines.ID_IMPORT, DSL.count())
+        .from(lines)
+        .where(lines.ID_IMPORT.`in`(importIds))
+        .and(pendingCondition())
+        .groupBy(lines.ID_IMPORT)
+        .fetch()
+        .associate { record -> record.value1()!! to record.value2()!! }
+
     fun findImportedBefore(import: Import): List<ImportedLine> = dsl
-        .select(lines.FIT_ID, lines.VALUE, lines.DESCRIPTION, lines.POSTED_ON, lines.NAME)
+        .select(lines.FIT_ID, lines.VALUE, lines.DESCRIPTION, lines.POSTED_ON, lines.NAME, IMPORTS.SAVED_ON)
         .from(lines)
         .join(IMPORTS).on(IMPORTS.ID.eq(lines.ID_IMPORT))
         .where(IMPORTS.STATUS.eq(Import.Status.SAVED.name))
         .and(import.card?.let { IMPORTS.ID_CARD.eq(it.id) } ?: IMPORTS.ID_WALLET.eq(import.wallet!!.id))
         .fetch { record ->
-            ImportedLine(record.value1()!!, record.value2()!!, record.value3()!!, record.value4()!!, record.value5()!!)
+            ImportedLine(
+                record.value1()!!,
+                record.value2()!!,
+                record.value3()!!,
+                record.value4()!!,
+                record.value5()!!,
+                record.value6()?.toLocalDate()
+            )
         }
 
     fun insert(line: ImportLine): ImportLine {
@@ -137,6 +153,8 @@ class ImportLineRepository(
             .set(IMPORT_LINES.ID_TARGET_MOVEMENT, line.link.idOf(ImportCandidateKind.MOVEMENT))
             .set(IMPORT_LINES.ID_TARGET_PURCHASE, line.link.idOf(ImportCandidateKind.PURCHASE))
             .set(IMPORT_LINES.ID_TARGET_TRANSFER, line.link.idOf(ImportCandidateKind.TRANSFER))
+            .set(IMPORT_LINES.IGNORE_REASON, line.ignoreReason)
+            .set(IMPORT_LINES.IGNORE_REASON_ON, line.ignoreReasonOn)
             .set(IMPORT_LINES.ID_TARGET_RECURRING, line.link.idOf(ImportCandidateKind.RECURRING))
             .returning()
             .fetchSingle()
@@ -245,6 +263,10 @@ class ImportLineRepository(
                 createdTransferId = lineRecord.idCreatedTransfer,
                 createdRecurringId = lineRecord.idCreatedRecurring,
                 previousValue = lineRecord.previousValue
+,
+                ignoreReason = lineRecord.ignoreReason,
+                ignoreReasonOn = lineRecord.ignoreReasonOn,
+                created = lineRecord.createdKeys().mapNotNull { candidates[it] }
             ).also { line ->
                 line.restore(lineRecord.id, lineRecord.externalId, lineRecord.version, lineRecord.createdOn, lineRecord.lastUpdate)
             }
@@ -257,16 +279,35 @@ class ImportLineRepository(
         val purchaseIds = records.mapNotNull { it.idTargetPurchase }
         val transferIds = records.mapNotNull { it.idTargetTransfer }
         val recurringIds = records.mapNotNull { it.idTargetRecurring }
+        val createdMovementIds = records.mapNotNull { it.idCreatedMovement }
+        val createdPurchaseIds = records.mapNotNull { it.idCreatedPurchase }
+        val createdTransferIds = records.mapNotNull { it.idCreatedTransfer }
+        val createdRecurringIds = records.mapNotNull { it.idCreatedRecurring }
 
         val loaded = buildList {
-            if (movementIds.isNotEmpty()) add(importCandidateRepository.findMovements(movementIds))
-            if (purchaseIds.isNotEmpty()) add(importCandidateRepository.findPurchases(purchaseIds))
-            if (transferIds.isNotEmpty()) add(importCandidateRepository.findTransfers(transferIds))
-            if (recurringIds.isNotEmpty()) add(importCandidateRepository.findRecurringMovements(recurringIds))
+            if (movementIds.isNotEmpty() || createdMovementIds.isNotEmpty()) {
+                add(importCandidateRepository.findMovements(movementIds + createdMovementIds))
+            }
+            if (purchaseIds.isNotEmpty() || createdPurchaseIds.isNotEmpty()) {
+                add(importCandidateRepository.findPurchases(purchaseIds + createdPurchaseIds))
+            }
+            if (transferIds.isNotEmpty() || createdTransferIds.isNotEmpty()) {
+                add(importCandidateRepository.findTransfers(transferIds + createdTransferIds))
+            }
+            if (recurringIds.isNotEmpty() || createdRecurringIds.isNotEmpty()) {
+                add(importCandidateRepository.findRecurringMovements(recurringIds + createdRecurringIds))
+            }
         }.flatten()
 
         return loaded.associateBy { candidate -> candidate.kind to candidate.id }
     }
+
+    private fun ImportLinesRecord.createdKeys(): List<Pair<ImportCandidateKind, Long>> = listOfNotNull(
+        idCreatedMovement?.let { ImportCandidateKind.MOVEMENT to it },
+        idCreatedPurchase?.let { ImportCandidateKind.PURCHASE to it },
+        idCreatedTransfer?.let { ImportCandidateKind.TRANSFER to it },
+        idCreatedRecurring?.let { ImportCandidateKind.RECURRING to it }
+    )
 
     private fun ImportLinesRecord.targetKey(): Pair<ImportCandidateKind, Long>? = when {
         idTargetMovement != null -> ImportCandidateKind.MOVEMENT to idTargetMovement!!
