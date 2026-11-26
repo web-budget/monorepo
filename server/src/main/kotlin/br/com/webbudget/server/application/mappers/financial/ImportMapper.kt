@@ -1,5 +1,6 @@
 package br.com.webbudget.server.application.mappers.financial
 
+import br.com.webbudget.server.application.payloads.financial.ImportBlockerView
 import br.com.webbudget.server.application.payloads.financial.ImportCandidateView
 import br.com.webbudget.server.application.payloads.financial.ImportIgnoreReasonView
 import br.com.webbudget.server.application.payloads.financial.ImportLineTotalsView
@@ -87,7 +88,8 @@ class ImportMapper(
             ledgerBalance = summary.ledgerBalance,
             currentBalance = summary.currentBalance,
             ignoredCredits = summary.ignoredCredits
-        )
+        ),
+        undoBlockers = summary.undoBlockers.map { ImportBlockerView(it.reason, it.position, it.name) }
     )
 
     fun mapToLineView(line: ImportLine): ImportLineView = ImportLineView(

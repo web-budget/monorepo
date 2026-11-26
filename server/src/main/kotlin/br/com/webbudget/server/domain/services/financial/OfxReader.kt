@@ -112,10 +112,7 @@ class OfxReader {
 
         val installment = INSTALLMENT.matchEntire(memo)
 
-        val name = when (type) {
-            OfxStatementType.CREDIT_CARD -> installment?.groupValues?.get(1) ?: memo
-            OfxStatementType.BANK_ACCOUNT -> accountName(memo)
-        }
+        val name = deriveName(memo, type)
 
         return OfxTransaction(
             type = fields[TRANSACTION_TYPE],
@@ -128,6 +125,11 @@ class OfxReader {
             installments = installment?.groupValues?.get(3)?.toInt(),
             kind = kindOf(memo, type)
         )
+    }
+
+    fun deriveName(memo: String, type: OfxStatementType): String = when (type) {
+        OfxStatementType.CREDIT_CARD -> INSTALLMENT.matchEntire(memo)?.groupValues?.get(1) ?: memo
+        OfxStatementType.BANK_ACCOUNT -> accountName(memo)
     }
 
     private fun accountName(memo: String): String {

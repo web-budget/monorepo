@@ -15,6 +15,7 @@ import br.com.webbudget.server.domain.entities.administration.Role
 import br.com.webbudget.server.domain.entities.financial.Import
 import br.com.webbudget.server.domain.entities.financial.ImportLine
 import br.com.webbudget.server.domain.exceptions.ResourceNotFoundException
+import br.com.webbudget.server.domain.services.financial.ImportSaveService
 import br.com.webbudget.server.domain.services.financial.ImportService
 import br.com.webbudget.server.domain.services.financial.ImportSummaryService
 import br.com.webbudget.server.infrastructure.config.security.RequiresRole
@@ -50,6 +51,7 @@ class ImportController(
     private val importMapper: ImportMapper,
     private val importService: ImportService,
     private val importSummaryService: ImportSummaryService,
+    private val importSaveService: ImportSaveService,
     private val importRepository: ImportRepository,
     private val importLineRepository: ImportLineRepository,
     private val movementReferenceRepository: MovementReferenceRepository
@@ -124,6 +126,22 @@ class ImportController(
         importService.discard(findImport(id))
 
         return ResponseEntity.ok().build()
+    }
+
+    @PostMapping("/{id}/save")
+    fun save(@PathVariable id: UUID): ResponseEntity<ImportView> {
+
+        val saved = importSaveService.save(findImport(id))
+
+        return ResponseEntity.ok(importMapper.mapToView(saved, importSummaryService.summarize(saved)))
+    }
+
+    @PostMapping("/{id}/undo")
+    fun undo(@PathVariable id: UUID): ResponseEntity<ImportView> {
+
+        val undone = importSaveService.undo(findImport(id))
+
+        return ResponseEntity.ok(importMapper.mapToView(undone, importSummaryService.summarize(undone)))
     }
 
     @GetMapping("/{id}/lines")

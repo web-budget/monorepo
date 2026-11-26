@@ -83,4 +83,9 @@ object ErrorCodes {
     const val IMPORT_NOT_DISCARDABLE = "import-not-discardable"
     const val IMPORT_ACTION_NOT_ALLOWED = "import-action-not-allowed"
     const val IMPORT_LINK_NOT_AVAILABLE = "import-link-not-available"
+    const val IMPORT_NOT_READY = "import-not-ready"
+    const val IMPORT_NOT_SAVED = "import-not-saved"
+    const val IMPORT_WITH_PENDING_LINES = "import-with-pending-lines"
+    const val IMPORT_UNDO_BLOCKED = "import-undo-blocked"
+    const val IMPORT_TARGET_NOT_SUPPORTED = "import-target-not-supported"
 }
