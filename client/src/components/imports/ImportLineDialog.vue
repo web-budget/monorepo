@@ -47,6 +47,7 @@ const { t, n } = useI18n()
 const store = useImportsStore()
 const errors = useServerErrors()
 
+const original = ref<ImportLineView | null>(null)
 const working = ref<ImportLineView | null>(null)
 const candidates = ref<ImportCandidateView[]>([])
 const changed = ref(false)
@@ -133,6 +134,7 @@ watch(
     errors.clear()
     changed.value = false
     if (line) {
+      original.value = line
       fill(line)
       await loadCandidates()
     }
@@ -174,6 +176,24 @@ function payload(): ImportLineUpdateForm {
   return form
 }
 
+async function dismiss() {
+  if (!changed.value) {
+    emit('close', false)
+    return
+  }
+  const { action, link, wallet } = original.value!
+  const reverted = await errors.run(() =>
+    store.updateLine(props.importId, original.value!.id, {
+      action,
+      link: link ? { kind: link.kind, id: link.id } : undefined,
+      wallet: wallet?.id,
+    }),
+  )
+  if (reverted) {
+    emit('close', true)
+  }
+}
+
 async function save() {
   const saved = await errors.run(() =>
     store.updateLine(props.importId, working.value!.id, payload()),
@@ -185,7 +205,7 @@ async function save() {
 </script>
 
 <template>
-  <Dialog :open="line !== null" @update:open="emit('close', changed)">
+  <Dialog :open="line !== null" @update:open="dismiss()">
     <DialogContent v-if="working" class="sm:max-w-lg" data-slot="line-dialog">
       <form class="flex flex-col gap-4" novalidate @submit.prevent="save()">
         <DialogHeader>
@@ -300,7 +320,7 @@ async function save() {
             type="button"
             variant="outline"
             @mousedown.prevent
-            @click="emit('close', changed)"
+            @click="dismiss()"
           >
             {{ $t('form.cancel') }}
           </Button>

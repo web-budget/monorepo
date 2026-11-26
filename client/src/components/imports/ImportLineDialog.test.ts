@@ -188,7 +188,7 @@ describe('ImportLineDialog', () => {
     expect(dialog()!.textContent).toContain('Classificação de receita')
   })
 
-  it('changes the action and keeps it in the draft right away', async () => {
+  it('changes the action right away and puts the original one back when it is cancelled', async () => {
     const wrapper = render(line({ pending: ['cost-center'], costCenter: undefined }))
     vi.mocked(importsApi.updateLine).mockResolvedValue(line({ action: 'IGNORE' }))
     await flushPromises()
@@ -201,7 +201,45 @@ describe('ImportLineDialog', () => {
     dialogButton('Cancelar').click()
     await flushPromises()
 
+    expect(vi.mocked(importsApi.updateLine).mock.calls[1]).toEqual([
+      'i-1',
+      'l-1',
+      { action: 'CREATE', link: undefined, wallet: undefined },
+    ])
     expect(wrapper.emitted('close')).toEqual([[true]])
+  })
+
+  it('puts back the link and the wallet of the line when the change of action is cancelled', async () => {
+    const own = candidates[0]!
+    const wrapper = render(line({ action: 'LINK', link: own, wallet: { id: 'w-2', name: 'Poupança' } }))
+    vi.mocked(importsApi.updateLine).mockResolvedValue(line({ action: 'CREATE' }))
+    await flushPromises()
+
+    await choose(wrapper, 0, 'CREATE')
+    wrapper.findComponent(Dialog).vm.$emit('update:open', false)
+    await flushPromises()
+
+    expect(vi.mocked(importsApi.updateLine).mock.calls[1]).toEqual([
+      'i-1',
+      'l-1',
+      { action: 'LINK', link: { kind: 'MOVEMENT', id: 'm-1' }, wallet: 'w-2' },
+    ])
+    expect(wrapper.emitted('close')).toEqual([[true]])
+  })
+
+  it('stays open with the error when the original action cannot be put back', async () => {
+    const wrapper = render(line())
+    vi.mocked(importsApi.updateLine)
+      .mockResolvedValueOnce(line({ action: 'IGNORE' }))
+      .mockRejectedValueOnce(problem(409, { error: 'import-not-editable' } as never))
+    await flushPromises()
+    await choose(wrapper, 0, 'IGNORE')
+
+    dialogButton('Cancelar').click()
+    await flushPromises()
+
+    expect(dialog()!.textContent).toContain('A importação não é mais um rascunho')
+    expect(wrapper.emitted('close')).toBeUndefined()
   })
 
   it('ignores a change to the action that is already the chosen one', async () => {
