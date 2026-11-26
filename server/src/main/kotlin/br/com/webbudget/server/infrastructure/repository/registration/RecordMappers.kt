@@ -43,8 +43,7 @@ internal fun CostCentersRecord.toCostCenter(parent: CostCenter? = null): CostCen
     fullName = fullName ?: name!!,
     active = active!!,
     description = description,
-    incomeBudget = incomeBudget,
-    expenseBudget = expenseBudget,
+    expenseBudgetPercentage = expenseBudgetPercentage,
     parent = parent
 ).also { costCenter -> costCenter.restore(id, externalId, version, createdOn, lastUpdate) }
 

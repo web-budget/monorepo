@@ -8,8 +8,7 @@ class CostCenter(
     var fullName: String,
     var active: Boolean = true,
     var description: String? = null,
-    var incomeBudget: BigDecimal? = null,
-    var expenseBudget: BigDecimal? = null,
+    var expenseBudgetPercentage: BigDecimal? = null,
     var parent: CostCenter? = null
 ) : PersistentEntity() {
 

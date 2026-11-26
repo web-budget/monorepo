@@ -20,8 +20,7 @@ class CostCenterMapper(
         name = costCenter.name,
         active = costCenter.active,
         description = costCenter.description,
-        incomeBudget = costCenter.incomeBudget,
-        expenseBudget = costCenter.expenseBudget,
+        expenseBudgetPercentage = costCenter.expenseBudgetPercentage,
         parentCostCenter = costCenter.parent?.let { mapToListView(it) }
     )
 
@@ -30,16 +29,14 @@ class CostCenterMapper(
         name = costCenter.name,
         fullName = costCenter.fullName,
         active = costCenter.active,
-        incomeBudget = costCenter.incomeBudget,
-        expenseBudget = costCenter.expenseBudget
+        expenseBudgetPercentage = costCenter.expenseBudgetPercentage
     )
 
     fun mapToDomain(form: CostCenterCreateForm): CostCenter = CostCenter(
         name = form.name!!,
         fullName = form.name,
         description = form.description,
-        incomeBudget = form.incomeBudget,
-        expenseBudget = form.expenseBudget,
+        expenseBudgetPercentage = form.expenseBudgetPercentage,
         parent = form.parentCostCenter?.let { mapParent(it) }
     )
 
@@ -47,8 +44,7 @@ class CostCenterMapper(
         this.name = form.name!!
         this.active = form.active!!
         this.description = form.description
-        this.incomeBudget = form.incomeBudget
-        this.expenseBudget = form.expenseBudget
+        this.expenseBudgetPercentage = form.expenseBudgetPercentage
         this.parent = form.parentCostCenter?.let { mapParent(it) }
     }
 

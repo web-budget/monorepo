@@ -68,8 +68,7 @@ class CostCenterRepository(
             "fullName" to costCenters.FULL_NAME,
             "active" to costCenters.ACTIVE,
             "description" to costCenters.DESCRIPTION,
-            "incomeBudget" to costCenters.INCOME_BUDGET,
-            "expenseBudget" to costCenters.EXPENSE_BUDGET,
+            "expenseBudgetPercentage" to costCenters.EXPENSE_BUDGET_PERCENTAGE,
             "createdOn" to costCenters.CREATED_ON
         )
 
@@ -110,8 +109,7 @@ class CostCenterRepository(
             .set(COST_CENTERS.NAME, costCenter.name)
             .set(COST_CENTERS.FULL_NAME, costCenter.fullName)
             .set(COST_CENTERS.DESCRIPTION, costCenter.description)
-            .set(COST_CENTERS.INCOME_BUDGET, costCenter.incomeBudget)
-            .set(COST_CENTERS.EXPENSE_BUDGET, costCenter.expenseBudget)
+            .set(COST_CENTERS.EXPENSE_BUDGET_PERCENTAGE, costCenter.expenseBudgetPercentage)
             .set(COST_CENTERS.ID_PARENT, costCenter.parent?.id)
             .returning()
             .fetchSingle()
@@ -126,8 +124,7 @@ class CostCenterRepository(
             .set(COST_CENTERS.NAME, costCenter.name)
             .set(COST_CENTERS.FULL_NAME, costCenter.fullName)
             .set(COST_CENTERS.DESCRIPTION, costCenter.description)
-            .set(COST_CENTERS.INCOME_BUDGET, costCenter.incomeBudget)
-            .set(COST_CENTERS.EXPENSE_BUDGET, costCenter.expenseBudget)
+            .set(COST_CENTERS.EXPENSE_BUDGET_PERCENTAGE, costCenter.expenseBudgetPercentage)
             .set(COST_CENTERS.ID_PARENT, costCenter.parent?.id)
             .set(COST_CENTERS.VERSION, COST_CENTERS.VERSION.plus(1))
             .set(COST_CENTERS.LAST_UPDATE, LocalDateTime.now())

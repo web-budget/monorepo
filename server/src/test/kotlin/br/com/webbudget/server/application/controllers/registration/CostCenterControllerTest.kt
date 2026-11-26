@@ -96,8 +96,7 @@ class CostCenterControllerTest : BaseIntegrationTest() {
             .jsonPath("$.id").isEqualTo(OTHERS_ID)
             .jsonPath("$.name").isEqualTo("Outros")
             .jsonPath("$.description").isEqualTo("Centro de custo geral")
-            .jsonPath("$.incomeBudget").isEqualTo(10)
-            .jsonPath("$.expenseBudget").isEqualTo(10)
+            .jsonPath("$.expenseBudgetPercentage").isEqualTo(10)
             .jsonPath("$.parentCostCenter").doesNotExist()
     }
 
@@ -130,7 +129,7 @@ class CostCenterControllerTest : BaseIntegrationTest() {
         restTestClient.post()
             .uri(ENDPOINT_URL)
             .contentType(MediaType.APPLICATION_JSON)
-            .body("""{"name": "House", "description": "Home", "incomeBudget": 5, "expenseBudget": 6}""")
+            .body("""{"name": "House", "description": "Home", "expenseBudgetPercentage": 6.5}""")
             .exchange()
             .expectStatus().isCreated
             .expectHeader().value("Location") { location ->
@@ -172,6 +171,112 @@ class CostCenterControllerTest : BaseIntegrationTest() {
             .expectStatus().isEqualTo(422)
             .expectBody()
             .jsonPath("$.parameters.name").isEqualTo("is-null-or-blank")
+    }
+
+    @Test
+    fun `should save the expense budget percentage of a root and of a child`() {
+
+        restTestClient.post()
+            .uri(ENDPOINT_URL)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"name": "House", "expenseBudgetPercentage": 100}""")
+            .exchange()
+            .expectStatus().isCreated
+
+        restTestClient.post()
+            .uri(ENDPOINT_URL)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"name": "Rent", "expenseBudgetPercentage": 0.01, "parentCostCenter": "$OTHERS_ID"}""")
+            .exchange()
+            .expectStatus().isCreated
+
+        val house = costCenterRepository.findAll("House", null, PageRequest.of(0, 1)).content.single()
+        val rent = costCenterRepository.findAll("Rent", null, PageRequest.of(0, 1)).content.single()
+
+        assertThat(house.expenseBudgetPercentage).isEqualByComparingTo("100")
+        assertThat(rent.expenseBudgetPercentage).isEqualByComparingTo("0.01")
+    }
+
+    @Test
+    fun `should create a cost center without the expense budget percentage`() {
+
+        restTestClient.post()
+            .uri(ENDPOINT_URL)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"name": "House"}""")
+            .exchange()
+            .expectStatus().isCreated
+
+        val created = costCenterRepository.findAll("House", null, PageRequest.of(0, 1)).content.single()
+
+        assertThat(created.expenseBudgetPercentage).isNull()
+    }
+
+    @Test
+    fun `should refuse an expense budget percentage out of the range or with more than two decimals`() {
+
+        mapOf(
+            "0" to "is-not-positive",
+            "-5" to "is-not-positive",
+            "100.01" to "is-above-max-of-100",
+            "101" to "is-above-max-of-100",
+            "12.345" to "has-max-decimals-of-2"
+        ).forEach { (percentage, code) ->
+            restTestClient.post()
+                .uri(ENDPOINT_URL)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""{"name": "House", "expenseBudgetPercentage": $percentage}""")
+                .exchange()
+                .expectStatus().isEqualTo(422)
+                .expectBody()
+                .jsonPath("$.parameters.expenseBudgetPercentage").isEqualTo(code)
+
+            restTestClient.put()
+                .uri("$ENDPOINT_URL/$OTHERS_ID")
+                .contentType(MediaType.APPLICATION_JSON)
+                .body("""{"name": "Outros", "active": true, "expenseBudgetPercentage": $percentage}""")
+                .exchange()
+                .expectStatus().isEqualTo(422)
+                .expectBody()
+                .jsonPath("$.parameters.expenseBudgetPercentage").isEqualTo(code)
+        }
+
+        assertThat(costCenterRepository.existsByName("House")).isFalse()
+    }
+
+    @Test
+    fun `should clear the expense budget percentage when the update does not send it`() {
+
+        restTestClient.put()
+            .uri("$ENDPOINT_URL/$OTHERS_ID")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"name": "Outros", "active": true}""")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.expenseBudgetPercentage").doesNotExist()
+    }
+
+    @Test
+    fun `should return the percentage in the list and not the old budgets`() {
+
+        restTestClient.get()
+            .uri("$ENDPOINT_URL?sort=expenseBudgetPercentage,desc")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.content[0].fullName").isEqualTo("Carro")
+            .jsonPath("$.content[0].expenseBudgetPercentage").isEqualTo(50)
+            .jsonPath("$.content[0].incomeBudget").doesNotExist()
+            .jsonPath("$.content[0].expenseBudget").doesNotExist()
+
+        restTestClient.get()
+            .uri("$ENDPOINT_URL/$OTHERS_ID")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.incomeBudget").doesNotExist()
+            .jsonPath("$.expenseBudget").doesNotExist()
     }
 
     @Test
@@ -228,14 +333,13 @@ class CostCenterControllerTest : BaseIntegrationTest() {
         restTestClient.put()
             .uri("$ENDPOINT_URL/$OTHERS_ID")
             .contentType(MediaType.APPLICATION_JSON)
-            .body("""{"name": "Outros", "active": false, "description": "Changed", "incomeBudget": 1, "expenseBudget": 2}""")
+            .body("""{"name": "Outros", "active": false, "description": "Changed", "expenseBudgetPercentage": 2.25}""")
             .exchange()
             .expectStatus().isOk
             .expectBody()
             .jsonPath("$.active").isEqualTo(false)
             .jsonPath("$.description").isEqualTo("Changed")
-            .jsonPath("$.incomeBudget").isEqualTo(1)
-            .jsonPath("$.expenseBudget").isEqualTo(2)
+            .jsonPath("$.expenseBudgetPercentage").isEqualTo(2.25)
 
         val updated = costCenterRepository.findByExternalId(UUID.fromString(OTHERS_ID))!!
 

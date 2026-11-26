@@ -28,5 +28,6 @@
     <include file="db/changelog/changes/2026/11/24-1100-initial-recurring-value-reason.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/changes/2026/11/24-1200-unaccent-extension.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/changes/2026/11/25-1000-recurring-launches-per-installment.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/changes/2026/11/26-1000-cost-center-expense-budget-percentage.xml" relativeToChangelogFile="false"/>
 
 </databaseChangeLog>

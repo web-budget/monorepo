@@ -1,10 +1,10 @@
-INSERT INTO registration.cost_centers (id, external_id, version, created_on, last_update, active, name, full_name, description, income_budget, expense_budget)
+INSERT INTO registration.cost_centers (id, external_id, version, created_on, last_update, active, name, full_name, description, expense_budget_percentage)
 VALUES (9101, '338c8eea-6d53-4e68-882d-cec57c0ac49f', 0, current_timestamp, current_timestamp, true,
-        'Financial test health', 'Financial test health', 'Health and well being', 1000.00, 800.00),
+        'Financial test health', 'Financial test health', 'Health and well being', 80.00),
        (9102, 'bfe5413f-1cc6-46cb-967c-8a3b11046747', 0, current_timestamp, current_timestamp, true,
-        'Financial test home', 'Financial test home', 'Home expenses', NULL, NULL),
+        'Financial test home', 'Financial test home', 'Home expenses', NULL),
        (9103, '7e1b6f3a-2c4d-4b8e-9a10-5d3f0c9b7a04', 0, current_timestamp, current_timestamp, false,
-        'Financial test old', 'Financial test old', 'Not used anymore', NULL, NULL);
+        'Financial test old', 'Financial test old', 'Not used anymore', NULL);
 
 INSERT INTO registration.classifications (id, external_id, version, created_on, last_update, active, name, type, description)
 VALUES (9101, '503cee43-583e-4df5-a9db-8bf049cf6a8d', 0, current_timestamp, current_timestamp, true,
