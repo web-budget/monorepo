@@ -48,6 +48,7 @@ class ImportRepository(
 
         val sortable = mapOf(
             "name" to imports.FILE_NAME,
+            "period" to financialPeriods.STARTING_AT,
             "createdOn" to imports.CREATED_ON
         )
 

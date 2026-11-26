@@ -164,6 +164,14 @@ class ListingSortOrderTest : BaseIntegrationTest() {
             "fileName", "/financial/imports", "sort=name,desc",
             "undone-statement.ofx", "processing.ofx", "previous-statement.ofx", "broken.txt"
         )
+        assertProperty(
+            "fileName", "/financial/imports", "sort=period,asc",
+            "broken.txt", "previous-statement.ofx", "processing.ofx", "undone-statement.ofx"
+        )
+        assertProperty(
+            "fileName", "/financial/imports", "sort=period,desc",
+            "processing.ofx", "undone-statement.ofx", "broken.txt", "previous-statement.ofx"
+        )
     }
 
     @Test
