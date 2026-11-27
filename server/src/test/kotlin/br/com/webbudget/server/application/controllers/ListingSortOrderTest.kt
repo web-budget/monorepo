@@ -131,6 +131,25 @@ class ListingSortOrderTest : BaseIntegrationTest() {
     @Sql(
         "/sql/financial/clear-tables.sql",
         "/sql/financial/create-registration-data.sql",
+        "/sql/financial/create-compartments.sql"
+    )
+    @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
+    fun `should list the compartment history from the newest movement and ignore the name sort`() {
+
+        val path = "/financial/wallets/7e1b6f3a-2c4d-4b8e-9a10-5d3f0c9b7a01/compartments/c0a1e9a0-0000-4000-8000-000000009101/movements"
+        val newest = "c0a1e9a0-1111-4000-8000-000000009105"
+        val middle = "c0a1e9a0-1111-4000-8000-000000009104"
+        val oldest = "c0a1e9a0-1111-4000-8000-000000009103"
+
+        assertIds(path, "", newest, middle, oldest)
+        assertIds(path, "sort=name,asc", newest, middle, oldest)
+        assertIds(path, "sort=createdOn,asc", oldest, middle, newest)
+    }
+
+    @Test
+    @Sql(
+        "/sql/financial/clear-tables.sql",
+        "/sql/financial/create-registration-data.sql",
         "/sql/financial/create-invoices.sql",
         "/sql/financial/create-card-purchases.sql"
     )
