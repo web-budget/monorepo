@@ -26,6 +26,8 @@ pnpm dev
 
 Abra **http://localhost:8086**. Na primeira subida do server, o usuário `admin@webbudget.com.br` é criado com uma senha aleatória, que aparece no log. A página [Desenvolvimento local](https://github.com/web-budget/monorepo/wiki/Desenvolvimento-local) traz os detalhes.
 
+Uma instância nova começa sem centros de custo nem classificações. A pasta [`sample-data/`](sample-data) tem um cadastro inicial pronto, que se carrega uma vez com `./sample-data/load-sample-data.ps1` (ou `.sh`): veja a página [Sample data](https://github.com/web-budget/monorepo/wiki/Sample-data).
+
 ## Documentação
 
 Toda a documentação fica na [wiki](https://github.com/web-budget/monorepo/wiki):
