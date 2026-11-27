@@ -31,7 +31,7 @@ describe('router', () => {
       .map((record) => record.components?.default)
       .filter((component) => typeof component === 'function')
 
-    expect(loaders).toHaveLength(60)
+    expect(loaders).toHaveLength(61)
     for (const loader of loaders) {
       expect(await (loader as () => Promise<unknown>)()).toHaveProperty('default')
     }

@@ -136,6 +136,7 @@ watch(() => filters.value.wallet, loadBalance)
 const wallet = computed(() =>
   activeWallets.wallets.value.find((candidate) => candidate.id === filters.value.wallet),
 )
+const hasCompartments = computed(() => (wallet.value?.compartmentCount ?? 0) > 0)
 const busy = computed(() => loading.value || initializing.value)
 const hasFilters = computed(() =>
   ['period', 'origin', 'from', 'to', 'min', 'max'].some((key) => filters.value[key]),
@@ -225,9 +226,14 @@ const columns = computed(() => [
 const REFERENCE_PATHS = { MOVEMENT: 'movements', TRANSFER: 'transfers' } as const
 
 function originPath(entry: WalletEntryView) {
-  return entry.reference
-    ? `/financial/${REFERENCE_PATHS[entry.reference.type]}/${entry.reference.id}/detail`
-    : null
+  const reference = entry.reference
+  if (!reference) {
+    return null
+  }
+  if (reference.type === 'COMPARTMENT') {
+    return `/registration/wallets/${filters.value.wallet}/compartments/${reference.id}/detail?movement=${reference.movementId}`
+  }
+  return `/financial/${REFERENCE_PATHS[reference.type]}/${reference.id}/detail`
 }
 
 function openEntry(entry: WalletEntryView) {
@@ -332,8 +338,10 @@ async function adjust(target: { id: string }, form: { value: number }) {
             }}<template v-if="wallet.bank">, {{ wallet.bank }}</template>
           </span>
         </Card>
-        <Card class="gap-1 p-4" data-slot="balance">
-          <span class="text-muted-foreground text-xs">{{ $t('statement.balance') }}</span>
+        <Card class="grid content-between gap-1 p-4" data-slot="balance">
+          <span class="text-muted-foreground text-xs">{{
+            hasCompartments ? $t('statement.free-balance') : $t('statement.balance')
+          }}</span>
           <CurrencyDisplay
             v-if="balance !== null"
             :value="balance"
@@ -341,12 +349,16 @@ async function adjust(target: { id: string }, form: { value: number }) {
             glued
             class="text-xl font-semibold tracking-tight"
           />
-          <span v-if="summary?.lastEntryOn" class="text-muted-foreground text-xs">
+          <span v-if="hasCompartments && wallet" class="text-muted-foreground text-xs">
+            {{ $t('statement.total-label') }}
+            <CurrencyDisplay :value="wallet.totalBalance" :signed="wallet.totalBalance < 0" />
+          </span>
+          <span v-else-if="summary?.lastEntryOn" class="text-muted-foreground text-xs">
             {{ $t('statement.updated-on') }}
             <DateTimeDisplay with-time :value="summary.lastEntryOn" />
           </span>
         </Card>
-        <Card class="gap-1 p-4" data-slot="credits">
+        <Card class="grid content-between gap-1 p-4" data-slot="credits">
           <span class="text-muted-foreground text-xs">{{ $t('statement.credits') }}</span>
           <CurrencyDisplay
             :value="summary?.credits.total ?? 0"
@@ -364,7 +376,7 @@ async function adjust(target: { id: string }, form: { value: number }) {
             }}
           </span>
         </Card>
-        <Card class="gap-1 p-4" data-slot="debits">
+        <Card class="grid content-between gap-1 p-4" data-slot="debits">
           <span class="text-muted-foreground text-xs">{{ $t('statement.debits') }}</span>
           <CurrencyDisplay
             :value="summary?.debits.total ?? 0"

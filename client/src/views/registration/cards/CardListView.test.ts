@@ -31,6 +31,8 @@ const wallet = {
   name: 'Conta corrente',
   type: 'BANK_ACCOUNT',
   currentBalance: 0,
+  totalBalance: 0,
+  compartmentCount: 0,
   bank: null,
   agency: null,
   number: null,

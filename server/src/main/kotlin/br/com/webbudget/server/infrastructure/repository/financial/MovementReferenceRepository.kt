@@ -2,11 +2,13 @@ package br.com.webbudget.server.infrastructure.repository.financial
 
 import br.com.webbudget.server.domain.entities.financial.CardReference
 import br.com.webbudget.server.domain.entities.financial.ClassificationReference
+import br.com.webbudget.server.domain.entities.financial.CompartmentReference
 import br.com.webbudget.server.domain.entities.financial.CostCenterReference
 import br.com.webbudget.server.domain.entities.financial.FinancialPeriodReference
 import br.com.webbudget.server.domain.entities.financial.WalletReference
 import br.com.webbudget.server.jooq.registration.tables.references.CARDS
 import br.com.webbudget.server.jooq.registration.tables.references.CLASSIFICATIONS
+import br.com.webbudget.server.jooq.registration.tables.references.COMPARTMENTS
 import br.com.webbudget.server.jooq.registration.tables.references.COST_CENTERS
 import br.com.webbudget.server.jooq.registration.tables.references.FINANCIAL_PERIODS
 import br.com.webbudget.server.jooq.registration.tables.references.WALLETS
@@ -94,6 +96,26 @@ class MovementReferenceRepository(
             .where(wallets.EXTERNAL_ID.eq(externalId))
             .fetchOne()
             ?.toWalletReference()
+    }
+
+    fun findCompartment(walletExternalId: UUID, compartmentExternalId: UUID): CompartmentReference? {
+        val compartments = COMPARTMENTS.`as`("compartments")
+        val wallets = WALLETS.`as`("wallets")
+        return dsl.select(compartments.asterisk(), wallets.asterisk())
+            .from(compartments)
+            .join(wallets).on(wallets.ID.eq(compartments.ID_WALLET))
+            .where(wallets.EXTERNAL_ID.eq(walletExternalId))
+            .and(compartments.EXTERNAL_ID.eq(compartmentExternalId))
+            .fetchOne { record ->
+                val compartment = record.into(compartments)
+                CompartmentReference(
+                    id = compartment.id!!,
+                    externalId = compartment.externalId!!,
+                    name = compartment.name!!,
+                    balance = compartment.balance!!,
+                    wallet = record.into(wallets).toWalletReference()
+                )
+            }
     }
 
     fun findCard(externalId: UUID): CardReference? {

@@ -35,7 +35,16 @@ data class StatementEntryReferenceView(
     val type: String,
     val id: UUID,
     val returnTransfer: Boolean? = null,
-    val returnable: Boolean? = null
+    val returnable: Boolean? = null,
+    val movementId: UUID? = null
+)
+
+data class StatementEntryCompartmentView(
+    val id: UUID,
+    val name: String,
+    val movementId: UUID,
+    val direction: String,
+    val note: String? = null
 )
 
 data class StatementEntryWalletView(
@@ -65,7 +74,8 @@ data class WalletEntryView(
     val resultingBalance: BigDecimal,
     val financialPeriod: StatementEntryPeriodView?,
     val reference: StatementEntryReferenceView?,
-    val wallet: StatementEntryWalletView? = null
+    val wallet: StatementEntryWalletView? = null,
+    val compartment: StatementEntryCompartmentView? = null
 )
 
 data class AdjustmentForm(

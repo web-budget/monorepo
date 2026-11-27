@@ -72,4 +72,11 @@ object ErrorCodes {
     const val INVOICE_WITHOUT_PURCHASES = "invoice-without-purchases"
     const val INVOICE_PAYMENT_NOT_PAYABLE_BY_CARD = "invoice-payment-not-payable-by-card"
     const val INVOICE_PAYMENT_LOCKED = "invoice-payment-locked"
+    const val DUPLICATED_COMPARTMENT_NAME = "duplicated-compartment-name"
+    const val COMPARTMENT_GOAL_FIELDS_NOT_ALLOWED = "compartment-goal-fields-not-allowed"
+    const val INVALID_COMPARTMENT_TARGET_VALUE = "invalid-compartment-target-value"
+    const val COMPARTMENT_TARGET_DATE_IN_PAST = "compartment-target-date-in-past"
+    const val COMPARTMENT_WITH_BALANCE = "compartment-with-balance"
+    const val INVALID_COMPARTMENT_MOVEMENT_VALUE = "invalid-compartment-movement-value"
+    const val INSUFFICIENT_COMPARTMENT_BALANCE = "insufficient-compartment-balance"
 }

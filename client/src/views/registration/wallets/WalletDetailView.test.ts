@@ -1,6 +1,7 @@
 import { flushPromises } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'vue-sonner'
+import { compartmentsApi } from '@/api/compartments'
 import { walletEntriesApi } from '@/api/walletEntries'
 import { walletsApi } from '@/api/wallets'
 import AdjustBalanceDialog from '@/components/wallets/AdjustBalanceDialog.vue'
@@ -10,6 +11,7 @@ import type { WalletView } from '@/types'
 import WalletDetailView from '@/views/registration/wallets/WalletDetailView.vue'
 
 vi.mock('@/api/wallets')
+vi.mock('@/api/compartments')
 vi.mock('@/api/walletEntries')
 vi.mock('vue-sonner', () => ({
   toast: {
@@ -25,6 +27,8 @@ const wallet: WalletView = {
   name: 'Main',
   type: 'BANK_ACCOUNT',
   currentBalance: 10,
+  totalBalance: 10,
+  compartmentCount: 0,
   active: true,
   description: null,
   bank: 'ACME',
@@ -35,6 +39,7 @@ const wallet: WalletView = {
 
 async function render(view: WalletView = wallet) {
   vi.mocked(walletsApi.findById).mockResolvedValue(view)
+  vi.mocked(compartmentsApi.findAll).mockResolvedValue([])
   return mountView(WalletDetailView, 'wallets', { id: 'w-1' })
 }
 
@@ -57,6 +62,7 @@ describe('WalletDetailView', () => {
       'Identificação',
       'Dados do banco',
       'Saldo',
+      'Cofrinhos',
     ])
     expect(wrapper.text()).toContain('Conta bancária')
     expect(wrapper.text()).toContain('ACME')
@@ -96,7 +102,11 @@ describe('WalletDetailView', () => {
   it('leaves the bank section out of a personal wallet', async () => {
     const { wrapper } = await render({ ...wallet, type: 'PERSONAL', bank: null })
 
-    expect(wrapper.findAll('h2').map((title) => title.text())).toEqual(['Identificação', 'Saldo'])
+    expect(wrapper.findAll('h2').map((title) => title.text())).toEqual([
+      'Identificação',
+      'Saldo',
+      'Cofrinhos',
+    ])
   })
 
   it('shows only the actions while the wallet is loading', async () => {
