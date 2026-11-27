@@ -119,7 +119,7 @@ export function listingCalls(findAll: Mock<(query: PageQuery) => Promise<unknown
 
 export function namedTestRoutes(...names: string[]): RouteRecordRaw[] {
   return names.map((name) => ({
-    path: `/__${name}${name.endsWith('detail') || name.endsWith('update') ? '/:id' : ''}`,
+    path: `/__${name}${name.endsWith('detail') || name.endsWith('update') || name.endsWith('draft') ? '/:id' : ''}`,
     name,
     component: leaf,
   }))

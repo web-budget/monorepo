@@ -3,6 +3,7 @@ package br.com.webbudget.server.domain.validators.financial
 import br.com.webbudget.server.domain.entities.financial.Import
 import br.com.webbudget.server.domain.entities.financial.ImportAction
 import br.com.webbudget.server.domain.entities.financial.ImportLine
+import br.com.webbudget.server.domain.entities.financial.ImportSave
 import br.com.webbudget.server.domain.entities.financial.Movement
 import br.com.webbudget.server.domain.exceptions.DomainException
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.CLASSIFICATION_TYPE_MISMATCH
@@ -10,6 +11,9 @@ import br.com.webbudget.server.domain.exceptions.ErrorCodes.FINANCIAL_PERIOD_NOT
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.IMPORT_ACTION_NOT_ALLOWED
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.IMPORT_DRAFT_ALREADY_EXISTS
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.IMPORT_NOT_EDITABLE
+import br.com.webbudget.server.domain.exceptions.ErrorCodes.IMPORT_NOT_READY
+import br.com.webbudget.server.domain.exceptions.ErrorCodes.IMPORT_NOT_SAVED
+import br.com.webbudget.server.domain.exceptions.ErrorCodes.IMPORT_WITH_PENDING_LINES
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.IMPORT_TARGET_REQUIRED
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.INACTIVE_CARD
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.INACTIVE_CLASSIFICATION
@@ -20,9 +24,12 @@ import br.com.webbudget.server.domain.exceptions.ErrorCodes.NO_OPEN_INVOICE
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.TRANSFER_BETWEEN_SAME_WALLET
 import br.com.webbudget.server.domain.validators.BusinessValidator
 import br.com.webbudget.server.domain.validators.OnCreateValidation
+import br.com.webbudget.server.domain.validators.OnSaveValidation
+import br.com.webbudget.server.domain.validators.OnUndoValidation
 import br.com.webbudget.server.domain.validators.OnUpdateValidation
 import br.com.webbudget.server.infrastructure.repository.financial.ImportRepository
 import br.com.webbudget.server.infrastructure.repository.financial.InvoiceRepository
+import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
 
 interface ImportValidator : BusinessValidator<Import>
@@ -185,6 +192,78 @@ class ImportLineTransferWalletValidator : ImportLineValidator {
 
         if (!wallet.active) {
             throw DomainException("The wallet is inactive", INACTIVE_WALLET)
+        }
+    }
+}
+
+interface ImportSaveValidator : BusinessValidator<ImportSave>
+
+interface ImportUndoValidator : BusinessValidator<Import>
+
+@Component
+@Order(0)
+@OnSaveValidation
+class ImportSaveStatusValidator : ImportSaveValidator {
+
+    override fun validate(value: ImportSave) {
+        if (value.import.status != Import.Status.READY) {
+            throw DomainException.conflict(message = "The import is not a draft to save", error = IMPORT_NOT_READY)
+        }
+    }
+}
+
+@Component
+@OnSaveValidation
+class ImportSaveFinancialPeriodValidator : ImportSaveValidator {
+
+    override fun validate(value: ImportSave) {
+        if (!value.import.financialPeriod.isOpen()) {
+            throw DomainException("The financial period is not open", FINANCIAL_PERIOD_NOT_OPEN)
+        }
+    }
+}
+
+@Component
+@OnSaveValidation
+class ImportSaveOpenInvoiceValidator(
+    private val invoiceRepository: InvoiceRepository
+) : ImportSaveValidator {
+
+    override fun validate(value: ImportSave) {
+
+        val card = value.import.card ?: return
+
+        if (invoiceRepository.findByCardAndFinancialPeriod(card.id, value.import.financialPeriod.id)?.isOpen() != true) {
+            throw DomainException("The card has no open invoice in the financial period", NO_OPEN_INVOICE)
+        }
+    }
+}
+
+@Component
+@OnSaveValidation
+class ImportSavePendingLinesValidator : ImportSaveValidator {
+
+    override fun validate(value: ImportSave) {
+
+        val pending = value.lines.count { it.pendingReasons().isNotEmpty() }
+
+        if (pending > 0) {
+            throw DomainException(
+                "The import has lines to resolve",
+                IMPORT_WITH_PENDING_LINES,
+                mapOf("pending" to pending)
+            )
+        }
+    }
+}
+
+@Component
+@OnUndoValidation
+class ImportUndoStatusValidator : ImportUndoValidator {
+
+    override fun validate(value: Import) {
+        if (value.status != Import.Status.SAVED) {
+            throw DomainException.conflict(message = "The import is not saved", error = IMPORT_NOT_SAVED)
         }
     }
 }

@@ -19,6 +19,7 @@ import java.math.BigDecimal
 @Service
 @Transactional(readOnly = true)
 class ImportSummaryService(
+    private val importSaveService: ImportSaveService,
     private val importLineRepository: ImportLineRepository,
     private val importCandidateRepository: ImportCandidateRepository,
     private val invoiceRepository: InvoiceRepository
@@ -29,7 +30,16 @@ class ImportSummaryService(
         val totals = importLineRepository.totals(import.id!!)
 
         if (import.status != Import.Status.READY) {
-            return ImportSummary(totals, emptyList(), null, BigDecimal.ZERO, import.ledgerBalance, null, BigDecimal.ZERO)
+            return ImportSummary(
+                totals,
+                importSaveService.undoBlockers(import),
+                emptyList(),
+                null,
+                BigDecimal.ZERO,
+                import.ledgerBalance,
+                null,
+                BigDecimal.ZERO
+            )
         }
 
         val lines = importLineRepository.findAll(import)
@@ -55,6 +65,7 @@ class ImportSummaryService(
 
         return ImportSummary(
             totals = totals,
+            undoBlockers = emptyList(),
             unlinkedRecurring = unlinked.notIn(lines),
             fileTotal = fileTotal,
             afterSave = afterSave,
@@ -77,6 +88,7 @@ class ImportSummaryService(
 
         return ImportSummary(
             totals = totals,
+            undoBlockers = emptyList(),
             unlinkedRecurring = unlinked.notIn(lines),
             fileTotal = null,
             afterSave = afterSave,

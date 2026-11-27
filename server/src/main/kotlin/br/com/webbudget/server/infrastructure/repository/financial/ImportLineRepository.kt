@@ -189,6 +189,17 @@ class ImportLineRepository(
         return line
     }
 
+    fun updateResult(line: ImportLine) {
+        dsl.update(IMPORT_LINES)
+            .set(IMPORT_LINES.ID_CREATED_MOVEMENT, line.createdMovementId)
+            .set(IMPORT_LINES.ID_CREATED_PURCHASE, line.createdPurchaseId)
+            .set(IMPORT_LINES.ID_CREATED_TRANSFER, line.createdTransferId)
+            .set(IMPORT_LINES.ID_CREATED_RECURRING, line.createdRecurringId)
+            .set(IMPORT_LINES.PREVIOUS_VALUE, line.previousValue)
+            .where(IMPORT_LINES.ID.eq(line.id))
+            .execute()
+    }
+
     private fun ImportLineCriteria.toCondition(): Condition = DSL.and(
         listOfNotNull(
             text?.let { text -> lines.NAME.containsIgnoringAccents(text).or(lines.DESCRIPTION.containsIgnoringAccents(text)) },

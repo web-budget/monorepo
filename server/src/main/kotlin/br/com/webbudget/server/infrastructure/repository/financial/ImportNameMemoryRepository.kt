@@ -9,6 +9,8 @@ import br.com.webbudget.server.jooq.registration.tables.references.COST_CENTERS
 import br.com.webbudget.server.jooq.registration.tables.references.WALLETS
 import org.jooq.DSLContext
 import org.springframework.stereotype.Repository
+import java.time.LocalDateTime
+import java.util.UUID
 
 @Repository
 class ImportNameMemoryRepository(
@@ -19,6 +21,33 @@ class ImportNameMemoryRepository(
     private val costCenters = COST_CENTERS.`as`("cost_centers")
     private val classifications = CLASSIFICATIONS.`as`("classifications")
     private val wallets = WALLETS.`as`("wallets")
+
+    fun save(memory: ImportNameMemory) {
+
+        val now = LocalDateTime.now()
+
+        dsl.insertInto(IMPORT_NAME_MEMORIES)
+            .set(IMPORT_NAME_MEMORIES.EXTERNAL_ID, UUID.randomUUID())
+            .set(IMPORT_NAME_MEMORIES.VERSION, 0)
+            .set(IMPORT_NAME_MEMORIES.CREATED_ON, now)
+            .set(IMPORT_NAME_MEMORIES.TARGET, memory.target.name)
+            .set(IMPORT_NAME_MEMORIES.NORMALIZED_NAME, memory.normalizedName)
+            .set(IMPORT_NAME_MEMORIES.ACTION, memory.action.name)
+            .set(IMPORT_NAME_MEMORIES.ID_COST_CENTER, memory.costCenter?.id)
+            .set(IMPORT_NAME_MEMORIES.ID_CLASSIFICATION, memory.classification?.id)
+            .set(IMPORT_NAME_MEMORIES.ID_WALLET, memory.wallet?.id)
+            .set(IMPORT_NAME_MEMORIES.ID_RECURRING_MOVEMENT, memory.recurringId)
+            .onConflict(IMPORT_NAME_MEMORIES.TARGET, IMPORT_NAME_MEMORIES.NORMALIZED_NAME)
+            .doUpdate()
+            .set(IMPORT_NAME_MEMORIES.ACTION, memory.action.name)
+            .set(IMPORT_NAME_MEMORIES.ID_COST_CENTER, memory.costCenter?.id)
+            .set(IMPORT_NAME_MEMORIES.ID_CLASSIFICATION, memory.classification?.id)
+            .set(IMPORT_NAME_MEMORIES.ID_WALLET, memory.wallet?.id)
+            .set(IMPORT_NAME_MEMORIES.ID_RECURRING_MOVEMENT, memory.recurringId)
+            .set(IMPORT_NAME_MEMORIES.VERSION, IMPORT_NAME_MEMORIES.VERSION.plus(1))
+            .set(IMPORT_NAME_MEMORIES.LAST_UPDATE, now)
+            .execute()
+    }
 
     fun findByNames(target: Import.Target, normalizedNames: Collection<String>): Map<String, ImportNameMemory> = dsl
         .select()

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import { importsApi } from '@/api/imports'
 import { invoicesApi } from '@/api/invoices'
 import { movementsApi } from '@/api/movements'
 import { recurringMovementsApi } from '@/api/recurringMovements'
@@ -59,6 +60,7 @@ const { counts } = useModuleCounts<number | string>({
     }),
   '/financial/recurring-movements': () =>
     safely(() => totalOf(recurringMovementsApi.findAll({ ended: false, size: 1 }))),
+  '/financial/imports': () => safely(async () => (await importsApi.counts({})).total),
   '/financial/invoices': () =>
     inDefaultPeriod((period) =>
       totalOf(invoicesApi.findAll({ financialPeriod: period.id, size: 1 })),
@@ -72,6 +74,16 @@ const { counts: attentions } = useModuleCounts<string>({
       await safely(() => totalOf(movementsApi.findAll({ overdue: true, size: 1 }))),
       'module-home.attention.overdue',
     ),
+  '/financial/imports': async () => {
+    const imports = await safely(() => importsApi.counts({}))
+    const parts = imports
+      ? [
+          attention(imports.ready, 'module-home.attention.imports-ready'),
+          attention(imports.failed, 'module-home.attention.imports-failed'),
+        ].filter(Boolean)
+      : []
+    return parts.length > 0 ? parts.join(' · ') : null
+  },
   '/financial/invoices': async () =>
     attention(
       await safely(() => totalOf(invoicesApi.findAll({ statuses: ['CLOSED'], size: 1 }))),

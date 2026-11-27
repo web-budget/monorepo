@@ -220,6 +220,7 @@ class ImportSuggestionContext(
 
 class ImportSummary(
     val totals: ImportTotals,
+    val undoBlockers: List<ImportBlocker>,
     val unlinkedRecurring: List<ImportCandidate>,
     val fileTotal: BigDecimal?,
     val afterSave: BigDecimal,
@@ -242,4 +243,15 @@ class ImportLineChange(
     val link: ImportLinkReference? = null,
     val installment: Int? = null,
     val installments: Int? = null
+)
+
+class ImportSave(
+    val import: Import,
+    val lines: List<ImportLine>
+)
+
+class ImportBlocker(
+    val reason: String,
+    val position: Int? = null,
+    val name: String? = null
 )

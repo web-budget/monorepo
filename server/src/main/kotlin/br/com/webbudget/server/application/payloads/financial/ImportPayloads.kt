@@ -73,6 +73,12 @@ data class ImportCandidateView(
     val installments: Int?
 )
 
+data class ImportBlockerView(
+    val reason: String,
+    val position: Int?,
+    val name: String?
+)
+
 data class ImportWarningsView(
     val unlinkedRecurring: List<ImportCandidateView>,
     val fileTotal: BigDecimal?,
@@ -102,7 +108,8 @@ data class ImportView(
     val undoneOn: LocalDateTime?,
     val totals: ImportLineTotalsView,
     val result: ImportResultView,
-    val warnings: ImportWarningsView
+    val warnings: ImportWarningsView,
+    val undoBlockers: List<ImportBlockerView>
 )
 
 data class ImportIgnoreReasonView(
