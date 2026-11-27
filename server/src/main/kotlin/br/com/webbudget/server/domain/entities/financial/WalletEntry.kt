@@ -36,7 +36,8 @@ class StatementLine(
     val movementExternalId: UUID?,
     val transferExternalId: UUID?,
     val transferIsReturn: Boolean = false,
-    val transferReturnable: Boolean = false
+    val transferReturnable: Boolean = false,
+    val reconciliation: ReconciliationLine? = null
 )
 
 class StatementTotal(

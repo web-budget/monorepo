@@ -1,5 +1,6 @@
 package br.com.webbudget.server.infrastructure.repository.registration
 
+import br.com.webbudget.server.domain.entities.registration.LastReconciliation
 import br.com.webbudget.server.domain.entities.registration.Wallet
 import br.com.webbudget.server.infrastructure.repository.concurrentUpdate
 import br.com.webbudget.server.infrastructure.repository.containsIgnoringAccents
@@ -7,6 +8,7 @@ import br.com.webbudget.server.infrastructure.repository.excluding
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.financial.tables.references.WALLET_ENTRIES
+import br.com.webbudget.server.jooq.financial.tables.references.WALLET_RECONCILIATIONS
 import br.com.webbudget.server.jooq.registration.tables.references.WALLETS
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
@@ -26,7 +28,28 @@ class WalletRepository(
         return dsl.selectFrom(wallets)
             .where(wallets.EXTERNAL_ID.eq(externalId))
             .fetchOne { record -> record.toWallet() }
-            ?.also { wallet -> wallet.lastEntryOn = findLastEntryOn(wallet.id) }
+            ?.also { wallet ->
+                wallet.lastEntryOn = findLastEntryOn(wallet.id)
+                wallet.lastReconciliation = findLastReconciliation(wallet.id)
+            }
+    }
+
+    private fun findLastReconciliation(walletId: Long?): LastReconciliation? {
+
+        val reconciliations = WALLET_RECONCILIATIONS.`as`("wallet_reconciliations")
+
+        return dsl.select(reconciliations.EXTERNAL_ID, reconciliations.CREATED_ON, reconciliations.DIFFERENCE)
+            .from(reconciliations)
+            .where(reconciliations.ID_WALLET.eq(walletId))
+            .orderBy(reconciliations.CREATED_ON.desc(), reconciliations.ID.desc())
+            .limit(1)
+            .fetchOne { record ->
+                LastReconciliation(
+                    externalId = record.get(reconciliations.EXTERNAL_ID)!!,
+                    createdOn = record.get(reconciliations.CREATED_ON)!!,
+                    difference = record.get(reconciliations.DIFFERENCE)!!
+                )
+            }
     }
 
     private fun findLastEntryOn(walletId: Long?): LocalDateTime? = dsl
