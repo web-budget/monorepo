@@ -23,7 +23,8 @@ class WalletLedger(
         name: String,
         movementId: Long? = null,
         financialPeriodId: Long? = null,
-        transferId: Long? = null
+        transferId: Long? = null,
+        compartmentMovementId: Long? = null
     ): WalletEntry {
 
         val delta = if (direction == Direction.CREDIT) value else value.negate()
@@ -39,7 +40,8 @@ class WalletLedger(
             walletId = walletId,
             movementId = movementId,
             financialPeriodId = financialPeriodId,
-            transferId = transferId
+            transferId = transferId,
+            compartmentMovementId = compartmentMovementId
         )
 
         return walletEntryRepository.insert(entry)

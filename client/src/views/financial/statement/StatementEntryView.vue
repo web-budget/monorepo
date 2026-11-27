@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CheckCheck } from 'lucide-vue-next'
+import { Box, CheckCheck } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
@@ -43,6 +43,31 @@ watch(
     <template v-if="entry" #badge>
       <OperationBadge :origin="entry.origin" />
     </template>
+    <template v-if="entry?.compartment" #footer>
+      <Button as-child variant="outline">
+        <RouterLink
+          :to="{
+            name: 'wallets.compartments.detail',
+            params: { id: wallet, compartmentId: entry.compartment.id },
+          }"
+        >
+          <Box />{{ $t('statement.actions.open-compartment') }}
+        </RouterLink>
+      </Button>
+    </template>
+    <template v-else-if="entry?.reconciliation" #footer>
+      <Button as-child variant="outline">
+        <RouterLink
+          :to="{
+            name: 'wallets.detail',
+            params: { id: wallet },
+            query: { reconciliation: entry.reconciliation.id },
+          }"
+        >
+          <CheckCheck />{{ $t('statement.detail.open-reconciliation') }}
+        </RouterLink>
+      </Button>
+    </template>
     <DetailSection v-if="entry" :title="$t('statement.sections.entry')" columns="md:grid-cols-3">
       <DetailField :label="$t('statement.table-columns.created-on')" mono>
         <DateTimeDisplay with-time :value="entry.createdOn" />
@@ -75,6 +100,31 @@ watch(
           glued
         />
       </DetailField>
+    </DetailSection>
+    <DetailSection
+      v-if="entry?.compartment"
+      :title="$t('statement.sections.compartment')"
+      columns="md:grid-cols-3"
+    >
+      <DetailField :label="$t('statement.detail.compartment')">
+        <RouterLink
+          :to="{
+            name: 'wallets.compartments.detail',
+            params: { id: wallet, compartmentId: entry.compartment.id },
+          }"
+          class="text-primary underline-offset-4 hover:underline"
+          >{{ entry.compartment.name }}</RouterLink
+        >
+      </DetailField>
+      <DetailField
+        :label="$t('statement.detail.movement')"
+        :value="
+          $t(
+            `statement.detail.movement-${entry.compartment.direction === 'DEPOSIT' ? 'deposit' : 'withdrawal'}`,
+          )
+        "
+      />
+      <DetailField :label="$t('statement.detail.note')" :value="entry.compartment.note" />
     </DetailSection>
     <DetailSection
       v-if="entry?.reconciliation"
@@ -115,18 +165,5 @@ watch(
         wide
       />
     </DetailSection>
-    <template v-if="entry?.reconciliation" #footer>
-      <Button as-child variant="outline">
-        <RouterLink
-          :to="{
-            name: 'wallets.detail',
-            params: { id: wallet },
-            query: { reconciliation: entry.reconciliation.id },
-          }"
-        >
-          <CheckCheck />{{ $t('statement.detail.open-reconciliation') }}
-        </RouterLink>
-      </Button>
-    </template>
   </DetailCard>
 </template>

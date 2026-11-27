@@ -15,8 +15,13 @@ class Wallet(
     var agency: String? = null,
     var number: String? = null,
     var lastEntryOn: LocalDateTime? = null,
+    var compartmentsBalance: BigDecimal = BigDecimal.ZERO,
+    var compartmentCount: Int = 0,
     var lastReconciliation: LastReconciliation? = null
 ) : PersistentEntity() {
+
+    val totalBalance: BigDecimal
+        get() = currentBalance.add(compartmentsBalance)
 
     fun hasValidBankInformation(): Boolean = listOf(bank, agency, number).all { !it.isNullOrBlank() }
 

@@ -37,7 +37,10 @@
       "import-not-discardable": "Uma importação salva não se descarta, desfaça a importação",
       "import-not-ready": "A importação não é um rascunho para salvar",
       "import-not-saved": "A importação não está salva",
-      "import-undo-blocked": "Algo mudou depois do salvamento e a importação não pode ser desfeita"
+      "import-undo-blocked": "Algo mudou depois do salvamento e a importação não pode ser desfeita",
+      "compartment": {
+        "name": "Já existe um cofrinho com o nome \"{value}\" nesta carteira"
+      }
     },
     "unprocessable-entity": {
       "title": "Falha na requisição",
@@ -94,7 +97,13 @@
       "import-target-required": "A importação precisa de um cartão ou de uma carteira, só um dos dois",
       "import-action-not-allowed": "Essa ação não vale para este destino e esta linha",
       "import-link-not-available": "O lançamento escolhido não está mais disponível para esta linha",
-      "import-with-pending-lines": "Ainda há {pending} linhas a resolver"
+      "import-with-pending-lines": "Ainda há {pending} linhas a resolver",
+      "compartment-goal-fields-not-allowed": "Só o objetivo tem descrição, valor alvo e data alvo",
+      "invalid-compartment-target-value": "O valor alvo precisa ser maior que zero.",
+      "compartment-target-date-in-past": "A data alvo não pode ser anterior a hoje.",
+      "compartment-with-balance": "O cofrinho ainda tem saldo e não pode ser excluído",
+      "invalid-compartment-movement-value": "O valor precisa ser maior que zero.",
+      "insufficient-compartment-balance": "O resgate passa do saldo do cofrinho, que é {balance}."
     },
     "not-found": {
       "detail": "Não encontrado",
@@ -1441,7 +1450,8 @@
       "type": "Tipo",
       "bank": "Banco",
       "agency-number": "Agência / conta",
-      "balance": "Saldo atual (R$)"
+      "total": "Total (R$)",
+      "free": "Livre (R$)"
     },
     "form": {
       "new": "Criando",
@@ -1462,6 +1472,8 @@
       "type-hint": "O tipo não muda depois de criada.",
       "balance": "Saldo atual",
       "last-entry": "Última movimentação",
+      "total": "Total",
+      "free-balance": "Saldo livre",
       "last-reconciliation": "Última conciliação"
     },
     "type": {
@@ -1544,6 +1556,109 @@
         "credit": "Ajuste de crédito de {amount} em {name}. Não entra no resultado.",
         "debit": "Ajuste de débito de {amount} em {name}. Não entra no resultado."
       }
+    }
+  },
+  "compartment": {
+    "title": "Cofrinhos",
+    "type": {
+      "reserve": "Reserva",
+      "investment": "Investimento",
+      "goal": "Objetivo"
+    },
+    "actions": {
+      "deposit": "Guardar",
+      "withdraw": "Resgatar",
+      "create": "Criar",
+      "history": "Ver histórico",
+      "edit": "Editar",
+      "remove": "Excluir",
+      "more": "Mais ações de {name}",
+      "inactive-wallet": "Carteira inativa"
+    },
+    "empty": "Nenhum cofrinho nesta carteira",
+    "goal": {
+      "progress": "{percentage} de {target}",
+      "monthly": "{amount} por mês até {date}",
+      "achieved": "Alcançado",
+      "overdue": "Prazo vencido em {date}",
+      "until": "Até {date}",
+      "label": "Progresso de {name}"
+    },
+    "form": {
+      "title-new": "Criar cofrinho",
+      "title-editing": "Editar {name}",
+      "name": "Nome",
+      "type": "Tipo",
+      "type-placeholder": "Escolher",
+      "description": "Descrição",
+      "target-value": "Valor alvo",
+      "target-date": "Data alvo",
+      "create": "Criar",
+      "save": "Salvar",
+      "detailing": "Detalhando"
+    },
+    "toast": {
+      "created": "Cofrinho criado",
+      "created-detail": "{name}, em {wallet}.",
+      "updated": "Cofrinho salvo",
+      "updated-detail": "{name}, em {wallet}.",
+      "removed": "Cofrinho excluído",
+      "removed-detail": "{name} saiu de {wallet}.",
+      "deposited": "Guardado em {name}",
+      "deposited-detail": "{amount} saíram do saldo livre de {wallet}.",
+      "withdrawn": "Resgatado de {name}",
+      "withdrawn-detail": "{amount} voltaram para o saldo livre de {wallet}."
+    },
+    "remove": {
+      "title": "Excluir {name}?",
+      "description": "O histórico dele e a linha no extrato do saldo livre também são excluídos. | O histórico dele e as {count} linhas no extrato do saldo livre também são excluídos.",
+      "balance-title": "{name} ainda tem {amount}",
+      "balance-description": "Resgate tudo para o saldo livre antes de excluir.",
+      "withdraw-all": "Resgatar tudo",
+      "close": "Fechar",
+      "confirm": "Excluir"
+    },
+    "movement": {
+      "title": "Guardar ou resgatar",
+      "direction": "Movimentação",
+      "deposit": "Guardar",
+      "withdraw": "Resgatar",
+      "deposit-into": "Guardar em",
+      "withdraw-from": "Resgatar de",
+      "choose": "Escolher",
+      "value": "Valor",
+      "note": "Observação",
+      "free": "Saldo livre",
+      "negative": "O saldo livre fica negativo",
+      "over": "O resgate passa do saldo de {name}, que é {balance}."
+    },
+    "history": {
+      "sections-balance": "Saldo",
+      "balance": "Saldo",
+      "wallet": "Carteira",
+      "type": "Tipo",
+      "sections-goal": "Objetivo",
+      "description": "Descrição",
+      "target-value": "Valor alvo",
+      "target-date": "Data alvo",
+      "progress": "Progresso",
+      "movements": "Movimentações",
+      "table-columns": {
+        "created-on": "Data e hora",
+        "direction": "Movimentação",
+        "value": "Valor (R$)",
+        "note": "Observação",
+        "previous": "Saldo anterior",
+        "resulting": "Saldo posterior",
+        "origin": "Origem"
+      },
+      "deposit": "Guardado",
+      "withdrawal": "Resgatado",
+      "empty-title": "Nenhuma movimentação ainda",
+      "noun": "movimentação | movimentações",
+      "open-entry": "Abrir a linha no extrato",
+      "anterior": "Anterior",
+      "posterior": "Posterior"
     }
   },
   "card": {
@@ -2258,7 +2373,8 @@
       "REVERSAL": "Estorno",
       "ADJUSTMENT": "Ajuste",
       "TRANSFER": "Transferência",
-      "INVOICE_PAYMENT": "Pagamento de fatura"
+      "INVOICE_PAYMENT": "Pagamento de fatura",
+      "COMPARTMENT": "Cofrinho"
     },
     "table-columns": {
       "created-on": "Data e hora",
@@ -2286,7 +2402,8 @@
     "actions": {
       "import": "Importar extrato",
       "reconcile": "Conciliar",
-      "transfer": "Transferir"
+      "transfer": "Transferir",
+      "open-compartment": "Abrir o cofrinho"
     },
     "updated-on": "Atualizado em",
     "credits": "Créditos no filtro",
@@ -2296,10 +2413,16 @@
     "open-origin-header": "Abrir origem",
     "sections": {
       "entry": "Lançamento",
+      "compartment": "Cofrinho",
       "reconciliation": "Conciliação"
     },
     "detail": {
       "value": "Valor",
+      "compartment": "Cofrinho",
+      "movement": "Movimentação",
+      "note": "Observação",
+      "movement-deposit": "Guardado",
+      "movement-withdrawal": "Resgatado",
       "reconciled-on": "Conciliada em",
       "open-reconciliation": "Abrir a conciliação"
     },
@@ -2308,8 +2431,13 @@
       "transfer-to": "Para {name}",
       "transfer-from": "De {name}",
       "return-to": "Devolução para {name}",
-      "return-from": "Devolução de {name}"
-    }
+      "return-from": "Devolução de {name}",
+      "compartment-deposit": "Guardado em {name}",
+      "compartment-withdrawal": "Resgatado de {name}"
+    },
+    "free-balance": "Saldo livre",
+    "total-label": "Total",
+    "open-compartment": "Abrir o cofrinho de {name}"
   },
   "card-purchase": {
     "title": "Compras no cartão",

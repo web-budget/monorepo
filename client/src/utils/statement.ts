@@ -1,4 +1,5 @@
 import {
+  Box,
   ArrowDownLeft,
   ArrowLeftRight,
   ArrowUpRight,
@@ -21,11 +22,16 @@ export const ORIGIN_APPEARANCE: Record<
   ADJUSTMENT: { icon: Scale, classes: '', variant: 'neutral' },
   TRANSFER: { icon: ArrowLeftRight, classes: 'bg-chart-3/15 text-chart-3', variant: 'neutral' },
   INVOICE_PAYMENT: { icon: CreditCard, classes: 'bg-chart-5/15 text-chart-5', variant: 'neutral' },
+  COMPARTMENT: { icon: Box, classes: 'bg-accent text-accent-foreground', variant: 'neutral' },
 }
 
 export function entryLabel(entry: WalletEntryView, t: Translate): string {
   if (entry.origin === 'REVERSAL') {
     return t('statement.entry.reversal', { name: entry.name })
+  }
+  if (entry.origin === 'COMPARTMENT') {
+    const kind = entry.direction === 'DEBIT' ? 'deposit' : 'withdrawal'
+    return t(`statement.entry.compartment-${kind}`, { name: entry.name })
   }
   if (entry.origin !== 'TRANSFER') {
     return entry.name

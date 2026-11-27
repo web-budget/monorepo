@@ -29,6 +29,20 @@ function isKnownMessage(key: string): boolean {
   return i18n.global.te(key, DEFAULT_LOCALE)
 }
 
+const BAD_REQUEST_FIELDS: Record<string, string> = {
+  'invalid-compartment-target-value': 'targetValue',
+  'compartment-target-date-in-past': 'targetDate',
+  'invalid-compartment-movement-value': 'value',
+  'insufficient-compartment-balance': 'value',
+}
+
+function badRequestParameters(error: ApiError): Record<string, unknown> {
+  const parameters = error.parameters ?? {}
+  return typeof parameters.balance === 'number'
+    ? { ...parameters, balance: i18n.global.n(parameters.balance, 'currency') }
+    : parameters
+}
+
 function badRequest(error: ApiError): ApiErrorNotice {
   const key = `error.bad-request.${error.error}`
   return {
@@ -36,7 +50,7 @@ function badRequest(error: ApiError): ApiErrorNotice {
     title: { key: 'error.bad-request.title' },
     details: [
       error.error !== null && isKnownMessage(key)
-        ? { key, params: error.parameters ?? {} }
+        ? { key, params: badRequestParameters(error), field: BAD_REQUEST_FIELDS[error.error] }
         : UNKNOWN_DETAIL,
     ],
   }

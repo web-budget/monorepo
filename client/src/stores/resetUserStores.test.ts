@@ -55,6 +55,8 @@ describe('resetUserStores', () => {
         type: 'PERSONAL',
         bank: null,
         currentBalance: 0,
+        totalBalance: 0,
+        compartmentCount: 0,
         agency: null,
         number: null,
         active: true,

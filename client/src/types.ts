@@ -147,6 +147,8 @@ export interface WalletView {
   name: string
   type: WalletType
   currentBalance: number
+  totalBalance: number
+  compartmentCount: number
   active: boolean
   description: string | null
   bank: string | null
@@ -167,6 +169,8 @@ export interface WalletListView {
   name: string
   type: WalletType
   currentBalance: number
+  totalBalance: number
+  compartmentCount: number
   bank: string | null
   agency: string | null
   number: string | null
@@ -528,7 +532,7 @@ export interface MovementQuery {
 export type WalletEntryDirection = 'CREDIT' | 'DEBIT'
 
 export type WalletEntryOrigin =
-  'INCOME' | 'EXPENSE' | 'REVERSAL' | 'ADJUSTMENT' | 'TRANSFER' | 'INVOICE_PAYMENT'
+  'INCOME' | 'EXPENSE' | 'REVERSAL' | 'ADJUSTMENT' | 'TRANSFER' | 'INVOICE_PAYMENT' | 'COMPARTMENT'
 
 export type WalletEntryDirectionFilter = WalletEntryDirection | 'ALL'
 
@@ -544,14 +548,16 @@ export interface WalletEntryView {
   financialPeriod: { id: string; name: string } | null
   reference: WalletEntryReference | null
   wallet?: { id: string; name: string }
+  compartment?: WalletEntryCompartment | null
   reconciliation?: ReconciliationView | null
 }
 
 export interface WalletEntryReference {
-  type: 'MOVEMENT' | 'TRANSFER' | 'RECONCILIATION'
+  type: 'MOVEMENT' | 'TRANSFER' | 'RECONCILIATION' | 'COMPARTMENT'
   id: string
   returnTransfer?: boolean | null
   returnable?: boolean | null
+  movementId?: string | null
 }
 
 export interface StatementTotal {
@@ -871,6 +877,75 @@ export interface FinancialPeriodCreation {
   recurringLaunch: RecurringLaunchReport
 }
 
+export interface WalletEntryCompartment {
+  id: string
+  name: string
+  movementId: string
+  direction: CompartmentMovementDirection
+  note?: string | null
+}
+
+export type CompartmentType = 'RESERVE' | 'INVESTMENT' | 'GOAL'
+
+export interface CompartmentCreateForm {
+  name: string
+  type: CompartmentType
+  description?: string | null
+  targetValue?: number | null
+  targetDate?: string | null
+}
+
+export interface CompartmentUpdateForm {
+  name: string
+  description?: string | null
+  targetValue?: number | null
+  targetDate?: string | null
+}
+
+export interface CompartmentView {
+  id: string
+  name: string
+  type: CompartmentType
+  balance: number
+  statementEntryCount: number
+  achieved: boolean
+  overdue: boolean
+  description?: string | null
+  targetValue?: number | null
+  targetDate?: string | null
+  progress?: number | null
+  monthlyAmount?: number | null
+}
+
+export type CompartmentMovementDirection = 'DEPOSIT' | 'WITHDRAWAL'
+
+export interface CompartmentMovementForm {
+  direction: CompartmentMovementDirection
+  value: number
+  note?: string | null
+}
+
+export interface CompartmentMovementView {
+  id: string
+  createdOn: string
+  direction: CompartmentMovementDirection
+  value: number
+  previousBalance: number
+  resultingBalance: number
+  note?: string | null
+  entryId?: string | null
+}
+
+export interface CompartmentMovementResult {
+  movement: CompartmentMovementView
+  walletBalance: number
+  compartmentBalance: number
+  entry: WalletEntryView
+}
+
+export interface CompartmentMovementPosition {
+  position: number
+}
 export type ImportStatus = 'PROCESSING' | 'READY' | 'FAILED' | 'SAVED' | 'UNDONE'
 
 export type ImportStatusFilter = ImportStatus | 'ALL'
