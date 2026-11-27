@@ -37,14 +37,14 @@ describe('layouts', () => {
     expect(wrapper.find('main').text()).toContain('root')
   })
 
-  it('DashboardsLayout lists the three views, the overview selected and the composition disabled', async () => {
+  it('DashboardsLayout lists the three views, all of them enabled and the overview selected', async () => {
     const wrapper = await render(DashboardsLayout, '/dashboards/overview')
 
     expect(menuLabels(wrapper)).toEqual(['Visão geral', 'Período', 'Composição'])
     expect(
       wrapper.findAll('[data-slot="sidebar-menu"] a').map((link) => link.attributes('href')),
-    ).toEqual(['/dashboards/overview', '/dashboards/period'])
-    expect(wrapper.findAll('[data-slot="sidebar"] button[disabled]')).toHaveLength(1)
+    ).toEqual(['/dashboards/overview', '/dashboards/period', '/dashboards/composition'])
+    expect(wrapper.findAll('[data-slot="sidebar"] button[disabled]')).toHaveLength(0)
     expect(wrapper.findAll('[data-active="true"]').map((button) => button.text())).toEqual([
       'Visão geral',
     ])

@@ -38,7 +38,7 @@ export const dashboardsSection: SectionDefinition = {
   items: [
     { label: 'overview.menu', icon: Gauge, to: '/dashboards/overview' },
     { label: 'period-dashboard.menu', icon: CalendarRange, to: '/dashboards/period' },
-    { label: 'composition.menu', icon: ChartBarBig },
+    { label: 'composition.menu', icon: ChartBarBig, to: '/dashboards/composition' },
   ],
 }
 

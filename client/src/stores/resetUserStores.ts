@@ -2,6 +2,7 @@ import { useAccountStore } from '@/stores/account'
 import { useCardPurchasesStore } from '@/stores/cardPurchases'
 import { useCardsStore } from '@/stores/cards'
 import { useClassificationsStore } from '@/stores/classifications'
+import { useCompositionStore } from '@/stores/composition'
 import { useCostCentersStore } from '@/stores/costCenters'
 import { useFinancialPeriodsStore } from '@/stores/financialPeriods'
 import { useInvoicesStore } from '@/stores/invoices'
@@ -25,6 +26,7 @@ export function resetUserStores() {
   useCardPurchasesStore().reset()
   useCostCentersStore().reset()
   useClassificationsStore().reset()
+  useCompositionStore().reset()
   useOverviewStore().reset()
   useFinancialPeriodsStore().reset()
   useInvoicesStore().reset()

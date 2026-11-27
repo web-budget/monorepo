@@ -827,6 +827,43 @@ export interface PeriodDashboardView {
   cards: PeriodCard[]
 }
 
+export interface CompositionCostCenter {
+  id: string
+  name: string
+  parent: string | null
+  value: number
+}
+
+export interface CompositionClassification {
+  id: string
+  name: string
+  costCenter: string
+  value: number
+}
+
+export interface CompositionSeasonality {
+  id: string
+  name: string
+  months: (number | null)[]
+}
+
+export interface CompositionIncomeSource {
+  id: string
+  name: string
+  value: number
+}
+
+export interface CompositionView {
+  cut: string
+  years: number[]
+  expenses: number
+  revenues: number
+  costCenters: CompositionCostCenter[]
+  classifications: CompositionClassification[]
+  seasonality: CompositionSeasonality[]
+  incomeSources: CompositionIncomeSource[]
+}
+
 export type RecurringValueKind = 'FIXED' | 'VARIABLE'
 
 export type RecurringMovementStatusFilter = 'ACTIVE' | 'FINISHED' | 'ALL'

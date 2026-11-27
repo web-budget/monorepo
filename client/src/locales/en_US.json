@@ -2184,6 +2184,44 @@
     }
   },
   "composition": {
-    "menu": "Composition"
+    "menu": "Composition",
+    "title": "Composition",
+    "year": "Year",
+    "all-periods": "All periods",
+    "list": {
+      "plural": "the composition"
+    },
+    "empty": {
+      "title": "No periods yet",
+      "action": "Create period"
+    },
+    "spending": {
+      "title": "Where it goes (top 10)",
+      "tabs": "Group expenses by",
+      "costCenter": "Cost center",
+      "classification": "Classification",
+      "level": "Cost center level",
+      "all": "All",
+      "of-total": "of the total",
+      "empty": "No expenses in this cut",
+      "rest-classifications": "Other {count} classifications",
+      "rest-cost-centers": "Other {count} cost centers"
+    },
+    "income": {
+      "title": "Income sources",
+      "largest": "Largest source",
+      "weight": "Weight of the largest source",
+      "empty": "No revenue in {cut}"
+    },
+    "season": {
+      "title": "Seasonality",
+      "title-average": "Seasonality · monthly average",
+      "less": "Less",
+      "more": "More",
+      "classification": "Classification",
+      "total": "Total (R$)",
+      "average-of": "average of {month}",
+      "month-of-year": "{month} {year}"
+    }
   }
 }
