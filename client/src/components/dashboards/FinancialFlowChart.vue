@@ -14,8 +14,8 @@ import { Bar } from 'vue-chartjs'
 import { useI18n } from 'vue-i18n'
 import { flowMarksPlugin } from '@/components/dashboards/flowMarksPlugin'
 import { useAppearanceStore } from '@/stores/appearance'
-import type { FinancialFlowPeriod } from '@/types'
-import { axisScale, flowMonths } from '@/utils/financialFlow'
+import type { OverviewPeriod } from '@/types'
+import { axisScale, flowMonths, flowPeriods, type OverviewCut } from '@/utils/overview'
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip)
 
@@ -26,7 +26,7 @@ const PROVISIONAL_OPACITY = 45
 const MIN_FONT_SIZE = 10
 const MAX_FONT_SIZE = 16
 
-const props = defineProps<{ periods: FinancialFlowPeriod[] }>()
+const props = defineProps<{ periods: OverviewPeriod[]; cut: OverviewCut }>()
 
 const { t, n, locale } = useI18n()
 const appearance = useAppearanceStore()
@@ -53,7 +53,11 @@ watch(
   },
 )
 
-const months = computed(() => flowMonths(props.periods, locale.value))
+const months = computed(() =>
+  props.cut === 'all'
+    ? flowPeriods(props.periods, locale.value)
+    : flowMonths(props.periods, locale.value),
+)
 
 const axis = computed(() =>
   axisScale(Math.max(...months.value.flatMap((month) => [month.revenues, month.expenses]))),
@@ -71,7 +75,7 @@ const data = computed<ChartData<'bar'>>(() => ({
   labels: months.value.map((month) => month.label),
   datasets: [
     {
-      label: t('financial-flow.legend.revenues'),
+      label: t('overview.legend.revenues'),
       data: months.value.map((month) => month.revenues),
       backgroundColor: fills(colors.value.income),
       hoverBackgroundColor: fills(colors.value.income),
@@ -80,7 +84,7 @@ const data = computed<ChartData<'bar'>>(() => ({
       barPercentage: 0.96,
     },
     {
-      label: t('financial-flow.legend.expenses'),
+      label: t('overview.legend.expenses'),
       data: months.value.map((month) => month.expenses),
       backgroundColor: fills(colors.value.expense),
       hoverBackgroundColor: fills(colors.value.expense),
@@ -107,7 +111,12 @@ const options = computed<ChartOptions<'bar'>>(() => ({
   scales: {
     x: {
       grid: { display: false },
-      ticks: { color: colors.value.text, font: scaledFont(12), maxRotation: 0 },
+      ticks: {
+        color: colors.value.text,
+        font: scaledFont(12),
+        maxRotation: 0,
+        autoSkip: !months.value.some((month) => month.label === ''),
+      },
     },
     y: {
       min: 0,
@@ -148,31 +157,27 @@ const options = computed<ChartOptions<'bar'>>(() => ({
 <template>
   <div class="grid gap-3" data-slot="financial-flow-chart">
     <div class="flex flex-wrap items-center justify-between gap-2">
-      <h2 class="text-base font-semibold">{{ $t('financial-flow.chart.title') }}</h2>
+      <h2 class="text-base font-semibold">{{ $t('overview.chart.title') }}</h2>
       <ul
         class="text-muted-foreground flex flex-wrap gap-x-4 gap-y-1 text-xs"
         data-slot="chart-legend"
       >
         <li class="inline-flex items-center gap-1.5">
-          <span class="bg-income size-2.5 rounded-[1px]" />{{
-            $t('financial-flow.legend.revenues')
-          }}
+          <span class="bg-income size-2.5 rounded-[1px]" />{{ $t('overview.legend.revenues') }}
         </li>
         <li class="inline-flex items-center gap-1.5">
-          <span class="bg-expense size-2.5 rounded-[1px]" />{{
-            $t('financial-flow.legend.expenses')
-          }}
+          <span class="bg-expense size-2.5 rounded-[1px]" />{{ $t('overview.legend.expenses') }}
         </li>
         <li class="inline-flex items-center gap-1.5">
           <span class="border-muted-foreground size-2.5 rounded-[1px] border border-dashed" />
-          {{ $t('financial-flow.legend.provisional') }}
+          {{ $t('overview.legend.provisional') }}
         </li>
       </ul>
     </div>
     <div
-      class="aspect-[720/260] w-full min-w-0"
+      class="aspect-[720/256] w-full min-w-0 lg:aspect-auto lg:h-64"
       role="img"
-      :aria-label="$t('financial-flow.chart.title')"
+      :aria-label="$t('overview.chart.title')"
     >
       <Bar :data="data" :options="options" :plugins="plugins" />
     </div>

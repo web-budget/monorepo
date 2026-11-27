@@ -715,7 +715,7 @@ export interface CardPurchaseView {
   recurringMovement?: PurchaseRecurringView | null
 }
 
-export interface FinancialFlowPeriod {
+export interface OverviewPeriod {
   financialPeriod: { id: string; name: string; startingAt: string; endingAt: string }
   revenues: number
   expenses: number
@@ -723,10 +723,30 @@ export interface FinancialFlowPeriod {
   recorded: boolean
 }
 
-export interface FinancialFlowView {
+export interface OverviewTotals {
+  revenues: number
+  expenses: number
+  result: number
+  savingsRate: number | null
+  redPeriods: number
+  periodsWithMovement: number
+}
+
+export interface OverviewYearResult {
   year: number
-  totals: { revenues: number; expenses: number; result: number }
-  periods: FinancialFlowPeriod[]
+  revenues: number
+  expenses: number
+  result: number
+  savingsRate: number | null
+  provisional: boolean
+}
+
+export interface OverviewView {
+  cut: string
+  years: number[]
+  totals: OverviewTotals
+  resultByYear: OverviewYearResult[]
+  periods: OverviewPeriod[]
 }
 
 export type RecurringValueKind = 'FIXED' | 'VARIABLE'

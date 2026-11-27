@@ -204,17 +204,30 @@ describe('start route', () => {
 })
 
 describe('dashboards routes', () => {
-  it('redirects the dashboards to the financial flow, which has its breadcrumb and the DASHBOARDS role', () => {
+  it('redirects the dashboards to the overview, which has its breadcrumb and the DASHBOARDS role', () => {
     const redirected = router.getRoutes().find((record) => record.name === 'dashboards')
-    const resolved = router.resolve('/dashboards/financial-flow')
+    const resolved = router.resolve('/dashboards/overview')
 
-    expect(redirected?.redirect).toEqual({ name: 'dashboards.financial-flow' })
-    expect(resolved.name).toBe('dashboards.financial-flow')
+    expect(redirected?.redirect).toEqual({ name: 'dashboards.overview' })
+    expect(resolved.name).toBe('dashboards.overview')
     expect(resolved.matched.map((record) => record.meta.breadcrumb)).toEqual([
       'menu.dashboards',
-      'financial-flow.menu',
+      'overview.menu',
     ])
     expect(resolved.matched.map((record) => record.meta.role)).toContain('DASHBOARDS')
+  })
+
+  it('sends the old financial flow link to the overview, keeping the year', () => {
+    const record = router
+      .getRoutes()
+      .find((candidate) => candidate.path === '/dashboards/financial-flow')
+    const redirect = record?.redirect as (to: unknown) => unknown
+
+    expect(redirect({ query: { year: '2025' } })).toEqual({
+      name: 'dashboards.overview',
+      query: { year: '2025' },
+    })
+    expect(redirect({ query: {} })).toEqual({ name: 'dashboards.overview', query: {} })
   })
 })
 

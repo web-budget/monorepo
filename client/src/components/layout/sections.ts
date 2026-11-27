@@ -2,8 +2,9 @@ import {
   ArrowLeftRight,
   ArrowRightLeft,
   CalendarRange,
-  ChartColumn,
+  ChartBarBig,
   CreditCard,
+  Gauge,
   Lock,
   Network,
   ReceiptText,
@@ -34,7 +35,11 @@ export const dashboardsSection: SectionDefinition = {
   path: '/dashboards',
   label: 'menu.dashboards',
   role: 'DASHBOARDS',
-  items: [{ label: 'financial-flow.menu', icon: ChartColumn, to: '/dashboards/financial-flow' }],
+  items: [
+    { label: 'overview.menu', icon: Gauge, to: '/dashboards/overview' },
+    { label: 'period-dashboard.menu', icon: CalendarRange },
+    { label: 'composition.menu', icon: ChartBarBig },
+  ],
 }
 
 export const financialSection: ModuleSectionDefinition = {

@@ -2049,18 +2049,30 @@
       "action": "Launch the first installment"
     }
   },
-  "financial-flow": {
-    "menu": "Financial flow",
-    "title": "Financial flow",
-    "description": "Paid revenues and expenses of each period.",
+  "overview": {
+    "menu": "Overview",
+    "title": "Overview",
     "year": "Year",
+    "all-periods": "All periods",
+    "provisional": "provisional",
     "list": {
-      "plural": "the financial flow"
+      "plural": "the overview"
     },
-    "totals": {
+    "empty": {
+      "title": "No periods yet",
+      "action": "Create period"
+    },
+    "summary": {
+      "title": "Result of {cut}",
+      "all-periods": "all periods"
+    },
+    "figures": {
       "revenues": "Revenues",
       "expenses": "Expenses",
-      "result": "Result"
+      "result": "Result",
+      "savings-rate": "Savings rate",
+      "red-periods": "Months in the red",
+      "red-of": "of {count}"
     },
     "chart": {
       "title": "Revenues and expenses by period"
@@ -2070,20 +2082,22 @@
       "expenses": "Expenses",
       "provisional": "Provisional (open period)"
     },
+    "year-chart": {
+      "title": "Result by year",
+      "result": "Result",
+      "savings": "savings {rate}"
+    },
     "table": {
       "period": "Period",
       "revenues": "Revenues (R$)",
       "expenses": "Expenses (R$)",
-      "result": "Result (R$)",
-      "status": "Status"
-    },
-    "status": {
-      "recorded": "Recorded",
-      "provisional": "Provisional"
-    },
-    "empty": {
-      "title": "No periods in {year}",
-      "description": "Create a period or choose another year."
+      "result": "Result (R$)"
     }
+  },
+  "period-dashboard": {
+    "menu": "Period"
+  },
+  "composition": {
+    "menu": "Composition"
   }
 }

@@ -2049,18 +2049,30 @@
       "action": "Lançar a primeira parcela"
     }
   },
-  "financial-flow": {
-    "menu": "Fluxo financeiro",
-    "title": "Fluxo financeiro",
-    "description": "Receitas e despesas pagas de cada período.",
+  "overview": {
+    "menu": "Visão geral",
+    "title": "Visão geral",
     "year": "Ano",
+    "all-periods": "Todos os períodos",
+    "provisional": "provisório",
     "list": {
-      "plural": "o fluxo financeiro"
+      "plural": "a visão geral"
     },
-    "totals": {
+    "empty": {
+      "title": "Nenhum período ainda",
+      "action": "Criar período"
+    },
+    "summary": {
+      "title": "Resultado de {cut}",
+      "all-periods": "todos os períodos"
+    },
+    "figures": {
       "revenues": "Receitas",
       "expenses": "Despesas",
-      "result": "Resultado"
+      "result": "Resultado",
+      "savings-rate": "Taxa de poupança",
+      "red-periods": "Meses no vermelho",
+      "red-of": "de {count}"
     },
     "chart": {
       "title": "Receitas e despesas por período"
@@ -2070,20 +2082,22 @@
       "expenses": "Despesas",
       "provisional": "Provisório (período aberto)"
     },
+    "year-chart": {
+      "title": "Resultado por ano",
+      "result": "Resultado",
+      "savings": "poupança {rate}"
+    },
     "table": {
       "period": "Período",
       "revenues": "Receitas (R$)",
       "expenses": "Despesas (R$)",
-      "result": "Resultado (R$)",
-      "status": "Situação"
-    },
-    "status": {
-      "recorded": "Gravado",
-      "provisional": "Provisório"
-    },
-    "empty": {
-      "title": "Nenhum período em {year}",
-      "description": "Crie um período ou escolha outro ano."
+      "result": "Resultado (R$)"
     }
+  },
+  "period-dashboard": {
+    "menu": "Período"
+  },
+  "composition": {
+    "menu": "Composição"
   }
 }

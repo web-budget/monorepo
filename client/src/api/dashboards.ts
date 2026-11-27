@@ -1,10 +1,10 @@
 import { apiClient } from './client'
-import type { FinancialFlowView } from '@/types'
+import type { OverviewView } from '@/types'
 
 export const dashboardsApi = {
-  findFinancialFlow(year?: number): Promise<FinancialFlowView> {
+  findOverview(cut: number | 'all'): Promise<OverviewView> {
     return apiClient
-      .get<FinancialFlowView>('/dashboards/financial-flow', { params: { year } })
+      .get<OverviewView>('/dashboards/overview', { params: { year: cut } })
       .then((response) => response.data)
   },
 }

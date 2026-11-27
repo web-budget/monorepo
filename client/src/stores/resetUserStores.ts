@@ -3,10 +3,10 @@ import { useCardPurchasesStore } from '@/stores/cardPurchases'
 import { useCardsStore } from '@/stores/cards'
 import { useClassificationsStore } from '@/stores/classifications'
 import { useCostCentersStore } from '@/stores/costCenters'
-import { useFinancialFlowStore } from '@/stores/financialFlow'
 import { useFinancialPeriodsStore } from '@/stores/financialPeriods'
 import { useInvoicesStore } from '@/stores/invoices'
 import { useMovementsStore } from '@/stores/movements'
+import { useOverviewStore } from '@/stores/overview'
 import { usePeriodClosingStore } from '@/stores/periodClosing'
 import { useRecurringLaunchStore } from '@/stores/recurringLaunch'
 import { useRecurringMovementsStore } from '@/stores/recurringMovements'
@@ -24,7 +24,7 @@ export function resetUserStores() {
   useCardPurchasesStore().reset()
   useCostCentersStore().reset()
   useClassificationsStore().reset()
-  useFinancialFlowStore().reset()
+  useOverviewStore().reset()
   useFinancialPeriodsStore().reset()
   useInvoicesStore().reset()
   useMovementsStore().reset()
