@@ -234,16 +234,13 @@ function openDraft() {
                   :options="walletChoices"
                   @update:model-value="(value: string) => setFieldValue('wallet', value)"
                 />
-                <div class="grid gap-1.5">
-                  <FilterSelect
-                    :model-value="financialPeriod"
-                    :label="$t('imports.form.period')"
-                    required
-                    :options="periodChoices"
-                    @update:model-value="(value: string) => setFieldValue('financialPeriod', value)"
-                  />
-                  <p class="text-muted-foreground text-xs">{{ $t('imports.form.period-hint') }}</p>
-                </div>
+                <FilterSelect
+                  :model-value="financialPeriod"
+                  :label="$t('imports.form.period')"
+                  required
+                  :options="periodChoices"
+                  @update:model-value="(value: string) => setFieldValue('financialPeriod', value)"
+                />
               </div>
             </div>
           </FormSection>

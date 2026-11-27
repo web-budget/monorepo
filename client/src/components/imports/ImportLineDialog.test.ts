@@ -363,7 +363,7 @@ describe('ImportLineDialog', () => {
     expect(dialog()!.textContent?.replace(/\s/g, ' ')).toContain(
       'Lançado com 60,00, o arquivo tem 223,10',
     )
-    expect(dialog()!.textContent).toContain('Vale o valor do arquivo.')
+    expect(dialog()!.textContent).not.toContain('Vale o valor do arquivo.')
   })
 
   it('does not repeat the link of the line when it is also a candidate', async () => {
@@ -466,16 +466,10 @@ describe('ImportLineDialog', () => {
     )
     await flushPromises()
 
-    expect(dialog()!.textContent).toContain('Crédito do cartão, não vira lançamento')
     expect(dialog()!.textContent).toContain('Crédito sem compra')
-    expect(selects(wrapper)).toHaveLength(0)
-  })
-
-  it('has no reason to show for a line ignored by the user', async () => {
-    render(line({ action: 'IGNORE' }))
-    await flushPromises()
-
+    expect(dialog()!.textContent).not.toContain('Crédito do cartão')
     expect(document.body.querySelector('[data-slot="ignore-reason"]')).toBeNull()
+    expect(selects(wrapper)).toHaveLength(0)
   })
 
   it('shows the error of the server inside the dialog and keeps it open', async () => {

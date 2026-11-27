@@ -124,7 +124,7 @@ describe('ImportFormView', () => {
       { value: 'p-11', label: 'Novembro de 2026' },
       { value: 'p-10', label: 'Outubro de 2026 · expirado' },
     ])
-    expect(wrapper.text()).toContain('Tudo o que for criado entra neste período.')
+    expect(wrapper.text()).not.toContain('Tudo o que for criado entra neste período.')
     expect(wrapper.find('[data-slot="drop-area"]').text()).toContain(
       'Arraste o arquivo ou clique para escolher',
     )

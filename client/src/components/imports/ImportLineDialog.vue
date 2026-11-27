@@ -6,7 +6,7 @@ import FilterSelect from '@/components/forms/FilterSelect.vue'
 import ServerErrorAlert from '@/components/forms/ServerErrorAlert.vue'
 import ImportLineBadges from '@/components/imports/ImportLineBadges.vue'
 import ImportLineValue from '@/components/imports/ImportLineValue.vue'
-import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { Alert, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -297,13 +297,6 @@ async function save() {
             :none-label="$t('imports.draft.choose')"
             :options="walletOptions"
           />
-          <p
-            v-if="action === 'IGNORE' && working.ignoreReason"
-            class="text-muted-foreground text-sm"
-            data-slot="ignore-reason"
-          >
-            {{ $t(`imports.draft.ignored.${working.ignoreReason.code}`, { date: '' }) }}
-          </p>
           <Alert v-if="working.differentValue" variant="attention" data-slot="difference-alert">
             <TriangleAlert />
             <AlertTitle>
@@ -314,7 +307,6 @@ async function save() {
                 })
               }}
             </AlertTitle>
-            <AlertDescription>{{ $t('imports.draft.difference-alert.text') }}</AlertDescription>
           </Alert>
         </div>
         <DialogFooter>

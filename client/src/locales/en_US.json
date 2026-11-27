@@ -965,7 +965,6 @@
       "wallet": "Wallet",
       "period": "Period",
       "expired": "{name} · expired",
-      "period-hint": "Everything that is created goes into this period.",
       "file": "File",
       "file-info": "OFX · {size}",
       "drop": "Drop the file or click to choose",
@@ -1061,7 +1060,7 @@
         "user": "Ignored by you",
         "payment-received": "Payment of the previous invoice",
         "iof-pair": "IOF of a foreign purchase",
-        "credit": "Card credit, not turned into an entry",
+        "credit": "Card credit",
         "already-imported": "Already imported on {date}",
         "already-registered": "Already registered"
       },
@@ -1113,8 +1112,7 @@
         "title": "Line of"
       },
       "difference-alert": {
-        "title": "Launched with {linked}, the file has {file}",
-        "text": "The file amount prevails."
+        "title": "Launched with {linked}, the file has {file}"
       },
       "list": {
         "no-result-query": "No line found for “{query}”",

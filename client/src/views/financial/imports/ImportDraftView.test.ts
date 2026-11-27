@@ -288,7 +288,7 @@ describe('ImportDraftView', () => {
     expect(rows[1]![5]).toBe('Falta centro de custo e classificação')
     expect(rows[2]![2]).toBe('Seguro de vidaDiferença de R$ 163,10')
     expect(rows[2]![5]).toBe('Seguro de vida · Outubro')
-    expect(rows[3]).toEqual(['', '02/11', 'Estorno lojaCrédito sem compra', '50,00', 'Ignorar', 'Crédito do cartão, não vira lançamento', ''])
+    expect(rows[3]).toEqual(['', '02/11', 'Estorno lojaCrédito sem compra', '50,00', 'Ignorar', 'Crédito do cartão', ''])
     expect(rows[4]![2]).toBe('Curso de fotografiaJá importada2/6')
     expect(rows[4]![5]).toBe('2/6 · Pessoal · Mercado')
     expect(rows[5]![2]).toBe('AcademiaJá registrada')

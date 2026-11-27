@@ -965,7 +965,6 @@
       "wallet": "Carteira",
       "period": "Período",
       "expired": "{name} · expirado",
-      "period-hint": "Tudo o que for criado entra neste período.",
       "file": "Arquivo",
       "file-info": "OFX · {size}",
       "drop": "Arraste o arquivo ou clique para escolher",
@@ -1061,7 +1060,7 @@
         "user": "Ignorada por você",
         "payment-received": "Pagamento da fatura anterior",
         "iof-pair": "IOF de uma compra no exterior",
-        "credit": "Crédito do cartão, não vira lançamento",
+        "credit": "Crédito do cartão",
         "already-imported": "Já importada em {date}",
         "already-registered": "Já registrada"
       },
@@ -1113,8 +1112,7 @@
         "title": "Linha de"
       },
       "difference-alert": {
-        "title": "Lançado com {linked}, o arquivo tem {file}",
-        "text": "Vale o valor do arquivo."
+        "title": "Lançado com {linked}, o arquivo tem {file}"
       },
       "list": {
         "no-result-query": "Nenhuma linha encontrada para “{query}”",
