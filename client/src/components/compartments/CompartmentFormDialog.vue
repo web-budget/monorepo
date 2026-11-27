@@ -38,6 +38,14 @@ const props = defineProps<{
 
 const emit = defineEmits<{ close: []; submit: [values: CompartmentFormValues] }>()
 
+const BLANK_VALUES = {
+  name: '',
+  type: undefined,
+  description: '',
+  targetValue: null,
+  targetDate: '',
+} as never
+
 const { t } = useI18n()
 
 const form = useForm({ validationSchema: compartmentFormSchema })
@@ -53,11 +61,12 @@ watch(
   () => [props.open, props.compartment, props.resetToken],
   async () => {
     form.resetForm({
-      values: props.compartment ? toCompartmentFormValues(props.compartment) : {},
+      values: props.compartment ? toCompartmentFormValues(props.compartment) : BLANK_VALUES,
     })
     await nextTick()
     document.querySelector<HTMLInputElement>('[data-slot="compartment-form"] input')?.focus()
   },
+  { immediate: true },
 )
 
 watch(

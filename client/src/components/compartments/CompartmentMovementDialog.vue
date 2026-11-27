@@ -117,6 +117,9 @@ watch(
 )
 
 const submit = form.handleSubmit((submitted) => {
+  if (overdrawn.value) {
+    return
+  }
   const typed = submitted as CompartmentMovementFormValues
   emit('move', typed.compartment, toCompartmentMovementForm(typed))
 })
