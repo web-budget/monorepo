@@ -72,4 +72,5 @@ object ErrorCodes {
     const val INVOICE_WITHOUT_PURCHASES = "invoice-without-purchases"
     const val INVOICE_PAYMENT_NOT_PAYABLE_BY_CARD = "invoice-payment-not-payable-by-card"
     const val INVOICE_PAYMENT_LOCKED = "invoice-payment-locked"
+    const val RESERVE_MONTHS_OUT_OF_RANGE = "reserve-months-out-of-range"
 }

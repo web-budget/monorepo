@@ -15,6 +15,7 @@ class ClassificationMapper {
         name = classification.name,
         type = classification.type.name,
         active = classification.active,
+        generic = classification.generic,
         description = classification.description
     )
 
@@ -22,13 +23,15 @@ class ClassificationMapper {
         id = classification.externalId!!,
         name = classification.name,
         type = classification.type.name,
-        active = classification.active
+        active = classification.active,
+        generic = classification.generic
     )
 
     fun mapToDomain(form: ClassificationCreateForm): Classification = Classification(
         name = form.name!!,
         type = form.type!!,
-        description = form.description
+        description = form.description,
+        generic = form.generic ?: false
     )
 
     fun mapToDomain(form: ClassificationUpdateForm, classification: Classification): Classification =
@@ -36,5 +39,6 @@ class ClassificationMapper {
             this.name = form.name!!
             this.description = form.description
             this.active = form.active!!
+            this.generic = form.generic ?: false
         }
 }

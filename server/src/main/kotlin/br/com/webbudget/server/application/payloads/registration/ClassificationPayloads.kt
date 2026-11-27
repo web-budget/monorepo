@@ -16,7 +16,8 @@ data class ClassificationCreateForm(
     val name: String?,
     @field:NotNull(message = IS_NULL)
     var type: Classification.Type?,
-    val description: String? = null
+    val description: String? = null,
+    val generic: Boolean? = null
 )
 
 data class ClassificationUpdateForm(
@@ -25,7 +26,8 @@ data class ClassificationUpdateForm(
     val name: String?,
     val description: String? = null,
     @field:NotNull(message = IS_NULL)
-    var active: Boolean?
+    var active: Boolean?,
+    val generic: Boolean? = null
 )
 
 data class ClassificationView(
@@ -33,6 +35,7 @@ data class ClassificationView(
     val name: String,
     val type: String,
     val active: Boolean,
+    val generic: Boolean,
     val description: String? = null
 )
 
@@ -40,7 +43,8 @@ data class ClassificationListView(
     val id: UUID,
     val name: String,
     val type: String,
-    val active: Boolean
+    val active: Boolean,
+    val generic: Boolean
 )
 
 data class ClassificationFilter(
