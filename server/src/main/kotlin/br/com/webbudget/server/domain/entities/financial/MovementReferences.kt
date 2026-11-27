@@ -44,6 +44,14 @@ class WalletReference(
     val currentBalance: BigDecimal
 )
 
+class CompartmentReference(
+    val id: Long,
+    val externalId: UUID,
+    val name: String,
+    val balance: BigDecimal,
+    val wallet: WalletReference
+)
+
 class RecurringMovementReference(
     val externalId: UUID,
     val name: String,

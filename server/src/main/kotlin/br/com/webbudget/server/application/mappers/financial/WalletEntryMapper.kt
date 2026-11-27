@@ -1,6 +1,7 @@
 package br.com.webbudget.server.application.mappers.financial
 
 import br.com.webbudget.server.application.payloads.financial.AdjustmentForm
+import br.com.webbudget.server.application.payloads.financial.StatementEntryCompartmentView
 import br.com.webbudget.server.application.payloads.financial.StatementEntryPeriodView
 import br.com.webbudget.server.application.payloads.financial.StatementEntryReferenceView
 import br.com.webbudget.server.application.payloads.financial.StatementEntryWalletView
@@ -41,7 +42,12 @@ class WalletEntryMapper(
     )
 
     fun mapToDetailView(line: StatementLine, wallet: WalletReference): WalletEntryView =
-        mapToView(line).copy(wallet = StatementEntryWalletView(wallet.externalId, wallet.name))
+        mapToView(line).copy(
+            wallet = StatementEntryWalletView(wallet.externalId, wallet.name),
+            compartment = line.compartment?.let {
+                StatementEntryCompartmentView(it.externalId, it.name, it.movementExternalId, it.movementDirection.name, it.note)
+            }
+        )
 
     fun mapToView(summary: StatementSummary): StatementSummaryView = StatementSummaryView(
         credits = StatementTotalView(summary.credits.total, summary.credits.count),
@@ -95,6 +101,11 @@ class WalletEntryMapper(
             line.transferExternalId,
             returnTransfer = line.transferIsReturn,
             returnable = line.transferReturnable
+        )
+        line.compartment != null -> StatementEntryReferenceView(
+            "COMPARTMENT",
+            line.compartment.externalId,
+            movementId = line.compartment.movementExternalId
         )
         else -> null
     }

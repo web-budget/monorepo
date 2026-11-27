@@ -2,11 +2,13 @@ package br.com.webbudget.server.infrastructure.repository.registration
 
 import br.com.webbudget.server.domain.entities.registration.Card
 import br.com.webbudget.server.domain.entities.registration.Classification
+import br.com.webbudget.server.domain.entities.registration.Compartment
 import br.com.webbudget.server.domain.entities.registration.CostCenter
 import br.com.webbudget.server.domain.entities.registration.FinancialPeriod
 import br.com.webbudget.server.domain.entities.registration.Wallet
 import br.com.webbudget.server.jooq.registration.tables.records.CardsRecord
 import br.com.webbudget.server.jooq.registration.tables.records.ClassificationsRecord
+import br.com.webbudget.server.jooq.registration.tables.records.CompartmentsRecord
 import br.com.webbudget.server.jooq.registration.tables.records.CostCentersRecord
 import br.com.webbudget.server.jooq.registration.tables.records.FinancialPeriodsRecord
 import br.com.webbudget.server.jooq.registration.tables.records.WalletsRecord
@@ -56,3 +58,14 @@ internal fun FinancialPeriodsRecord.toFinancialPeriod(): FinancialPeriod = Finan
     expensesGoal = expensesGoal,
     revenuesGoal = revenuesGoal
 ).also { financialPeriod -> financialPeriod.restore(id, externalId, version, createdOn, lastUpdate) }
+
+internal fun CompartmentsRecord.toCompartment(wallet: Wallet, statementEntryCount: Int = 0): Compartment = Compartment(
+    name = name!!,
+    type = Compartment.Type.valueOf(type!!),
+    wallet = wallet,
+    balance = balance!!,
+    description = description,
+    targetValue = targetValue,
+    targetDate = targetDate,
+    statementEntryCount = statementEntryCount
+).also { compartment -> compartment.restore(id, externalId, version, createdOn, lastUpdate) }

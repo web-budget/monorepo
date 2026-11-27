@@ -8,11 +8,13 @@ import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.financial.tables.references.WALLET_ENTRIES
 import br.com.webbudget.server.jooq.registration.tables.references.WALLETS
+import br.com.webbudget.server.jooq.registration.tables.references.WALLET_TOTALS
 import org.jooq.DSLContext
 import org.jooq.impl.DSL
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PagedModel
 import org.springframework.stereotype.Repository
+import java.math.BigDecimal
 import java.time.LocalDateTime
 import java.util.UUID
 
@@ -23,9 +25,17 @@ class WalletRepository(
 
     fun findByExternalId(externalId: UUID): Wallet? {
         val wallets = WALLETS.`as`("wallets")
-        return dsl.selectFrom(wallets)
+        val totals = WALLET_TOTALS.`as`("wallet_totals")
+        return dsl.select(wallets.asterisk(), totals.COMPARTMENTS_BALANCE, totals.COMPARTMENT_COUNT)
+            .from(wallets)
+            .leftJoin(totals).on(totals.ID_WALLET.eq(wallets.ID))
             .where(wallets.EXTERNAL_ID.eq(externalId))
-            .fetchOne { record -> record.toWallet() }
+            .fetchOne { record ->
+                record.into(wallets).toWallet().also { wallet ->
+                    wallet.compartmentsBalance = record.get(totals.COMPARTMENTS_BALANCE) ?: BigDecimal.ZERO
+                    wallet.compartmentCount = record.get(totals.COMPARTMENT_COUNT)?.toInt() ?: 0
+                }
+            }
             ?.also { wallet -> wallet.lastEntryOn = findLastEntryOn(wallet.id) }
     }
 
@@ -51,10 +61,13 @@ class WalletRepository(
 
         val condition = DSL.and(listOfNotNull(active?.let { wallets.ACTIVE.eq(it) }, textCondition))
 
+        val totals = WALLET_TOTALS.`as`("wallet_totals")
+
         val sortable = mapOf(
             "name" to wallets.NAME,
             "type" to wallets.TYPE,
             "currentBalance" to wallets.CURRENT_BALANCE,
+            "totalBalance" to totals.TOTAL_BALANCE,
             "active" to wallets.ACTIVE,
             "description" to wallets.DESCRIPTION,
             "bank" to wallets.BANK,
@@ -70,14 +83,19 @@ class WalletRepository(
                 .where(entries.ID_WALLET.eq(wallets.ID))
         ).`as`("last_entry_on")
 
-        val content = dsl.select(wallets.asterisk(), lastEntryOn)
+        val content = dsl.select(wallets.asterisk(), lastEntryOn, totals.COMPARTMENTS_BALANCE, totals.COMPARTMENT_COUNT)
             .from(wallets)
+            .leftJoin(totals).on(totals.ID_WALLET.eq(wallets.ID))
             .where(condition)
             .orderBy(pageable.toOrderBy(sortable, wallets.CREATED_ON, wallets.ID))
             .limit(pageable.pageSize)
             .offset(pageable.offset)
             .fetch { record ->
-                record.into(wallets).toWallet().also { wallet -> wallet.lastEntryOn = record.get(lastEntryOn) }
+                record.into(wallets).toWallet().also { wallet ->
+                    wallet.lastEntryOn = record.get(lastEntryOn)
+                    wallet.compartmentsBalance = record.get(totals.COMPARTMENTS_BALANCE) ?: BigDecimal.ZERO
+                    wallet.compartmentCount = record.get(totals.COMPARTMENT_COUNT)?.toInt() ?: 0
+                }
             }
 
         val total = dsl.fetchCount(wallets, condition)

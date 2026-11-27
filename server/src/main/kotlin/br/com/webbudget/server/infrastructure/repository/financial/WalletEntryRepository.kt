@@ -1,5 +1,7 @@
 package br.com.webbudget.server.infrastructure.repository.financial
 
+import br.com.webbudget.server.domain.entities.financial.CompartmentMovement
+import br.com.webbudget.server.domain.entities.financial.StatementCompartment
 import br.com.webbudget.server.domain.entities.financial.StatementLine
 import br.com.webbudget.server.domain.entities.financial.StatementSummary
 import br.com.webbudget.server.domain.entities.financial.StatementTotal
@@ -7,9 +9,11 @@ import br.com.webbudget.server.domain.entities.financial.WalletEntry
 import br.com.webbudget.server.infrastructure.repository.containsIgnoringAccents
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
+import br.com.webbudget.server.jooq.financial.tables.references.COMPARTMENT_MOVEMENTS
 import br.com.webbudget.server.jooq.financial.tables.references.MOVEMENTS
 import br.com.webbudget.server.jooq.financial.tables.references.TRANSFERS
 import br.com.webbudget.server.jooq.financial.tables.references.WALLET_ENTRIES
+import br.com.webbudget.server.jooq.registration.tables.references.COMPARTMENTS
 import br.com.webbudget.server.jooq.registration.tables.references.FINANCIAL_PERIODS
 import br.com.webbudget.server.jooq.registration.tables.references.WALLETS
 import org.jooq.Condition
@@ -35,6 +39,8 @@ class WalletEntryRepository(
     private val transfers = TRANSFERS.`as`("transfers")
     private val returnTransfers = TRANSFERS.`as`("return_transfers")
     private val financialPeriods = FINANCIAL_PERIODS.`as`("financial_periods")
+    private val compartmentMovements = COMPARTMENT_MOVEMENTS.`as`("compartment_movements")
+    private val compartments = COMPARTMENTS.`as`("compartments")
 
     fun lockWallets(sortedWalletIds: List<Long>) {
         dsl.select(WALLETS.ID)
@@ -67,6 +73,7 @@ class WalletEntryRepository(
             .set(WALLET_ENTRIES.ID_MOVEMENT, entry.movementId)
             .set(WALLET_ENTRIES.ID_FINANCIAL_PERIOD, entry.financialPeriodId)
             .set(WALLET_ENTRIES.ID_TRANSFER, entry.transferId)
+            .set(WALLET_ENTRIES.ID_COMPARTMENT_MOVEMENT, entry.compartmentMovementId)
             .returning()
             .fetchSingle()
 
@@ -156,6 +163,24 @@ class WalletEntryRepository(
         .leftJoin(transfers).on(transfers.ID.eq(entries.ID_TRANSFER))
         .leftJoin(returnTransfers).on(returnTransfers.ID_RETURNED_TRANSFER.eq(transfers.ID))
         .leftJoin(financialPeriods).on(financialPeriods.ID.eq(entries.ID_FINANCIAL_PERIOD))
+        .leftJoin(compartmentMovements).on(compartmentMovements.ID.eq(entries.ID_COMPARTMENT_MOVEMENT))
+        .leftJoin(compartments).on(compartments.ID.eq(compartmentMovements.ID_COMPARTMENT))
+
+    private fun Record.toStatementCompartment(): StatementCompartment? {
+
+        val compartment = into(compartments)
+        val compartmentMovement = into(compartmentMovements)
+
+        return compartment.id?.let {
+            StatementCompartment(
+                externalId = compartment.externalId!!,
+                name = compartment.name!!,
+                movementExternalId = compartmentMovement.externalId!!,
+                movementDirection = CompartmentMovement.Direction.valueOf(compartmentMovement.direction!!),
+                note = compartmentMovement.note
+            )
+        }
+    }
 
     private fun Record.toStatementLine(): StatementLine {
 
@@ -177,7 +202,8 @@ class WalletEntryRepository(
             movementExternalId = into(movements).externalId,
             transferExternalId = transfer.externalId,
             transferIsReturn = isReturn,
-            transferReturnable = transfer.id != null && !isReturn && into(returnTransfers).id == null
+            transferReturnable = transfer.id != null && !isReturn && into(returnTransfers).id == null,
+            compartment = toStatementCompartment()
         )
     }
 }
