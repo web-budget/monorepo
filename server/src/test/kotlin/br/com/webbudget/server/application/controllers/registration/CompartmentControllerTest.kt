@@ -17,6 +17,7 @@ import java.time.LocalDate
 import java.util.UUID
 
 @Sql(
+    "/sql/registration/clear-tables.sql",
     "/sql/financial/clear-tables.sql",
     "/sql/financial/create-registration-data.sql",
     "/sql/financial/create-compartments.sql"

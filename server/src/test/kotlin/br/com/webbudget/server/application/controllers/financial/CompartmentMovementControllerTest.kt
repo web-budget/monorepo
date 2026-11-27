@@ -23,6 +23,7 @@ import java.util.concurrent.CyclicBarrier
 import java.util.concurrent.Executors
 
 @Sql(
+    "/sql/registration/clear-tables.sql",
     "/sql/financial/clear-tables.sql",
     "/sql/financial/create-registration-data.sql",
     "/sql/financial/create-compartments.sql"
