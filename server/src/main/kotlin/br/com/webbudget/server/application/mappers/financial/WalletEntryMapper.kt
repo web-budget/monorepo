@@ -1,6 +1,8 @@
 package br.com.webbudget.server.application.mappers.financial
 
-import br.com.webbudget.server.application.payloads.financial.AdjustmentForm
+import br.com.webbudget.server.application.payloads.financial.ReconciliationForm
+import br.com.webbudget.server.application.payloads.financial.ReconciliationResultView
+import br.com.webbudget.server.application.payloads.financial.ReconciliationView
 import br.com.webbudget.server.application.payloads.financial.StatementEntryPeriodView
 import br.com.webbudget.server.application.payloads.financial.StatementEntryReferenceView
 import br.com.webbudget.server.application.payloads.financial.StatementEntryWalletView
@@ -15,12 +17,15 @@ import br.com.webbudget.server.domain.entities.financial.StatementLine
 import br.com.webbudget.server.domain.entities.financial.StatementSummary
 import br.com.webbudget.server.domain.entities.financial.Transfer
 import br.com.webbudget.server.domain.entities.financial.TransferLink
-import br.com.webbudget.server.domain.entities.financial.WalletAdjustment
+import br.com.webbudget.server.domain.entities.financial.ReconciliationLine
+import br.com.webbudget.server.domain.entities.financial.ReconciliationResult
+import br.com.webbudget.server.domain.entities.financial.WalletReconciliation
 import br.com.webbudget.server.domain.entities.financial.WalletEntry
 import br.com.webbudget.server.domain.entities.financial.WalletReference
 import br.com.webbudget.server.domain.exceptions.ResourceNotFoundException
 import br.com.webbudget.server.infrastructure.repository.financial.MovementReferenceRepository
 import org.springframework.stereotype.Component
+import java.math.RoundingMode
 
 @Component
 class WalletEntryMapper(
@@ -41,7 +46,10 @@ class WalletEntryMapper(
     )
 
     fun mapToDetailView(line: StatementLine, wallet: WalletReference): WalletEntryView =
-        mapToView(line).copy(wallet = StatementEntryWalletView(wallet.externalId, wallet.name))
+        mapToView(line).copy(
+            wallet = StatementEntryWalletView(wallet.externalId, wallet.name),
+            reconciliation = line.reconciliation?.let { mapToView(it) }
+        )
 
     fun mapToView(summary: StatementSummary): StatementSummaryView = StatementSummaryView(
         credits = StatementTotalView(summary.credits.total, summary.credits.count),
@@ -62,8 +70,29 @@ class WalletEntryMapper(
         reference = null
     )
 
-    fun mapToDomain(form: AdjustmentForm, wallet: WalletReference): WalletAdjustment =
-        WalletAdjustment(wallet, form.value!!, form.name)
+    fun mapToDomain(form: ReconciliationForm, wallet: WalletReference): WalletReconciliation = WalletReconciliation(
+        wallet = wallet,
+        informedBalance = form.informedBalance!!.setScale(BALANCE_SCALE, RoundingMode.HALF_UP),
+        shownBalance = form.shownBalance!!.setScale(BALANCE_SCALE, RoundingMode.HALF_UP),
+        reason = form.reason.orEmpty().trim()
+    )
+
+    fun mapToView(line: ReconciliationLine): ReconciliationView = ReconciliationView(
+        id = line.externalId,
+        createdOn = line.createdOn,
+        informedBalance = line.informedBalance,
+        walletBalance = line.walletBalance,
+        difference = line.difference,
+        reason = line.reason,
+        entryId = line.entryExternalId
+    )
+
+    fun mapToView(result: ReconciliationResult): ReconciliationResultView = ReconciliationResultView(
+        reconciliation = mapToView(result.reconciliation),
+        entry = mapToView(result.entry).copy(
+            reference = StatementEntryReferenceView(RECONCILIATION_REFERENCE, result.reconciliation.externalId)
+        )
+    )
 
     fun mapToDomain(form: TransferForm): Transfer = Transfer(
         fromWallet = movementReferenceRepository.findWallet(form.fromWallet!!) ?: throw ResourceNotFoundException(),
@@ -96,6 +125,14 @@ class WalletEntryMapper(
             returnTransfer = line.transferIsReturn,
             returnable = line.transferReturnable
         )
+        line.reconciliation != null -> StatementEntryReferenceView(RECONCILIATION_REFERENCE, line.reconciliation.externalId)
         else -> null
+    }
+
+    companion object {
+
+        private const val BALANCE_SCALE = 2
+
+        private const val RECONCILIATION_REFERENCE = "RECONCILIATION"
     }
 }

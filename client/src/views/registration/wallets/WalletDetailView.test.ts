@@ -1,16 +1,16 @@
 import { flushPromises } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'vue-sonner'
-import { walletEntriesApi } from '@/api/walletEntries'
+import { reconciliationsApi } from '@/api/reconciliations'
 import { walletsApi } from '@/api/wallets'
-import AdjustBalanceDialog from '@/components/wallets/AdjustBalanceDialog.vue'
+import ReconcileDialog from '@/components/wallets/ReconcileDialog.vue'
 import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import { buttonWithText, mountView, problem } from '@/test/crud'
 import type { WalletView } from '@/types'
 import WalletDetailView from '@/views/registration/wallets/WalletDetailView.vue'
 
 vi.mock('@/api/wallets')
-vi.mock('@/api/walletEntries')
+vi.mock('@/api/reconciliations')
 vi.mock('vue-sonner', () => ({
   toast: {
     success: vi.fn<() => void>(),
@@ -77,11 +77,11 @@ describe('WalletDetailView', () => {
     expect(notice.text()).toContain('Ele vem do extrato.')
   })
 
-  it('puts the statement, the transfer and the adjustment in the footer of the card', async () => {
+  it('puts the statement, the transfer and the reconciliation in the footer of the card', async () => {
     const { wrapper } = await render()
 
     expect(wrapper.find('[data-slot="detail-footer"]').text()).toBe(
-      'Ver extratoTransferirAjustar saldo',
+      'Ver extratoTransferirConciliar',
     )
   })
 
@@ -122,33 +122,47 @@ describe('WalletDetailView', () => {
     expect(wrapper.find('a[href="/financial/statement?wallet=w-1"]').text()).toBe('Ver extrato')
   })
 
-  it('adjusts the balance from the dialog and reloads the wallet', async () => {
-    vi.mocked(walletEntriesApi.adjust).mockResolvedValue({} as never)
+  it('reconciles from the dialog and reloads the wallet', async () => {
+    vi.mocked(reconciliationsApi.reconcile).mockResolvedValue({
+      reconciliation: { difference: 1 },
+    } as never)
     const { wrapper } = await render()
 
-    await buttonWithText(wrapper, 'Ajustar saldo').trigger('click')
-    const dialog = wrapper.getComponent(AdjustBalanceDialog)
-    expect(dialog.props('wallet')).toEqual({ id: 'w-1', name: 'Main', balance: 10 })
+    await buttonWithText(wrapper, 'Conciliar').trigger('click')
+    const dialog = wrapper.getComponent(ReconcileDialog)
+    expect(dialog.props('wallet')).toEqual({
+      id: 'w-1',
+      name: 'Main',
+      personal: false,
+      balance: 10,
+    })
 
-    dialog.vm.$emit('adjust', dialog.props('wallet'), { value: 1 })
+    const form = { informedBalance: 11, shownBalance: 10, reason: 'Centavos' }
+    dialog.vm.$emit('reconcile', dialog.props('wallet'), form)
     await flushPromises()
 
-    expect(walletEntriesApi.adjust).toHaveBeenCalledWith('w-1', { value: 1 })
-    expect(toast.success).toHaveBeenCalledWith('Saldo ajustado', {
-      description: 'Crédito de 1,00 em Main. Não entra no resultado.',
+    expect(reconciliationsApi.reconcile).toHaveBeenCalledWith('w-1', form)
+    expect(toast.success).toHaveBeenCalledWith('Carteira conciliada', {
+      description: 'Ajuste de crédito de 1,00 em Main. Não entra no resultado.',
       duration: 4000,
     })
     expect(dialog.props('wallet')).toBeNull()
     expect(walletsApi.findById).toHaveBeenCalledTimes(2)
   })
 
-  it('keeps the dialog open and shows the error when the adjustment fails', async () => {
-    vi.mocked(walletEntriesApi.adjust).mockRejectedValue(problem(400, { error: 'inactive-wallet' }))
+  it('keeps the dialog open and shows the error when the reconciliation fails', async () => {
+    vi.mocked(reconciliationsApi.reconcile).mockRejectedValue(
+      problem(400, { error: 'inactive-wallet' }),
+    )
     const { wrapper } = await render()
 
-    await buttonWithText(wrapper, 'Ajustar saldo').trigger('click')
-    const dialog = wrapper.getComponent(AdjustBalanceDialog)
-    dialog.vm.$emit('adjust', dialog.props('wallet'), { value: 1 })
+    await buttonWithText(wrapper, 'Conciliar').trigger('click')
+    const dialog = wrapper.getComponent(ReconcileDialog)
+    dialog.vm.$emit('reconcile', dialog.props('wallet'), {
+      informedBalance: 11,
+      shownBalance: 10,
+      reason: 'Centavos',
+    })
     await flushPromises()
 
     expect(dialog.props('wallet')).not.toBeNull()
@@ -156,20 +170,50 @@ describe('WalletDetailView', () => {
     expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
   })
 
-  it('closes the dialog without adjusting', async () => {
+  it('keeps the dialog open with the new balance when the balance changed meanwhile', async () => {
+    vi.mocked(reconciliationsApi.reconcile).mockRejectedValue(
+      problem(409, {
+        error: 'reconciliation-balance-changed',
+        parameters: { currentBalance: 5948.16, difference: 48.5 },
+      }),
+    )
     const { wrapper } = await render()
 
-    await buttonWithText(wrapper, 'Ajustar saldo').trigger('click')
-    wrapper.getComponent(AdjustBalanceDialog).vm.$emit('close')
+    await buttonWithText(wrapper, 'Conciliar').trigger('click')
+    const dialog = wrapper.getComponent(ReconcileDialog)
+    dialog.vm.$emit('reconcile', dialog.props('wallet'), {
+      informedBalance: 5996.66,
+      shownBalance: 10,
+      reason: 'Centavos',
+    })
     await flushPromises()
 
-    expect(wrapper.getComponent(AdjustBalanceDialog).props('wallet')).toBeNull()
+    expect(dialog.props('wallet')).toEqual({
+      id: 'w-1',
+      name: 'Main',
+      personal: false,
+      balance: 5948.16,
+    })
+    expect(dialog.props('balanceChange')).toEqual({ balance: 5948.16, difference: 48.5 })
+    expect(dialog.props('messages')).toHaveLength(0)
+    expect(toast.success).not.toHaveBeenCalled()
+    expect(walletsApi.findById).toHaveBeenCalledTimes(1)
   })
 
-  it('does not offer to adjust an inactive wallet', async () => {
+  it('closes the dialog without reconciling', async () => {
+    const { wrapper } = await render()
+
+    await buttonWithText(wrapper, 'Conciliar').trigger('click')
+    wrapper.getComponent(ReconcileDialog).vm.$emit('close')
+    await flushPromises()
+
+    expect(wrapper.getComponent(ReconcileDialog).props('wallet')).toBeNull()
+  })
+
+  it('does not offer to reconcile an inactive wallet', async () => {
     const { wrapper } = await render({ ...wallet, active: false })
 
-    expect(buttonWithText(wrapper, 'Ajustar saldo').attributes('disabled')).toBeDefined()
+    expect(buttonWithText(wrapper, 'Conciliar').attributes('disabled')).toBeDefined()
   })
 
   it('goes to the edit form', async () => {

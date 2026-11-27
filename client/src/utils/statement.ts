@@ -45,17 +45,3 @@ export function defaultStatementWallet(wallets: WalletListView[]): WalletListVie
     wallet.lastEntryOn! > latest.lastEntryOn! ? wallet : latest,
   )
 }
-
-export function adjustmentNotice(
-  value: number,
-  walletName: string | undefined,
-  format: (amount: number, key: string) => string,
-) {
-  return {
-    detail: value > 0 ? 'statement.toast.adjusted-credit' : 'statement.toast.adjusted-debit',
-    params: {
-      name: walletName,
-      amount: format(Math.abs(value), 'currency').replace(/^R\$\s*/, ''),
-    },
-  }
-}

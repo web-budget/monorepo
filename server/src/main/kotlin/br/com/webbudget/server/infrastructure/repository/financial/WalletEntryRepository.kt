@@ -1,5 +1,6 @@
 package br.com.webbudget.server.infrastructure.repository.financial
 
+import br.com.webbudget.server.domain.entities.financial.ReconciliationLine
 import br.com.webbudget.server.domain.entities.financial.StatementLine
 import br.com.webbudget.server.domain.entities.financial.StatementSummary
 import br.com.webbudget.server.domain.entities.financial.StatementTotal
@@ -10,6 +11,7 @@ import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.financial.tables.references.MOVEMENTS
 import br.com.webbudget.server.jooq.financial.tables.references.TRANSFERS
 import br.com.webbudget.server.jooq.financial.tables.references.WALLET_ENTRIES
+import br.com.webbudget.server.jooq.financial.tables.references.WALLET_RECONCILIATIONS
 import br.com.webbudget.server.jooq.registration.tables.references.FINANCIAL_PERIODS
 import br.com.webbudget.server.jooq.registration.tables.references.WALLETS
 import org.jooq.Condition
@@ -35,6 +37,7 @@ class WalletEntryRepository(
     private val transfers = TRANSFERS.`as`("transfers")
     private val returnTransfers = TRANSFERS.`as`("return_transfers")
     private val financialPeriods = FINANCIAL_PERIODS.`as`("financial_periods")
+    private val reconciliations = WALLET_RECONCILIATIONS.`as`("wallet_reconciliations")
 
     fun lockWallets(sortedWalletIds: List<Long>) {
         dsl.select(WALLETS.ID)
@@ -156,12 +159,14 @@ class WalletEntryRepository(
         .leftJoin(transfers).on(transfers.ID.eq(entries.ID_TRANSFER))
         .leftJoin(returnTransfers).on(returnTransfers.ID_RETURNED_TRANSFER.eq(transfers.ID))
         .leftJoin(financialPeriods).on(financialPeriods.ID.eq(entries.ID_FINANCIAL_PERIOD))
+        .leftJoin(reconciliations).on(reconciliations.ID_WALLET_ENTRY.eq(entries.ID))
 
     private fun Record.toStatementLine(): StatementLine {
 
         val entry = into(entries)
         val period = into(financialPeriods)
         val transfer = into(transfers)
+        val reconciliation = into(reconciliations)
         val isReturn = transfer.idReturnedTransfer != null
 
         return StatementLine(
@@ -177,7 +182,18 @@ class WalletEntryRepository(
             movementExternalId = into(movements).externalId,
             transferExternalId = transfer.externalId,
             transferIsReturn = isReturn,
-            transferReturnable = transfer.id != null && !isReturn && into(returnTransfers).id == null
+            transferReturnable = transfer.id != null && !isReturn && into(returnTransfers).id == null,
+            reconciliation = reconciliation.id?.let {
+                ReconciliationLine(
+                    externalId = reconciliation.externalId!!,
+                    createdOn = reconciliation.createdOn!!,
+                    informedBalance = reconciliation.informedBalance!!,
+                    walletBalance = reconciliation.walletBalance!!,
+                    difference = reconciliation.difference!!,
+                    reason = reconciliation.reason!!,
+                    entryExternalId = entry.externalId!!
+                )
+            }
         )
     }
 }

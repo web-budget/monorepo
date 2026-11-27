@@ -1,26 +1,21 @@
 package br.com.webbudget.server.application.controllers.financial
 
 import br.com.webbudget.server.application.mappers.financial.WalletEntryMapper
-import br.com.webbudget.server.application.payloads.financial.AdjustmentForm
 import br.com.webbudget.server.application.payloads.financial.StatementFilter
 import br.com.webbudget.server.application.payloads.financial.StatementSummaryView
 import br.com.webbudget.server.application.payloads.financial.WalletEntryView
 import br.com.webbudget.server.domain.entities.administration.Role
 import br.com.webbudget.server.domain.exceptions.ResourceNotFoundException
-import br.com.webbudget.server.domain.services.financial.WalletAdjustmentService
 import br.com.webbudget.server.infrastructure.config.security.RequiresRole
 import br.com.webbudget.server.infrastructure.repository.financial.MovementReferenceRepository
 import br.com.webbudget.server.infrastructure.repository.financial.StatementCriteria
 import br.com.webbudget.server.infrastructure.repository.financial.WalletEntryRepository
 import br.com.webbudget.server.infrastructure.repository.map
-import jakarta.validation.Valid
 import org.springframework.data.domain.Pageable
 import org.springframework.data.web.PagedModel
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.PostMapping
-import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 import java.util.UUID
@@ -31,7 +26,6 @@ import java.util.UUID
 class WalletEntryController(
     private val walletEntryMapper: WalletEntryMapper,
     private val walletEntryRepository: WalletEntryRepository,
-    private val walletAdjustmentService: WalletAdjustmentService,
     private val movementReferenceRepository: MovementReferenceRepository
 ) {
 
@@ -65,16 +59,6 @@ class WalletEntryController(
         val line = walletEntryRepository.findByExternalId(wallet.id, entryId) ?: throw ResourceNotFoundException()
 
         return ResponseEntity.ok(walletEntryMapper.mapToDetailView(line, wallet))
-    }
-
-    @PostMapping("/{id}/adjustments")
-    fun adjust(@PathVariable id: UUID, @RequestBody @Valid form: AdjustmentForm): ResponseEntity<WalletEntryView> {
-
-        val wallet = movementReferenceRepository.findWallet(id) ?: throw ResourceNotFoundException()
-
-        val entry = walletAdjustmentService.adjust(walletEntryMapper.mapToDomain(form, wallet))
-
-        return ResponseEntity.ok(walletEntryMapper.mapToView(entry))
     }
 
     private fun StatementFilter.toCriteria() = StatementCriteria(

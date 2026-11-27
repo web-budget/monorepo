@@ -571,9 +571,25 @@ export interface StatementQuery {
   sort?: string
 }
 
-export interface AdjustmentForm {
-  value: number
-  name?: string
+export interface ReconciliationForm {
+  informedBalance: number
+  shownBalance: number
+  reason: string
+}
+
+export interface ReconciliationView {
+  id: string
+  createdOn: string
+  informedBalance: number
+  walletBalance: number
+  difference: number
+  reason: string
+  entryId: string
+}
+
+export interface ReconciliationResultView {
+  reconciliation: ReconciliationView
+  entry: WalletEntryView
 }
 
 export interface TransferForm {

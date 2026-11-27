@@ -240,6 +240,28 @@ class ListingSortOrderTest : BaseIntegrationTest() {
     }
 
     @Test
+    @Sql(
+        "/sql/financial/clear-tables.sql",
+        "/sql/financial/create-registration-data.sql",
+        "/sql/financial/create-movements.sql",
+        "/sql/financial/create-wallet-entries.sql",
+        "/sql/financial/create-wallet-reconciliations.sql"
+    )
+    @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
+    fun `should list the wallet reconciliations by their date, newest first, and ignore the name sort`() {
+
+        val path = "/financial/wallets/7e1b6f3a-2c4d-4b8e-9a10-5d3f0c9b7a05/reconciliations"
+
+        val newest = "8c4d2f10-3a5b-4e6c-9d7e-1f2a3b4c5d13"
+        val middle = "8c4d2f10-3a5b-4e6c-9d7e-1f2a3b4c5d12"
+        val oldest = "8c4d2f10-3a5b-4e6c-9d7e-1f2a3b4c5d11"
+
+        assertIds(path, "", newest, middle, oldest)
+        assertIds(path, "sort=name,asc", newest, middle, oldest)
+        assertIds(path, "sort=createdOn,asc", oldest, middle, newest)
+    }
+
+    @Test
     @Sql("/sql/administration/clear-tables.sql", "/sql/administration/create-user.sql")
     fun `should list the users from the newest to the oldest by default`() {
 
