@@ -13,3 +13,6 @@
 
 # JVM heap dumps
 *.hprof
+
+# Database backups
+backups/
