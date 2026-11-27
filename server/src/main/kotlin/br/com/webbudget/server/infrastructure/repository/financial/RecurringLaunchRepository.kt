@@ -17,6 +17,11 @@ class RecurringLaunchRepository(
             .and(RECURRING_LAUNCHES.ID_FINANCIAL_PERIOD.eq(financialPeriodId))
     )
 
+    fun countByRecurringMovement(recurringMovementId: Long): Int = dsl.fetchCount(
+        RECURRING_LAUNCHES,
+        RECURRING_LAUNCHES.ID_RECURRING_MOVEMENT.eq(recurringMovementId)
+    )
+
     fun insert(recurringMovementId: Long, financialPeriodId: Long, installment: Int, movementId: Long) {
         dsl.insertInto(RECURRING_LAUNCHES)
             .set(RECURRING_LAUNCHES.EXTERNAL_ID, UUID.randomUUID())

@@ -48,6 +48,11 @@ class CardPurchaseRepository(
         .fetchOne()
         ?.toCardPurchase()
 
+    fun findById(id: Long): CardPurchase? = selectJoined()
+        .where(purchases.ID.eq(id))
+        .fetchOne()
+        ?.toCardPurchase()
+
     fun findByMovement(movementId: Long): CardPurchase? = selectJoined()
         .where(purchases.ID_MOVEMENT.eq(movementId))
         .fetchOne()

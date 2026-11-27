@@ -223,7 +223,7 @@ function createPurchase(invoice?: InvoiceView) {
 
 function importInvoice(invoice?: InvoiceView) {
   return router.push({
-    name: 'invoices.import',
+    name: 'imports.create',
     query: invoice ? { card: invoice.card.id, period: invoice.financialPeriod.id } : undefined,
   })
 }

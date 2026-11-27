@@ -78,6 +78,8 @@ const emit = defineEmits<{
 
 defineSlots<{
   actions?(props: { item: T }): unknown
+  'before-cards'?(): unknown
+  [slot: `header-${string}`]: (() => unknown) | undefined
   [slot: `cell-${string}`]:
     ((props: { item: T; value: unknown; compact?: boolean }) => unknown) | undefined
 }>()
@@ -214,7 +216,7 @@ function toggleSort(field: string) {
                 />
               </button>
               <span v-else-if="column.srOnly" class="sr-only">{{ column.header }}</span>
-              <template v-else>{{ column.header }}</template>
+              <slot v-else :name="`header-${column.field}`">{{ column.header }}</slot>
             </TableHead>
             <TableHead v-if="hasActions" class="w-0">
               <span class="sr-only">{{ $t('items-table.columns.actions') }}</span>
@@ -286,6 +288,7 @@ function toggleSort(field: string) {
       data-slot="items-cards"
       data-layout="compact"
     >
+      <slot name="before-cards" />
       <template v-if="props.loading && props.data.length === 0">
         <div
           v-for="row in 3"
