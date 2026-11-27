@@ -73,6 +73,7 @@ export const RESULT_STATUSES: ImportResultFilter[] = [
   'LINKED',
   'RECURRING',
   'TRANSFERS',
+  'COMPARTMENTS',
   'IGNORED',
   'ALL',
 ]
@@ -82,6 +83,7 @@ const RESULT_ACTIONS: Record<Exclude<ImportResultFilter, 'ALL'>, ImportAction[]>
   LINKED: ['LINK', 'INVOICE_PAYMENT'],
   RECURRING: ['LAUNCH_RECURRING', 'CREATE_RECURRING'],
   TRANSFERS: ['TRANSFER'],
+  COMPARTMENTS: ['COMPARTMENT'],
   IGNORED: ['IGNORE'],
 }
 
@@ -100,7 +102,11 @@ function newPageRequest() {
 }
 
 function newLineRequest() {
-  return createPageRequest<ImportLineStatusFilter>({ status: 'PENDING', sortField: 'postedOn', direction: 'asc' })
+  return createPageRequest<ImportLineStatusFilter>({
+    status: 'PENDING',
+    sortField: 'postedOn',
+    direction: 'asc',
+  })
 }
 
 function newResultRequest() {
@@ -187,7 +193,11 @@ export const useImportsStore = defineStore('imports', () => {
     })
   }
 
-  function updateLine(id: string, lineId: string, form: ImportLineUpdateForm): Promise<ImportLineView> {
+  function updateLine(
+    id: string,
+    lineId: string,
+    form: ImportLineUpdateForm,
+  ): Promise<ImportLineView> {
     return track(() => importsApi.updateLine(id, lineId, form))
   }
 

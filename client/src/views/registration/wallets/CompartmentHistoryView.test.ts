@@ -72,13 +72,15 @@ const movements: CompartmentMovementView[] = [
   },
 ]
 
-async function render(options: {
-  compartment?: CompartmentView
-  walletView?: WalletView
-  content?: CompartmentMovementView[]
-  total?: number
-  location?: string
-} = {}) {
+async function render(
+  options: {
+    compartment?: CompartmentView
+    walletView?: WalletView
+    content?: CompartmentMovementView[]
+    total?: number
+    location?: string
+  } = {},
+) {
   vi.mocked(walletsApi.findById).mockResolvedValue(options.walletView ?? wallet)
   vi.mocked(compartmentsApi.findById).mockResolvedValue(options.compartment ?? trip)
   vi.mocked(compartmentsApi.findAll).mockResolvedValue([options.compartment ?? trip])
@@ -92,8 +94,13 @@ async function render(options: {
     {},
     options.location ?? '/c/w-1/k-1',
     [
-      { path: '/c/:id/:compartmentId', name: 'wallets.compartments.detail', component: { render: () => null } },
+      {
+        path: '/c/:id/:compartmentId',
+        name: 'wallets.compartments.detail',
+        component: { render: () => null },
+      },
       { path: '/s/:wallet/:id', name: 'statement.detail', component: { render: () => null } },
+      { path: '/i/:id', name: 'imports.detail', component: { render: () => null } },
     ],
   )
 }
@@ -150,6 +157,22 @@ describe('CompartmentHistoryView', () => {
 
     expect(router.currentRoute.value.name).toBe('statement.detail')
     expect(router.currentRoute.value.params).toEqual({ wallet: 'w-1', id: 'e-2' })
+  })
+
+  it('opens the import from the origin of a movement that came from one', async () => {
+    const { wrapper, router } = await render({
+      content: [{ ...movements[0]!, importId: 'i-9' }, movements[1]!],
+    })
+
+    const rows = wrapper.findAll('tbody tr')
+    expect(rows[1]!.find('button[aria-label="Abrir a importação"]').exists()).toBe(false)
+    expect(rows[0]!.find('button[aria-label="Abrir a linha no extrato"]').exists()).toBe(true)
+
+    await rows[0]!.find('button[aria-label="Abrir a importação"]').trigger('click')
+    await flushPromises()
+
+    expect(router.currentRoute.value.name).toBe('imports.detail')
+    expect(router.currentRoute.value.params).toEqual({ id: 'i-9' })
   })
 
   it('shows the empty state without movements', async () => {

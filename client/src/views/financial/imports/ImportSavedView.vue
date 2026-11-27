@@ -23,12 +23,13 @@ import { useNotification } from '@/composables/useNotification'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { RESULT_STATUSES, useImportsStore } from '@/stores/imports'
 import type { ImportBlocker, ImportLineView, ImportResultFilter, ImportView } from '@/types'
-import { resultTarget, retryQuery } from '@/utils/imports'
+import { compartmentTarget, resultTarget, retryQuery } from '@/utils/imports'
+import { signedAmount } from '@/utils/reconciliation'
 import { periodMonth } from '@/utils/invoices'
 
 const props = defineProps<{ item: ImportView }>()
 
-const { t, te } = useI18n()
+const { t, te, n } = useI18n()
 const router = useRouter()
 const { showSuccess } = useNotification()
 
@@ -56,6 +57,11 @@ const card = computed(() => props.item.target === 'CARD')
 const undone = computed(() => props.item.status === 'UNDONE')
 const blocked = computed(() => props.item.undoBlockers.length > 0)
 const third = computed(() => (card.value ? 'recurring' : 'transfers'))
+const withCompartments = computed(
+  () =>
+    !card.value &&
+    ((props.item.wallet?.compartmentCount ?? 0) > 0 || props.item.result.compartments > 0),
+)
 const busy = computed(() => loading.value || initializing.value)
 
 const tabOptions = computed<StatusOption<ImportResultFilter>[]>(() => [
@@ -64,24 +70,31 @@ const tabOptions = computed<StatusOption<ImportResultFilter>[]>(() => [
   card.value
     ? { label: 'imports.saved.tabs.RECURRING', value: 'RECURRING' }
     : { label: 'imports.saved.tabs.TRANSFERS', value: 'TRANSFERS' },
+  ...(withCompartments.value
+    ? [{ label: 'imports.saved.tabs.COMPARTMENTS', value: 'COMPARTMENTS' as ImportResultFilter }]
+    : []),
   { label: 'imports.saved.tabs.IGNORED', value: 'IGNORED' },
   { label: 'imports.saved.tabs.ALL', value: 'ALL' },
 ])
 const tabCounts = computed(() => {
-  const { created, linked, recurring, transfers, ignored } = props.item.result
+  const { created, linked, recurring, transfers, compartments, ignored } = props.item.result
   return {
     CREATED: created,
     LINKED: linked,
     RECURRING: recurring,
     TRANSFERS: transfers,
+    COMPARTMENTS: compartments,
     IGNORED: ignored,
-    ALL: created + linked + recurring + transfers + ignored,
+    ALL: created + linked + recurring + transfers + compartments + ignored,
   }
 })
 const cards = computed(() => [
   { key: 'created', value: props.item.result.created },
   { key: 'linked', value: props.item.result.linked },
   { key: third.value, value: props.item.result[third.value] },
+  ...(withCompartments.value
+    ? [{ key: 'compartments', value: props.item.result.compartments }]
+    : []),
   { key: 'ignored', value: props.item.result.ignored },
 ])
 const columns = computed(() => [
@@ -127,6 +140,9 @@ function blockerText(blocker: ImportBlocker): string {
     position: blocker.position,
     period: props.item.financialPeriod.name,
     card: props.item.card?.name,
+    wallet: props.item.wallet?.name,
+    compartment: blocker.compartment,
+    value: blocker.value === undefined ? '' : signedAmount(blocker.value, n),
   })
 }
 
@@ -175,7 +191,12 @@ async function undo() {
 }
 
 function openable(line: ImportLineView) {
-  return undone.value ? null : resultTarget(line)
+  if (undone.value) {
+    return null
+  }
+  return line.action === 'COMPARTMENT'
+    ? compartmentTarget(line, props.item.wallet?.id)
+    : resultTarget(line)
 }
 </script>
 
@@ -214,14 +235,20 @@ function openable(line: ImportLineView) {
       </ul>
     </AlertDescription>
   </Alert>
-  <div class="grid grid-cols-2 gap-3 xl:grid-cols-4" data-slot="saved-totals">
+  <div
+    class="grid grid-cols-2 gap-3"
+    :class="withCompartments ? 'xl:grid-cols-5' : 'xl:grid-cols-4'"
+    data-slot="saved-totals"
+  >
     <Card
       v-for="summary in cards"
       :key="summary.key"
       class="grid content-start gap-1 p-4"
       :data-slot="`total-${summary.key}`"
     >
-      <span class="text-muted-foreground text-xs">{{ $t(`imports.saved.cards.${summary.key}`) }}</span>
+      <span class="text-muted-foreground text-xs">{{
+        $t(`imports.saved.cards.${summary.key}`)
+      }}</span>
       <span class="font-mono text-xl font-semibold tracking-tight tabular-nums md:text-2xl">
         {{ summary.value }}
       </span>

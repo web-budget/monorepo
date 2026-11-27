@@ -30,7 +30,9 @@ describe('ImportLineResult', () => {
     expect(render({ link: target('p-10') }).text()).toBe(
       'Vinculada a “Seguro de vida” de Outubro, paga no cartão',
     )
-    expect(render({ link: target('p-11') }).text()).toBe('Vinculada a “Seguro de vida”, paga no cartão')
+    expect(render({ link: target('p-11') }).text()).toBe(
+      'Vinculada a “Seguro de vida”, paga no cartão',
+    )
   })
 
   it('tells the date a line was already imported', () => {
@@ -47,5 +49,17 @@ describe('ImportLineResult', () => {
 
     expect(wrapper.text()).toBe('Já registrada')
     expect(wrapper.find('[data-slot="line-result"]').classes()).toContain('text-muted-foreground')
+  })
+  it('tells where the money of a compartment line goes, by the stored name when it was deleted', () => {
+    expect(
+      render({
+        action: 'COMPARTMENT',
+        value: -300,
+        compartment: { id: 'k-1', name: 'Reserva', balance: 1 },
+      }).text(),
+    ).toBe('Guardado em Reserva')
+    expect(render({ action: 'COMPARTMENT', value: 150, compartmentName: 'Viagem' }).text()).toBe(
+      'Resgatado de Viagem',
+    )
   })
 })

@@ -20,6 +20,7 @@ describe('toImportResultQuery', () => {
     ['LINKED', ['LINK', 'INVOICE_PAYMENT']],
     ['RECURRING', ['LAUNCH_RECURRING', 'CREATE_RECURRING']],
     ['TRANSFERS', ['TRANSFER']],
+    ['COMPARTMENTS', ['COMPARTMENT']],
     ['IGNORED', ['IGNORE']],
     ['ALL', undefined],
   ])('turns the %s tab into the actions it lists', (status, actions) => {

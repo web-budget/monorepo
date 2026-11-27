@@ -22,7 +22,7 @@ function entry(overrides: Partial<ImportView> = {}): ImportView {
     createdOn: '2026-11-26T09:02:00',
     savedOn: '2026-11-26T10:12:00',
     totals: { lines: 5, pending: 0, ignored: 1, byAction: {} },
-    result: { created: 2, linked: 1, recurring: 1, transfers: 0, ignored: 1 },
+    result: { created: 2, linked: 1, recurring: 1, transfers: 0, compartments: 0, ignored: 1 },
     warnings: { unlinkedRecurring: [], afterSave: 0, ignoredCredits: 0 },
     undoBlockers: [],
     ...overrides,
@@ -92,7 +92,12 @@ const cardLines = [
 ]
 
 const walletLines = [
-  line({ id: 'w-1', value: 8400, name: 'Empresa Exemplo', created: [candidate('MOVEMENT', 'm-5', 'Salário')] }),
+  line({
+    id: 'w-1',
+    value: 8400,
+    name: 'Empresa Exemplo',
+    created: [candidate('MOVEMENT', 'm-5', 'Salário')],
+  }),
   line({ id: 'w-2', name: 'Padaria', created: [candidate('MOVEMENT', 'm-6', 'Padaria')] }),
   line({
     id: 'w-3',
@@ -142,18 +147,26 @@ const walletLines = [
   line({ id: 'w-9', name: 'Tarifa', action: 'IGNORE', created: [] }),
 ]
 
-const routes = namedTestRoutes(
-  'movements.detail',
-  'purchases.detail',
-  'transfers.detail',
-  'recurring-movements.detail',
-)
+const routes = [
+  ...namedTestRoutes(
+    'movements.detail',
+    'purchases.detail',
+    'transfers.detail',
+    'recurring-movements.detail',
+  ),
+  {
+    ...namedTestRoutes('wallets.compartments.detail')[0]!,
+    path: '/__wallets.compartments.detail/:id/:compartmentId',
+  },
+]
 
 function serve(item: ImportView, lines = cardLines) {
   vi.mocked(importsApi.findById).mockResolvedValue(item)
   vi.mocked(importsApi.findLines).mockImplementation((_id, query) =>
     Promise.resolve(
-      pageOf(lines.filter((candidate) => !query.actions || query.actions.includes(candidate.action))),
+      pageOf(
+        lines.filter((candidate) => !query.actions || query.actions.includes(candidate.action)),
+      ),
     ),
   )
 }
@@ -185,9 +198,9 @@ function dialogText() {
 }
 
 function dialogButton(text: string) {
-  const button = Array.from(document.body.querySelectorAll('[data-slot="undo-dialog"] button')).find(
-    (candidate) => candidate.textContent?.trim() === text,
-  )
+  const button = Array.from(
+    document.body.querySelectorAll('[data-slot="undo-dialog"] button'),
+  ).find((candidate) => candidate.textContent?.trim() === text)
   if (!button) {
     throw new Error(`no dialog button "${text}"`)
   }
@@ -267,7 +280,12 @@ describe('ImportSavedView', () => {
     const rows = rowTexts(wrapper).map((row) => row.slice(0, 4))
     expect(rows).toEqual([
       ['02/11/2026', 'Supermercado Boa Compra', '223,10', 'Compra criada na fatura'],
-      ['02/11/2026', 'Seguro de vida', '223,10', 'Vinculada a “Seguro de vida” de Outubro, paga no cartão'],
+      [
+        '02/11/2026',
+        'Seguro de vida',
+        '223,10',
+        'Vinculada a “Seguro de vida” de Outubro, paga no cartão',
+      ],
       [
         '02/11/2026',
         'Curso de fotografia',
@@ -288,9 +306,11 @@ describe('ImportSavedView', () => {
     expect(wrapper.find('tbody a').attributes('aria-label')).toBe(
       'Abrir o lançamento de Supermercado Boa Compra',
     )
-    expect(wrapper.findAll('[data-slot="line-value"]').map((value) => value.attributes('data-direction'))).toEqual(
-      ['out', 'out', 'out', 'out', 'in'],
-    )
+    expect(
+      wrapper
+        .findAll('[data-slot="line-value"]')
+        .map((value) => value.attributes('data-direction')),
+    ).toEqual(['out', 'out', 'out', 'out', 'in'])
   })
 
   it('opens what the line generated', async () => {
@@ -309,7 +329,7 @@ describe('ImportSavedView', () => {
         target: 'WALLET',
         card: undefined,
         wallet: checking,
-        result: { created: 2, linked: 4, recurring: 0, transfers: 1, ignored: 2 },
+        result: { created: 2, linked: 4, recurring: 0, transfers: 1, compartments: 0, ignored: 2 },
       }),
       walletLines,
       '/imports?status=ALL',
@@ -350,7 +370,7 @@ describe('ImportSavedView', () => {
         target: 'WALLET',
         card: undefined,
         wallet: checking,
-        result: { created: 2, linked: 4, recurring: 0, transfers: 1, ignored: 2 },
+        result: { created: 2, linked: 4, recurring: 0, transfers: 1, compartments: 0, ignored: 2 },
       }),
       walletLines,
     )
@@ -416,13 +436,24 @@ describe('ImportSavedView', () => {
 
       expect(dialogText()).toContain('Desfazer a importação de fatura-visa-novembro.ofx?')
       expect(dialogText()).toContain('Exclui 2 compras criadas da fatura.')
-      expect(dialogText()).toContain('Tira da fatura 1 lançamento vinculado, que volta para em aberto')
+      expect(dialogText()).toContain(
+        'Tira da fatura 1 lançamento vinculado, que volta para em aberto',
+      )
       expect(dialogText()).toContain('Exclui 1 parcela lançada pela importação')
     })
 
     it('leaves out the recurrings when the import launched none', async () => {
       const { wrapper } = await render(
-        entry({ result: { created: 1, linked: 1, recurring: 0, transfers: 0, ignored: 0 } }),
+        entry({
+          result: {
+            created: 1,
+            linked: 1,
+            recurring: 0,
+            transfers: 0,
+            compartments: 0,
+            ignored: 0,
+          },
+        }),
       )
 
       await buttonWithText(wrapper, 'Desfazer importação').trigger('click')
@@ -438,7 +469,14 @@ describe('ImportSavedView', () => {
           target: 'WALLET',
           card: undefined,
           wallet: checking,
-          result: { created: 2, linked: 1, recurring: 0, transfers: 1, ignored: 0 },
+          result: {
+            created: 2,
+            linked: 1,
+            recurring: 0,
+            transfers: 1,
+            compartments: 0,
+            ignored: 0,
+          },
         }),
         walletLines,
       )
@@ -458,7 +496,14 @@ describe('ImportSavedView', () => {
           target: 'WALLET',
           card: undefined,
           wallet: checking,
-          result: { created: 2, linked: 1, recurring: 0, transfers: 0, ignored: 0 },
+          result: {
+            created: 2,
+            linked: 1,
+            recurring: 0,
+            transfers: 0,
+            compartments: 0,
+            ignored: 0,
+          },
         }),
         walletLines,
       )
@@ -544,14 +589,18 @@ describe('ImportSavedView', () => {
       await flushPromises()
       dialogButton('Desfazer').click()
       await flushPromises()
-      expect(document.body.querySelector('[data-slot="undo-dialog"] [data-slot="server-error"]')).not.toBeNull()
+      expect(
+        document.body.querySelector('[data-slot="undo-dialog"] [data-slot="server-error"]'),
+      ).not.toBeNull()
 
       dialogButton('Cancelar').click()
       await flushPromises()
       await buttonWithText(wrapper, 'Desfazer importação').trigger('click')
       await flushPromises()
 
-      expect(document.body.querySelector('[data-slot="undo-dialog"] [data-slot="server-error"]')).toBeNull()
+      expect(
+        document.body.querySelector('[data-slot="undo-dialog"] [data-slot="server-error"]'),
+      ).toBeNull()
     })
   })
 
@@ -587,6 +636,172 @@ describe('ImportSavedView', () => {
         'Algo mudou depois do salvamento.',
       ])
       expect(wrapper.find('[data-slot="undo-blocked"]').text()).toContain('Desfazer está bloqueado')
+    })
+  })
+
+  describe('with compartments', () => {
+    const reserve = { id: 'k-1', name: 'Reserva da casa', balance: 1000 }
+    const compartmentLines = [
+      line({
+        id: 'k-1',
+        name: 'Poupança',
+        value: -300,
+        action: 'COMPARTMENT',
+        created: [],
+        compartment: reserve,
+        compartmentMovement: 'mv-1',
+        compartmentName: 'Reserva da casa',
+      }),
+      line({
+        id: 'k-2',
+        name: 'Resgate',
+        value: 150,
+        action: 'COMPARTMENT',
+        created: [],
+        compartment: reserve,
+        compartmentMovement: 'mv-2',
+        compartmentName: 'Reserva da casa',
+      }),
+      line({
+        id: 'k-3',
+        name: 'Viagem',
+        value: -80,
+        action: 'COMPARTMENT',
+        created: [],
+        compartmentName: 'Viagem de julho',
+      }),
+    ]
+    const withCompartments = (overrides: Partial<ImportView> = {}) =>
+      entry({
+        target: 'WALLET',
+        card: undefined,
+        wallet: { ...checking, compartmentCount: 2 },
+        result: { created: 0, linked: 0, recurring: 0, transfers: 0, compartments: 3, ignored: 0 },
+        ...overrides,
+      })
+
+    it('shows five cards and the tab of the compartments', async () => {
+      const { wrapper, router } = await render(
+        withCompartments(),
+        compartmentLines,
+        '/imports?status=ALL',
+      )
+
+      expect(wrapper.find('[data-slot="saved-totals"]').text()).toBe(
+        'Criadas0Vinculadas0Transferências0Cofrinhos3Ignoradas0',
+      )
+      expect(wrapper.findAll('[data-slot="status-count"]').map((count) => count.text())).toEqual([
+        '0',
+        '0',
+        '0',
+        '3',
+        '0',
+        '3',
+      ])
+
+      await buttonWithText(wrapper, 'Cofrinhos').trigger('click')
+      await flushPromises()
+
+      expect(lastQuery().actions).toEqual(['COMPARTMENT'])
+      expect(router.currentRoute.value.query).toEqual({ status: 'COMPARTMENTS' })
+    })
+
+    it('keeps the five cards when the wallet has no compartment now but the import used one', async () => {
+      const { wrapper } = await render(
+        withCompartments({ wallet: checking }),
+        compartmentLines,
+        '/imports?status=ALL',
+      )
+
+      expect(wrapper.find('[data-slot="saved-totals"]').text()).toContain('Cofrinhos3')
+    })
+
+    it('keeps four cards without compartments', async () => {
+      const { wrapper } = await render(
+        withCompartments({
+          wallet: { ...checking, compartmentCount: 0 },
+          result: {
+            created: 0,
+            linked: 0,
+            recurring: 0,
+            transfers: 0,
+            compartments: 0,
+            ignored: 0,
+          },
+        }),
+        [],
+      )
+
+      expect(wrapper.find('[data-slot="saved-totals"]').text()).not.toContain('Cofrinhos')
+      expect(wrapper.text()).not.toContain('Cofrinhos')
+    })
+
+    it('tells what each line did and opens the history of the compartment with the movement', async () => {
+      const { wrapper, router } = await render(
+        withCompartments(),
+        compartmentLines,
+        '/imports?status=ALL',
+      )
+
+      expect(rowTexts(wrapper).map((row) => row[3])).toEqual([
+        'Guardado em Reserva da casa',
+        'Resgatado de Reserva da casa',
+        'Guardado em Viagem de julho',
+      ])
+      expect(wrapper.findAll('tbody tr').map((row) => hrefOf(row))).toEqual([
+        '/__wallets.compartments.detail/w-1/k-1?movement=mv-1',
+        '/__wallets.compartments.detail/w-1/k-1?movement=mv-2',
+        undefined,
+      ])
+
+      await wrapper.find('tbody a').trigger('click')
+      await flushPromises()
+
+      expect(router.currentRoute.value.query).toEqual({ movement: 'mv-1' })
+    })
+
+    it('has no arrow in an undone import', async () => {
+      const { wrapper } = await render(
+        withCompartments({ status: 'UNDONE' }),
+        compartmentLines,
+        '/imports?status=ALL',
+      )
+
+      expect(wrapper.find('tbody a').exists()).toBe(false)
+    })
+
+    it('tells the movements that will be removed when undoing', async () => {
+      const { wrapper } = await render(withCompartments(), compartmentLines)
+
+      await buttonWithText(wrapper, 'Desfazer importação').trigger('click')
+      await flushPromises()
+
+      expect(dialogText()).toContain(
+        'Remove 3 movimentações de cofrinho, do extrato do saldo livre e do histórico.',
+      )
+    })
+
+    it('lists the blockers of the compartments', async () => {
+      const { wrapper } = await render(
+        withCompartments({
+          undoBlockers: [
+            { reason: 'created-compartment-deleted', compartment: 'Viagem de julho' },
+            {
+              reason: 'compartment-balance-insufficient',
+              compartment: 'Reserva da casa',
+              value: -50,
+            },
+            { reason: 'wallet-inactive' },
+          ],
+        }),
+        compartmentLines,
+      )
+
+      expect(wrapper.findAll('[data-slot="undo-blocked"] li').map((item) => item.text())).toEqual([
+        'O cofrinho Viagem de julho foi excluído.',
+        'O cofrinho Reserva da casa ficaria com −50,00.',
+        'A carteira Conta corrente está inativa.',
+      ])
     })
   })
 
