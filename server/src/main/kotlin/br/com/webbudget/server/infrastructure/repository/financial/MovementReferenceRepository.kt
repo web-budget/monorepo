@@ -2,9 +2,11 @@ package br.com.webbudget.server.infrastructure.repository.financial
 
 import br.com.webbudget.server.domain.entities.financial.CardReference
 import br.com.webbudget.server.domain.entities.financial.ClassificationReference
+import br.com.webbudget.server.domain.entities.financial.CompartmentBalance
 import br.com.webbudget.server.domain.entities.financial.CompartmentReference
 import br.com.webbudget.server.domain.entities.financial.CostCenterReference
 import br.com.webbudget.server.domain.entities.financial.FinancialPeriodReference
+import br.com.webbudget.server.domain.entities.financial.WalletBalances
 import br.com.webbudget.server.domain.entities.financial.WalletReference
 import br.com.webbudget.server.jooq.registration.tables.references.CARDS
 import br.com.webbudget.server.jooq.registration.tables.references.CLASSIFICATIONS
@@ -12,6 +14,7 @@ import br.com.webbudget.server.jooq.registration.tables.references.COMPARTMENTS
 import br.com.webbudget.server.jooq.registration.tables.references.COST_CENTERS
 import br.com.webbudget.server.jooq.registration.tables.references.FINANCIAL_PERIODS
 import br.com.webbudget.server.jooq.registration.tables.references.WALLETS
+import br.com.webbudget.server.jooq.registration.tables.references.WALLET_TOTALS
 import org.jooq.DSLContext
 import org.springframework.stereotype.Repository
 import java.time.LocalDate
@@ -96,6 +99,39 @@ class MovementReferenceRepository(
             .where(wallets.EXTERNAL_ID.eq(externalId))
             .fetchOne()
             ?.toWalletReference()
+    }
+
+    fun findWalletBalances(walletId: Long): WalletBalances {
+        val wallets = WALLETS.`as`("wallets")
+        val totals = WALLET_TOTALS.`as`("wallet_totals")
+        val compartments = COMPARTMENTS.`as`("compartments")
+        val records = dsl.select(
+            wallets.CURRENT_BALANCE,
+            totals.TOTAL_BALANCE,
+            compartments.EXTERNAL_ID,
+            compartments.NAME,
+            compartments.BALANCE
+        )
+            .from(wallets)
+            .join(totals).on(totals.ID_WALLET.eq(wallets.ID))
+            .leftJoin(compartments).on(compartments.ID_WALLET.eq(wallets.ID))
+            .where(wallets.ID.eq(walletId))
+            .orderBy(compartments.CREATED_ON.asc(), compartments.ID.asc())
+            .fetch()
+
+        val first = records.first()
+
+        return WalletBalances(
+            freeBalance = first.get(wallets.CURRENT_BALANCE)!!,
+            totalBalance = first.get(totals.TOTAL_BALANCE)!!,
+            compartments = records.filter { it.get(compartments.EXTERNAL_ID) != null }.map { record ->
+                CompartmentBalance(
+                    id = record.get(compartments.EXTERNAL_ID)!!,
+                    name = record.get(compartments.NAME)!!,
+                    balance = record.get(compartments.BALANCE)!!
+                )
+            }
+        )
     }
 
     fun findCompartment(walletExternalId: UUID, compartmentExternalId: UUID): CompartmentReference? {

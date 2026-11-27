@@ -104,6 +104,18 @@ data class ReconciliationResultView(
     val entry: WalletEntryView
 )
 
+data class ReconciliationCompartmentView(
+    val id: UUID,
+    val name: String,
+    val balance: BigDecimal
+)
+
+data class ReconciliationBalanceView(
+    val freeBalance: BigDecimal,
+    val totalBalance: BigDecimal,
+    val compartments: List<ReconciliationCompartmentView>
+)
+
 data class ReconciliationPositionView(
     val position: Long
 )

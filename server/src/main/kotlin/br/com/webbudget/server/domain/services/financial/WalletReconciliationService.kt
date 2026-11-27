@@ -32,7 +32,9 @@ class WalletReconciliationService(
         val current = movementReferenceRepository.findWallet(request.wallet.externalId)
             ?: throw ResourceNotFoundException()
 
-        val reconciliation = request.withWallet(current)
+        val balances = movementReferenceRepository.findWalletBalances(current.id)
+
+        val reconciliation = request.withBalances(current, balances)
 
         creationValidators.forEach { it.validate(reconciliation) }
 
