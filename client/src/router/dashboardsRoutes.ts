@@ -15,6 +15,12 @@ export const dashboardsRoutes: RouteRecordRaw[] = [
         component: () => import('@/views/dashboards/OverviewView.vue'),
       },
       {
+        path: 'period',
+        name: 'dashboards.period',
+        meta: { breadcrumb: 'period-dashboard.menu' },
+        component: () => import('@/views/dashboards/PeriodDashboardView.vue'),
+      },
+      {
         path: 'financial-flow',
         redirect: (to) => ({ name: 'dashboards.overview', query: to.query }),
       },

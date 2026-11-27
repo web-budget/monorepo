@@ -749,6 +749,84 @@ export interface OverviewView {
   periods: OverviewPeriod[]
 }
 
+export interface PeriodDashboardPeriod {
+  id: string
+  name: string
+  startingAt: string
+  endingAt: string
+  status: FinancialPeriodStatus
+  current: boolean
+}
+
+export interface PeriodGoal {
+  realized: number
+  goal: number | null
+}
+
+export interface PeriodDashboardGoals {
+  revenues: PeriodGoal
+  expenses: PeriodGoal
+}
+
+export interface PeriodFixedVsVariable {
+  fixed: number
+  variable: number
+  fixedShareOfRevenueGoal: number | null
+}
+
+export interface PeriodBudgetFigures {
+  budget: number | null
+  used: number
+  suggested: number | null
+}
+
+export interface PeriodBudgetLine {
+  costCenter: { id: string; name: string; parent: string | null }
+  expense: PeriodBudgetFigures
+  income: PeriodBudgetFigures
+}
+
+export interface PeriodUpcomingItem {
+  id: string
+  name: string
+  type: MovementType
+  value: number
+  dueDate: string
+  financialPeriod: { id: string; name: string }
+  invoicePayment: boolean
+  overdue: boolean
+}
+
+export interface PeriodUpcoming {
+  toReceive: number
+  toPay: number
+  items: PeriodUpcomingItem[]
+}
+
+export interface PeriodCardHistory {
+  financialPeriod: { id: string; name: string }
+  purchases: number
+}
+
+export interface PeriodCard {
+  id: string
+  name: string
+  lastFourDigits: string
+  invoiceId: string | null
+  invoiceStatus: InvoiceStatus | null
+  purchases: number
+  history: PeriodCardHistory[]
+}
+
+export interface PeriodDashboardView {
+  period: PeriodDashboardPeriod
+  goals: PeriodDashboardGoals
+  fixedVsVariable: PeriodFixedVsVariable
+  budget: PeriodBudgetLine[]
+  upcoming: PeriodUpcoming | null
+  cards: PeriodCard[]
+}
+
 export type RecurringValueKind = 'FIXED' | 'VARIABLE'
 
 export type RecurringMovementStatusFilter = 'ACTIVE' | 'FINISHED' | 'ALL'

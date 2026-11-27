@@ -2095,7 +2095,93 @@
     }
   },
   "period-dashboard": {
-    "menu": "Período"
+    "menu": "Período",
+    "title": "Período",
+    "period": "Período",
+    "range": "{from} a {to}",
+    "list": {
+      "plural": "o período"
+    },
+    "empty": {
+      "title": "Nenhum período ainda",
+      "action": "Criar período"
+    },
+    "goals": {
+      "title": "Meta × realizado",
+      "edit": "Editar metas",
+      "revenues": "Receitas",
+      "expenses": "Despesas",
+      "of": "de",
+      "meter": "{label}: {percentage}% da meta",
+      "income": {
+        "missing": "Faltam {amount} para a meta",
+        "above": "{amount} acima da meta",
+        "equal": "Igual à meta",
+        "ok": "Meta atingida",
+        "warn": "Abaixo da meta",
+        "none": "Sem meta de receita"
+      },
+      "expense": {
+        "left": "Sobram {amount} até o limite",
+        "above": "{amount} acima do limite",
+        "ok": "Dentro do limite",
+        "warn": "Perto do limite",
+        "over": "Acima do limite",
+        "none": "Sem meta de despesa"
+      }
+    },
+    "fixed-vs-variable": {
+      "title": "Fixos × variáveis",
+      "fixed": "Fixos",
+      "variable": "Variáveis",
+      "share": "Fixos sobre a meta de receita",
+      "no-goal": "Sem meta de receita",
+      "summary": "Fixos {fixed}%, variáveis {variable}%"
+    },
+    "budget": {
+      "title": "Orçamento por centro de custo",
+      "tabs": "Tipo de orçamento",
+      "expense": "Despesa",
+      "income": "Receita",
+      "cost-center": "Centro de custo",
+      "budget": "Orçamento (R$)",
+      "expense-used": "Uso (R$)",
+      "income-used": "Realizado (R$)",
+      "expense-share": "Usado",
+      "income-share": "Atingido",
+      "suggested": "Sugerido (R$)",
+      "suggested-short": "Sugerido",
+      "overspent": "estourado",
+      "of": "de"
+    },
+    "upcoming": {
+      "title": "Próximos 30 dias",
+      "to-receive": "A receber",
+      "to-pay": "A pagar",
+      "empty": "Nada vence nos próximos 30 dias",
+      "due-date": "Vencimento",
+      "movement": "Movimento",
+      "period": "Período",
+      "value": "Valor (R$)",
+      "situation": "Situação",
+      "invoice": "fatura",
+      "overdue": "Vencido há {count} dia | Vencido há {count} dias",
+      "open": "Em aberto",
+      "due-on": "Vence em"
+    },
+    "cards": {
+      "title": "Cartões",
+      "purchases": "Compras no período",
+      "card": "Cartão",
+      "invoice": "Fatura",
+      "value": "Compras (R$)",
+      "history": "Últimos {count} período | Últimos {count} períodos",
+      "status": {
+        "OPEN": "Aberta",
+        "CLOSED": "Fechada",
+        "PAID": "Paga"
+      }
+    }
   },
   "composition": {
     "menu": "Composição"

@@ -2095,7 +2095,93 @@
     }
   },
   "period-dashboard": {
-    "menu": "Period"
+    "menu": "Period",
+    "title": "Period",
+    "period": "Period",
+    "range": "{from} to {to}",
+    "list": {
+      "plural": "the period"
+    },
+    "empty": {
+      "title": "No periods yet",
+      "action": "Create period"
+    },
+    "goals": {
+      "title": "Goal × realized",
+      "edit": "Edit goals",
+      "revenues": "Revenues",
+      "expenses": "Expenses",
+      "of": "of",
+      "meter": "{label}: {percentage}% of the goal",
+      "income": {
+        "missing": "{amount} short of the goal",
+        "above": "{amount} above the goal",
+        "equal": "Same as the goal",
+        "ok": "Goal reached",
+        "warn": "Below the goal",
+        "none": "No revenue goal"
+      },
+      "expense": {
+        "left": "{amount} left until the limit",
+        "above": "{amount} above the limit",
+        "ok": "Within the limit",
+        "warn": "Near the limit",
+        "over": "Above the limit",
+        "none": "No expense goal"
+      }
+    },
+    "fixed-vs-variable": {
+      "title": "Fixed × variable",
+      "fixed": "Fixed",
+      "variable": "Variable",
+      "share": "Fixed over the revenue goal",
+      "no-goal": "No revenue goal",
+      "summary": "Fixed {fixed}%, variable {variable}%"
+    },
+    "budget": {
+      "title": "Budget by cost center",
+      "tabs": "Budget type",
+      "expense": "Expense",
+      "income": "Revenue",
+      "cost-center": "Cost center",
+      "budget": "Budget (R$)",
+      "expense-used": "Use (R$)",
+      "income-used": "Realized (R$)",
+      "expense-share": "Used",
+      "income-share": "Reached",
+      "suggested": "Suggested (R$)",
+      "suggested-short": "Suggested",
+      "overspent": "overspent",
+      "of": "of"
+    },
+    "upcoming": {
+      "title": "Next 30 days",
+      "to-receive": "To receive",
+      "to-pay": "To pay",
+      "empty": "Nothing is due in the next 30 days",
+      "due-date": "Due date",
+      "movement": "Movement",
+      "period": "Period",
+      "value": "Value (R$)",
+      "situation": "Status",
+      "invoice": "invoice",
+      "overdue": "Overdue for {count} day | Overdue for {count} days",
+      "open": "Open",
+      "due-on": "Due on"
+    },
+    "cards": {
+      "title": "Cards",
+      "purchases": "Purchases in the period",
+      "card": "Card",
+      "invoice": "Invoice",
+      "value": "Purchases (R$)",
+      "history": "Last {count} period | Last {count} periods",
+      "status": {
+        "OPEN": "Open",
+        "CLOSED": "Closed",
+        "PAID": "Paid"
+      }
+    }
   },
   "composition": {
     "menu": "Composition"
