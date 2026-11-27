@@ -26,8 +26,8 @@ vi.mock('vue-sonner', () => ({
 }))
 
 const classifications: ClassificationRow[] = [
-  { id: 'c-1', name: 'Salary', type: 'INCOME', active: true },
-  { id: 'c-2', name: 'Rent', type: 'EXPENSE', active: true },
+  { id: 'c-1', name: 'Salary', type: 'INCOME', active: true, generic: false },
+  { id: 'c-2', name: 'Rent', type: 'EXPENSE', active: true, generic: true },
 ]
 
 async function render(content = classifications, counts?: Record<string, number>) {
@@ -65,6 +65,15 @@ describe('ClassificationListView', () => {
     expect(rows[0]!.text()).toContain('Receita')
     expect(rows[1]!.text()).toContain('Despesa')
     expect(rows[0]!.find('a').attributes('href')).toBe('/classifications/c-1/detail')
+  })
+
+  it('marks only the generic classifications with the badge next to the name', async () => {
+    const { wrapper } = await render()
+    const rows = wrapper.findAll('tbody tr')
+
+    expect(rows[0]!.text()).not.toContain('genérica')
+    expect(rows[1]!.text()).toContain('Rent')
+    expect(rows[1]!.text()).toContain('genérica')
   })
 
   it('searches by the typed filter, filters by status and sorts by the type', async () => {

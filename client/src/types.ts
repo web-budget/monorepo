@@ -246,12 +246,14 @@ export interface ClassificationCreateForm {
   name: string
   type: ClassificationType
   description?: string | null
+  generic: boolean
 }
 
 export interface ClassificationUpdateForm {
   name: string
   description?: string | null
   active: boolean
+  generic: boolean
 }
 
 export interface ClassificationView {
@@ -260,6 +262,7 @@ export interface ClassificationView {
   type: ClassificationType
   active: boolean
   description: string | null
+  generic: boolean
 }
 
 export interface ClassificationListView {
@@ -267,6 +270,15 @@ export interface ClassificationListView {
   name: string
   type: ClassificationType
   active: boolean
+  generic: boolean
+}
+
+export interface InstanceSettingsForm {
+  reserveMonths: number
+}
+
+export interface InstanceSettingsView {
+  reserveMonths: number
 }
 
 export type FinancialPeriodStatus = 'OPEN' | 'CLOSED'

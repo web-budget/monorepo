@@ -68,13 +68,13 @@ describe('layouts', () => {
     expect(wrapper.findAll('[data-slot="sidebar-menu"] a')).toHaveLength(7)
   })
 
-  it('ConfigurationLayout links the users and still lists the integrations, disabled', async () => {
+  it('ConfigurationLayout links the users and the settings and still lists the integrations, disabled', async () => {
     const wrapper = await render(ConfigurationLayout)
 
-    expect(menuLabels(wrapper)).toEqual(['Usuários', 'Integrações'])
+    expect(menuLabels(wrapper)).toEqual(['Usuários', 'Parâmetros', 'Integrações'])
     expect(
       wrapper.findAll('[data-slot="sidebar-menu"] a').map((link) => link.attributes('href')),
-    ).toEqual(['/configuration/users'])
+    ).toEqual(['/configuration/users', '/configuration/settings'])
     expect(wrapper.findAll('[data-slot="sidebar"] button[disabled]')).toHaveLength(1)
   })
 

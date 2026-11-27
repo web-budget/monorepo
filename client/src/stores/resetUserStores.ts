@@ -10,6 +10,7 @@ import { useMovementsStore } from '@/stores/movements'
 import { usePeriodClosingStore } from '@/stores/periodClosing'
 import { useRecurringLaunchStore } from '@/stores/recurringLaunch'
 import { useRecurringMovementsStore } from '@/stores/recurringMovements'
+import { useSettingsStore } from '@/stores/settings'
 import { useStatementStore } from '@/stores/statement'
 import { useTransfersStore } from '@/stores/transfers'
 import { useTrustedDevicesStore } from '@/stores/trustedDevices'
@@ -30,6 +31,7 @@ export function resetUserStores() {
   usePeriodClosingStore().reset()
   useRecurringLaunchStore().reset()
   useRecurringMovementsStore().reset()
+  useSettingsStore().reset()
   useStatementStore().reset()
   useTransfersStore().reset()
   useUsersAdminStore().reset()

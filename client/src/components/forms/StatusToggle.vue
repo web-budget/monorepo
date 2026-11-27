@@ -18,7 +18,11 @@ const { value } = useField<boolean>(() => props.name)
       heading ?? $t('crud.status')
     }}</span>
     <Label class="flex h-9 items-center gap-2.5 font-normal">
-      <Switch :model-value="value" @update:model-value="value = $event" />
+      <Switch
+        :model-value="value"
+        :aria-label="label === '' ? heading : undefined"
+        @update:model-value="value = $event"
+      />
       {{ label ?? $t('status.active') }}
     </Label>
     <span v-if="hint" class="text-muted-foreground text-xs">{{ hint }}</span>

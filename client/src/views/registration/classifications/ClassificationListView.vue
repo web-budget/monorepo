@@ -11,6 +11,7 @@ import ItemsTable from '@/components/listing/ItemsTable.vue'
 import ListState from '@/components/listing/ListState.vue'
 import SearchControls from '@/components/listing/SearchControls.vue'
 import { FEMININE_STATUS_OPTIONS } from '@/components/listing/statusOptions'
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useCrudList } from '@/composables/useCrudList'
 import { useClassificationsStore } from '@/stores/classifications'
@@ -106,6 +107,12 @@ const columns = computed(() => [
         @table-sorted="onTableSorted"
         @row-selected="changeToDetail"
       >
+        <template #cell-name="{ item }">
+          {{ item.name }}
+          <Badge v-if="item.generic" variant="outline" class="ml-1">
+            {{ $t('classification.badge.generic') }}
+          </Badge>
+        </template>
         <template #cell-type="{ item }">{{ $t(typeKey('classification', item.type)) }}</template>
         <template #actions="{ item }">
           <ActionButtons @on-edit="changeToUpdate(item.id)" @on-delete="remove(item)" />

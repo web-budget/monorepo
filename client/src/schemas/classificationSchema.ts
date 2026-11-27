@@ -13,6 +13,7 @@ export const classificationSchema = z.object({
   active: z.boolean(),
   name: z.string().min(3).max(150),
   type: z.enum(CLASSIFICATION_TYPES),
+  generic: z.boolean(),
   description: z.string().nullish(),
 })
 
@@ -20,7 +21,7 @@ export const classificationFormSchema = toTypedSchema(classificationSchema)
 
 export type ClassificationFormValues = z.infer<typeof classificationSchema>
 
-export const classificationFormDefaults = { active: true }
+export const classificationFormDefaults = { active: true, generic: false }
 
 export function toClassificationCreateForm(
   values: ClassificationFormValues,
@@ -29,6 +30,7 @@ export function toClassificationCreateForm(
     name: values.name,
     type: values.type,
     description: blankToNull(values.description),
+    generic: values.generic,
   }
 }
 
@@ -39,6 +41,7 @@ export function toClassificationUpdateForm(
     name: values.name,
     active: values.active,
     description: blankToNull(values.description),
+    generic: values.generic,
   }
 }
 
@@ -49,6 +52,7 @@ export function toClassificationFormValues(
     active: classification.active,
     name: classification.name,
     type: classification.type,
+    generic: classification.generic,
     description: classification.description,
   }
 }

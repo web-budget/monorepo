@@ -7,6 +7,7 @@ import { cardsApi } from './cards'
 import { classificationsApi } from './classifications'
 import { costCentersApi } from './costCenters'
 import { financialPeriodsApi } from './financialPeriods'
+import { settingsApi } from './settings'
 import { walletsApi } from './wallets'
 
 interface CrudResource {
@@ -249,6 +250,22 @@ describe('financialPeriodsApi.findResult', () => {
     expect(lastRequest()).toMatchObject({
       method: 'get',
       url: '/financial/financial-periods/id-1/result',
+    })
+  })
+})
+
+describe('settingsApi', () => {
+  it('reads the settings of the instance', async () => {
+    await expect(settingsApi.find()).resolves.toEqual({ served: true })
+    expect(lastRequest()).toMatchObject({ method: 'get', url: '/administration/settings' })
+  })
+
+  it('replaces the settings of the instance and returns the saved view', async () => {
+    await expect(settingsApi.update({ reserveMonths: 12 })).resolves.toEqual({ served: true })
+    expect(lastRequest()).toMatchObject({
+      method: 'put',
+      url: '/administration/settings',
+      data: { reserveMonths: 12 },
     })
   })
 })

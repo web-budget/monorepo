@@ -5,7 +5,7 @@ import { createTestPlugins } from '@/test/mounting'
 import ConfigurationHomeView from '@/views/configuration/ConfigurationHomeView.vue'
 
 describe('ConfigurationHomeView', () => {
-  it('shows the users shortcut with the unfiltered count and the integrations as coming soon', async () => {
+  it('shows the users shortcut with the unfiltered count, the settings shortcut and the integrations as coming soon', async () => {
     const { plugins } = createTestPlugins()
     const users = useUsersAdminStore()
     vi.mocked(users.count).mockResolvedValue(6)
@@ -18,6 +18,10 @@ describe('ConfigurationHomeView', () => {
     expect(link.attributes('href')).toBe('/configuration/users')
     expect(link.find('[data-slot="module-card-count"]').text()).toBe('6')
     expect(users.count).toHaveBeenCalledWith('ALL')
+    const settings = wrapper.findAll('a[data-slot="module-card"]')[1]!
+    expect(settings.attributes('href')).toBe('/configuration/settings')
+    expect(settings.text()).toContain('Parâmetros')
+    expect(settings.find('[data-slot="module-card-count"]').exists()).toBe(false)
     const disabled = wrapper.find('[aria-disabled="true"]')
     expect(disabled.text()).toContain('Integrações')
     expect(disabled.text()).toContain('Em breve')
