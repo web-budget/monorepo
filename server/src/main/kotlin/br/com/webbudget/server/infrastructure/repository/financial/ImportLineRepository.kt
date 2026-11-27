@@ -4,6 +4,7 @@ import br.com.webbudget.server.domain.entities.financial.Import
 import br.com.webbudget.server.domain.entities.financial.ImportAction
 import br.com.webbudget.server.domain.entities.financial.ImportCandidate
 import br.com.webbudget.server.domain.entities.financial.ImportCandidateKind
+import br.com.webbudget.server.domain.entities.financial.ImportCompartment
 import br.com.webbudget.server.domain.entities.financial.ImportLine
 import br.com.webbudget.server.domain.entities.financial.ImportedLine
 import br.com.webbudget.server.domain.entities.financial.ImportTotals
@@ -13,9 +14,11 @@ import br.com.webbudget.server.infrastructure.repository.containsIgnoringAccents
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.financial.tables.records.ImportLinesRecord
+import br.com.webbudget.server.jooq.financial.tables.references.COMPARTMENT_MOVEMENTS
 import br.com.webbudget.server.jooq.financial.tables.references.IMPORTS
 import br.com.webbudget.server.jooq.financial.tables.references.IMPORT_LINES
 import br.com.webbudget.server.jooq.registration.tables.references.CLASSIFICATIONS
+import br.com.webbudget.server.jooq.registration.tables.references.COMPARTMENTS
 import br.com.webbudget.server.jooq.registration.tables.references.COST_CENTERS
 import br.com.webbudget.server.jooq.registration.tables.references.WALLETS
 import org.jooq.Condition
@@ -39,6 +42,8 @@ class ImportLineRepository(
     private val costCenters = COST_CENTERS.`as`("cost_centers")
     private val classifications = CLASSIFICATIONS.`as`("classifications")
     private val targetWallets = WALLETS.`as`("target_wallets")
+    private val targetCompartments = COMPARTMENTS.`as`("target_compartments")
+    private val createdCompartmentMovements = COMPARTMENT_MOVEMENTS.`as`("created_compartment_movements")
 
     fun findByExternalId(import: Import, externalId: UUID): ImportLine? = hydrate(
         import,
@@ -150,6 +155,7 @@ class ImportLineRepository(
             .set(IMPORT_LINES.ID_COST_CENTER, line.costCenter?.id)
             .set(IMPORT_LINES.ID_CLASSIFICATION, line.classification?.id)
             .set(IMPORT_LINES.ID_TARGET_WALLET, line.targetWallet?.id)
+            .set(IMPORT_LINES.ID_TARGET_COMPARTMENT, line.targetCompartment?.id)
             .set(IMPORT_LINES.ID_TARGET_MOVEMENT, line.link.idOf(ImportCandidateKind.MOVEMENT))
             .set(IMPORT_LINES.ID_TARGET_PURCHASE, line.link.idOf(ImportCandidateKind.PURCHASE))
             .set(IMPORT_LINES.ID_TARGET_TRANSFER, line.link.idOf(ImportCandidateKind.TRANSFER))
@@ -174,6 +180,7 @@ class ImportLineRepository(
             .set(IMPORT_LINES.ID_COST_CENTER, line.costCenter?.id)
             .set(IMPORT_LINES.ID_CLASSIFICATION, line.classification?.id)
             .set(IMPORT_LINES.ID_TARGET_WALLET, line.targetWallet?.id)
+            .set(IMPORT_LINES.ID_TARGET_COMPARTMENT, line.targetCompartment?.id)
             .set(IMPORT_LINES.ID_TARGET_MOVEMENT, line.link.idOf(ImportCandidateKind.MOVEMENT))
             .set(IMPORT_LINES.ID_TARGET_PURCHASE, line.link.idOf(ImportCandidateKind.PURCHASE))
             .set(IMPORT_LINES.ID_TARGET_TRANSFER, line.link.idOf(ImportCandidateKind.TRANSFER))
@@ -195,6 +202,8 @@ class ImportLineRepository(
             .set(IMPORT_LINES.ID_CREATED_PURCHASE, line.createdPurchaseId)
             .set(IMPORT_LINES.ID_CREATED_TRANSFER, line.createdTransferId)
             .set(IMPORT_LINES.ID_CREATED_RECURRING, line.createdRecurringId)
+            .set(IMPORT_LINES.ID_CREATED_COMPARTMENT_MOVEMENT, line.createdCompartmentMovementId)
+            .set(IMPORT_LINES.COMPARTMENT_NAME, line.compartmentName)
             .set(IMPORT_LINES.PREVIOUS_VALUE, line.previousValue)
             .where(IMPORT_LINES.ID.eq(line.id))
             .execute()
@@ -225,7 +234,8 @@ class ImportLineRepository(
                 ImportAction.INVOICE_PAYMENT.name,
                 ImportAction.LAUNCH_RECURRING.name
             ).and(missingTarget),
-            lines.ACTION.eq(ImportAction.TRANSFER.name).and(lines.ID_TARGET_WALLET.isNull)
+            lines.ACTION.eq(ImportAction.TRANSFER.name).and(lines.ID_TARGET_WALLET.isNull),
+            lines.ACTION.eq(ImportAction.COMPARTMENT.name).and(lines.ID_TARGET_COMPARTMENT.isNull)
         )
     }
 
@@ -235,6 +245,8 @@ class ImportLineRepository(
         .leftJoin(costCenters).on(costCenters.ID.eq(lines.ID_COST_CENTER))
         .leftJoin(classifications).on(classifications.ID.eq(lines.ID_CLASSIFICATION))
         .leftJoin(targetWallets).on(targetWallets.ID.eq(lines.ID_TARGET_WALLET))
+        .leftJoin(targetCompartments).on(targetCompartments.ID.eq(lines.ID_TARGET_COMPARTMENT))
+        .leftJoin(createdCompartmentMovements).on(createdCompartmentMovements.ID.eq(lines.ID_CREATED_COMPARTMENT_MOVEMENT))
 
     private fun hydrate(import: Import, records: List<Record>): List<ImportLine> {
 
@@ -248,6 +260,8 @@ class ImportLineRepository(
             val costCenterRecord = record.into(costCenters)
             val classificationRecord = record.into(classifications)
             val walletRecord = record.into(targetWallets)
+            val compartmentRecord = record.into(targetCompartments)
+            val createdMovementRecord = record.into(createdCompartmentMovements)
 
             ImportLine(
                 import = import,
@@ -268,11 +282,23 @@ class ImportLineRepository(
                 costCenter = costCenterRecord.id?.let { costCenterRecord.toCostCenterReference() },
                 classification = classificationRecord.id?.let { classificationRecord.toClassificationReference() },
                 targetWallet = walletRecord.id?.let { walletRecord.toWalletReference() },
+                targetCompartment = compartmentRecord.id?.let {
+                    ImportCompartment(
+                        id = compartmentRecord.id!!,
+                        externalId = compartmentRecord.externalId!!,
+                        name = compartmentRecord.name!!,
+                        balance = compartmentRecord.balance!!,
+                        walletId = compartmentRecord.idWallet!!
+                    )
+                },
                 link = lineRecord.targetKey()?.let { candidates[it] },
                 createdMovementId = lineRecord.idCreatedMovement,
                 createdPurchaseId = lineRecord.idCreatedPurchase,
                 createdTransferId = lineRecord.idCreatedTransfer,
                 createdRecurringId = lineRecord.idCreatedRecurring,
+                createdCompartmentMovementId = lineRecord.idCreatedCompartmentMovement,
+                createdCompartmentMovementExternalId = createdMovementRecord.externalId,
+                compartmentName = lineRecord.compartmentName,
                 previousValue = lineRecord.previousValue
 ,
                 ignoreReason = lineRecord.ignoreReason,

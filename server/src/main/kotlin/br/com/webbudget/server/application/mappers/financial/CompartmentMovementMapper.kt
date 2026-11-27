@@ -31,7 +31,8 @@ class CompartmentMovementMapper(
         previousBalance = line.previousBalance,
         resultingBalance = line.resultingBalance,
         note = line.note,
-        entryId = line.walletEntryExternalId
+        entryId = line.walletEntryExternalId,
+        importId = line.importExternalId
     )
 
     fun mapToCreatedView(result: CompartmentMovementResult): CompartmentMovementCreatedView {

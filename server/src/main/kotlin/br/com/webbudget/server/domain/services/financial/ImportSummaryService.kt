@@ -12,6 +12,7 @@ import br.com.webbudget.server.domain.entities.financial.OfxTransactionKind
 import br.com.webbudget.server.infrastructure.repository.financial.ImportCandidateRepository
 import br.com.webbudget.server.infrastructure.repository.financial.ImportLineRepository
 import br.com.webbudget.server.infrastructure.repository.financial.InvoiceRepository
+import br.com.webbudget.server.infrastructure.repository.financial.MovementReferenceRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
@@ -22,7 +23,8 @@ class ImportSummaryService(
     private val importSaveService: ImportSaveService,
     private val importLineRepository: ImportLineRepository,
     private val importCandidateRepository: ImportCandidateRepository,
-    private val invoiceRepository: InvoiceRepository
+    private val invoiceRepository: InvoiceRepository,
+    private val movementReferenceRepository: MovementReferenceRepository
 ) {
 
     fun summarize(import: Import): ImportSummary {
@@ -38,7 +40,9 @@ class ImportSummaryService(
                 BigDecimal.ZERO,
                 import.ledgerBalance,
                 null,
-                BigDecimal.ZERO
+                BigDecimal.ZERO,
+                null,
+                import.wallet?.let { movementReferenceRepository.findWalletBalances(it.id).compartments.size } ?: 0
             )
         }
 
@@ -79,7 +83,13 @@ class ImportSummaryService(
 
         val wallet = import.wallet!!
 
+        val balances = movementReferenceRepository.findWalletBalances(wallet.id)
+
         val afterSave = lines.fold(wallet.currentBalance) { total, line -> total.add(walletEffect(line)) }
+
+        val totalAfterSave = lines
+            .filter { it.action != ImportAction.COMPARTMENT }
+            .fold(balances.totalBalance) { total, line -> total.add(walletEffect(line)) }
 
         val unlinked = (
             importCandidateRepository.findOpenMovements(import.financialPeriod.id, Movement.Type.INCOME) +
@@ -94,7 +104,9 @@ class ImportSummaryService(
             afterSave = afterSave,
             ledgerBalance = import.ledgerBalance,
             currentBalance = wallet.currentBalance,
-            ignoredCredits = BigDecimal.ZERO
+            ignoredCredits = BigDecimal.ZERO,
+            totalAfterSave = totalAfterSave,
+            compartmentCount = balances.compartments.size
         )
     }
 
@@ -108,7 +120,7 @@ class ImportSummaryService(
     }
 
     private fun walletEffect(line: ImportLine): BigDecimal = when (line.action) {
-        ImportAction.CREATE, ImportAction.INVOICE_PAYMENT, ImportAction.TRANSFER -> line.value
+        ImportAction.CREATE, ImportAction.INVOICE_PAYMENT, ImportAction.TRANSFER, ImportAction.COMPARTMENT -> line.value
         ImportAction.LINK -> if (line.link?.kind == ImportCandidateKind.MOVEMENT) line.value else BigDecimal.ZERO
         else -> BigDecimal.ZERO
     }

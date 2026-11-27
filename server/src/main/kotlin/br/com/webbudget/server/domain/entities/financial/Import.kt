@@ -44,10 +44,11 @@ enum class ImportAction {
     CREATE_RECURRING,
     INVOICE_PAYMENT,
     TRANSFER,
+    COMPARTMENT,
     IGNORE
 }
 
-enum class ImportCandidateKind { MOVEMENT, PURCHASE, TRANSFER, RECURRING }
+enum class ImportCandidateKind { MOVEMENT, PURCHASE, TRANSFER, RECURRING, COMPARTMENT }
 
 class ImportCandidate(
     val kind: ImportCandidateKind,
@@ -69,6 +70,14 @@ class ImportCandidate(
     val toWalletId: Long? = null
 )
 
+class ImportCompartment(
+    val id: Long,
+    val externalId: UUID,
+    val name: String,
+    val balance: BigDecimal,
+    val walletId: Long
+)
+
 class ImportLine(
     val import: Import,
     val position: Int,
@@ -88,11 +97,15 @@ class ImportLine(
     var costCenter: CostCenterReference? = null,
     var classification: ClassificationReference? = null,
     var targetWallet: WalletReference? = null,
+    var targetCompartment: ImportCompartment? = null,
     var link: ImportCandidate? = null,
     var createdMovementId: Long? = null,
     var createdPurchaseId: Long? = null,
     var createdTransferId: Long? = null,
     var createdRecurringId: Long? = null,
+    var createdCompartmentMovementId: Long? = null,
+    var createdCompartmentMovementExternalId: UUID? = null,
+    var compartmentName: String? = null,
     var previousValue: BigDecimal? = null,
     var ignoreReason: String? = null,
     var ignoreReasonOn: LocalDate? = null,
@@ -111,6 +124,7 @@ class ImportLine(
         ImportAction.LINK, ImportAction.INVOICE_PAYMENT, ImportAction.LAUNCH_RECURRING ->
             if (link == null) listOf(LINK) else emptyList()
         ImportAction.TRANSFER -> if (targetWallet == null) listOf(WALLET) else emptyList()
+        ImportAction.COMPARTMENT -> if (targetCompartment == null) listOf(COMPARTMENT) else emptyList()
         ImportAction.IGNORE -> emptyList()
     }
 
@@ -123,12 +137,13 @@ class ImportLine(
             ImportAction.CREATE_RECURRING,
             ImportAction.IGNORE
         )
-        isCredit -> setOf(ImportAction.CREATE, ImportAction.LINK, ImportAction.IGNORE)
+        isCredit -> setOf(ImportAction.CREATE, ImportAction.LINK, ImportAction.COMPARTMENT, ImportAction.IGNORE)
         else -> setOf(
             ImportAction.CREATE,
             ImportAction.LINK,
             ImportAction.INVOICE_PAYMENT,
             ImportAction.TRANSFER,
+            ImportAction.COMPARTMENT,
             ImportAction.IGNORE
         )
     }
@@ -139,6 +154,7 @@ class ImportLine(
 
     fun clearAction() {
         targetWallet = null
+        targetCompartment = null
         link = null
         differentValue = false
     }
@@ -157,6 +173,7 @@ class ImportLine(
         const val CLASSIFICATION = "classification"
         const val LINK = "link"
         const val WALLET = "wallet"
+        const val COMPARTMENT = "compartment"
         const val INSTALLMENTS = "installments"
         const val PAYMENT_RECEIVED = "payment-received"
         const val IOF_PAIR = "iof-pair"
@@ -173,7 +190,8 @@ class ImportNameMemory(
     var costCenter: CostCenterReference?,
     var classification: ClassificationReference?,
     var wallet: WalletReference?,
-    var recurringId: Long?
+    var recurringId: Long?,
+    var compartment: ImportCompartment? = null
 ) : PersistentEntity() {
 
     companion object {
@@ -226,7 +244,9 @@ class ImportSummary(
     val afterSave: BigDecimal,
     val ledgerBalance: BigDecimal?,
     val currentBalance: BigDecimal?,
-    val ignoredCredits: BigDecimal
+    val ignoredCredits: BigDecimal,
+    val totalAfterSave: BigDecimal? = null,
+    val compartmentCount: Int = 0
 )
 
 class ImportLinkReference(
@@ -240,6 +260,7 @@ class ImportLineChange(
     val costCenter: CostCenterReference? = null,
     val classification: ClassificationReference? = null,
     val wallet: WalletReference? = null,
+    val compartment: ImportCompartment? = null,
     val link: ImportLinkReference? = null,
     val installment: Int? = null,
     val installments: Int? = null
@@ -253,5 +274,7 @@ class ImportSave(
 class ImportBlocker(
     val reason: String,
     val position: Int? = null,
-    val name: String? = null
+    val name: String? = null,
+    val compartment: String? = null,
+    val value: BigDecimal? = null
 )

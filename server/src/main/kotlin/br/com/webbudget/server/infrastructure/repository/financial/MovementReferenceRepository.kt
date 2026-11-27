@@ -6,6 +6,7 @@ import br.com.webbudget.server.domain.entities.financial.CompartmentBalance
 import br.com.webbudget.server.domain.entities.financial.CompartmentReference
 import br.com.webbudget.server.domain.entities.financial.CostCenterReference
 import br.com.webbudget.server.domain.entities.financial.FinancialPeriodReference
+import br.com.webbudget.server.domain.entities.financial.ImportCompartment
 import br.com.webbudget.server.domain.entities.financial.WalletBalances
 import br.com.webbudget.server.domain.entities.financial.WalletReference
 import br.com.webbudget.server.jooq.registration.tables.references.CARDS
@@ -133,6 +134,18 @@ class MovementReferenceRepository(
             }
         )
     }
+
+    fun findImportCompartment(externalId: UUID): ImportCompartment? = dsl.selectFrom(COMPARTMENTS)
+        .where(COMPARTMENTS.EXTERNAL_ID.eq(externalId))
+        .fetchOne { record ->
+            ImportCompartment(
+                id = record.id!!,
+                externalId = record.externalId!!,
+                name = record.name!!,
+                balance = record.balance!!,
+                walletId = record.idWallet!!
+            )
+        }
 
     fun findCompartment(walletExternalId: UUID, compartmentExternalId: UUID): CompartmentReference? {
         val compartments = COMPARTMENTS.`as`("compartments")

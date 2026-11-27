@@ -26,7 +26,8 @@ data class CompartmentMovementView(
     val previousBalance: BigDecimal,
     val resultingBalance: BigDecimal,
     val note: String? = null,
-    val entryId: UUID? = null
+    val entryId: UUID? = null,
+    val importId: UUID? = null
 )
 
 data class CompartmentMovementCreatedView(
