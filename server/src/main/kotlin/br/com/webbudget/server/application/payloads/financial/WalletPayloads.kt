@@ -1,8 +1,10 @@
 package br.com.webbudget.server.application.payloads.financial
 
 import br.com.webbudget.server.application.payloads.ErrorCodes.IS_NOT_POSITIVE
+import br.com.webbudget.server.application.payloads.ErrorCodes.IS_OUT_OF_RANGE
 import br.com.webbudget.server.application.payloads.ErrorCodes.IS_NULL
 import br.com.webbudget.server.domain.entities.financial.WalletEntry
+import jakarta.validation.constraints.Digits
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
 import org.springframework.format.annotation.DateTimeFormat
@@ -69,8 +71,10 @@ data class WalletEntryView(
 
 data class ReconciliationForm(
     @field:NotNull(message = IS_NULL)
+    @field:Digits(integer = 13, fraction = 10, message = IS_OUT_OF_RANGE)
     val informedBalance: BigDecimal?,
     @field:NotNull(message = IS_NULL)
+    @field:Digits(integer = 13, fraction = 10, message = IS_OUT_OF_RANGE)
     val shownBalance: BigDecimal?,
     val reason: String? = null
 )

@@ -226,6 +226,22 @@ class WalletReconciliationControllerTest : BaseIntegrationTest() {
     }
 
     @Test
+    fun `should refuse balances out of the range of the wallet balance without expanding them`() {
+
+        reconcile(WALLET, """{"informedBalance": 1e1000000000, "shownBalance": 500.50, "reason": "Huge"}""")
+            .expectStatus().isEqualTo(422)
+            .expectBody()
+            .jsonPath("$.parameters.informedBalance").isEqualTo("is-out-of-range")
+
+        reconcile(WALLET, """{"informedBalance": 600, "shownBalance": 99999999999999.99, "reason": "Big"}""")
+            .expectStatus().isEqualTo(422)
+            .expectBody()
+            .jsonPath("$.parameters.shownBalance").isEqualTo("is-out-of-range")
+
+        assertNothingRecorded(WALLET_ID, "500.50")
+    }
+
+    @Test
     fun `should let only one of two simultaneous reconciliations of the same shown balance through`() {
 
         val first = CompletableFuture.supplyAsync {

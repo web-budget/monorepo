@@ -10,4 +10,5 @@ object ErrorCodes {
     const val MAX_BYTES = "has-max-bytes-of-{max}"
     const val IS_NOT_POSITIVE = "is-not-positive"
     const val IS_NEGATIVE = "is-negative"
+    const val IS_OUT_OF_RANGE = "is-out-of-range"
 }
