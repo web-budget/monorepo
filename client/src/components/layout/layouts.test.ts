@@ -37,15 +37,16 @@ describe('layouts', () => {
     expect(wrapper.find('main').text()).toContain('root')
   })
 
-  it('DashboardsLayout lists only the financial flow, selected when it is open', async () => {
-    const wrapper = await render(DashboardsLayout, '/dashboards/financial-flow')
+  it('DashboardsLayout lists the three views, all of them enabled and the overview selected', async () => {
+    const wrapper = await render(DashboardsLayout, '/dashboards/overview')
 
-    expect(menuLabels(wrapper)).toEqual(['Fluxo financeiro'])
+    expect(menuLabels(wrapper)).toEqual(['Visão geral', 'Período', 'Composição'])
     expect(
       wrapper.findAll('[data-slot="sidebar-menu"] a').map((link) => link.attributes('href')),
-    ).toEqual(['/dashboards/financial-flow'])
+    ).toEqual(['/dashboards/overview', '/dashboards/period', '/dashboards/composition'])
+    expect(wrapper.findAll('[data-slot="sidebar"] button[disabled]')).toHaveLength(0)
     expect(wrapper.findAll('[data-active="true"]').map((button) => button.text())).toEqual([
-      'Fluxo financeiro',
+      'Visão geral',
     ])
   })
 
