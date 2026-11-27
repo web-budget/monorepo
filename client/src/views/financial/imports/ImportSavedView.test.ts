@@ -266,17 +266,18 @@ describe('ImportSavedView', () => {
 
     const rows = rowTexts(wrapper).map((row) => row.slice(0, 4))
     expect(rows).toEqual([
-      ['02/11', 'Supermercado Boa Compra', 'R$ 223,10', 'Compra criada na fatura'],
-      ['02/11', 'Seguro de vida', 'R$ 223,10', 'Vinculada a “Seguro de vida” de Outubro, paga no cartão'],
+      ['02/11/2026', 'Supermercado Boa Compra', '223,10', 'Compra criada na fatura'],
+      ['02/11/2026', 'Seguro de vida', '223,10', 'Vinculada a “Seguro de vida” de Outubro, paga no cartão'],
       [
-        '02/11',
+        '02/11/2026',
         'Curso de fotografia',
-        'R$ 223,10',
+        '223,10',
         'Recorrente criado (1/4) e parcela paga no cartão',
       ],
-      ['02/11', 'Academia', 'R$ 223,10', 'Parcela lançada de “Academia mensal” e paga no cartão'],
-      ['02/11', 'Pagamento recebido', 'R$ 1.490,20', 'Pagamento da fatura anterior'],
+      ['02/11/2026', 'Academia', '223,10', 'Parcela lançada de “Academia mensal” e paga no cartão'],
+      ['02/11/2026', 'Pagamento recebido', '1.490,20', 'Pagamento da fatura anterior'],
     ])
+    expect(wrapper.find('tbody tr td:nth-child(2) .font-medium').exists()).toBe(false)
     expect(wrapper.findAll('tbody tr').map((row) => hrefOf(row))).toEqual([
       '/__purchases.detail/pu-1',
       '/__purchases.detail/pu-2',

@@ -131,6 +131,22 @@ describe('ImportFormView', () => {
     expect(sendButton(wrapper).attributes('disabled')).toBeDefined()
   })
 
+  it('marks the card or wallet and the period as required', async () => {
+    const card = await render()
+    const [cardSelect, cardPeriod] = card.wrapper.findAllComponents(FilterSelect)
+
+    expect(cardSelect!.props('required')).toBe(true)
+    expect(cardSelect!.text()).toContain('*')
+    expect(cardPeriod!.props('required')).toBe(true)
+    expect(cardPeriod!.text()).toContain('*')
+
+    const wallet = await render('/imports/create?wallet=w-1')
+    const [walletSelect] = wallet.wrapper.findAllComponents(FilterSelect)
+
+    expect(walletSelect!.props('required')).toBe(true)
+    expect(walletSelect!.text()).toContain('*')
+  })
+
   it('opens with the destination and the period of the URL', async () => {
     const { wrapper } = await render('/imports/create?card=c-2&period=p-10')
     const [destination, period] = wrapper.findAllComponents(FilterSelect)

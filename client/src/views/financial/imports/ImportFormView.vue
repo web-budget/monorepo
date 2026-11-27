@@ -222,6 +222,7 @@ function openDraft() {
                   v-if="isCard"
                   :model-value="card"
                   :label="$t('imports.form.card')"
+                  required
                   :options="cardChoices"
                   @update:model-value="(value: string) => setFieldValue('card', value)"
                 />
@@ -229,6 +230,7 @@ function openDraft() {
                   v-else
                   :model-value="wallet"
                   :label="$t('imports.form.wallet')"
+                  required
                   :options="walletChoices"
                   @update:model-value="(value: string) => setFieldValue('wallet', value)"
                 />
@@ -236,6 +238,7 @@ function openDraft() {
                   <FilterSelect
                     :model-value="financialPeriod"
                     :label="$t('imports.form.period')"
+                    required
                     :options="periodChoices"
                     @update:model-value="(value: string) => setFieldValue('financialPeriod', value)"
                   />

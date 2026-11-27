@@ -273,20 +273,22 @@ describe('ImportDraftView', () => {
       'Valor (R$)',
       'Ação',
       'Detalhe',
+      'Editar',
     ])
     const rows = rowTexts(wrapper)
     expect(rows[0]).toEqual([
       '',
       '02/11',
       'Supermercado Boa CompraSugerida pela memória',
-      'R$ 223,10',
+      '223,10',
       'Criar',
       'Pessoal · Mercado',
+      '',
     ])
     expect(rows[1]![5]).toBe('Falta centro de custo e classificação')
     expect(rows[2]![2]).toBe('Seguro de vidaDiferença de R$ 163,10')
     expect(rows[2]![5]).toBe('Seguro de vida · Outubro')
-    expect(rows[3]).toEqual(['', '02/11', 'Estorno lojaCrédito sem compra', 'R$ 50,00', 'Ignorar', 'Crédito do cartão, não vira lançamento'])
+    expect(rows[3]).toEqual(['', '02/11', 'Estorno lojaCrédito sem compra', '50,00', 'Ignorar', 'Crédito do cartão, não vira lançamento', ''])
     expect(rows[4]![2]).toBe('Curso de fotografiaJá importada2/6')
     expect(rows[4]![5]).toBe('2/6 · Pessoal · Mercado')
     expect(rows[5]![2]).toBe('AcademiaJá registrada')
@@ -727,6 +729,20 @@ describe('ImportDraftView', () => {
 
       expect(dialog()).toBeNull()
       expect(vi.mocked(importsApi.findLines).mock.calls.length).toBe(loaded + 1)
+    })
+
+    it('opens the line once from the edit button at the end of the row', async () => {
+      const { wrapper } = await render()
+      const edit = wrapper.findAll('tbody tr')[1]!.find('button[aria-label="Editar"]')
+
+      expect(wrapper.findAll('tbody tr')[1]!.findAll('td').slice(-1)[0]!.classes()).toContain('w-0')
+      await edit.trigger('click')
+      await flushPromises()
+
+      expect(document.body.querySelectorAll('[data-slot="line-dialog"]')).toHaveLength(1)
+      expect((document.body.querySelector('#import-line-name') as HTMLInputElement).value).toBe(
+        'Posto Estrela',
+      )
     })
 
     it('does not reload the lines when the dialog is cancelled', async () => {

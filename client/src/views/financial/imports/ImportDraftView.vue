@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CircleCheck, CloudCheck, ListChecks, Trash2, Check } from 'lucide-vue-next'
+import { CircleCheck, CloudCheck, ListChecks, Pencil, Trash2, Check } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -164,6 +164,7 @@ const columns = computed(() => [
     mobileLabel: false,
     class: 'whitespace-normal',
   },
+  { field: 'edit', header: t('form.edit'), srOnly: true, mobile: 'hide' as const, class: 'w-0' },
 ])
 
 async function reload() {
@@ -413,12 +414,25 @@ async function discard() {
             </div>
           </div>
         </template>
-        <template #cell-value="{ item: line }"><ImportLineValue :value="line.value" /></template>
+        <template #cell-value="{ item: line }">
+          <ImportLineValue :value="line.value" bare />
+        </template>
         <template #cell-action="{ item: line }">
           {{ $t(`imports.draft.actions.${line.action}`) }}
         </template>
         <template #cell-detail="{ item: line }">
           <ImportLineDetail :line="line" :period-id="item.financialPeriod.id" />
+        </template>
+        <template #cell-edit="{ item: line }">
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            :aria-label="$t('form.edit')"
+            @click.stop="editing = line"
+          >
+            <Pencil />
+          </Button>
         </template>
       </ItemsTable>
       <Card

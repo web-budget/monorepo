@@ -50,7 +50,7 @@ const statusOptions: StatusOption<ImportStatusFilter>[] = [
   { label: 'imports.status-tabs.FAILED', value: 'FAILED' },
   { label: 'imports.status-tabs.SAVED', value: 'SAVED' },
   { label: 'imports.status-tabs.UNDONE', value: 'UNDONE' },
-  { label: 'search-control.all', value: 'ALL' },
+  { label: 'search-control.feminine.all', value: 'ALL' },
 ]
 
 const { writeRoute } = useListFilters({
@@ -105,7 +105,7 @@ const listState = computed<ListStateKind | 'table'>(() => {
   if (busy.value || pageResponse.value.totalElements > 0) {
     return 'table'
   }
-  return narrowed.value || pageRequest.value.status !== 'READY' ? 'no-result' : 'empty'
+  return !narrowed.value && counts.value?.total === 0 ? 'empty' : 'no-result'
 })
 
 const destinationChoices = computed(() => [

@@ -24,7 +24,7 @@ import { useServerErrors } from '@/composables/useServerErrors'
 import { RESULT_STATUSES, useImportsStore } from '@/stores/imports'
 import type { ImportBlocker, ImportLineView, ImportResultFilter, ImportView } from '@/types'
 import { resultTarget, retryQuery } from '@/utils/imports'
-import { dayAndMonth, periodMonth } from '@/utils/invoices'
+import { periodMonth } from '@/utils/invoices'
 
 const props = defineProps<{ item: ImportView }>()
 
@@ -266,11 +266,13 @@ function openable(line: ImportLineView) {
     :page-size="resultRequest.size"
     @page-changed="onPageChange"
   >
-    <template #cell-postedOn="{ item: line }">{{ dayAndMonth(line.postedOn) }}</template>
-    <template #cell-name="{ item: line }">
-      <span class="font-medium">{{ line.name }}</span>
+    <template #cell-postedOn="{ item: line }">
+      <DateTimeDisplay fix-time :value="line.postedOn" />
     </template>
-    <template #cell-value="{ item: line }"><ImportLineValue :value="line.value" /></template>
+    <template #cell-name="{ item: line }">{{ line.name }}</template>
+    <template #cell-value="{ item: line }">
+      <ImportLineValue :value="line.value" bare />
+    </template>
     <template #cell-result="{ item: line }">
       <ImportLineResult :line="line" :target="item.target" :period-id="item.financialPeriod.id" />
     </template>

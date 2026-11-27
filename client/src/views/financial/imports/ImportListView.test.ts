@@ -57,6 +57,14 @@ const items = [
 ]
 
 const counts: ImportCounts = { processing: 1, ready: 2, failed: 1, saved: 1, undone: 0, total: 5 }
+const EMPTY_COUNTS: ImportCounts = {
+  processing: 0,
+  ready: 0,
+  failed: 0,
+  saved: 0,
+  undone: 0,
+  total: 0,
+}
 
 const periods = [
   period,
@@ -68,20 +76,20 @@ const wallets = [
   { id: 'w-2', name: 'Carteira física', type: 'PERSONAL' },
 ] as WalletListView[]
 
-function serve(content = items, total = content.length) {
+function serve(content = items, total = content.length, totals = counts) {
   vi.mocked(financialPeriodsApi.findAll).mockResolvedValue(pageOf(periods))
   vi.mocked(cardsApi.findAll).mockResolvedValue(pageOf([visa] as CardListView[]))
   vi.mocked(walletsApi.findAll).mockResolvedValue(pageOf(wallets))
   vi.mocked(importsApi.findAll).mockResolvedValue(pageOf(content, total))
-  vi.mocked(importsApi.counts).mockResolvedValue(counts)
+  vi.mocked(importsApi.counts).mockResolvedValue(totals)
 }
 
 function lastQuery(): ImportQuery {
   return vi.mocked(importsApi.findAll).mock.calls.slice(-1)[0]![0]
 }
 
-async function render(location?: string, content = items, total = content.length) {
-  serve(content, total)
+async function render(location?: string, content = items, total = content.length, totals = counts) {
+  serve(content, total, totals)
   return mountView(ImportListScreen, 'imports', {}, {}, location)
 }
 
@@ -272,7 +280,7 @@ describe('ImportListView', () => {
   })
 
   it('shows the empty state of an empty list and goes to the form from it', async () => {
-    const { wrapper, router } = await render(undefined, [])
+    const { wrapper, router } = await render(undefined, [], 0, EMPTY_COUNTS)
     const empty = wrapper.find('[data-state="empty"]')
 
     expect(empty.text()).toContain('Nenhuma importação ainda')
@@ -282,6 +290,27 @@ describe('ImportListView', () => {
     await flushPromises()
 
     expect(router.currentRoute.value.name).toBe('imports.create')
+  })
+
+  it('says there is no result, without the create button, when imports exist but the tab is empty', async () => {
+    const { wrapper } = await render(undefined, [])
+
+    expect(wrapper.find('[data-state="empty"]').exists()).toBe(false)
+    const noResult = wrapper.find('[data-state="no-result"]')
+    expect(noResult.text()).toContain('Nenhuma importação com esses filtros')
+    expect(noResult.text()).not.toContain('Nenhuma importação ainda')
+    expect(noResult.text()).not.toContain('Criar')
+  })
+
+  it('names the last tab in the feminine', async () => {
+    const { wrapper } = await render()
+
+    const tabs = wrapper
+      .findAll('button')
+      .filter((button) => button.find('[data-slot="status-count"]').exists())
+      .map((button) => button.text().replace(/\d+$/, '').trim())
+
+    expect(tabs.slice(-1)[0]).toBe('Todas')
   })
 
   it('says there is no result for a search or for the filters, and clears them', async () => {
