@@ -166,6 +166,31 @@ describe('useStatementStore', () => {
     expect(store.loading).toBe(false)
   })
 
+  it('loads a page of the reconciliations of a wallet and stops loading even when it fails', async () => {
+    const reconciliations = {
+      content: [{ id: 'r-1' }],
+      page: { size: 15, number: 1, totalElements: 20, totalPages: 2 },
+    }
+    vi.mocked(reconciliationsApi.findAll).mockResolvedValueOnce(reconciliations as never)
+    const store = useStatementStore()
+
+    await expect(store.findReconciliations('w-1', 1, 15)).resolves.toBe(reconciliations)
+    expect(reconciliationsApi.findAll).toHaveBeenCalledWith('w-1', { page: 1, size: 15 })
+    expect(store.loading).toBe(false)
+
+    vi.mocked(reconciliationsApi.findAll).mockRejectedValueOnce(new Error('boom'))
+    await expect(store.findReconciliations('w-1', 0, 15)).rejects.toThrow('boom')
+    expect(store.loading).toBe(false)
+  })
+
+  it('finds the position of a reconciliation in the history of a wallet', async () => {
+    vi.mocked(reconciliationsApi.findPosition).mockResolvedValue({ position: 17 })
+    const store = useStatementStore()
+
+    await expect(store.findReconciliationPosition('w-1', 'r-1')).resolves.toBe(17)
+    expect(reconciliationsApi.findPosition).toHaveBeenCalledWith('w-1', 'r-1')
+  })
+
   it('stops loading when the statement fails', async () => {
     vi.mocked(walletEntriesApi.findStatement).mockRejectedValue(new Error('boom'))
     const store = useStatementStore()

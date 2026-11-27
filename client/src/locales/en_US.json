@@ -1137,7 +1137,8 @@
       "active-hint": "Deactivate to remove from listings",
       "type-hint": "The type does not change after creation.",
       "balance": "Current balance",
-      "last-entry": "Last entry"
+      "last-entry": "Last entry",
+      "last-reconciliation": "Last reconciliation"
     },
     "type": {
       "bank-account": "Bank account",
@@ -1204,6 +1205,21 @@
     "notices": {
       "balance": "The balance is not edited on the wallet",
       "balance-description": "It comes from the statement."
+    },
+    "reconciliation": {
+      "none": "None yet",
+      "last-credit": "Credit adjustment of {amount}",
+      "last-debit": "Debit adjustment of {amount}"
+    },
+    "history": {
+      "title": "Reconciliations",
+      "empty": "No reconciliations yet",
+      "noun": "reconciliation | reconciliations",
+      "adjustment": "Adjustment",
+      "open-adjustment": "Open the adjustment in the statement",
+      "view-adjustment": "View adjustment",
+      "informed": "Reported",
+      "wallet": "Wallet"
     }
   },
   "card": {
@@ -1930,6 +1946,8 @@
       "reference": "Origin"
     },
     "open-origin": "Open the origin of {name}",
+    "open-reconciliation": "Open the reconciliation of {name}",
+    "view-reconciliation": "View reconciliation",
     "list": {
       "empty-title": "{name} has no entries yet",
       "empty-description": "Post an income to give it a balance.",
@@ -1952,10 +1970,13 @@
     "detailing": "Detailing",
     "open-origin-header": "Open origin",
     "sections": {
-      "entry": "Entry"
+      "entry": "Entry",
+      "reconciliation": "Reconciliation"
     },
     "detail": {
-      "value": "Value"
+      "value": "Value",
+      "reconciled-on": "Reconciled on",
+      "open-reconciliation": "Open the reconciliation"
     },
     "entry": {
       "reversal": "Reversal of {name}",

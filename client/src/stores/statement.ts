@@ -3,8 +3,10 @@ import { computed, ref } from 'vue'
 import { reconciliationsApi } from '@/api/reconciliations'
 import { walletEntriesApi } from '@/api/walletEntries'
 import type {
+  PagedResponse,
   ReconciliationForm,
   ReconciliationResultView,
+  ReconciliationView,
   StatementQuery,
   StatementSummary,
   WalletEntryDirectionFilter,
@@ -109,6 +111,27 @@ export const useStatementStore = defineStore('statement', () => {
     }
   }
 
+  async function findReconciliations(
+    walletId: string,
+    page: number,
+    size: number,
+  ): Promise<PagedResponse<ReconciliationView>> {
+    pending.value++
+    try {
+      return await reconciliationsApi.findAll(walletId, { page, size })
+    } finally {
+      pending.value--
+    }
+  }
+
+  async function findReconciliationPosition(
+    walletId: string,
+    reconciliationId: string,
+  ): Promise<number> {
+    const { position } = await reconciliationsApi.findPosition(walletId, reconciliationId)
+    return position
+  }
+
   function reset() {
     filters.value = {}
     pageRequest.value = createPageRequest<WalletEntryDirectionFilter>({ status: 'ALL' })
@@ -126,6 +149,8 @@ export const useStatementStore = defineStore('statement', () => {
     findSummary,
     findEntry,
     reconcile,
+    findReconciliations,
+    findReconciliationPosition,
     reset,
   }
 })

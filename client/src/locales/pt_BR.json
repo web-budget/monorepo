@@ -1137,7 +1137,8 @@
       "active-hint": "Inativar para remover das listagens",
       "type-hint": "O tipo não muda depois de criada.",
       "balance": "Saldo atual",
-      "last-entry": "Última movimentação"
+      "last-entry": "Última movimentação",
+      "last-reconciliation": "Última conciliação"
     },
     "type": {
       "bank-account": "Conta bancária",
@@ -1184,6 +1185,21 @@
     "notices": {
       "balance": "O saldo não se edita na carteira",
       "balance-description": "Ele vem do extrato."
+    },
+    "reconciliation": {
+      "none": "Nenhuma ainda",
+      "last-credit": "Ajuste de crédito de {amount}",
+      "last-debit": "Ajuste de débito de {amount}"
+    },
+    "history": {
+      "title": "Conciliações",
+      "empty": "Nenhuma conciliação ainda",
+      "noun": "conciliação | conciliações",
+      "adjustment": "Ajuste",
+      "open-adjustment": "Abrir o ajuste no extrato",
+      "view-adjustment": "Ver ajuste",
+      "informed": "Informado",
+      "wallet": "Carteira"
     },
     "reconcile": {
       "title": "Conciliar {name}",
@@ -1930,6 +1946,8 @@
       "reference": "Origem"
     },
     "open-origin": "Abrir a origem de {name}",
+    "open-reconciliation": "Abrir a conciliação de {name}",
+    "view-reconciliation": "Ver conciliação",
     "list": {
       "empty-title": "{name} ainda não tem lançamentos",
       "empty-description": "Lance uma receita para dar saldo.",
@@ -1952,10 +1970,13 @@
     "detailing": "Detalhando",
     "open-origin-header": "Abrir origem",
     "sections": {
-      "entry": "Lançamento"
+      "entry": "Lançamento",
+      "reconciliation": "Conciliação"
     },
     "detail": {
-      "value": "Valor"
+      "value": "Valor",
+      "reconciled-on": "Conciliada em",
+      "open-reconciliation": "Abrir a conciliação"
     },
     "entry": {
       "reversal": "Estorno de {name}",
