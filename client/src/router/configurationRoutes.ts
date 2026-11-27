@@ -36,6 +36,12 @@ export const configurationRoutes: RouteRecordRaw[] = [
           },
         ],
       },
+      {
+        path: 'settings',
+        name: 'settings',
+        meta: { breadcrumb: 'settings.menu' },
+        component: () => import('@/views/configuration/settings/SettingsView.vue'),
+      },
     ],
   },
 ]

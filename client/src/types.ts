@@ -257,12 +257,14 @@ export interface ClassificationCreateForm {
   name: string
   type: ClassificationType
   description?: string | null
+  generic: boolean
 }
 
 export interface ClassificationUpdateForm {
   name: string
   description?: string | null
   active: boolean
+  generic: boolean
 }
 
 export interface ClassificationView {
@@ -271,6 +273,7 @@ export interface ClassificationView {
   type: ClassificationType
   active: boolean
   description: string | null
+  generic: boolean
 }
 
 export interface ClassificationListView {
@@ -278,6 +281,15 @@ export interface ClassificationListView {
   name: string
   type: ClassificationType
   active: boolean
+  generic: boolean
+}
+
+export interface InstanceSettingsForm {
+  reserveMonths: number
+}
+
+export interface InstanceSettingsView {
+  reserveMonths: number
 }
 
 export type FinancialPeriodStatus = 'OPEN' | 'CLOSED'
@@ -737,7 +749,7 @@ export interface CardPurchaseView {
   recurringMovement?: PurchaseRecurringView | null
 }
 
-export interface FinancialFlowPeriod {
+export interface OverviewPeriod {
   financialPeriod: { id: string; name: string; startingAt: string; endingAt: string }
   revenues: number
   expenses: number
@@ -745,10 +757,145 @@ export interface FinancialFlowPeriod {
   recorded: boolean
 }
 
-export interface FinancialFlowView {
+export interface OverviewTotals {
+  revenues: number
+  expenses: number
+  result: number
+  savingsRate: number | null
+  redPeriods: number
+  periodsWithMovement: number
+}
+
+export interface OverviewYearResult {
   year: number
-  totals: { revenues: number; expenses: number; result: number }
-  periods: FinancialFlowPeriod[]
+  revenues: number
+  expenses: number
+  result: number
+  savingsRate: number | null
+  provisional: boolean
+}
+
+export interface OverviewView {
+  cut: string
+  years: number[]
+  totals: OverviewTotals
+  resultByYear: OverviewYearResult[]
+  periods: OverviewPeriod[]
+}
+
+export interface PeriodDashboardPeriod {
+  id: string
+  name: string
+  startingAt: string
+  endingAt: string
+  status: FinancialPeriodStatus
+  current: boolean
+}
+
+export interface PeriodGoal {
+  realized: number
+  goal: number | null
+}
+
+export interface PeriodDashboardGoals {
+  revenues: PeriodGoal
+  expenses: PeriodGoal
+}
+
+export interface PeriodFixedVsVariable {
+  fixed: number
+  variable: number
+  fixedShareOfRevenueGoal: number | null
+}
+
+export interface PeriodBudgetFigures {
+  budget: number | null
+  used: number
+  suggested: number | null
+}
+
+export interface PeriodBudgetLine {
+  costCenter: { id: string; name: string; parent: string | null }
+  expense: PeriodBudgetFigures
+  income: PeriodBudgetFigures
+}
+
+export interface PeriodUpcomingItem {
+  id: string
+  name: string
+  type: MovementType
+  value: number
+  dueDate: string
+  financialPeriod: { id: string; name: string }
+  invoicePayment: boolean
+  overdue: boolean
+}
+
+export interface PeriodUpcoming {
+  toReceive: number
+  toPay: number
+  items: PeriodUpcomingItem[]
+}
+
+export interface PeriodCardHistory {
+  financialPeriod: { id: string; name: string }
+  purchases: number
+}
+
+export interface PeriodCard {
+  id: string
+  name: string
+  lastFourDigits: string
+  invoiceId: string | null
+  invoiceStatus: InvoiceStatus | null
+  purchases: number
+  history: PeriodCardHistory[]
+}
+
+export interface PeriodDashboardView {
+  period: PeriodDashboardPeriod
+  goals: PeriodDashboardGoals
+  fixedVsVariable: PeriodFixedVsVariable
+  budget: PeriodBudgetLine[]
+  upcoming: PeriodUpcoming | null
+  cards: PeriodCard[]
+}
+
+export interface CompositionCostCenter {
+  id: string
+  name: string
+  parent: string | null
+  value: number
+}
+
+export interface CompositionClassification {
+  id: string
+  name: string
+  costCenter: string
+  value: number
+}
+
+export interface CompositionSeasonality {
+  id: string
+  name: string
+  months: (number | null)[]
+}
+
+export interface CompositionIncomeSource {
+  id: string
+  name: string
+  value: number
+}
+
+export interface CompositionView {
+  cut: string
+  years: number[]
+  expenses: number
+  revenues: number
+  costCenters: CompositionCostCenter[]
+  classifications: CompositionClassification[]
+  seasonality: CompositionSeasonality[]
+  incomeSources: CompositionIncomeSource[]
 }
 
 export type RecurringValueKind = 'FIXED' | 'VARIABLE'

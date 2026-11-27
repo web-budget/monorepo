@@ -423,6 +423,7 @@
       "cost-center": "A hierarchy to group where the money is spent.",
       "financial-period": "Create, close and reopen periods.",
       "users": "Accounts, access areas and approvals.",
+      "settings": "How many months of living costs the ideal reserve covers.",
       "integrations": "Connections with banks and external services.",
       "movement": "Income and expenses of the period.",
       "transfer": "Money that moves between wallets.",
@@ -555,6 +556,20 @@
   "integrations": {
     "title": "Integrations",
     "menu": "Integrations"
+  },
+  "settings": {
+    "title": "Settings",
+    "menu": "Settings",
+    "sections": {
+      "reserve": "Reserve"
+    },
+    "form": {
+      "reserve-months": "Months of the ideal reserve"
+    },
+    "toast": {
+      "saved": "Settings saved",
+      "saved-detail": "The ideal reserve is now {count} month of living costs. | The ideal reserve is now {count} months of living costs."
+    }
   },
   "users": {
     "title": "Users",
@@ -1869,7 +1884,11 @@
       "type-placeholder": "Select a type",
       "active-label": "Active",
       "active-hint": "Deactivate to remove from listings",
-      "type-hint": "The type does not change after creation."
+      "type-hint": "The type does not change after creation.",
+      "generic": "Generic"
+    },
+    "badge": {
+      "generic": "generic"
     },
     "list": {
       "description": "How income and expenses are grouped in reports and budgets.",
@@ -1994,7 +2013,8 @@
     "reconciliation-balance-invalid": "Enter a value like 4,812.37 or −120.00.",
     "reconciliation-reason-required": "Enter the reason for the difference.",
     "transfer-same-wallet": "Origin and destination must be different wallets.",
-    "first-installment-after-last": "The current installment cannot pass the number of installments."
+    "first-installment-after-last": "The current installment cannot pass the number of installments.",
+    "reserve-months-range": "Use a whole number from 1 to 24."
   },
   "crud": {
     "required-hint": "Fields with * are required.",
@@ -2513,18 +2533,30 @@
       "action": "Launch the first installment"
     }
   },
-  "financial-flow": {
-    "menu": "Financial flow",
-    "title": "Financial flow",
-    "description": "Paid revenues and expenses of each period.",
+  "overview": {
+    "menu": "Overview",
+    "title": "Overview",
     "year": "Year",
+    "all-periods": "All periods",
+    "provisional": "provisional",
     "list": {
-      "plural": "the financial flow"
+      "plural": "the overview"
     },
-    "totals": {
+    "empty": {
+      "title": "No periods yet",
+      "action": "Create period"
+    },
+    "summary": {
+      "title": "Result of {cut}",
+      "all-periods": "all periods"
+    },
+    "figures": {
       "revenues": "Revenues",
       "expenses": "Expenses",
-      "result": "Result"
+      "result": "Result",
+      "savings-rate": "Savings rate",
+      "red-periods": "Months in the red",
+      "red-of": "of {count}"
     },
     "chart": {
       "title": "Revenues and expenses by period"
@@ -2534,20 +2566,146 @@
       "expenses": "Expenses",
       "provisional": "Provisional (open period)"
     },
+    "year-chart": {
+      "title": "Result by year",
+      "result": "Result",
+      "savings": "savings {rate}"
+    },
     "table": {
       "period": "Period",
       "revenues": "Revenues (R$)",
       "expenses": "Expenses (R$)",
-      "result": "Result (R$)",
-      "status": "Status"
-    },
-    "status": {
-      "recorded": "Recorded",
-      "provisional": "Provisional"
+      "result": "Result (R$)"
+    }
+  },
+  "period-dashboard": {
+    "menu": "Period",
+    "title": "Period",
+    "period": "Period",
+    "range": "{from} to {to}",
+    "list": {
+      "plural": "the period"
     },
     "empty": {
-      "title": "No periods in {year}",
-      "description": "Create a period or choose another year."
+      "title": "No periods yet",
+      "action": "Create period"
+    },
+    "goals": {
+      "title": "Goal × realized",
+      "edit": "Edit goals",
+      "revenues": "Revenues",
+      "expenses": "Expenses",
+      "of": "of",
+      "meter": "{label}: {percentage}% of the goal",
+      "income": {
+        "missing": "{amount} short of the goal",
+        "above": "{amount} above the goal",
+        "equal": "Same as the goal",
+        "ok": "Goal reached",
+        "warn": "Below the goal",
+        "none": "No revenue goal"
+      },
+      "expense": {
+        "left": "{amount} left until the limit",
+        "above": "{amount} above the limit",
+        "ok": "Within the limit",
+        "warn": "Near the limit",
+        "over": "Above the limit",
+        "none": "No expense goal"
+      }
+    },
+    "fixed-vs-variable": {
+      "title": "Fixed × variable",
+      "fixed": "Fixed",
+      "variable": "Variable",
+      "share": "Fixed over the revenue goal",
+      "no-goal": "No revenue goal",
+      "summary": "Fixed {fixed}%, variable {variable}%"
+    },
+    "budget": {
+      "title": "Budget by cost center",
+      "tabs": "Budget type",
+      "expense": "Expense",
+      "income": "Revenue",
+      "cost-center": "Cost center",
+      "budget": "Budget (R$)",
+      "expense-used": "Use (R$)",
+      "income-used": "Realized (R$)",
+      "expense-share": "Used",
+      "income-share": "Reached",
+      "suggested": "Suggested (R$)",
+      "suggested-short": "Suggested",
+      "overspent": "overspent",
+      "of": "of"
+    },
+    "upcoming": {
+      "title": "Next 30 days",
+      "to-receive": "To receive",
+      "to-pay": "To pay",
+      "empty": "Nothing is due in the next 30 days",
+      "due-date": "Due date",
+      "movement": "Movement",
+      "period": "Period",
+      "value": "Value (R$)",
+      "situation": "Status",
+      "invoice": "invoice",
+      "overdue": "Overdue for {count} day | Overdue for {count} days",
+      "open": "Open",
+      "due-on": "Due on"
+    },
+    "cards": {
+      "title": "Cards",
+      "purchases": "Purchases in the period",
+      "card": "Card",
+      "invoice": "Invoice",
+      "value": "Purchases (R$)",
+      "history": "Last {count} period | Last {count} periods",
+      "status": {
+        "OPEN": "Open",
+        "CLOSED": "Closed",
+        "PAID": "Paid"
+      }
+    }
+  },
+  "composition": {
+    "menu": "Composition",
+    "title": "Composition",
+    "year": "Year",
+    "all-periods": "All periods",
+    "list": {
+      "plural": "the composition"
+    },
+    "empty": {
+      "title": "No periods yet",
+      "action": "Create period"
+    },
+    "spending": {
+      "title": "Where it goes (top 10)",
+      "tabs": "Group expenses by",
+      "costCenter": "Cost center",
+      "classification": "Classification",
+      "level": "Cost center level",
+      "all": "All",
+      "of-total": "of the total",
+      "empty": "No expenses in this cut",
+      "rest-classifications": "Other {count} classifications",
+      "rest-cost-centers": "Other {count} cost centers"
+    },
+    "income": {
+      "title": "Income sources",
+      "largest": "Largest source",
+      "weight": "Weight of the largest source",
+      "empty": "No revenue in {cut}"
+    },
+    "season": {
+      "title": "Seasonality",
+      "title-average": "Seasonality · monthly average",
+      "less": "Less",
+      "more": "More",
+      "classification": "Classification",
+      "total": "Total (R$)",
+      "average-of": "average of {month}",
+      "month-of-year": "{month} {year}"
     }
   }
 }

@@ -423,6 +423,7 @@
       "cost-center": "Hierarquia para agrupar onde o dinheiro é gasto.",
       "financial-period": "Criar, encerrar e reabrir períodos.",
       "users": "Contas, áreas de acesso e aprovações.",
+      "settings": "Quantos meses de custo de vida a reserva ideal cobre.",
       "integrations": "Conexões com bancos e serviços externos.",
       "movement": "Receitas e despesas do período.",
       "transfer": "Dinheiro que muda de carteira.",
@@ -555,6 +556,20 @@
   "integrations": {
     "title": "Integrações",
     "menu": "Integrações"
+  },
+  "settings": {
+    "title": "Parâmetros",
+    "menu": "Parâmetros",
+    "sections": {
+      "reserve": "Reserva"
+    },
+    "form": {
+      "reserve-months": "Meses da reserva ideal"
+    },
+    "toast": {
+      "saved": "Parâmetros salvos",
+      "saved-detail": "A reserva ideal passa a ser de {count} mês de custo de vida. | A reserva ideal passa a ser de {count} meses de custo de vida."
+    }
   },
   "users": {
     "title": "Usuários",
@@ -1869,7 +1884,11 @@
       "type-placeholder": "Selecione um tipo",
       "active-label": "Ativa",
       "active-hint": "Inativar para remover das listagens",
-      "type-hint": "O tipo não muda depois de criada."
+      "type-hint": "O tipo não muda depois de criada.",
+      "generic": "Genérica"
+    },
+    "badge": {
+      "generic": "genérica"
     },
     "list": {
       "description": "Como as receitas e despesas são agrupadas nos relatórios e orçamentos.",
@@ -1994,7 +2013,8 @@
     "reconciliation-balance-invalid": "Informe um valor como 4.812,37 ou −120,00.",
     "reconciliation-reason-required": "Informe o motivo da diferença.",
     "transfer-same-wallet": "Origem e destino precisam ser carteiras diferentes.",
-    "first-installment-after-last": "A parcela atual não pode passar do número de parcelas."
+    "first-installment-after-last": "A parcela atual não pode passar do número de parcelas.",
+    "reserve-months-range": "Use um número inteiro de 1 a 24."
   },
   "crud": {
     "required-hint": "Campos com * são obrigatórios.",
@@ -2513,18 +2533,30 @@
       "action": "Lançar a primeira parcela"
     }
   },
-  "financial-flow": {
-    "menu": "Fluxo financeiro",
-    "title": "Fluxo financeiro",
-    "description": "Receitas e despesas pagas de cada período.",
+  "overview": {
+    "menu": "Visão geral",
+    "title": "Visão geral",
     "year": "Ano",
+    "all-periods": "Todos os períodos",
+    "provisional": "provisório",
     "list": {
-      "plural": "o fluxo financeiro"
+      "plural": "a visão geral"
     },
-    "totals": {
+    "empty": {
+      "title": "Nenhum período ainda",
+      "action": "Criar período"
+    },
+    "summary": {
+      "title": "Resultado de {cut}",
+      "all-periods": "todos os períodos"
+    },
+    "figures": {
       "revenues": "Receitas",
       "expenses": "Despesas",
-      "result": "Resultado"
+      "result": "Resultado",
+      "savings-rate": "Taxa de poupança",
+      "red-periods": "Meses no vermelho",
+      "red-of": "de {count}"
     },
     "chart": {
       "title": "Receitas e despesas por período"
@@ -2534,20 +2566,146 @@
       "expenses": "Despesas",
       "provisional": "Provisório (período aberto)"
     },
+    "year-chart": {
+      "title": "Resultado por ano",
+      "result": "Resultado",
+      "savings": "poupança {rate}"
+    },
     "table": {
       "period": "Período",
       "revenues": "Receitas (R$)",
       "expenses": "Despesas (R$)",
-      "result": "Resultado (R$)",
-      "status": "Situação"
-    },
-    "status": {
-      "recorded": "Gravado",
-      "provisional": "Provisório"
+      "result": "Resultado (R$)"
+    }
+  },
+  "period-dashboard": {
+    "menu": "Período",
+    "title": "Período",
+    "period": "Período",
+    "range": "{from} a {to}",
+    "list": {
+      "plural": "o período"
     },
     "empty": {
-      "title": "Nenhum período em {year}",
-      "description": "Crie um período ou escolha outro ano."
+      "title": "Nenhum período ainda",
+      "action": "Criar período"
+    },
+    "goals": {
+      "title": "Meta × realizado",
+      "edit": "Editar metas",
+      "revenues": "Receitas",
+      "expenses": "Despesas",
+      "of": "de",
+      "meter": "{label}: {percentage}% da meta",
+      "income": {
+        "missing": "Faltam {amount} para a meta",
+        "above": "{amount} acima da meta",
+        "equal": "Igual à meta",
+        "ok": "Meta atingida",
+        "warn": "Abaixo da meta",
+        "none": "Sem meta de receita"
+      },
+      "expense": {
+        "left": "Sobram {amount} até o limite",
+        "above": "{amount} acima do limite",
+        "ok": "Dentro do limite",
+        "warn": "Perto do limite",
+        "over": "Acima do limite",
+        "none": "Sem meta de despesa"
+      }
+    },
+    "fixed-vs-variable": {
+      "title": "Fixos × variáveis",
+      "fixed": "Fixos",
+      "variable": "Variáveis",
+      "share": "Fixos sobre a meta de receita",
+      "no-goal": "Sem meta de receita",
+      "summary": "Fixos {fixed}%, variáveis {variable}%"
+    },
+    "budget": {
+      "title": "Orçamento por centro de custo",
+      "tabs": "Tipo de orçamento",
+      "expense": "Despesa",
+      "income": "Receita",
+      "cost-center": "Centro de custo",
+      "budget": "Orçamento (R$)",
+      "expense-used": "Uso (R$)",
+      "income-used": "Realizado (R$)",
+      "expense-share": "Usado",
+      "income-share": "Atingido",
+      "suggested": "Sugerido (R$)",
+      "suggested-short": "Sugerido",
+      "overspent": "estourado",
+      "of": "de"
+    },
+    "upcoming": {
+      "title": "Próximos 30 dias",
+      "to-receive": "A receber",
+      "to-pay": "A pagar",
+      "empty": "Nada vence nos próximos 30 dias",
+      "due-date": "Vencimento",
+      "movement": "Movimento",
+      "period": "Período",
+      "value": "Valor (R$)",
+      "situation": "Situação",
+      "invoice": "fatura",
+      "overdue": "Vencido há {count} dia | Vencido há {count} dias",
+      "open": "Em aberto",
+      "due-on": "Vence em"
+    },
+    "cards": {
+      "title": "Cartões",
+      "purchases": "Compras no período",
+      "card": "Cartão",
+      "invoice": "Fatura",
+      "value": "Compras (R$)",
+      "history": "Últimos {count} período | Últimos {count} períodos",
+      "status": {
+        "OPEN": "Aberta",
+        "CLOSED": "Fechada",
+        "PAID": "Paga"
+      }
+    }
+  },
+  "composition": {
+    "menu": "Composição",
+    "title": "Composição",
+    "year": "Ano",
+    "all-periods": "Todos os períodos",
+    "list": {
+      "plural": "a composição"
+    },
+    "empty": {
+      "title": "Nenhum período ainda",
+      "action": "Criar período"
+    },
+    "spending": {
+      "title": "Para onde vai (top 10)",
+      "tabs": "Agrupar despesas por",
+      "costCenter": "Centro de custo",
+      "classification": "Classificação",
+      "level": "Nível do centro de custo",
+      "all": "Todos",
+      "of-total": "do total",
+      "empty": "Nenhuma despesa neste recorte",
+      "rest-classifications": "Outras {count} classificações",
+      "rest-cost-centers": "Outros {count} centros de custo"
+    },
+    "income": {
+      "title": "Fontes de renda",
+      "largest": "Maior fonte",
+      "weight": "Peso da maior fonte",
+      "empty": "Nenhuma receita em {cut}"
+    },
+    "season": {
+      "title": "Sazonalidade",
+      "title-average": "Sazonalidade · média por mês",
+      "less": "Menos",
+      "more": "Mais",
+      "classification": "Classificação",
+      "total": "Total (R$)",
+      "average-of": "média de {month}",
+      "month-of-year": "{month} de {year}"
     }
   }
 }

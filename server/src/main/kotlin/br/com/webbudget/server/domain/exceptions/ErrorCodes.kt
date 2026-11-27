@@ -96,4 +96,5 @@ object ErrorCodes {
     const val COMPARTMENT_WITH_BALANCE = "compartment-with-balance"
     const val INVALID_COMPARTMENT_MOVEMENT_VALUE = "invalid-compartment-movement-value"
     const val INSUFFICIENT_COMPARTMENT_BALANCE = "insufficient-compartment-balance"
+    const val RESERVE_MONTHS_OUT_OF_RANGE = "reserve-months-out-of-range"
 }

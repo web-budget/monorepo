@@ -72,6 +72,7 @@ class ClassificationRepository(
             .set(CLASSIFICATIONS.VERSION, 0)
             .set(CLASSIFICATIONS.CREATED_ON, LocalDateTime.now())
             .set(CLASSIFICATIONS.ACTIVE, classification.active)
+            .set(CLASSIFICATIONS.GENERIC, classification.generic)
             .set(CLASSIFICATIONS.NAME, classification.name)
             .set(CLASSIFICATIONS.TYPE, classification.type.name)
             .set(CLASSIFICATIONS.DESCRIPTION, classification.description)
@@ -85,6 +86,7 @@ class ClassificationRepository(
     fun update(classification: Classification): Classification {
         val record = dsl.update(CLASSIFICATIONS)
             .set(CLASSIFICATIONS.ACTIVE, classification.active)
+            .set(CLASSIFICATIONS.GENERIC, classification.generic)
             .set(CLASSIFICATIONS.NAME, classification.name)
             .set(CLASSIFICATIONS.TYPE, classification.type.name)
             .set(CLASSIFICATIONS.DESCRIPTION, classification.description)

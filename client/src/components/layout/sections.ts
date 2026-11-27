@@ -2,14 +2,16 @@ import {
   ArrowLeftRight,
   ArrowRightLeft,
   CalendarRange,
-  ChartColumn,
+  ChartBarBig,
   CreditCard,
   FileUp,
+  Gauge,
   Lock,
   Network,
   ReceiptText,
   RefreshCw,
   ScrollText,
+  SlidersHorizontal,
   Tags,
   Users,
   Wallet,
@@ -34,7 +36,11 @@ export const dashboardsSection: SectionDefinition = {
   path: '/dashboards',
   label: 'menu.dashboards',
   role: 'DASHBOARDS',
-  items: [{ label: 'financial-flow.menu', icon: ChartColumn, to: '/dashboards/financial-flow' }],
+  items: [
+    { label: 'overview.menu', icon: Gauge, to: '/dashboards/overview' },
+    { label: 'period-dashboard.menu', icon: CalendarRange, to: '/dashboards/period' },
+    { label: 'composition.menu', icon: ChartBarBig, to: '/dashboards/composition' },
+  ],
 }
 
 export const financialSection: ModuleSectionDefinition = {
@@ -137,6 +143,12 @@ export const configurationSection: ModuleSectionDefinition = {
       icon: Users,
       to: '/configuration/users',
       description: 'module-home.items.users',
+    },
+    {
+      label: 'settings.menu',
+      icon: SlidersHorizontal,
+      to: '/configuration/settings',
+      description: 'module-home.items.settings',
     },
     {
       label: 'integrations.menu',

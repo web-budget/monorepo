@@ -23,6 +23,7 @@ const classification: ClassificationView = {
   type: 'INCOME',
   active: true,
   description: null,
+  generic: false,
 }
 
 async function render() {
@@ -46,6 +47,24 @@ describe('ClassificationDetailView', () => {
     expect(wrapper.findAll('h2').map((title) => title.text())).toEqual(['Identificação'])
     expect(wrapper.text()).toContain('Receita')
     expect(wrapper.text()).toContain('---')
+  })
+
+  it('shows whether the classification is generic', async () => {
+    const { wrapper } = await render()
+    const genericField = () =>
+      wrapper.findAll('dt').find((term) => term.text() === 'Genérica')?.element.parentElement
+        ?.textContent
+
+    expect(genericField()).toContain('Não')
+
+    vi.mocked(classificationsApi.findById).mockResolvedValue({ ...classification, generic: true })
+    const { wrapper: genericWrapper } = await mountView(
+      ClassificationDetailView,
+      'classifications',
+      { id: 'c-1' },
+    )
+
+    expect(genericWrapper.text()).toContain('Sim')
   })
 
   it('goes to the edit form', async () => {

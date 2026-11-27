@@ -4,7 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import FinancialFlowChart from '@/components/dashboards/FinancialFlowChart.vue'
 import { useAppearanceStore } from '@/stores/appearance'
 import { createTestPlugins } from '@/test/mounting'
-import type { FinancialFlowPeriod } from '@/types'
+import type { OverviewPeriod } from '@/types'
 
 vi.mock('vue-chartjs', () => ({
   Bar: defineComponent({
@@ -18,7 +18,7 @@ vi.mock('vue-chartjs', () => ({
   }),
 }))
 
-const periods: FinancialFlowPeriod[] = [
+const periods: OverviewPeriod[] = [
   {
     financialPeriod: {
       id: 'p-9',
@@ -59,9 +59,9 @@ function setTokens(values: Record<string, string>) {
   }
 }
 
-function render() {
+function render(cut: number | 'all' = 2026) {
   const { plugins } = createTestPlugins({ stubActions: false })
-  const wrapper = mount(FinancialFlowChart, { props: { periods }, global: { plugins } })
+  const wrapper = mount(FinancialFlowChart, { props: { periods, cut }, global: { plugins } })
   const bar = () => wrapper.findComponent({ name: 'BarChartStub' })
   return { wrapper, bar }
 }
@@ -80,18 +80,18 @@ describe('FinancialFlowChart', () => {
 
     const data = bar().props('data')
     expect(data.labels).toEqual([
-      'jan',
-      'fev',
-      'mar',
-      'abr',
-      'mai',
-      'jun',
-      'jul',
-      'ago',
-      'set',
-      'out',
-      'nov',
-      'dez',
+      'Jan',
+      'Fev',
+      'Mar',
+      'Abr',
+      'Mai',
+      'Jun',
+      'Jul',
+      'Ago',
+      'Set',
+      'Out',
+      'Nov',
+      'Dez',
     ])
     expect(data.datasets.map((dataset: { label: string }) => dataset.label)).toEqual([
       'Receitas',
@@ -142,11 +142,53 @@ describe('FinancialFlowChart', () => {
       font: 'IBM Plex Mono',
     })
     expect(plugins.tooltip.callbacks.title([{ dataIndex: 9 }])).toBe('Outubro')
-    expect(plugins.tooltip.callbacks.title([{ dataIndex: 0 }])).toBe('jan')
+    expect(plugins.tooltip.callbacks.title([{ dataIndex: 0 }])).toBe('Jan')
     expect(plugins.tooltip.callbacks.label({ dataset: { label: 'Receitas' }, raw: 800 })).toMatch(
       /^Receitas: R\$\s*800,00$/,
     )
     expect(plugins.legend.display).toBe(false)
+  })
+
+  it('draws one slot per period, named by month and year, for all the periods', () => {
+    const { bar } = render('all')
+
+    const { data, options } = { data: bar().props('data'), options: bar().props('options') }
+    expect(data.labels).toEqual(['set/26', 'out/26'])
+    expect(data.datasets[0].data).toEqual([1000, 800])
+    expect(options.plugins.flowMarks.empty).toEqual([])
+    expect(options.plugins.flowMarks.provisional).toEqual([1])
+    expect(options.plugins.tooltip.callbacks.title([{ dataIndex: 1 }])).toBe('Outubro')
+    expect(options.scales.x.ticks.autoSkip).toBe(true)
+  })
+
+  it('names only every third period past eighteen and stops skipping labels by itself', () => {
+    const many: OverviewPeriod[] = Array.from({ length: 19 }, (_, index) => ({
+      financialPeriod: {
+        id: `p-${index}`,
+        name: `P${index}`,
+        startingAt: '2025-01-01',
+        endingAt: `${2025 + Math.floor(index / 12)}-${String((index % 12) + 1).padStart(2, '0')}-28`,
+      },
+      revenues: 10,
+      expenses: 5,
+      result: 5,
+      recorded: true,
+    }))
+    const { plugins } = createTestPlugins({ stubActions: false })
+    const wrapper = mount(FinancialFlowChart, {
+      props: { periods: many, cut: 'all' },
+      global: { plugins },
+    })
+
+    const bar = wrapper.findComponent({ name: 'BarChartStub' })
+    expect(bar.props('data').labels.slice(0, 4)).toEqual(['jan/25', '', '', 'abr/25'])
+    expect(bar.props('options').scales.x.ticks.autoSkip).toBe(false)
+  })
+
+  it('gives the chart the same height as the result by year chart on wide screens', () => {
+    const { wrapper } = render()
+
+    expect(wrapper.find('[role="img"]').classes()).toContain('lg:h-64')
   })
 
   it('registers the plugin that draws the empty months', () => {

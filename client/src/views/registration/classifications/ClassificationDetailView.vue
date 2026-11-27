@@ -39,6 +39,10 @@ const { messages, changeToUpdate, remove } = useCrudDetail({
           :value="$t(typeKey('classification', classification.type))"
         />
         <DetailField
+          :label="$t('classification.form.generic')"
+          :value="$t(classification.generic ? 'form.yes' : 'form.no')"
+        />
+        <DetailField
           :label="$t('classification.form.description')"
           :value="classification.description"
           wide

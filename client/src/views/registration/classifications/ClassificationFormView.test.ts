@@ -24,6 +24,7 @@ const existing: ClassificationView = {
   type: 'INCOME',
   active: true,
   description: 'Monthly',
+  generic: false,
 }
 
 function field(wrapper: Wrapper, name: string) {
@@ -67,6 +68,7 @@ describe('ClassificationFormView', () => {
       name: 'Salary',
       type: 'INCOME',
       description: null,
+      generic: false,
     })
     expect(toast.success).toHaveBeenCalledWith('Classificação criada', {
       description: '“Salary” já aparece nos lançamentos.',
@@ -75,6 +77,25 @@ describe('ClassificationFormView', () => {
     expect(router.currentRoute.value.name).not.toBe('classifications.detail')
     expect((field(wrapper, 'name').element as HTMLInputElement).value).toBe('')
     expect(document.activeElement).toBe(field(wrapper, 'name').element)
+  })
+
+  it('marks the classification as generic with the named switch', async () => {
+    vi.mocked(classificationsApi.create).mockResolvedValue('c-9')
+    const { wrapper } = await mountView(ClassificationFormView, 'classifications')
+    const generic = wrapper.find('button[aria-label="Genérica"]')
+
+    expect(generic.attributes('role')).toBe('switch')
+    expect(generic.attributes('aria-checked')).toBe('false')
+
+    await field(wrapper, 'name').setValue('Other')
+    wrapper.getComponent(Select).vm.$emit('update:modelValue', 'EXPENSE')
+    await generic.trigger('click')
+    await submit(wrapper)
+
+    expect(classificationsApi.create).toHaveBeenCalledWith(
+      expect.objectContaining({ name: 'Other', generic: true }),
+    )
+    expect(wrapper.find('button[aria-label="Genérica"]').attributes('aria-checked')).toBe('false')
   })
 
   it('sends no description when the field is left empty', async () => {
@@ -118,7 +139,7 @@ describe('ClassificationFormView', () => {
     expect(sections[0]?.text()).toContain('Inativar para remover das listagens')
     expect(sections[0]?.text()).toContain('Ativa')
     expect(sections[0]?.find('button[role="switch"]').attributes('aria-checked')).toBe('true')
-    expect(wrapper.findAll('button[role="switch"]')).toHaveLength(1)
+    expect(wrapper.findAll('button[role="switch"]')).toHaveLength(2)
   })
 
   it('has no status block on create: a new record is always active', async () => {
@@ -156,12 +177,30 @@ describe('ClassificationFormView', () => {
       name: 'Bonus',
       active: false,
       description: 'Monthly',
+      generic: false,
     })
     expect(toast.success).toHaveBeenCalledWith('Alterações salvas', {
       description: '“Bonus” foi atualizada.',
       duration: 4000,
     })
     expect(router.currentRoute.value.name).toBe('classifications.detail')
+  })
+
+  it('loads the generic mark on edit and saves it when turned off', async () => {
+    vi.mocked(classificationsApi.findById).mockResolvedValue({ ...existing, generic: true })
+    vi.mocked(classificationsApi.update).mockResolvedValue(existing)
+    const { wrapper } = await mountView(ClassificationFormView, 'classifications', { id: 'c-1' })
+    const generic = wrapper.find('button[aria-label="Genérica"]')
+
+    expect(generic.attributes('aria-checked')).toBe('true')
+
+    await generic.trigger('click')
+    await submit(wrapper)
+
+    expect(classificationsApi.update).toHaveBeenCalledWith(
+      'c-1',
+      expect.objectContaining({ generic: false }),
+    )
   })
 
   it('shows the server error when the update is rejected', async () => {
