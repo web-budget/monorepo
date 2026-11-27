@@ -453,6 +453,21 @@ describe('WalletDetailView', () => {
       const { wrapper } = await mountView(WalletDetailView, 'wallets', { id: 'w-1' })
 
       expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
+      expect(wrapper.find('[data-slot="reconciliation-history"]').exists()).toBe(false)
+      expect(wrapper.text()).not.toContain('Nenhuma conciliação ainda')
+    })
+
+    it('keeps the page it has when another page cannot be loaded', async () => {
+      const { wrapper } = await render(wallet, undefined, history, 100)
+      vi.mocked(reconciliationsApi.findAll).mockRejectedValue(problem(500))
+
+      wrapper
+        .getComponent(ReconciliationHistory)
+        .vm.$emit('pageChanged', { currentPage: 1, pageSize: 15 })
+      await flushPromises()
+
+      expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
+      expect(wrapper.findAll('[data-slot="reconciliation-history"] tbody tr')).toHaveLength(2)
     })
 
     it('shows the cards of a small screen with the way to the adjustment', async () => {

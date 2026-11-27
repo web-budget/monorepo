@@ -25,6 +25,7 @@ export function useReconciliationHistory(walletId: () => string) {
   const size = ref(DEFAULT_PAGE_SIZE)
   const selectedId = ref('')
   const loading = ref(false)
+  const failed = ref(false)
   let knownSignature = historySignature(route.query)
 
   async function pageOfSelected(): Promise<number> {
@@ -65,20 +66,24 @@ export function useReconciliationHistory(walletId: () => string) {
     })
   }
 
+  async function track(action: () => Promise<unknown>) {
+    loading.value = true
+    failed.value = !(await errors.run(action))
+    loading.value = false
+  }
+
   async function load() {
     knownSignature = historySignature(route.query)
     const query = parseHistoryQuery(route.query)
     selectedId.value = query.reconciliation
     size.value = query.size
     current.value = query.page ?? 0
-    loading.value = true
-    await errors.run(async () => {
+    await track(async () => {
       if (query.reconciliation !== '' && query.page === null) {
         current.value = await pageOfSelected()
       }
       await fetchPage()
     })
-    loading.value = false
     writeRoute()
     await scrollToSelected()
   }
@@ -86,18 +91,14 @@ export function useReconciliationHistory(walletId: () => string) {
   async function change(event: { currentPage: number; pageSize: number }) {
     current.value = event.currentPage
     size.value = event.pageSize
-    loading.value = true
-    await errors.run(fetchPage)
-    loading.value = false
+    await track(fetchPage)
     writeRoute()
   }
 
   async function restart() {
     selectedId.value = ''
     current.value = 0
-    loading.value = true
-    await errors.run(fetchPage)
-    loading.value = false
+    await track(fetchPage)
     writeRoute()
   }
 
@@ -121,6 +122,7 @@ export function useReconciliationHistory(walletId: () => string) {
     size,
     selectedId,
     loading,
+    failed,
     messages: errors.messages,
     change,
     restart,

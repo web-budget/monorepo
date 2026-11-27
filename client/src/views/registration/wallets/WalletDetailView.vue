@@ -136,7 +136,7 @@ const lastReconciliation = computed(() => {
         </DetailField>
       </DetailSection>
     </template>
-    <template v-if="wallet" #after>
+    <template v-if="wallet && !(history.failed.value && history.total.value === 0)" #after>
       <ReconciliationHistory
         :wallet-id="wallet.id"
         :reconciliations="history.reconciliations.value"
