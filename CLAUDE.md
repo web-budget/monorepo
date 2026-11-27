@@ -19,7 +19,7 @@ O client roda com Node 24 e com o pnpm fixado no `packageManager` de `client/pac
 
 Tudo o que fica no nível de cima, `.github/` e os arquivos da raiz (`README.md`, este `CLAUDE.md`, `.editorconfig`, `.gitattributes`, `.gitignore`), não tem `CLAUDE.md` próprio e conta como a camada **infra/docs** nas regras de PR abaixo.
 
-A versão do software é a do milestone (hoje `v4.0.0-alpha2`). Milestones `alpha` só organizam o trabalho: não geram tag, release nem imagem, e quem quiser usá-las compila do código. Quando houver release, o nome da tag acompanha o milestone. O workflow `.github/workflows/release.yml` roda ao publicar um release e constrói o client com `VITE_APP_VERSION` igual ao nome da tag; o `workflow_dispatch` dele recebe a versão como input, para testar sem publicar um release. O client lê essa variável para mostrar a versão, então ela não é escrita à mão em lugar nenhum do código.
+A versão do software é a do milestone (hoje `v4.0.0-alpha3`). Milestones `alpha` só organizam o trabalho: não geram tag, release nem imagem, e quem quiser usá-las compila do código. Quando houver release, o nome da tag acompanha o milestone. O workflow `.github/workflows/release.yml` roda ao publicar um release e constrói o client com `VITE_APP_VERSION` igual ao nome da tag; o `workflow_dispatch` dele recebe a versão como input, para testar sem publicar um release. O client lê essa variável para mostrar a versão, então ela não é escrita à mão em lugar nenhum do código.
 
 **Tudo o que vem depois do marcador `<!-- rtk-instructions v2 -->` é gerado pelo `rtk init`; nunca edite à mão.** Ao reescrever as convenções acima dele, preserve o bloco byte a byte e confira antes do push:
 
@@ -33,6 +33,12 @@ As âncoras `^…$` são de propósito: o texto do marcador aparece citado neste
 ## Idioma
 
 Conversa, issues, PRs e os arquivos `CLAUDE.md` são em português. Código, identificadores e mensagens de commit são em inglês.
+
+## Escopo do produto e dados pessoais
+
+- **Investimentos são do [investlog](https://github.com/arthurgregorio/investlog).** O webBudget não acompanha aportes, resgates, rendimentos nem tem dashboard de investimentos; uma carteira do tipo `INVESTMENT` é uma carteira comum com outro tipo. No futuro, uma integração só dirá quais carteiras têm dinheiro para investir. Não proponha recursos de investimento aqui.
+- **O site público fica no repositório [`web-budget/site`](https://github.com/web-budget/site)** (webbudget.com.br, pelo Pages). As issues e os PRs do site vão para lá, não para o monorepo; a tarefa e a rodada de design dele podem ser sub-issues de um épico daqui.
+- **Dados pessoais do usuário nunca entram no repositório nem no GitHub.** Os arquivos de amostra que ele manda (extratos e faturas em OFX, por exemplo) e a análise dos dados da v3 (`D:/desenvolvimento/web-budget/analise-v3/`) são finanças reais: nenhuma linha deles vai para issue, comentário, PR, fixture de teste, mock ou commit. Use-os só para entender o formato e escreva dados inventados no lugar.
 
 ## Documentação
 
@@ -53,6 +59,14 @@ Antes de começar uma issue existente, **verifique se já há um PR para ela**: 
 ### A issue é a especificação, nunca um arquivo no repositório
 
 Specs de design e planos de implementação **não** são commitados como arquivos em lugar nenhum da árvore. A especificação é o corpo da issue; detalhes adicionais são comentários na issue. Isso sobrepõe o comportamento padrão das skills `superpowers:brainstorming` e `superpowers:writing-plans`, que querem gravar specs e planos dentro do repositório: nada disso entra aqui. Uma cópia no scratchpad, fora do repositório, serve quando um arquivo local é mesmo necessário (por exemplo, como origem de um `--body-file`).
+
+## Como o trabalho é conduzido
+
+- **Uma sessão por tarefa ou subtarefa.** Uma sessão coordenadora especifica, abre as sessões (uma por tarefa ou subtarefa, na ordem das dependências), acompanha e confere o PR de cada uma antes de dá-lo por pronto. A sessão filha implementa, faz os commits e abre o PR. O coordenador não implementa no lugar dela.
+- **Especificação no Opus, implementação no Sonnet.** Planejar, escrever ou revisar issues, conferir resultados e coordenar ficam no Opus. Toda sessão que implementa (código, docs, CI, atualização de dependência) começa com o modelo `claude-sonnet-5-5` e, numa decisão difícil, consulta o advisor (Opus) em vez de trocar de modelo. Uma sessão cujo trabalho principal é especificar fica no Opus.
+- **Sessões de especificação editam só a própria issue.** Quando uma decisão muda outras issues, quem aplica essas edições é o coordenador, uma de cada vez, para duas sessões não sobrescreverem o corpo uma da outra.
+- **Nunca rode `./gradlew --stop` com sessões em paralelo.** Ele mata o daemon do Gradle de todas as sessões e quebra o build de uma irmã. Só o coordenador para os daemons ociosos, quando nenhuma sessão está rodando.
+- **Usuário fora: uma sessão leva a pilha inteira.** Quando o usuário avisa que vai ficar fora e não vai fazer merges, não pare a cada merge: entregue a cadeia restante de subtarefas a **uma** sessão, que a faz em ordem (uma branch, um PR e uma worktree por subtarefa, empilhados na [stack](#empilhamento-stack-entre-subtarefas-irmãs) da tarefa; correções sobem por merge, nunca por reescrita) e reporta a stack em ordem. O usuário revisa e faz o merge no fim.
 
 ## Hierarquia de trabalho
 
@@ -95,7 +109,7 @@ O motivo é mecânico: um trabalho só fica pronto quando a branch da tarefa ent
 
 ### Recomende tarefas, nunca uma subtarefa solta
 
-Quando perguntarem o que fazer a seguir ou o que pode rodar em paralelo, recomende tarefas inteiras. Uma subtarefa não tem propósito sem o resto da sua tarefa, então nunca a sugira sozinha: compare bloqueios e paralelismo entre tarefas e cite subtarefas só como o conteúdo de uma tarefa. Quando a tarefa recomendada ou o seu épico tem `design required`, o primeiro passo é a rodada de design, não código.
+Quando perguntarem o que fazer a seguir ou o que pode rodar em paralelo, recomende tarefas inteiras. Uma subtarefa não tem propósito sem o resto da sua tarefa, então nunca a sugira sozinha: compare bloqueios e paralelismo entre tarefas e cite subtarefas só como o conteúdo de uma tarefa. Quando a tarefa recomendada ou o seu épico tem `spec required`, o primeiro passo é a especificação; quando tem `design required`, é a rodada de design. Nunca código.
 
 ## Escrevendo uma issue
 
@@ -126,7 +140,7 @@ Quando perguntarem o que fazer a seguir ou o que pode rodar em paralelo, recomen
 ### Modelo de tarefa
 
 ```markdown
-> **Tarefa agrupadora.** O trabalho acontece na branch de longa duração `feature/<N>-<slug>`, criada a partir da `main`. Cada subtarefa abaixo tem sua própria branch e seu próprio PR **contra essa branch**, nunca contra a `main`. Quando todas tiverem sido integradas, a branch da tarefa recebe um único PR para a `main`, com um `Closes #N` para esta tarefa e um para cada subtarefa; o merge desse PR fecha tudo. O usuário faz o merge dos PRs das subtarefas e pede o PR da tarefa.
+> **Tarefa agrupadora.** O trabalho acontece na branch de longa duração `feature/<N>-<slug>`, criada a partir da `main`. Cada subtarefa abaixo tem sua própria branch e seu próprio PR **contra essa branch**, nunca contra a `main`. Quando todas tiverem sido integradas, a branch da tarefa recebe um único PR para a `main`, com um `Closes #N` para esta tarefa e um para cada subtarefa; o merge desse PR fecha tudo. Os PRs das subtarefas formam uma stack do GitHub com base nesta branch; o usuário faz o merge da stack e pede o PR da tarefa.
 
 ## Motivação
 ## Escopo
@@ -157,11 +171,21 @@ Defeitos pequenos e arrumações usam uma forma mais leve; não os force pelo mo
 ## Por quê       <- opcional; só quando a correção não se explica sozinha
 ```
 
+### Issues que precisam de especificação
+
+Uma tarefa que nasceu como ideia (de uma triagem, por exemplo) e ainda não tem as regras decididas recebe a label **`spec required`**. **Nenhuma subtarefa abre e nenhum código começa antes de a especificação ser decidida com o usuário** e registrada no corpo. A tarefa abre com o aviso **Spec required.** logo no início e lista o que falta decidir numa seção `## A especificar`.
+
+Enquanto tem a label, a tarefa pode ficar com Size, Camada e Prioridade vazios no Project. A label sai quando a especificação aprovada pelo usuário é escrita no corpo, e é quem a escreve que a remove. Quando a tarefa tem as duas labels, a ordem é: especificação, depois a rodada de design, depois as subtarefas.
+
 ### Issues que precisam de design
 
-Trabalho que traz telas novas ou interface pesada de layout recebe a label **`design required`**, e **nada nele começa antes da rodada de design** que desenha essas telas. A issue (normalmente um épico ou uma tarefa) abre com um aviso logo no início, como o do #33, e lista no corpo as telas que o design precisa cobrir, mais qualquer questão em aberto que a rodada tem que resolver.
+Trabalho que traz telas novas ou interface pesada de layout recebe a label **`design required`**, e **nada nele começa antes da rodada de design** que desenha essas telas. **Toda tela nova passa por essa rodada**, feita com a skill `hallmark`. A issue (normalmente um épico ou uma tarefa) abre com um aviso logo no início, como o do #33, e lista no corpo as telas que o design precisa cobrir, mais qualquer questão em aberto que a rodada tem que resolver.
 
 As subtarefas são **abertas depois da rodada de design**, não junto com a issue, para que a seção `Design` de cada subtarefa de client aponte para o mockup da sua tela em vez de inventar a interface.
+
+**Dashboards se agrupam em poucas visões.** Ao propor dashboards ou indicadores, junte-os em 2 a 4 visões com boa informação cada, nunca em dezenas de telas fragmentadas, e faça esse mapa antes de abrir as issues.
+
+**Sem texto que explica o comportamento.** Títulos, subtítulos e textos que introduzem o conteúdo são essenciais e ficam. O que não entra, nem no mock nem na tela, é texto prolixo explicando o que um botão faz ou o efeito de preencher ou não um campo: se a tela precisa disso para ser entendida, o design não está bom e é ele que muda.
 
 **A tela segue o design aprovado exatamente.** O design é o mock aprovado **mais os comentários do usuário nele**; quando os dois divergem, vale o comentário. A tela reproduz tudo o que o design mostra:
 - layout, textos e rótulos;
@@ -182,10 +206,10 @@ O corpo é a declaração estável do trabalho. Contexto novo encontrado durante
 
 **Toda issue recebe, ao ser criada:**
 
-- O **tipo** certo: `Epic`, `Task`, `Feature`, `Maintenance` ou `Bug`. O tipo é o que classifica a issue; labels só entram quando houver necessidade real, como a `design required`.
+- O **tipo** certo: `Epic`, `Task`, `Feature`, `Maintenance` ou `Bug`. O tipo é o que classifica a issue; labels só entram quando houver necessidade real, como a `spec required` e a `design required`.
 - Um **milestone**, sempre, com duas exceções: o usuário diz explicitamente para não vincular, ou a issue é um **spike** (pesquisa com prazo) ou um item de **backlog** (registrado para depois, sem agenda). Spikes e itens de backlog ganham o milestone quando forem de fato agendados. Veja os abertos com `gh api repos/:owner/:repo/milestones --jq '.[].title'` e defina com `gh issue create --milestone "<nome>"`.
 - **`arthurgregorio` como assignee.**
-- Um item no Project [webBudget](https://github.com/orgs/web-budget/projects/7), com os campos **Status**, **Size** (XS a XL), **Camada** (server, client, infra, docs) e **Prioridade** (P0 a P2) preenchidos.
+- Um item no Project [webBudget](https://github.com/orgs/web-budget/projects/7), com os campos **Status**, **Size** (XS a XL), **Camada** (server, client, infra, docs) e **Prioridade** (P0 a P2) preenchidos. Uma tarefa com `spec required` pode deixar Size, Camada e Prioridade para quando a especificação sair.
 
 ## Nomes de branch
 
@@ -233,7 +257,18 @@ Um resultado vazio quer dizer que não há vínculo; rode a mutation acima. O `g
 
 ### Empilhamento (stack) entre subtarefas irmãs
 
-Subtarefas irmãs, da mesma tarefa, não esperam umas pelas outras. Uma subtarefa que depende de uma irmã ainda não mergeada sai da branch da irmã e abre o PR contra ela, para que o diff mostre só as suas próprias mudanças (o CI roda em todo `pull_request`, então o PR empilhado também é verificado). O corpo dele cita o PR sobre o qual está empilhado. Depois que a irmã for mergeada com squash na branch da tarefa, rebaseie a branch empilhada com `git rebase --onto <branch-da-tarefa> <branch-da-irmã>` e redirecione o PR para a branch da tarefa. Uma pilha tem um pai só: uma subtarefa que precisa de várias irmãs não mergeadas espera por elas em vez de juntar as branches delas. Esperar é a regra para dependências **entre** tarefas diferentes.
+Subtarefas irmãs, da mesma tarefa, não esperam umas pelas outras. **Todo PR de subtarefa entra numa [stack nativa do GitHub](https://docs.github.com/en/pull-requests/how-tos/stacked-pull-requests) cuja base é a branch da tarefa.** Requisito: a extensão `gh stack` (`gh extension install github/gh-stack`).
+
+- O **primeiro** PR de subtarefa cria a stack: `gh stack link --base feature/<N>-<slug> <URL do PR>`.
+- Cada PR **seguinte** sai da branch do PR anterior, abre contra ela (o diff mostra só as suas mudanças, e o CI roda nele também), cita no corpo o PR sobre o qual está empilhado e é acrescentado com `gh stack link <número da stack> <URL do PR>`.
+- **Sempre** com `--base` ou com o número da stack. Sem eles, o `gh stack link` usa a `main` como base e redireciona o PR de baixo para ela (aconteceu com o #370 e foi desfeito).
+- Passe a **URL do PR**, nunca o nome da branch: o comando faz push das branches que recebe como argumento.
+- **Nunca a `main` como base de uma stack.** A stack avalia todo PR pelas regras da base, e o ruleset da `main` pede revisão e CodeQL das duas linguagens. Um PR só de server ou só de client não passa no CodeQL, e o GitHub só aceita bypass no PR de baixo de uma stack. O PR da tarefa para a `main` fica fora da stack, como sempre.
+- Antes de ligar um PR, confira que a branch dele contém a base: `git merge-base --is-ancestor origin/<base> origin/<head>`. **Nunca rode `gh stack rebase` nem use o botão "Rebase stack"** sem pedir ao usuário: os dois fazem force push, e o rebase pelo site gera commits sem assinatura. Correções na base sobem para as branches de cima por merge.
+- **Merge:** o merge do PR do topo leva todos os de baixo, e o de um PR do meio leva os de baixo dele. Depois do merge, o PR seguinte é redirecionado sozinho.
+- Cada PR tem um pai só: uma subtarefa que precisa de várias irmãs não mergeadas espera por elas em vez de juntar as branches delas. Esperar é a regra para dependências **entre** tarefas diferentes.
+
+**Pilha não ligada** (feita à mão, sem `gh stack`): o GitHub só redireciona o PR de cima quando a branch de baixo é apagada. Mergear o de baixo e manter a branch deixa o de cima apontando para ela, e o conteúdo dele nunca chega à branch da tarefa. Nesse caso, passe ao usuário a ordem de merge explícita (de cima para baixo, ou apagando cada branch depois do merge e conferindo a base antes do próximo) e, depois, compare a branch da tarefa com as da pilha. Prefira sempre ligar a pilha.
 
 ### Fechando subtarefas: o PR da tarefa faz isso
 
@@ -261,11 +296,17 @@ Por isso o **PR da tarefa para a `main` é o mecanismo**. Ele mira a branch padr
    rtk proxy gh api repos/:owner/:repo/issues/<tarefa>/sub_issues --jq '.[] | select(.state=="open") | "#\(.number) \(.title)"'
    ```
 
-**O usuário faz o merge dos PRs de subtarefa e pede o PR da tarefa.** Trabalhe todas as subtarefas da tarefa, empilhando quando uma irmã ainda não foi mergeada, abra e vincule cada PR de subtarefa e então pare e passe ao usuário a ordem de merge. Nunca faça merge de um PR de subtarefa, e nunca abra o PR da tarefa para a `main` sem pedido: o usuário valida o trabalho na branch da tarefa, faz o merge dos PRs de subtarefa e então pede o PR da tarefa.
+**Subtarefa nova depois do PR da tarefa.** Quando uma subtarefa é criada depois de o PR da tarefa para a `main` existir, acrescente o `Closes #N` dela ao corpo desse PR e confira o vínculo de novo (passo 2).
+
+**Depois de cada rodada de merge, audite.** Antes de reportar o trabalho como pronto, confira as issues abertas do milestone e os vínculos dos PRs mergeados: issue sem PR vinculado ou entregue na `main` e ainda aberta é corrigida na hora (vínculo pela GraphQL, ou fechamento com um comentário que cita o PR da subtarefa e o da tarefa).
+
+**O usuário faz o merge da stack e pede o PR da tarefa.** Trabalhe todas as subtarefas da tarefa, abra cada PR na stack, vincule-o e então pare e reporte a stack em ordem. Nunca faça merge de um PR de subtarefa, e nunca abra o PR da tarefa para a `main` sem pedido: o usuário valida o trabalho, faz o merge da stack (o do topo leva todos) e então pede o PR da tarefa.
 
 ### CI
 
-O CI separa os jobs por camada, atrás de um job que detecta quais camadas mudaram, então um PR só de client não roda o job do server, e vice-versa. Acompanhe com `gh pr checks <N>` em vez de bloquear uma chamada em primeiro plano com `--watch`, que estoura o tempo limite da ferramenta.
+O CI separa os jobs por camada, atrás de um job que detecta quais camadas mudaram, então um PR só de client não roda o job do server, e vice-versa.
+
+**Não espere o CI do PR.** As checagens locais da camada (lint, testes, build) rodam antes do push. Depois, abra o PR, vincule e confira a issue e o milestone e reporte, sem `gh pr checks --watch` nem laço de espera: o usuário avisa quando algo falha. Vale também para a sessão que leva uma stack inteira, que segue para a próxima subtarefa sem esperar o CI da anterior.
 
 ## Escrevendo corpos de issue e PR
 
