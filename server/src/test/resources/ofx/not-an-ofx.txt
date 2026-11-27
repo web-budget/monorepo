@@ -1,0 +1,2 @@
+data;description;value
+2026-11-01;Compra fictícia;-10.00
