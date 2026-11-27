@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Ellipsis, Pencil, Scale, ScrollText, Trash2 } from 'lucide-vue-next'
+import { CheckCheck, Ellipsis, Pencil, ScrollText, Trash2 } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
@@ -9,9 +9,9 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-defineProps<{ adjustable: boolean }>()
+defineProps<{ reconcilable: boolean }>()
 
-const emit = defineEmits<{ statement: []; adjust: []; edit: []; remove: [] }>()
+const emit = defineEmits<{ statement: []; reconcile: []; edit: []; remove: [] }>()
 </script>
 
 <template>
@@ -25,8 +25,8 @@ const emit = defineEmits<{ statement: []; adjust: []; edit: []; remove: [] }>()
       <DropdownMenuItem @select="emit('statement')">
         <ScrollText />{{ $t('wallet.actions.view-statement') }}
       </DropdownMenuItem>
-      <DropdownMenuItem :disabled="!adjustable" @select="emit('adjust')">
-        <Scale />{{ $t('wallet.actions.adjust-balance') }}
+      <DropdownMenuItem :disabled="!reconcilable" @select="emit('reconcile')">
+        <CheckCheck />{{ $t('wallet.actions.reconcile') }}
       </DropdownMenuItem>
       <DropdownMenuItem @select="emit('edit')">
         <Pencil />{{ $t('crud.actions.edit') }}

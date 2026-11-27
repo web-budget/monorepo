@@ -1,6 +1,5 @@
 import { apiClient } from './client'
 import type {
-  AdjustmentForm,
   PagedResponse,
   StatementQuery,
   StatementSummary,
@@ -33,12 +32,6 @@ export const walletEntriesApi = {
   findEntry(walletId: string, entryId: string): Promise<WalletEntryView> {
     return apiClient
       .get<WalletEntryView>(`${statementPath(walletId)}/${encodeURIComponent(entryId)}`)
-      .then((response) => response.data)
-  },
-
-  adjust(walletId: string, form: AdjustmentForm): Promise<WalletEntryView> {
-    return apiClient
-      .post<WalletEntryView>(`${PATH}/${encodeURIComponent(walletId)}/adjustments`, form)
       .then((response) => response.data)
   },
 }

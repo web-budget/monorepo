@@ -66,5 +66,6 @@ const emit = defineEmits<{ edit: []; delete: [] }>()
         <slot name="footer" />
       </div>
     </Card>
+    <slot name="after" />
   </PageContainer>
 </template>

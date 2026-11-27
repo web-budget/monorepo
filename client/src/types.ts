@@ -153,6 +153,13 @@ export interface WalletView {
   number: string | null
   agency: string | null
   lastEntryOn?: string | null
+  lastReconciliation?: LastReconciliationView | null
+}
+
+export interface LastReconciliationView {
+  id: string
+  createdOn: string
+  difference: number
 }
 
 export interface WalletListView {
@@ -549,10 +556,11 @@ export interface WalletEntryView {
   financialPeriod: { id: string; name: string } | null
   reference: WalletEntryReference | null
   wallet?: { id: string; name: string }
+  reconciliation?: ReconciliationView | null
 }
 
 export interface WalletEntryReference {
-  type: 'MOVEMENT' | 'TRANSFER'
+  type: 'MOVEMENT' | 'TRANSFER' | 'RECONCILIATION'
   id: string
   returnTransfer?: boolean | null
   returnable?: boolean | null
@@ -583,9 +591,29 @@ export interface StatementQuery {
   sort?: string
 }
 
-export interface AdjustmentForm {
-  value: number
-  name?: string
+export interface ReconciliationForm {
+  informedBalance: number
+  shownBalance: number
+  reason: string
+}
+
+export interface ReconciliationView {
+  id: string
+  createdOn: string
+  informedBalance: number
+  walletBalance: number
+  difference: number
+  reason: string
+  entryId: string
+}
+
+export interface ReconciliationPosition {
+  position: number
+}
+
+export interface ReconciliationResultView {
+  reconciliation: ReconciliationView
+  entry: WalletEntryView
 }
 
 export interface TransferForm {

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import type { WalletEntryView, WalletListView } from '@/types'
-import { adjustmentNotice, defaultStatementWallet, entryLabel } from '@/utils/statement'
+import { defaultStatementWallet, entryLabel } from '@/utils/statement'
 
 const entry = {
   id: 'e-1',
@@ -74,23 +74,5 @@ describe('defaultStatementWallet', () => {
   it('is nothing without active wallets', () => {
     expect(defaultStatementWallet([wallet('c', 'Gama', false)])).toBeUndefined()
     expect(defaultStatementWallet([])).toBeUndefined()
-  })
-})
-
-describe('adjustmentNotice', () => {
-  const format = (amount: number) => `R$ ${amount.toFixed(2).replace('.', ',')}`
-
-  it('tells the credit of a positive adjustment without the currency symbol', () => {
-    expect(adjustmentNotice(0.03, 'Conta corrente', format)).toEqual({
-      detail: 'statement.toast.adjusted-credit',
-      params: { name: 'Conta corrente', amount: '0,03' },
-    })
-  })
-
-  it('tells the debit of a negative adjustment by its absolute value', () => {
-    expect(adjustmentNotice(-0.02, undefined, format)).toEqual({
-      detail: 'statement.toast.adjusted-debit',
-      params: { name: undefined, amount: '0,02' },
-    })
   })
 })
