@@ -91,7 +91,9 @@ function act() {
       <component :is="icon" v-else class="size-5" />
     </span>
     <p :class="kind === 'empty' ? 'text-base font-semibold' : 'font-medium'">{{ texts.title }}</p>
-    <p class="text-muted-foreground max-w-sm text-sm">{{ texts.description }}</p>
+    <p v-if="texts.description" class="text-muted-foreground max-w-sm text-sm">
+      {{ texts.description }}
+    </p>
     <Button
       v-if="kind !== 'empty' || creatable"
       type="button"

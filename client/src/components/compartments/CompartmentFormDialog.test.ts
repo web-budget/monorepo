@@ -30,7 +30,6 @@ async function render(props: Record<string, unknown> = {}) {
       open: true,
       walletName: 'Main',
       compartment: null,
-      resetToken: 0,
       loading: false,
       messages: [],
       fieldErrors: {},
@@ -145,11 +144,11 @@ describe('CompartmentFormDialog', () => {
     )
   })
 
-  it('clears the form when the reset token changes and keeps focus on the name', async () => {
+  it('clears the form when it switches to a new piggy bank and keeps focus on the name', async () => {
     const wrapper = await render({ compartment: reserve })
     await type('name', 'Changed')
 
-    await wrapper.setProps({ compartment: null, resetToken: 1 })
+    await wrapper.setProps({ compartment: null })
     await flushPromises()
 
     expect(input('name')!.value).toBe('')

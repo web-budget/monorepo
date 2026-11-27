@@ -273,7 +273,7 @@ const columns = computed(() => [
       kind="empty"
       entity="compartment"
       :icon="History"
-      :copy="{ emptyTitle: $t('compartment.history.empty-title') }"
+      :copy="{ emptyTitle: $t('compartment.history.empty-title'), emptyDescription: '' }"
       :creatable="false"
     />
     <ItemsTable
@@ -347,7 +347,6 @@ const columns = computed(() => [
     :open="actions.formOpen.value"
     :compartment="actions.formTarget.value"
     :wallet-name="wallet?.name ?? ''"
-    :reset-token="actions.formResetToken.value"
     :loading="loading"
     :messages="actions.formErrors.generalMessages.value"
     :field-errors="actions.formErrors.fieldMessages.value"

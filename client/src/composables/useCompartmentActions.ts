@@ -26,7 +26,6 @@ export function useCompartmentActions(options: CompartmentActionsOptions) {
 
   const formOpen = ref(false)
   const formTarget = ref<CompartmentView | null>(null)
-  const formResetToken = ref(0)
   const formErrors = useServerErrors()
 
   const removeTarget = ref<CompartmentView | null>(null)
@@ -70,11 +69,10 @@ export function useCompartmentActions(options: CompartmentActionsOptions) {
     if (!done) {
       return
     }
+    formOpen.value = false
     if (target) {
-      formOpen.value = false
       showSuccess('compartment.toast.updated', 'compartment.toast.updated-detail', true, params)
     } else {
-      formResetToken.value++
       showSuccess('compartment.toast.created', 'compartment.toast.created-detail', true, params)
     }
     await options.reload()
@@ -136,7 +134,6 @@ export function useCompartmentActions(options: CompartmentActionsOptions) {
   return {
     formOpen,
     formTarget,
-    formResetToken,
     formErrors,
     removeTarget,
     removeErrors,

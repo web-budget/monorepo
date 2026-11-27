@@ -30,7 +30,6 @@ const props = defineProps<{
   open: boolean
   walletName: string
   compartment: CompartmentView | null
-  resetToken: number
   loading: boolean
   messages: string[]
   fieldErrors: Record<string, string>
@@ -58,7 +57,7 @@ const descriptionLength = computed(
 const typeChoices = computed(() => typeOptions('compartment', COMPARTMENT_TYPES, t))
 
 watch(
-  () => [props.open, props.compartment, props.resetToken],
+  () => [props.open, props.compartment],
   async () => {
     form.resetForm({
       values: props.compartment ? toCompartmentFormValues(props.compartment) : BLANK_VALUES,

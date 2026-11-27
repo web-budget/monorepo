@@ -141,7 +141,10 @@ const lastReconciliation = computed(() => {
         <DetailField :label="$t('wallet.form.agency')" :value="wallet.agency" mono />
         <DetailField :label="$t('wallet.form.number')" :value="wallet.number" mono />
       </DetailSection>
-      <DetailSection :title="$t('wallet.sections.balance')" columns="md:grid-cols-3">
+      <DetailSection
+        :title="$t('wallet.sections.balance')"
+        :columns="hasCompartments ? 'md:grid-cols-2' : 'md:grid-cols-3'"
+      >
         <DetailField v-if="hasCompartments" :label="$t('wallet.form.total')">
           <CurrencyDisplay
             :value="wallet.totalBalance"
@@ -219,7 +222,6 @@ const lastReconciliation = computed(() => {
     :open="actions.formOpen.value"
     :compartment="actions.formTarget.value"
     :wallet-name="wallet?.name ?? ''"
-    :reset-token="actions.formResetToken.value"
     :loading="compartmentsStore.loading"
     :messages="actions.formErrors.generalMessages.value"
     :field-errors="actions.formErrors.fieldMessages.value"

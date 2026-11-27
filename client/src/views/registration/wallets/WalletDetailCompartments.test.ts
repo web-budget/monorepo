@@ -153,7 +153,7 @@ describe('WalletDetailView piggy banks', () => {
     expect(router.currentRoute.value.params).toEqual({ id: 'w-1', compartmentId: 'k-1' })
   })
 
-  it('creates a piggy bank, keeps the dialog open and reloads', async () => {
+  it('creates a piggy bank, closes the dialog and reloads', async () => {
     vi.mocked(compartmentsApi.create).mockResolvedValue('k-9')
     const { wrapper } = await render()
 
@@ -176,8 +176,7 @@ describe('WalletDetailView piggy banks', () => {
       description: 'Car, em Main.',
       duration: 4000,
     })
-    expect(dialog.props('open')).toBe(true)
-    expect(dialog.props('resetToken')).toBe(1)
+    expect(dialog.props('open')).toBe(false)
     expect(compartmentsApi.findAll).toHaveBeenCalledTimes(2)
   })
 

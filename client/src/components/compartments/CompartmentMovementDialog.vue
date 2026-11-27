@@ -137,7 +137,7 @@ const submit = form.handleSubmit((submitted) => {
         <SegmentedField
           name="direction"
           :label="$t('compartment.movement.direction')"
-          class="[&>div]:w-full"
+          class="[&>div]:w-full [&>div>button]:flex-1"
           :options="[
             { value: 'DEPOSIT', label: $t('compartment.movement.deposit'), icon: ArrowDownToLine },
             {
