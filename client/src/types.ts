@@ -842,3 +842,209 @@ export interface FinancialPeriodCreation {
   id: string
   recurringLaunch: RecurringLaunchReport
 }
+
+export type ImportStatus = 'PROCESSING' | 'READY' | 'FAILED' | 'SAVED' | 'UNDONE'
+
+export type ImportStatusFilter = ImportStatus | 'ALL'
+
+export type ImportTarget = 'CARD' | 'WALLET'
+
+export type ImportAction =
+  | 'CREATE'
+  | 'LINK'
+  | 'LAUNCH_RECURRING'
+  | 'CREATE_RECURRING'
+  | 'INVOICE_PAYMENT'
+  | 'TRANSFER'
+  | 'IGNORE'
+
+export interface ImportCardView {
+  id: string
+  name: string
+  lastFourDigits: string
+}
+
+export interface ImportWalletView {
+  id: string
+  name: string
+}
+
+export interface ImportListView {
+  id: string
+  fileName: string
+  target: ImportTarget
+  card?: ImportCardView
+  wallet?: ImportWalletView
+  financialPeriod: MovementFinancialPeriodView
+  status: ImportStatus
+  error?: string
+  lines: number
+  pending: number
+  createdOn: string
+  savedOn?: string
+  undoneOn?: string
+}
+
+export interface ImportCounts {
+  processing: number
+  ready: number
+  failed: number
+  saved: number
+  undone: number
+  total: number
+}
+
+export interface ImportCreated {
+  id: string
+}
+
+export interface ImportQuery {
+  filter?: string
+  statuses?: ImportStatus[]
+  target?: ImportTarget
+  card?: string
+  wallet?: string
+  financialPeriod?: string
+  page?: number
+  size?: number
+  sort?: string
+}
+
+export interface ImportView {
+  id: string
+  fileName: string
+  target: ImportTarget
+  card?: ImportCardView
+  wallet?: ImportWalletView
+  financialPeriod: MovementFinancialPeriodView
+  status: ImportStatus
+  error?: string
+  fileType?: string
+  startingOn?: string
+  endingOn?: string
+  ledgerBalance?: number
+  ledgerBalanceOn?: string
+  createdOn: string
+  lastUpdate?: string
+  savedOn?: string
+  undoneOn?: string
+  totals: ImportLineTotals
+  result: ImportResult
+  warnings: ImportWarnings
+  undoBlockers: ImportBlocker[]
+}
+
+export type ImportCandidateKind = 'MOVEMENT' | 'PURCHASE' | 'TRANSFER' | 'RECURRING'
+
+export type ImportLineStatusFilter = 'PENDING' | 'IGNORED' | 'ALL'
+
+export type ImportIgnoreReasonCode =
+  | 'payment-received'
+  | 'iof-pair'
+  | 'credit'
+  | 'already-imported'
+  | 'already-registered'
+
+export interface ImportCandidateView {
+  kind: ImportCandidateKind
+  id: string
+  name: string
+  value: number
+  date?: string
+  financialPeriod?: MovementFinancialPeriodView
+  costCenter?: MovementCostCenterView
+  classification?: MovementClassificationView
+  recurring: boolean
+  installment?: number
+  installments?: number
+}
+
+export interface ImportLineView {
+  id: string
+  position: number
+  postedOn: string
+  value: number
+  description: string
+  name: string
+  installment?: number
+  installments?: number
+  kind: string
+  action: ImportAction
+  allowedActions: ImportAction[]
+  alreadyImported: boolean
+  alreadyRegistered: boolean
+  fromMemory: boolean
+  differentValue: boolean
+  costCenter?: MovementCostCenterView
+  classification?: MovementClassificationView
+  wallet?: ImportWalletView
+  link?: ImportCandidateView
+  created: ImportCandidateView[]
+  ignoreReason?: { code: ImportIgnoreReasonCode; date?: string }
+  pending: string[]
+}
+
+export interface ImportLineQuery {
+  filter?: string
+  pending?: boolean
+  actions?: ImportAction[]
+  page?: number
+  size?: number
+  sort?: string
+}
+
+export interface ImportLineUpdateForm {
+  name?: string
+  action?: ImportAction
+  costCenter?: string
+  classification?: string
+  wallet?: string
+  link?: { kind: ImportCandidateKind; id: string }
+  installment?: number
+  installments?: number
+}
+
+export interface ImportLinesBatchForm {
+  lines: string[]
+  action?: ImportAction
+  costCenter?: string
+  classification?: string
+}
+
+export interface ImportLineTotals {
+  lines: number
+  pending: number
+  ignored: number
+  byAction: Partial<Record<ImportAction, number>>
+}
+
+export interface ImportResult {
+  created: number
+  linked: number
+  recurring: number
+  transfers: number
+  ignored: number
+}
+
+export interface ImportWarnings {
+  unlinkedRecurring: ImportCandidateView[]
+  fileTotal?: number
+  afterSave: number
+  ledgerBalance?: number
+  currentBalance?: number
+  ignoredCredits: number
+}
+
+export interface ImportBlocker {
+  reason: string
+  position?: number
+  name?: string
+}
+
+export type ImportResultFilter =
+  | 'CREATED'
+  | 'LINKED'
+  | 'RECURRING'
+  | 'TRANSFERS'
+  | 'IGNORED'
+  | 'ALL'

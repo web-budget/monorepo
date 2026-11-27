@@ -146,6 +146,38 @@ class ListingSortOrderTest : BaseIntegrationTest() {
     @Sql(
         "/sql/financial/clear-tables.sql",
         "/sql/financial/create-registration-data.sql",
+        "/sql/financial/create-invoices.sql",
+        "/sql/financial/create-imports.sql"
+    )
+    @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
+    fun `should list the imports from the newest to the oldest by default and sort by the file name`() {
+
+        assertProperty(
+            "fileName", "/financial/imports", "",
+            "processing.ofx", "undone-statement.ofx", "broken.txt", "previous-statement.ofx"
+        )
+        assertProperty(
+            "fileName", "/financial/imports", "sort=name,asc",
+            "broken.txt", "previous-statement.ofx", "processing.ofx", "undone-statement.ofx"
+        )
+        assertProperty(
+            "fileName", "/financial/imports", "sort=name,desc",
+            "undone-statement.ofx", "processing.ofx", "previous-statement.ofx", "broken.txt"
+        )
+        assertProperty(
+            "fileName", "/financial/imports", "sort=period,asc",
+            "broken.txt", "previous-statement.ofx", "processing.ofx", "undone-statement.ofx"
+        )
+        assertProperty(
+            "fileName", "/financial/imports", "sort=period,desc",
+            "processing.ofx", "undone-statement.ofx", "broken.txt", "previous-statement.ofx"
+        )
+    }
+
+    @Test
+    @Sql(
+        "/sql/financial/clear-tables.sql",
+        "/sql/financial/create-registration-data.sql",
         "/sql/financial/create-recurring-movements.sql"
     )
     @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)

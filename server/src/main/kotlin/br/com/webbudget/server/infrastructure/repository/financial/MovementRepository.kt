@@ -56,6 +56,11 @@ class MovementRepository(
         .fetchOne()
         ?.toMovement()
 
+    fun findById(id: Long): Movement? = selectJoined()
+        .where(movements.ID.eq(id))
+        .fetchOne()
+        ?.toMovement()
+
     fun findAll(filter: MovementCriteria, today: LocalDate, pageable: Pageable): PagedModel<Movement> {
 
         val overdue = movements.STATUS.eq(Movement.Status.OPEN.name).and(movements.DUE_DATE.lt(today))
