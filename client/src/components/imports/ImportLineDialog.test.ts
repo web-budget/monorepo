@@ -140,6 +140,7 @@ describe('ImportLineDialog', () => {
     expect(header.textContent).toContain('Linha de 02/11')
     expect(file.querySelector('[data-slot="line-value"]')).not.toBeNull()
     expect(file.textContent).toContain('SUPERMERCADO BOA COMPRA')
+    expect(file.querySelector('[data-slot="line-value"]')!.textContent).not.toContain('R$')
   })
 
   it('hides the installment badge, which the fields already show, and labels the memory', async () => {
@@ -360,7 +361,7 @@ describe('ImportLineDialog', () => {
       'MOVEMENT:m-2',
     ])
     expect(dialog()!.textContent?.replace(/\s/g, ' ')).toContain(
-      'Lançado com R$ 60,00, o arquivo tem R$ 223,10',
+      'Lançado com 60,00, o arquivo tem 223,10',
     )
     expect(dialog()!.textContent).toContain('Vale o valor do arquivo.')
   })

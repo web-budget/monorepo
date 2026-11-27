@@ -44,6 +44,10 @@ const props = defineProps<{
 const emit = defineEmits<{ close: [changed: boolean] }>()
 
 const { t, n } = useI18n()
+
+function plain(value: number) {
+  return n(value, 'currency').replace(/^R\$\s*/, '')
+}
 const store = useImportsStore()
 const errors = useServerErrors()
 
@@ -221,7 +225,7 @@ async function save() {
             >
               {{ working.description }}
             </DialogDescription>
-            <ImportLineValue class="shrink-0" :value="working.value" />
+            <ImportLineValue class="shrink-0" :value="working.value" bare />
           </div>
           <ImportLineBadges :line="working" hide-installment memory-label />
         </div>
@@ -305,8 +309,8 @@ async function save() {
             <AlertTitle>
               {{
                 $t('imports.draft.difference-alert.title', {
-                  linked: n(working.link!.value, 'currency'),
-                  file: n(Math.abs(working.value), 'currency'),
+                  linked: plain(working.link!.value),
+                  file: plain(Math.abs(working.value)),
                 })
               }}
             </AlertTitle>
