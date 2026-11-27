@@ -401,6 +401,7 @@
       "cost-center": "A hierarchy to group where the money is spent.",
       "financial-period": "Create, close and reopen periods.",
       "users": "Accounts, access areas and approvals.",
+      "settings": "How many months of living costs the ideal reserve covers.",
       "integrations": "Connections with banks and external services.",
       "movement": "Income and expenses of the period.",
       "transfer": "Money that moves between wallets.",
@@ -531,6 +532,20 @@
   "integrations": {
     "title": "Integrations",
     "menu": "Integrations"
+  },
+  "settings": {
+    "title": "Settings",
+    "menu": "Settings",
+    "sections": {
+      "reserve": "Reserve"
+    },
+    "form": {
+      "reserve-months": "Months of the ideal reserve"
+    },
+    "toast": {
+      "saved": "Settings saved",
+      "saved-detail": "The ideal reserve is now {count} month of living costs. | The ideal reserve is now {count} months of living costs."
+    }
   },
   "users": {
     "title": "Users",
@@ -1392,7 +1407,11 @@
       "type-placeholder": "Select a type",
       "active-label": "Active",
       "active-hint": "Deactivate to remove from listings",
-      "type-hint": "The type does not change after creation."
+      "type-hint": "The type does not change after creation.",
+      "generic": "Generic"
+    },
+    "badge": {
+      "generic": "generic"
     },
     "list": {
       "description": "How income and expenses are grouped in reports and budgets.",
@@ -1515,7 +1534,8 @@
     "discount-too-high": "The discount must be lower than the value.",
     "adjustment-not-zero": "The adjustment cannot be zero.",
     "transfer-same-wallet": "Origin and destination must be different wallets.",
-    "first-installment-after-last": "The current installment cannot pass the number of installments."
+    "first-installment-after-last": "The current installment cannot pass the number of installments.",
+    "reserve-months-range": "Use a whole number from 1 to 24."
   },
   "crud": {
     "required-hint": "Fields with * are required.",

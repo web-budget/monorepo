@@ -401,6 +401,7 @@
       "cost-center": "Hierarquia para agrupar onde o dinheiro é gasto.",
       "financial-period": "Criar, encerrar e reabrir períodos.",
       "users": "Contas, áreas de acesso e aprovações.",
+      "settings": "Quantos meses de custo de vida a reserva ideal cobre.",
       "integrations": "Conexões com bancos e serviços externos.",
       "movement": "Receitas e despesas do período.",
       "transfer": "Dinheiro que muda de carteira.",
@@ -531,6 +532,20 @@
   "integrations": {
     "title": "Integrações",
     "menu": "Integrações"
+  },
+  "settings": {
+    "title": "Parâmetros",
+    "menu": "Parâmetros",
+    "sections": {
+      "reserve": "Reserva"
+    },
+    "form": {
+      "reserve-months": "Meses da reserva ideal"
+    },
+    "toast": {
+      "saved": "Parâmetros salvos",
+      "saved-detail": "A reserva ideal passa a ser de {count} mês de custo de vida. | A reserva ideal passa a ser de {count} meses de custo de vida."
+    }
   },
   "users": {
     "title": "Usuários",
@@ -1392,7 +1407,11 @@
       "type-placeholder": "Selecione um tipo",
       "active-label": "Ativa",
       "active-hint": "Inativar para remover das listagens",
-      "type-hint": "O tipo não muda depois de criada."
+      "type-hint": "O tipo não muda depois de criada.",
+      "generic": "Genérica"
+    },
+    "badge": {
+      "generic": "genérica"
     },
     "list": {
       "description": "Como as receitas e despesas são agrupadas nos relatórios e orçamentos.",
@@ -1515,7 +1534,8 @@
     "discount-too-high": "O desconto precisa ser menor que o valor.",
     "adjustment-not-zero": "O ajuste não pode ser zero.",
     "transfer-same-wallet": "Origem e destino precisam ser carteiras diferentes.",
-    "first-installment-after-last": "A parcela atual não pode passar do número de parcelas."
+    "first-installment-after-last": "A parcela atual não pode passar do número de parcelas.",
+    "reserve-months-range": "Use um número inteiro de 1 a 24."
   },
   "crud": {
     "required-hint": "Campos com * são obrigatórios.",

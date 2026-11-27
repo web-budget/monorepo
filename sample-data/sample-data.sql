@@ -43,8 +43,8 @@ FROM (VALUES
 JOIN registration.cost_centers AS parent ON parent.full_name = v.parent_name AND parent.id_parent IS NULL;
 
 -- Classificações (lista plana). O app grava last_update nulo na criação.
-INSERT INTO registration.classifications (external_id, version, created_on, active, name, type)
-SELECT gen_random_uuid(), 0, LOCALTIMESTAMP, TRUE, v.name, v.type
+INSERT INTO registration.classifications (external_id, version, created_on, active, generic, name, type)
+SELECT gen_random_uuid(), 0, LOCALTIMESTAMP, TRUE, v.name IN ('Outras despesas', 'Outras receitas'), v.name, v.type
 FROM (VALUES
     ('Aluguel ou prestação', 'EXPENSE'),
     ('Condomínio', 'EXPENSE'),

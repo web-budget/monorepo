@@ -6,7 +6,8 @@ class Classification(
     var name: String,
     var type: Type,
     var active: Boolean = true,
-    var description: String? = null
+    var description: String? = null,
+    var generic: Boolean = false
 ) : PersistentEntity() {
 
     enum class Type {

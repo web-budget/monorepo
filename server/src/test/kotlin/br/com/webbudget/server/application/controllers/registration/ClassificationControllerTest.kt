@@ -149,6 +149,78 @@ class ClassificationControllerTest : BaseIntegrationTest() {
     }
 
     @Test
+    fun `should be not generic by default and mark generic ones of both types`() {
+
+        restTestClient.get()
+            .uri("$ENDPOINT_URL/$SALES_ID")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.generic").isEqualTo(false)
+
+        restTestClient.post()
+            .uri(ENDPOINT_URL)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"name": "Outras despesas", "type": "EXPENSE", "generic": true}""")
+            .exchange()
+            .expectStatus().isCreated
+
+        restTestClient.post()
+            .uri(ENDPOINT_URL)
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"name": "Outras receitas", "type": "INCOME", "generic": true}""")
+            .exchange()
+            .expectStatus().isCreated
+
+        val generics = classificationRepository.findAll(null, null, PageRequest.of(0, 10)).content
+            .filter { it.generic }
+            .map { it.name }
+
+        assertThat(generics).containsExactlyInAnyOrder("Outras despesas", "Outras receitas")
+
+        restTestClient.get()
+            .uri("$ENDPOINT_URL?filter=Outras&sort=name")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.content[0].generic").isEqualTo(true)
+            .jsonPath("$.content[1].generic").isEqualTo(true)
+
+        restTestClient.get()
+            .uri("$ENDPOINT_URL?filter=Mercado")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.content[0].generic").isEqualTo(false)
+    }
+
+    @Test
+    fun `should mark and unmark the classification as generic on update`() {
+
+        restTestClient.put()
+            .uri("$ENDPOINT_URL/$SALES_ID")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"name": "Vendas", "active": true, "generic": true}""")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.generic").isEqualTo(true)
+
+        assertThat(classificationRepository.findByExternalId(UUID.fromString(SALES_ID))!!.generic).isTrue()
+
+        restTestClient.put()
+            .uri("$ENDPOINT_URL/$SALES_ID")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"name": "Vendas", "active": true}""")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.generic").isEqualTo(false)
+
+        assertThat(classificationRepository.findByExternalId(UUID.fromString(SALES_ID))!!.generic).isFalse()
+    }
+
+    @Test
     fun `should answer unprocessable content when the required fields are missing`() {
 
         restTestClient.post()

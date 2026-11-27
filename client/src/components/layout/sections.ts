@@ -9,6 +9,7 @@ import {
   ReceiptText,
   RefreshCw,
   ScrollText,
+  SlidersHorizontal,
   Tags,
   Users,
   Wallet,
@@ -130,6 +131,12 @@ export const configurationSection: ModuleSectionDefinition = {
       icon: Users,
       to: '/configuration/users',
       description: 'module-home.items.users',
+    },
+    {
+      label: 'settings.menu',
+      icon: SlidersHorizontal,
+      to: '/configuration/settings',
+      description: 'module-home.items.settings',
     },
     {
       label: 'integrations.menu',

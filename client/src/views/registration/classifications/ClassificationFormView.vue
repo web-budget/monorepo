@@ -7,6 +7,7 @@ import FormSection from '@/components/forms/FormSection.vue'
 import InputField from '@/components/forms/InputField.vue'
 import SelectField from '@/components/forms/SelectField.vue'
 import StatusSection from '@/components/forms/StatusSection.vue'
+import StatusToggle from '@/components/forms/StatusToggle.vue'
 import { useCrudForm } from '@/composables/useCrudForm'
 import {
   CLASSIFICATION_TYPES,
@@ -83,6 +84,12 @@ const classificationTypes = computed(() => typeOptions('classification', CLASSIF
         :placeholder="$t('classification.form.type-placeholder')"
         :disabled="updating"
         required
+      />
+      <StatusToggle
+        name="generic"
+        :heading="$t('classification.form.generic')"
+        label=""
+        class="md:col-span-1"
       />
       <InputField
         name="description"

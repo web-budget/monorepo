@@ -35,6 +35,13 @@ describe('StatusToggle', () => {
     expect(wrapper.find('button[role="switch"]').attributes('aria-checked')).toBe('false')
   })
 
+  it('names the switch after the heading when the label is empty', () => {
+    const { wrapper } = render(false, { heading: 'Genérica', label: '' })
+
+    expect(wrapper.find('button[role="switch"]').attributes('aria-label')).toBe('Genérica')
+    expect(wrapper.text()).toContain('Genérica')
+  })
+
   it('writes the switch back to the form', async () => {
     const { wrapper, values } = render(true)
 
