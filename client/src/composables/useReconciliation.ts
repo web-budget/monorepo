@@ -3,7 +3,13 @@ import { useI18n } from 'vue-i18n'
 import { useNotification } from '@/composables/useNotification'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { useStatementStore } from '@/stores/statement'
-import type { ReconciliationForm, ReconciliationResultView, WalletType } from '@/types'
+import type {
+  ReconciliationBalanceView,
+  ReconciliationCompartmentView,
+  ReconciliationForm,
+  ReconciliationResultView,
+  WalletType,
+} from '@/types'
 import { markHandled } from '@/utils/handledErrors'
 import { balanceChangeOf, reconciliationNotice, type BalanceChange } from '@/utils/reconciliation'
 
@@ -12,6 +18,8 @@ export interface ReconcilableWallet {
   name: string
   personal: boolean
   balance: number
+  freeBalance: number
+  compartments: ReconciliationCompartmentView[]
 }
 
 export function useReconciliation(reload: () => Promise<unknown>) {
@@ -22,14 +30,22 @@ export function useReconciliation(reload: () => Promise<unknown>) {
   const target = ref<ReconcilableWallet | null>(null)
   const balanceChange = ref<BalanceChange | null>(null)
 
-  function open(wallet: { id: string; name: string; type: WalletType }, balance: number) {
+  async function open(wallet: { id: string; name: string; type: WalletType }) {
     errors.clear()
     balanceChange.value = null
+    let reference: ReconciliationBalanceView
+    try {
+      reference = await statement.findReconciliationBalance(wallet.id)
+    } catch {
+      return
+    }
     target.value = {
       id: wallet.id,
       name: wallet.name,
       personal: wallet.type === 'PERSONAL',
-      balance,
+      balance: reference.totalBalance,
+      freeBalance: reference.freeBalance,
+      compartments: reference.compartments,
     }
   }
 
@@ -47,7 +63,12 @@ export function useReconciliation(reload: () => Promise<unknown>) {
       const change = balanceChangeOf(error)
       if (change) {
         markHandled(error)
-        target.value = { ...wallet, balance: change.balance }
+        target.value = {
+          ...wallet,
+          balance: change.balance,
+          freeBalance: change.freeBalance,
+          compartments: change.compartments,
+        }
         balanceChange.value = change
       } else {
         await errors.run(() => Promise.reject(error))

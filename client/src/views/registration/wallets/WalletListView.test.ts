@@ -83,6 +83,11 @@ function listing() {
 describe('WalletListView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(reconciliationsApi.findBalance).mockResolvedValue({
+      freeBalance: 4812.37,
+      totalBalance: 4812.37,
+      compartments: [],
+    })
     document.body.replaceChildren()
   })
 
@@ -475,7 +480,10 @@ describe('WalletListView', () => {
       name: 'Main',
       personal: false,
       balance: 4812.37,
+      freeBalance: 4812.37,
+      compartments: [],
     })
+    expect(reconciliationsApi.findBalance).toHaveBeenCalledWith('w-1')
     const before = listing().length
     const form = { informedBalance: 4824.77, shownBalance: 4812.37, reason: 'Centavos' }
     dialog.vm.$emit('reconcile', dialog.props('wallet'), form)
@@ -527,6 +535,68 @@ describe('WalletListView', () => {
     expect(wrapper.getComponent(ReconcileDialog).props('wallet')).not.toBeNull()
     expect(wrapper.getComponent(ReconcileDialog).props('messages')).toHaveLength(1)
     expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
+  })
+
+  it('opens the reconciliation with the total, the free balance and the compartments of the wallet', async () => {
+    vi.mocked(reconciliationsApi.findBalance).mockResolvedValue({
+      freeBalance: 500,
+      totalBalance: 1500,
+      compartments: [{ id: 'c-1', name: 'Reserva da casa', balance: 1000 }],
+    })
+    const { wrapper } = await render()
+
+    await chooseRowAction(wrapper, 0, 'Conciliar')
+
+    expect(wrapper.getComponent(ReconcileDialog).props('wallet')).toEqual({
+      id: 'w-1',
+      name: 'Main',
+      personal: false,
+      balance: 1500,
+      freeBalance: 500,
+      compartments: [{ id: 'c-1', name: 'Reserva da casa', balance: 1000 }],
+    })
+  })
+
+  it('does not open the reconciliation when the balances of the wallet fail to load', async () => {
+    vi.mocked(reconciliationsApi.findBalance).mockRejectedValue(problem(500))
+    const { wrapper } = await render()
+
+    await chooseRowAction(wrapper, 0, 'Conciliar')
+
+    expect(wrapper.getComponent(ReconcileDialog).props('wallet')).toBeNull()
+  })
+
+  it('swaps the total, the free balance and the compartments when the balance changed meanwhile', async () => {
+    vi.mocked(reconciliationsApi.reconcile).mockRejectedValue(
+      problem(409, {
+        error: 'reconciliation-balance-changed',
+        parameters: {
+          currentBalance: 1450,
+          difference: 10,
+          freeBalance: 450,
+          compartments: [{ id: 'c-1', name: 'Reserva da casa', balance: 1000 }],
+        },
+      }),
+    )
+    const { wrapper } = await render()
+
+    await chooseRowAction(wrapper, 0, 'Conciliar')
+    const dialog = wrapper.getComponent(ReconcileDialog)
+    dialog.vm.$emit('reconcile', dialog.props('wallet'), {
+      informedBalance: 1460,
+      shownBalance: 4812.37,
+      reason: 'Centavos',
+    })
+    await flushPromises()
+
+    expect(dialog.props('wallet')).toEqual({
+      id: 'w-1',
+      name: 'Main',
+      personal: false,
+      balance: 1450,
+      freeBalance: 450,
+      compartments: [{ id: 'c-1', name: 'Reserva da casa', balance: 1000 }],
+    })
   })
 
   it('closes the reconciliation dialog', async () => {

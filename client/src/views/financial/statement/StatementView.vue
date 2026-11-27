@@ -318,7 +318,7 @@ const reconciliation = useReconciliation(async () => {
           type="button"
           variant="outline"
           :disabled="!wallet?.active || balance === null"
-          @click="reconciliation.open(wallet!, balance!)"
+          @click="reconciliation.open(wallet!)"
         >
           <CheckCheck />{{ $t('statement.actions.reconcile') }}
         </Button>

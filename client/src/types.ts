@@ -613,6 +613,18 @@ export interface ReconciliationView {
   entryId: string
 }
 
+export interface ReconciliationCompartmentView {
+  id: string
+  name: string
+  balance: number
+}
+
+export interface ReconciliationBalanceView {
+  freeBalance: number
+  totalBalance: number
+  compartments: ReconciliationCompartmentView[]
+}
+
 export interface ReconciliationPosition {
   position: number
 }
@@ -1189,11 +1201,7 @@ export type ImportCandidateKind = 'MOVEMENT' | 'PURCHASE' | 'TRANSFER' | 'RECURR
 export type ImportLineStatusFilter = 'PENDING' | 'IGNORED' | 'ALL'
 
 export type ImportIgnoreReasonCode =
-  | 'payment-received'
-  | 'iof-pair'
-  | 'credit'
-  | 'already-imported'
-  | 'already-registered'
+  'payment-received' | 'iof-pair' | 'credit' | 'already-imported' | 'already-registered'
 
 export interface ImportCandidateView {
   kind: ImportCandidateKind
@@ -1292,9 +1300,4 @@ export interface ImportBlocker {
 }
 
 export type ImportResultFilter =
-  | 'CREATED'
-  | 'LINKED'
-  | 'RECURRING'
-  | 'TRANSFERS'
-  | 'IGNORED'
-  | 'ALL'
+  'CREATED' | 'LINKED' | 'RECURRING' | 'TRANSFERS' | 'IGNORED' | 'ALL'
