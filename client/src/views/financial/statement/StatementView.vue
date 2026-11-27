@@ -3,6 +3,7 @@ import {
   ArrowDownLeft,
   ArrowLeftRight,
   ArrowUpRight,
+  FileUp,
   Scale,
   ScrollText,
   Undo2,
@@ -309,6 +310,11 @@ async function adjust(target: { id: string }, form: { value: number }) {
       :description="wallet ? $t('statement.description', { name: wallet.name }) : undefined"
     >
       <template #actions>
+        <Button as-child variant="outline">
+          <RouterLink :to="{ name: 'imports.create', query: { wallet: wallet?.id ?? '' } }">
+            <FileUp />{{ $t('statement.actions.import') }}
+          </RouterLink>
+        </Button>
         <Button
           type="button"
           variant="outline"

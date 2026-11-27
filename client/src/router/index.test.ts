@@ -31,10 +31,20 @@ describe('router', () => {
       .map((record) => record.components?.default)
       .filter((component) => typeof component === 'function')
 
-    expect(loaders).toHaveLength(61)
+    expect(loaders).toHaveLength(64)
     for (const loader of loaders) {
       expect(await (loader as () => Promise<unknown>)()).toHaveProperty('default')
     }
+  })
+
+  it('sends the old invoice import address to the new import with the same parameters', () => {
+    const record = router.getRoutes().find((candidate) => candidate.name === 'invoices.import')
+    const redirect = record?.redirect as (to: ReturnType<typeof router.resolve>) => unknown
+
+    expect(redirect(router.resolve('/financial/invoices/import?card=c-1&period=p-11'))).toEqual({
+      name: 'imports.create',
+      query: { card: 'c-1', period: 'p-11' },
+    })
   })
 
   it('treats the authentication and error screens as public', () => {

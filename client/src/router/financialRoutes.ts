@@ -82,8 +82,7 @@ export const financialRoutes: RouteRecordRaw[] = [
           {
             path: 'import',
             name: 'invoices.import',
-            meta: { breadcrumb: 'credit-card-invoice.import.breadcrumb' },
-            component: () => import('@/views/financial/invoices/InvoiceImportView.vue'),
+            redirect: (to) => ({ name: 'imports.create', query: to.query }),
           },
           { path: 'purchases', name: 'purchases', redirect: { name: 'invoices' } },
           {
@@ -105,6 +104,37 @@ export const financialRoutes: RouteRecordRaw[] = [
             props: true,
             meta: { breadcrumb: 'card-purchase.form.detailing' },
             component: () => import('@/views/financial/invoices/CardPurchaseDetailView.vue'),
+          },
+        ],
+      },
+      {
+        path: 'imports',
+        meta: { breadcrumb: 'imports.menu' },
+        children: [
+          {
+            path: '',
+            name: 'imports',
+            component: () => import('@/views/financial/imports/ImportListView.vue'),
+          },
+          {
+            path: 'create',
+            name: 'imports.create',
+            meta: { breadcrumb: 'imports.form.breadcrumb' },
+            component: () => import('@/views/financial/imports/ImportFormView.vue'),
+          },
+          {
+            path: ':id/detail',
+            name: 'imports.detail',
+            props: true,
+            meta: { breadcrumb: 'imports.detail.breadcrumb' },
+            component: () => import('@/views/financial/imports/ImportDetailView.vue'),
+          },
+          {
+            path: ':id/draft',
+            name: 'imports.draft',
+            props: true,
+            meta: { breadcrumb: 'imports.draft.breadcrumb' },
+            component: () => import('@/views/financial/imports/ImportDraftView.vue'),
           },
         ],
       },

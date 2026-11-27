@@ -82,7 +82,7 @@ async function render(content: Partial<InvoiceView> = {}, purchaseList = purchas
     { id: 'i-1' },
     {},
     undefined,
-    namedTestRoutes('purchases.create', 'purchases.detail', 'invoices.import', 'movements.detail'),
+    namedTestRoutes('purchases.create', 'purchases.detail', 'imports.create', 'movements.detail'),
   )
 }
 
@@ -148,7 +148,7 @@ describe('InvoiceDetailView', () => {
     const importation = wrapper
       .findAll('a')
       .find((candidate) => candidate.text() === 'Importar fatura')!
-    expect(importation.attributes('href')).toBe('/__invoices.import?card=c-1&period=p-11')
+    expect(importation.attributes('href')).toBe('/__imports.create?card=c-1&period=p-11')
 
     await wrapper.find('tbody tr').trigger('click')
     await flushPromises()

@@ -6,6 +6,7 @@ import { useCompartmentsStore } from '@/stores/compartments'
 import { useCostCentersStore } from '@/stores/costCenters'
 import { useFinancialFlowStore } from '@/stores/financialFlow'
 import { useFinancialPeriodsStore } from '@/stores/financialPeriods'
+import { useImportsStore } from '@/stores/imports'
 import { useInvoicesStore } from '@/stores/invoices'
 import { useMovementsStore } from '@/stores/movements'
 import { usePeriodClosingStore } from '@/stores/periodClosing'
@@ -27,6 +28,7 @@ export function resetUserStores() {
   useCompartmentsStore().reset()
   useFinancialFlowStore().reset()
   useFinancialPeriodsStore().reset()
+  useImportsStore().reset()
   useInvoicesStore().reset()
   useMovementsStore().reset()
   usePeriodClosingStore().reset()

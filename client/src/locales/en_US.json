@@ -31,6 +31,12 @@
       "invalid-user-status-transition": "The account changed status while the screen was open. Refresh the list.",
       "transfer-already-returned": "The transfer was already returned.",
       "transfer-is-a-return": "A return cannot be returned.",
+      "import-draft-already-exists": "There is already a draft for this destination in this period",
+      "import-not-editable": "The import is no longer a draft, refresh the screen",
+      "import-not-discardable": "A saved import cannot be discarded, undo the import",
+      "import-not-ready": "The import is not a draft to save",
+      "import-not-saved": "The import is not saved",
+      "import-undo-blocked": "Something changed after saving and the import cannot be undone",
       "compartment": {
         "name": "A piggy bank named \"{value}\" already exists in this wallet"
       }
@@ -86,6 +92,10 @@
       "recurring-movement-inactive": "The recurring movement is inactive",
       "recurring-movement-finished": "The recurring movement has already launched every installment",
       "launch-quantity-out-of-range": "The quantity is above what can be launched",
+      "import-target-required": "The import needs a card or a wallet, only one of the two",
+      "import-action-not-allowed": "This action is not valid for this destination and line",
+      "import-link-not-available": "The chosen entry is no longer available for this line",
+      "import-with-pending-lines": "There are still {pending} lines to resolve",
       "compartment-goal-fields-not-allowed": "Only a goal has description, target value and target date",
       "invalid-compartment-target-value": "The target value must be greater than zero.",
       "compartment-target-date-in-past": "The target date can not be before today.",
@@ -403,6 +413,7 @@
     "items": {
       "recurrent-movement": "Post movements and purchases every period.",
       "credit-card-invoice": "Purchases of each card by period.",
+      "import": "OFX files of invoices and statements, checked before they are saved.",
       "period-closing": "Settle pending items and record the result.",
       "wallet": "Bank accounts, investments and cash.",
       "card": "Credit cards.",
@@ -418,6 +429,8 @@
     "attention": {
       "overdue": "{count} overdue | {count} overdue",
       "closed-invoice": "{count} closed to pay | {count} closed to pay",
+      "imports-ready": "{count} to check",
+      "imports-failed": "{count} failed",
       "expired": "{count} expired | {count} expired",
       "pending": "{period} pending"
     }
@@ -899,6 +912,335 @@
       "already-launched-in-period": "already launched in the period"
     }
   },
+  "imports": {
+    "title": "Imports",
+    "menu": "Imports",
+    "search": "File, card or wallet name",
+    "actions": {
+      "create": "Create"
+    },
+    "list": {
+      "description": "OFX files of invoices and statements, checked before they are saved.",
+      "empty-title": "No imports yet",
+      "empty-description": "Upload the OFX of a card invoice or of an account statement.",
+      "plural": "the imports",
+      "noun": "import | imports",
+      "pending": "{count} to resolve",
+      "error-description": "The server did not answer. Your filters stay in the URL.",
+      "no-result-query": "No import found for “{query}”",
+      "no-result-filter": "No import with these filters",
+      "no-result-hint": "Change the filters or clear the search.",
+      "no-result-action": "Clear filters"
+    },
+    "status": {
+      "PROCESSING": "Processing",
+      "READY": "Ready",
+      "FAILED": "Failed",
+      "SAVED": "Saved",
+      "UNDONE": "Undone"
+    },
+    "status-tabs": {
+      "READY": "Ready",
+      "PROCESSING": "Processing",
+      "FAILED": "Failed",
+      "SAVED": "Saved",
+      "UNDONE": "Undone"
+    },
+    "filters": {
+      "destination": "Destination",
+      "period": "Period",
+      "all": "All",
+      "closed": "{name} · closed",
+      "clear": "Clear"
+    },
+    "columns": {
+      "file": "File",
+      "destination": "Destination",
+      "period": "Period",
+      "lines": "Lines",
+      "sent-on": "Sent on",
+      "status": "Status"
+    },
+    "form": {
+      "title": "New import",
+      "description": "Fields with * are required.",
+      "breadcrumb": "Importing",
+      "destination": "Destination",
+      "kind": {
+        "card": "Card invoice",
+        "wallet": "Wallet statement"
+      },
+      "card": "Card",
+      "wallet": "Wallet",
+      "period": "Period",
+      "expired": "{name} · expired",
+      "file": "File",
+      "file-info": "OFX · {size}",
+      "drop": "Drop the file or click to choose",
+      "only-ofx": "OFX only.",
+      "replace-file": "Replace the file",
+      "send": "Import",
+      "no-invoice": {
+        "title": "There is no open invoice for {card} in {period}",
+        "text": "Choose another period or open the invoice.",
+        "action": "See invoices"
+      },
+      "draft": {
+        "title": "There is already {kind} for {destination} in {period}",
+        "kind": {
+          "PROCESSING": "an import being processed",
+          "READY": "a draft"
+        },
+        "text": "Finish or discard what is open.",
+        "action": "Open draft"
+      }
+    },
+    "toast": {
+      "sent": "Import sent"
+    },
+    "detail": {
+      "breadcrumb": "Viewing",
+      "section": "Import",
+      "file": "File",
+      "processing": "Reading the file",
+      "retry": "Import again"
+    },
+    "draft": {
+      "breadcrumb": "Reviewing",
+      "search": "Name or bank description",
+      "saved-at": "Saved at {time}",
+      "sent-on": "sent on",
+      "noun": "line | lines",
+      "tabs": {
+        "PENDING": "To resolve",
+        "IGNORED": "Ignored",
+        "ALL": "All"
+      },
+      "select-visible": "Select the visible lines",
+      "select-all": "Select all",
+      "select-line": "Select {name}",
+      "incoming": "Incoming",
+      "outgoing": "Outgoing",
+      "memory": "Suggested from memory",
+      "and": " and ",
+      "choose": "Choose",
+      "close": "Close",
+      "all-resolved": "All resolved",
+      "pending": "{count} line to resolve | {count} lines to resolve",
+      "save": "Save",
+      "save-blocked": "Resolve the line to save | Resolve the {count} lines to save",
+      "saved": "Import saved",
+      "transfer-to": "To {wallet}",
+      "missing": "Missing {what}",
+      "columns": {
+        "date": "Date",
+        "name": "Name",
+        "value": "Amount (R$)",
+        "action": "Action",
+        "detail": "Detail"
+      },
+      "actions": {
+        "CREATE": "Create",
+        "LINK": "Link",
+        "LAUNCH_RECURRING": "Launch recurring",
+        "CREATE_RECURRING": "Create recurring",
+        "INVOICE_PAYMENT": "Invoice payment",
+        "TRANSFER": "Transfer",
+        "IGNORE": "Ignore"
+      },
+      "badges": {
+        "already-imported": "Already imported",
+        "already-registered": "Already registered",
+        "credit": "Credit without purchase",
+        "difference": "Difference of {value}"
+      },
+      "reasons": {
+        "cost-center": "cost center",
+        "classification": "classification",
+        "installments": "installments",
+        "wallet": "wallet",
+        "link": {
+          "LINK": "the linked entry",
+          "INVOICE_PAYMENT": "invoice payment",
+          "LAUNCH_RECURRING": "the recurring"
+        }
+      },
+      "ignored": {
+        "user": "Ignored by you",
+        "payment-received": "Payment of the previous invoice",
+        "iof-pair": "IOF of a foreign purchase",
+        "credit": "Card credit",
+        "already-imported": "Already imported on {date}",
+        "already-registered": "Already registered"
+      },
+      "totals": {
+        "lines": "Lines",
+        "ignored": "{count} ignored | {count} ignored",
+        "pending": "To resolve",
+        "file": "File total",
+        "without-payment": "Without the payment received",
+        "invoice-after": "Invoice after saving",
+        "ledger": "File balance",
+        "ledger-on": "On {date}",
+        "balance-after": "Balance after saving",
+        "difference": "Difference of {value}",
+        "credits": "{value} in ignored credits"
+      },
+      "recurring": {
+        "alert": "{count} launched recurring did not come in the file | {count} launched recurrings did not come in the file",
+        "show": "See entry | See entries",
+        "title": "Recurrings that did not come in the file",
+        "open": "Open"
+      },
+      "bulk": {
+        "label": "Bulk actions",
+        "selected": "{count} line selected | {count} lines selected",
+        "action": "Action",
+        "keep": "Keep",
+        "apply": "Apply",
+        "clear": "Clear selection",
+        "changed": "{count} line changed | {count} lines changed",
+        "skipped": "{count} line does not accept this action and stayed as it was | {count} lines do not accept this action and stayed as they were"
+      },
+      "fields": {
+        "name": "Name",
+        "action": "Action",
+        "cost-center": "Cost center",
+        "classification": "Expense classification",
+        "income-classification": "Income classification",
+        "installment": "Current installment",
+        "installments": "Number of installments",
+        "wallet-to": "To the wallet",
+        "link": {
+          "LINK": "Entry",
+          "INVOICE_PAYMENT": "Invoice payment",
+          "LAUNCH_RECURRING": "Recurring"
+        }
+      },
+      "dialog": {
+        "title": "Line of"
+      },
+      "difference-alert": {
+        "title": "Launched with {linked}, the file has {file}"
+      },
+      "list": {
+        "no-result-query": "No line found for “{query}”",
+        "none-pending": "No line to resolve",
+        "none-ignored": "No ignored line",
+        "no-result-hint": "Change the search or see all the lines.",
+        "clear-search": "Clear search",
+        "show-all": "See all"
+      },
+      "discard": {
+        "action": "Discard",
+        "title": "Discard the draft?",
+        "description": "Nothing is launched and the choices in the draft are lost.",
+        "confirm": "Discard",
+        "done": "Draft discarded"
+      }
+    },
+    "saved": {
+      "saved-on": "saved on",
+      "undone-on": "Undone on",
+      "undone": "Import undone",
+      "undone-card": "The {period} invoice is back to what it was.",
+      "undone-wallet": "{wallet} is back to what it was.",
+      "blocked": "Undoing is blocked",
+      "none": "No line in this tab",
+      "open": "Open the entry of {name}",
+      "cards": {
+        "created": "Created",
+        "linked": "Linked",
+        "recurring": "Recurrings",
+        "transfers": "Transfers",
+        "ignored": "Ignored"
+      },
+      "tabs": {
+        "CREATED": "Created",
+        "LINKED": "Linked",
+        "RECURRING": "Recurrings",
+        "TRANSFERS": "Transfers",
+        "IGNORED": "Ignored",
+        "ALL": "All"
+      },
+      "columns": {
+        "result": "Result",
+        "open": "Open"
+      },
+      "result": {
+        "of": " of {month}",
+        "create-card": "Purchase created on the invoice",
+        "create-income": "Income created, already received",
+        "create-expense": "Expense created, already paid",
+        "link-card": "Linked to “{name}”{other}, paid on the card",
+        "link-income": "Linked to “{name}”{other}, received by the line",
+        "link-expense": "Linked to “{name}”{other}, paid by the line",
+        "link-transfer": "Linked to the transfer already registered",
+        "launch-recurring": "Installment launched from “{name}” and paid on the card",
+        "create-recurring": "Recurring created ({installment}/{installments}) and installment paid on the card",
+        "invoice-payment": "Paid “{name}”",
+        "transfer": "Transfer to {wallet}"
+      },
+      "undo": {
+        "action": "Undo import",
+        "confirm": "Undo",
+        "title": "Undo the import of {file}?",
+        "card": {
+          "created": "Deletes {count} purchase created on the invoice. | Deletes {count} purchases created on the invoice.",
+          "linked": "Takes {count} linked entry off the invoice, which goes back to open with the value it had. | Takes {count} linked entries off the invoice, which go back to open with the value they had.",
+          "extra": "Deletes {count} installment launched by the import and the recurrings it created. | Deletes {count} installments launched by the import and the recurrings it created."
+        },
+        "wallet": {
+          "created": "Deletes {count} movement created, with the reversal in the statement. | Deletes {count} movements created, with the reversal in the statement.",
+          "linked": "Undoes the payment of {count} linked entry, which goes back to open. | Undoes the payment of {count} linked entries, which go back to open.",
+          "extra": "Returns {count} transfer created by the import. | Returns {count} transfers created by the import.",
+          "note": "Links to transfers already registered are only undone; the transfer stays."
+        }
+      },
+      "blockers": {
+        "unknown": "Something changed after saving.",
+        "financial-period-not-open": "{period} is not open.",
+        "invoice-not-open": "The {period} invoice of {card} is not open.",
+        "created-purchase-changed": "The purchase created by “{name}” (line {position}) was changed after saving.",
+        "linked-entry-changed": "The entry linked to “{name}” (line {position}) was changed after saving.",
+        "launched-movement-changed": "The entry of the installment of “{name}” (line {position}) was changed after saving.",
+        "recurring-launched-elsewhere": "The recurring of “{name}” (line {position}) already launched installments in another period.",
+        "created-movement-changed": "The movement created by “{name}” (line {position}) was changed after saving.",
+        "linked-period-not-open": "The period of the entry linked to “{name}” (line {position}) is not open.",
+        "created-transfer-changed": "The transfer created by “{name}” (line {position}) was changed after saving."
+      }
+    },
+    "errors": {
+      "invalid-ofx-file": {
+        "title": "The file is not an OFX",
+        "text": "Export it again from the bank, as OFX."
+      },
+      "unsupported-ofx-type": {
+        "title": "The file is neither a credit card nor an account statement",
+        "text": "Export the OFX of a card invoice or of an account statement."
+      },
+      "card-statement-on-wallet": {
+        "title": "The file is from a credit card, and the destination is a wallet",
+        "text": "Import again with a card as the destination."
+      },
+      "account-statement-on-card": {
+        "title": "The file is from an account, and the destination is a card invoice",
+        "text": "Import again with a wallet as the destination."
+      },
+      "no-open-invoice": {
+        "title": "The {period} invoice of {card} is not open",
+        "text": "Reopen the invoice or import into another period."
+      },
+      "financial-period-not-open": {
+        "title": "{period} is not open",
+        "text": "Import again into an open period."
+      },
+      "import-processing-failed": {
+        "title": "The file could not be read",
+        "text": "Check the file and import again."
+      }
+    }
+  },
   "credit-card-invoice": {
     "title": "Card invoice",
     "menu": "Card invoice",
@@ -990,25 +1332,7 @@
       "reopened": "Invoice reopened",
       "reopened-detail": "The invoice payment was deleted."
     },
-    "due-date-open": "after closing",
-    "import": {
-      "breadcrumb": "Importing",
-      "title": "Import invoice",
-      "description": "Upload the CSV or OFX, classify and save.",
-      "steps": {
-        "upload": "Upload",
-        "processing": "Processing",
-        "draft": "Draft"
-      },
-      "card": "Card",
-      "period": "Invoice period",
-      "period-hint": "The card invoice must be open in this period.",
-      "drop": "Drag the invoice file or click to choose",
-      "formats": "CSV or OFX, up to 5 MB.",
-      "send": "Upload file",
-      "recent": "Recent imports",
-      "recent-empty": "No imports yet."
-    }
+    "due-date-open": "after closing"
   },
   "period-closing": {
     "title": "Closing",
@@ -2034,6 +2358,7 @@
       "no-result-action": "Clear filters"
     },
     "actions": {
+      "import": "Import statement",
       "adjust": "Adjust balance",
       "transfer": "Transfer",
       "open-compartment": "Open the piggy bank"

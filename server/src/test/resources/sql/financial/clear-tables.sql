@@ -1,3 +1,6 @@
+DELETE FROM financial.import_name_memories;
+DELETE FROM financial.import_lines;
+DELETE FROM financial.imports;
 DELETE FROM financial.period_results;
 DELETE FROM financial.recurring_launches;
 DELETE FROM financial.recurring_values;

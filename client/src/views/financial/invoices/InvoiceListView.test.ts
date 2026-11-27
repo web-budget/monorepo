@@ -102,7 +102,7 @@ async function render(location?: string, content = invoices, total = content.len
     {},
     {},
     location,
-    namedTestRoutes('purchases.create', 'invoices.import', 'financial-periods.create'),
+    namedTestRoutes('purchases.create', 'imports.create', 'financial-periods.create'),
   )
 }
 
@@ -315,7 +315,7 @@ describe('InvoiceListView', () => {
 
     await buttonWithText(wrapper, 'Importar fatura').trigger('click')
     await flushPromises()
-    expect(router.currentRoute.value.name).toBe('invoices.import')
+    expect(router.currentRoute.value.name).toBe('imports.create')
     expect(router.currentRoute.value.query).toEqual({})
   })
 
@@ -355,7 +355,7 @@ describe('InvoiceListView', () => {
     expect(router.currentRoute.value.query).toEqual({ card: 'c-1', period: 'p-11' })
 
     await chooseRowAction(wrapper, 0, 'Importar fatura')
-    expect(router.currentRoute.value.name).toBe('invoices.import')
+    expect(router.currentRoute.value.name).toBe('imports.create')
     expect(router.currentRoute.value.query).toEqual({ card: 'c-1', period: 'p-11' })
 
     await chooseRowAction(wrapper, 1, 'Abrir fatura')

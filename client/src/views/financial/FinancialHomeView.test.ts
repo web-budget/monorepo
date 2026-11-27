@@ -1,6 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { financialPeriodsApi } from '@/api/financialPeriods'
+import { importsApi } from '@/api/imports'
 import { invoicesApi } from '@/api/invoices'
 import { movementsApi } from '@/api/movements'
 import { recurringMovementsApi } from '@/api/recurringMovements'
@@ -12,6 +13,7 @@ import type { FinancialPeriodListView, WalletListView } from '@/types'
 import FinancialHomeView from '@/views/financial/FinancialHomeView.vue'
 
 vi.mock('@/api/financialPeriods')
+vi.mock('@/api/imports')
 vi.mock('@/api/invoices')
 vi.mock('@/api/movements')
 vi.mock('@/api/recurringMovements')
@@ -85,6 +87,14 @@ describe('FinancialHomeView', () => {
     vi.mocked(invoicesApi.findAll).mockImplementation(async (query) =>
       pageOf(query.statuses ? 1 : 4),
     )
+    vi.mocked(importsApi.counts).mockResolvedValue({
+      processing: 1,
+      ready: 2,
+      failed: 1,
+      saved: 3,
+      undone: 0,
+      total: 7,
+    })
   })
 
   it('introduces the module and links every item of the side menu', async () => {
@@ -102,6 +112,7 @@ describe('FinancialHomeView', () => {
       '/financial/statement',
       '/financial/recurring-movements',
       '/financial/invoices',
+      '/financial/imports',
       '/financial/periods',
       '/financial/closing',
     ])
@@ -123,6 +134,10 @@ describe('FinancialHomeView', () => {
     expect(card(wrapper, '/financial/recurring-movements').count.text()).toBe('11')
     expect(card(wrapper, '/financial/invoices').count.text()).toBe('4')
     expect(card(wrapper, '/financial/invoices').attention.text()).toBe('1 fechada a pagar')
+    expect(card(wrapper, '/financial/imports').count.text()).toBe('7')
+    expect(card(wrapper, '/financial/imports').attention.text()).toBe(
+      '2 para conferir · 1 com erro',
+    )
     expect(card(wrapper, '/financial/periods').count.text()).toBe('7')
     expect(card(wrapper, '/financial/periods').attention.text()).toBe('2 expirados')
     expect(card(wrapper, '/financial/closing').count.exists()).toBe(false)
@@ -154,6 +169,15 @@ describe('FinancialHomeView', () => {
     expect(card(wrapper, '/financial/movements').attention.text()).toBe('1 vencido')
     expect(card(wrapper, '/financial/invoices').attention.exists()).toBe(false)
     expect(card(wrapper, '/financial/periods').attention.exists()).toBe(false)
+
+    vi.mocked(importsApi.counts).mockResolvedValue({
+      processing: 0,
+      ready: 0,
+      failed: 0,
+      saved: 0,
+      undone: 0,
+      total: 0,
+    })
     expect(card(wrapper, '/financial/closing').attention.exists()).toBe(false)
   })
 
@@ -177,6 +201,7 @@ describe('FinancialHomeView', () => {
     vi.mocked(walletsApi.findAll).mockRejectedValue(failure)
     vi.mocked(recurringMovementsApi.findAll).mockRejectedValue(failure)
     vi.mocked(invoicesApi.findAll).mockRejectedValue(failure)
+    vi.mocked(importsApi.counts).mockRejectedValue(failure)
     const { wrapper } = render()
     await flushPromises()
 

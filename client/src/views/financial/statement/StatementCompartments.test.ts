@@ -70,6 +70,7 @@ async function render(walletView: object = wallet, location = '/statement?wallet
   serve(walletView)
   return mountView(StatementView, 'statement', {}, {}, location, [
     { path: '/statement', name: 'statement.list', component: leaf },
+    { path: '/imports/create', name: 'imports.create', component: leaf },
   ])
 }
 

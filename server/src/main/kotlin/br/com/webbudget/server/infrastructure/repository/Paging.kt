@@ -18,12 +18,17 @@ fun <T : Any, R : Any> PagedModel<T>.map(transform: (T) -> R): PagedModel<R> {
     return PagedModel(PageImpl(content.map(transform), pageable, metadata.totalElements))
 }
 
-fun Pageable.toOrderBy(sortable: Map<String, Field<*>>, createdOn: Field<*>, id: Field<*>): List<OrderField<*>> {
+fun Pageable.toOrderBy(
+    sortable: Map<String, Field<*>>,
+    createdOn: Field<*>,
+    id: Field<*>,
+    defaultOrder: List<OrderField<*>>? = null
+): List<OrderField<*>> {
     val requested: List<OrderField<*>> = sort.mapNotNull { order ->
         sortable[order.property]?.let { field ->
             val sortKey = if (order.property == NAME_PROPERTY) field.withoutAccentsAndCase() else field
             if (order.isAscending) sortKey.asc() else sortKey.desc()
         }
     }
-    return requested.ifEmpty { listOf(createdOn.desc()) } + id.desc()
+    return requested.ifEmpty { defaultOrder ?: listOf(createdOn.desc()) } + id.desc()
 }
