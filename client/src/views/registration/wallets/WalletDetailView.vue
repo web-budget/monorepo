@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { ArrowLeftRight, Info, Scale, ScrollText } from 'lucide-vue-next'
+import { ArrowLeftRight, CheckCheck, Info, ScrollText } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
-import { ref } from 'vue'
-import { useI18n } from 'vue-i18n'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
 import DateTimeDisplay from '@/components/common/DateTimeDisplay.vue'
 import DetailCard from '@/components/common/DetailCard.vue'
@@ -10,27 +8,19 @@ import DetailField from '@/components/common/DetailField.vue'
 import DetailSection from '@/components/common/DetailSection.vue'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import AdjustBalanceDialog from '@/components/wallets/AdjustBalanceDialog.vue'
+import ReconcileDialog from '@/components/wallets/ReconcileDialog.vue'
 import { useCrudDetail } from '@/composables/useCrudDetail'
-import { useNotification } from '@/composables/useNotification'
+import { useReconciliation } from '@/composables/useReconciliation'
 import { useServerErrors } from '@/composables/useServerErrors'
-import { useStatementStore } from '@/stores/statement'
 import { useWalletsStore } from '@/stores/wallets'
-import { adjustmentNotice } from '@/utils/statement'
 import { typeKey } from '@/utils/typeLabels'
 
 const props = defineProps<{ id: string }>()
 
-const { n } = useI18n()
-
 const store = useWalletsStore()
 const { wallet } = storeToRefs(store)
 
-const statement = useStatementStore()
-const { showSuccess } = useNotification()
-const adjustErrors = useServerErrors()
 const reloadErrors = useServerErrors()
-const adjusting = ref(false)
 
 const { messages, changeToUpdate, remove } = useCrudDetail({
   routeName: 'wallets',
@@ -41,23 +31,7 @@ const { messages, changeToUpdate, remove } = useCrudDetail({
   remove: store.remove,
 })
 
-function openAdjust() {
-  adjustErrors.clear()
-  adjusting.value = true
-}
-
-function closeAdjust() {
-  adjusting.value = false
-}
-
-async function adjust(target: { id: string }, form: { value: number }) {
-  if (await adjustErrors.run(() => statement.adjust(target.id, form))) {
-    adjusting.value = false
-    const notice = adjustmentNotice(form.value, wallet.value?.name, n)
-    showSuccess('statement.toast.adjusted', notice.detail, true, notice.params)
-    await reloadErrors.run(() => store.findOne(props.id))
-  }
-}
+const reconciliation = useReconciliation(() => reloadErrors.run(() => store.findOne(props.id)))
 </script>
 
 <template>
@@ -87,8 +61,13 @@ async function adjust(target: { id: string }, form: { value: number }) {
           <ArrowLeftRight />{{ $t('wallet.actions.transfer') }}
         </RouterLink>
       </Button>
-      <Button type="button" variant="outline" :disabled="!wallet.active" @click="openAdjust()">
-        <Scale />{{ $t('wallet.actions.adjust-balance') }}
+      <Button
+        type="button"
+        variant="outline"
+        :disabled="!wallet.active"
+        @click="reconciliation.open(wallet, wallet.currentBalance)"
+      >
+        <CheckCheck />{{ $t('wallet.actions.reconcile') }}
       </Button>
     </template>
     <template v-if="wallet">
@@ -122,15 +101,12 @@ async function adjust(target: { id: string }, form: { value: number }) {
       </DetailSection>
     </template>
   </DetailCard>
-  <AdjustBalanceDialog
-    :wallet="
-      adjusting && wallet
-        ? { id: wallet.id, name: wallet.name, balance: wallet.currentBalance }
-        : null
-    "
-    :loading="statement.loading"
-    :messages="adjustErrors.messages.value"
-    @close="closeAdjust()"
-    @adjust="adjust"
+  <ReconcileDialog
+    :wallet="reconciliation.target.value"
+    :loading="reconciliation.loading.value"
+    :messages="reconciliation.messages.value"
+    :balance-change="reconciliation.balanceChange.value"
+    @close="reconciliation.close()"
+    @reconcile="reconciliation.reconcile"
   />
 </template>

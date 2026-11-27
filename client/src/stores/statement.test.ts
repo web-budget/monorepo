@@ -1,11 +1,18 @@
 import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { reconciliationsApi } from '@/api/reconciliations'
 import { walletEntriesApi } from '@/api/walletEntries'
 import { toStatementFilter, toStatementQuery, useStatementStore } from '@/stores/statement'
 import { createPageRequest } from '@/utils/pageRequest'
-import type { StatementSummary, WalletEntryDirectionFilter, WalletEntryView } from '@/types'
+import type {
+  ReconciliationResultView,
+  StatementSummary,
+  WalletEntryDirectionFilter,
+  WalletEntryView,
+} from '@/types'
 
 vi.mock('@/api/walletEntries')
+vi.mock('@/api/reconciliations')
 
 const entry = { id: 'e-1', name: 'Luz' } as WalletEntryView
 const page = { content: [entry], page: { size: 15, number: 0, totalElements: 1, totalPages: 1 } }
@@ -100,14 +107,17 @@ describe('useStatementStore', () => {
     expect(walletEntriesApi.findStatement).toHaveBeenCalledWith('', expect.anything())
   })
 
-  it('adjusts the balance and stops loading even when it fails', async () => {
-    vi.mocked(walletEntriesApi.adjust).mockResolvedValueOnce(entry)
+  it('reconciles the wallet and stops loading even when it fails', async () => {
+    const result = { reconciliation: { difference: 1 }, entry } as ReconciliationResultView
+    const form = { informedBalance: 11, shownBalance: 10, reason: 'Centavos' }
+    vi.mocked(reconciliationsApi.reconcile).mockResolvedValueOnce(result)
     const store = useStatementStore()
 
-    await expect(store.adjust('w-1', { value: 1 })).resolves.toBe(entry)
+    await expect(store.reconcile('w-1', form)).resolves.toBe(result)
+    expect(reconciliationsApi.reconcile).toHaveBeenCalledWith('w-1', form)
 
-    vi.mocked(walletEntriesApi.adjust).mockRejectedValueOnce(new Error('boom'))
-    await expect(store.adjust('w-1', { value: 1 })).rejects.toThrow('boom')
+    vi.mocked(reconciliationsApi.reconcile).mockRejectedValueOnce(new Error('boom'))
+    await expect(store.reconcile('w-1', form)).rejects.toThrow('boom')
     expect(store.loading).toBe(false)
   })
 

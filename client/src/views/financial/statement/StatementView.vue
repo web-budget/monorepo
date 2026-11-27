@@ -3,7 +3,7 @@ import {
   ArrowDownLeft,
   ArrowLeftRight,
   ArrowUpRight,
-  Scale,
+  CheckCheck,
   ScrollText,
   Undo2,
   X,
@@ -28,20 +28,20 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import AdjustBalanceDialog from '@/components/wallets/AdjustBalanceDialog.vue'
+import ReconcileDialog from '@/components/wallets/ReconcileDialog.vue'
 import { useActiveWallets } from '@/composables/useActiveWallets'
 import { useGiveBack } from '@/composables/useGiveBack'
 import { useListFilters } from '@/composables/useListFilters'
 import { useMovementFilterOptions } from '@/composables/useMovementFilterOptions'
-import { useNotification } from '@/composables/useNotification'
+import { useReconciliation } from '@/composables/useReconciliation'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { STATEMENT_FILTER_KEYS, useStatementStore, WALLET_ENTRY_ORIGINS } from '@/stores/statement'
 import { useTransfersStore } from '@/stores/transfers'
 import type { WalletEntryDirectionFilter, WalletEntryView } from '@/types'
-import { adjustmentNotice, defaultStatementWallet, entryLabel } from '@/utils/statement'
+import { defaultStatementWallet, entryLabel } from '@/utils/statement'
 import { typeKey } from '@/utils/typeLabels'
 
-const { t, n } = useI18n()
+const { t } = useI18n()
 const router = useRouter()
 
 const store = useStatementStore()
@@ -54,11 +54,8 @@ const giveBack = useGiveBack()
 const loadErrors = useServerErrors()
 const optionErrors = useServerErrors()
 const actionErrors = useServerErrors()
-const adjustErrors = useServerErrors()
-const { showSuccess } = useNotification()
 
 const balance = ref<number | null>(null)
-const adjusting = ref(false)
 const loadFailed = ref(false)
 const initializing = ref(true)
 
@@ -276,24 +273,10 @@ function clearSearch() {
   return search()
 }
 
-function openAdjust() {
-  adjustErrors.clear()
-  adjusting.value = true
-}
-
-function closeAdjust() {
-  adjusting.value = false
-}
-
-async function adjust(target: { id: string }, form: { value: number }) {
-  if (await adjustErrors.run(() => store.adjust(target.id, form))) {
-    adjusting.value = false
-    const notice = adjustmentNotice(form.value, wallet.value?.name, n)
-    showSuccess('statement.toast.adjusted', notice.detail, true, notice.params)
-    await reload()
-    await loadBalance()
-  }
-}
+const reconciliation = useReconciliation(async () => {
+  await reload()
+  await loadBalance()
+})
 </script>
 
 <template>
@@ -307,9 +290,9 @@ async function adjust(target: { id: string }, form: { value: number }) {
           type="button"
           variant="outline"
           :disabled="!wallet?.active || balance === null"
-          @click="openAdjust()"
+          @click="reconciliation.open(wallet!, balance!)"
         >
-          <Scale />{{ $t('statement.actions.adjust') }}
+          <CheckCheck />{{ $t('statement.actions.reconcile') }}
         </Button>
         <Button as-child variant="outline">
           <RouterLink :to="{ path: '/financial/transfers/create', query: { from: wallet?.id } }">
@@ -543,16 +526,13 @@ async function adjust(target: { id: string }, form: { value: number }) {
         </template>
       </ItemsTable>
     </div>
-    <AdjustBalanceDialog
-      :wallet="
-        adjusting && wallet && balance !== null
-          ? { id: wallet.id, name: wallet.name, balance }
-          : null
-      "
-      :loading="loading"
-      :messages="adjustErrors.messages.value"
-      @close="closeAdjust()"
-      @adjust="adjust"
+    <ReconcileDialog
+      :wallet="reconciliation.target.value"
+      :loading="reconciliation.loading.value"
+      :messages="reconciliation.messages.value"
+      :balance-change="reconciliation.balanceChange.value"
+      @close="reconciliation.close()"
+      @reconcile="reconciliation.reconcile"
     />
     <GiveBackDialog
       :transfer="giveBack.target.value"

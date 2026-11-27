@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Plus, Wallet } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
-import { computed, ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
@@ -14,27 +14,19 @@ import SearchControls from '@/components/listing/SearchControls.vue'
 import { FEMININE_STATUS_OPTIONS } from '@/components/listing/statusOptions'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
-import AdjustBalanceDialog from '@/components/wallets/AdjustBalanceDialog.vue'
+import ReconcileDialog from '@/components/wallets/ReconcileDialog.vue'
 import WalletRowActions from '@/components/wallets/WalletRowActions.vue'
 import { useCrudList } from '@/composables/useCrudList'
-import { useNotification } from '@/composables/useNotification'
-import { useServerErrors } from '@/composables/useServerErrors'
-import { useStatementStore } from '@/stores/statement'
+import { useReconciliation } from '@/composables/useReconciliation'
 import { useWalletsStore } from '@/stores/wallets'
 import type { WalletListView } from '@/types'
-import { adjustmentNotice } from '@/utils/statement'
 import { typeKey } from '@/utils/typeLabels'
 
-const { t, n } = useI18n()
+const { t } = useI18n()
 const router = useRouter()
 
 const store = useWalletsStore()
 const { pageRequest, pageResponse, loading } = storeToRefs(store)
-
-const statement = useStatementStore()
-const { showSuccess } = useNotification()
-const adjustErrors = useServerErrors()
-const adjusting = ref<WalletListView | null>(null)
 
 const {
   messages,
@@ -119,24 +111,7 @@ function openStatement(wallet: WalletListView) {
   return router.push({ path: '/financial/statement', query: { wallet: wallet.id } })
 }
 
-function openAdjust(wallet: WalletListView) {
-  adjustErrors.clear()
-  adjusting.value = wallet
-}
-
-function closeAdjust() {
-  adjusting.value = null
-}
-
-async function adjust(target: { id: string }, form: { value: number }) {
-  if (await adjustErrors.run(() => statement.adjust(target.id, form))) {
-    const wallet = adjusting.value
-    adjusting.value = null
-    const notice = adjustmentNotice(form.value, wallet?.name, n)
-    showSuccess('statement.toast.adjusted', notice.detail, true, notice.params)
-    await reload()
-  }
-}
+const reconciliation = useReconciliation(reload)
 </script>
 
 <template>
@@ -206,25 +181,22 @@ async function adjust(target: { id: string }, form: { value: number }) {
         </template>
         <template #actions="{ item }">
           <WalletRowActions
-            :adjustable="item.active"
+            :reconcilable="item.active"
             @statement="openStatement(item)"
-            @adjust="openAdjust(item)"
+            @reconcile="reconciliation.open(item, item.currentBalance)"
             @edit="changeToUpdate(item.id)"
             @remove="remove(item)"
           />
         </template>
       </ItemsTable>
     </div>
-    <AdjustBalanceDialog
-      :wallet="
-        adjusting
-          ? { id: adjusting.id, name: adjusting.name, balance: adjusting.currentBalance }
-          : null
-      "
-      :loading="statement.loading"
-      :messages="adjustErrors.messages.value"
-      @close="closeAdjust()"
-      @adjust="adjust"
+    <ReconcileDialog
+      :wallet="reconciliation.target.value"
+      :loading="reconciliation.loading.value"
+      :messages="reconciliation.messages.value"
+      :balance-change="reconciliation.balanceChange.value"
+      @close="reconciliation.close()"
+      @reconcile="reconciliation.reconcile"
     />
   </PageContainer>
 </template>

@@ -1,8 +1,10 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import { reconciliationsApi } from '@/api/reconciliations'
 import { walletEntriesApi } from '@/api/walletEntries'
 import type {
-  AdjustmentForm,
+  ReconciliationForm,
+  ReconciliationResultView,
   StatementQuery,
   StatementSummary,
   WalletEntryDirectionFilter,
@@ -95,10 +97,13 @@ export const useStatementStore = defineStore('statement', () => {
     }
   }
 
-  async function adjust(walletId: string, form: AdjustmentForm): Promise<WalletEntryView> {
+  async function reconcile(
+    walletId: string,
+    form: ReconciliationForm,
+  ): Promise<ReconciliationResultView> {
     pending.value++
     try {
-      return await walletEntriesApi.adjust(walletId, form)
+      return await reconciliationsApi.reconcile(walletId, form)
     } finally {
       pending.value--
     }
@@ -120,7 +125,7 @@ export const useStatementStore = defineStore('statement', () => {
     findAll,
     findSummary,
     findEntry,
-    adjust,
+    reconcile,
     reset,
   }
 })

@@ -108,12 +108,21 @@ describe('MoneyField', () => {
       expect(values().amount).toBe(0.03)
     })
 
-    it('keeps a lone minus sign while the digits come and drops it when cleared', async () => {
+    it('keeps a lone minus sign, as a value that is not a number yet, while the digits come and drops it when cleared', async () => {
       const { wrapper, values } = render(null, { signed: true })
 
       await wrapper.find('input').setValue('-')
       expect(shown(wrapper)).toBe('−')
+      expect(values().amount).toBeNaN()
+
+      await wrapper.find('input').setValue('−')
+      expect(shown(wrapper)).toBe('−')
+
+      await wrapper.find('input').setValue('+')
+      expect(shown(wrapper)).toBe('')
       expect(values().amount).toBeNull()
+
+      await wrapper.find('input').setValue('-')
 
       await wrapper.find('input').setValue('−5')
       expect(shown(wrapper)).toBe('−0,05')
