@@ -1,5 +1,6 @@
 package br.com.webbudget.server.application.mappers.registration
 
+import br.com.webbudget.server.application.payloads.registration.LastReconciliationView
 import br.com.webbudget.server.application.payloads.registration.WalletCreateForm
 import br.com.webbudget.server.application.payloads.registration.WalletListView
 import br.com.webbudget.server.application.payloads.registration.WalletUpdateForm
@@ -22,7 +23,10 @@ class WalletMapper {
         currentBalance = wallet.currentBalance,
         totalBalance = wallet.totalBalance,
         compartmentCount = wallet.compartmentCount,
-        lastEntryOn = wallet.lastEntryOn
+        lastEntryOn = wallet.lastEntryOn,
+        lastReconciliation = wallet.lastReconciliation?.let {
+            LastReconciliationView(it.externalId, it.createdOn, it.difference)
+        }
     )
 
     fun mapToListView(wallet: Wallet): WalletListView = WalletListView(

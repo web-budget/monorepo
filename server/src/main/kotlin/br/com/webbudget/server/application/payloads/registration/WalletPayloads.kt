@@ -51,7 +51,14 @@ data class WalletView(
     val bank: String? = null,
     val number: String? = null,
     val agency: String? = null,
-    val lastEntryOn: LocalDateTime? = null
+    val lastEntryOn: LocalDateTime? = null,
+    val lastReconciliation: LastReconciliationView? = null
+)
+
+data class LastReconciliationView(
+    val id: UUID,
+    val createdOn: LocalDateTime,
+    val difference: BigDecimal
 )
 
 data class WalletListView(

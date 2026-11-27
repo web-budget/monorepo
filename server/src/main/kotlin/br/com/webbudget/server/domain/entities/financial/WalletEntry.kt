@@ -46,7 +46,8 @@ class StatementLine(
     val transferExternalId: UUID?,
     val transferIsReturn: Boolean = false,
     val transferReturnable: Boolean = false,
-    val compartment: StatementCompartment? = null
+    val compartment: StatementCompartment? = null,
+    val reconciliation: ReconciliationLine? = null
 )
 
 class StatementTotal(

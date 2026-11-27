@@ -1,16 +1,10 @@
 package br.com.webbudget.server.application.controllers.financial
 
 import br.com.webbudget.server.BaseIntegrationTest
-import br.com.webbudget.server.jooq.financial.tables.references.WALLET_ENTRIES
-import br.com.webbudget.server.jooq.registration.tables.references.WALLETS
-import org.assertj.core.api.Assertions.assertThat
-import org.jooq.DSLContext
 import org.junit.jupiter.api.Test
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD
-import java.math.BigDecimal
 import java.util.UUID
 
 @Sql(
@@ -21,9 +15,6 @@ import java.util.UUID
 )
 @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
 class WalletEntryControllerTest : BaseIntegrationTest() {
-
-    @Autowired
-    private lateinit var dsl: DSLContext
 
     @Test
     fun `should require authentication and the financial role`() {
@@ -126,53 +117,6 @@ class WalletEntryControllerTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `should credit the wallet with a positive adjustment`() {
-
-        adjust("""{"value": 0.30, "name": "Rounding of the bank"}""")
-            .expectStatus().isOk
-            .expectBody()
-            .jsonPath("$.origin").isEqualTo("ADJUSTMENT")
-            .jsonPath("$.direction").isEqualTo("CREDIT")
-            .jsonPath("$.value").isEqualTo(0.3)
-            .jsonPath("$.previousBalance").isEqualTo(500.5)
-            .jsonPath("$.resultingBalance").isEqualTo(500.8)
-            .jsonPath("$.name").isEqualTo("Rounding of the bank")
-
-        assertThat(balanceOf(9101L)).isEqualByComparingTo("500.80")
-    }
-
-    @Test
-    fun `should debit the wallet with a negative adjustment`() {
-
-        adjust("""{"value": -0.50, "name": "Fee"}""")
-            .expectStatus().isOk
-            .expectBody()
-            .jsonPath("$.direction").isEqualTo("DEBIT")
-            .jsonPath("$.value").isEqualTo(0.5)
-            .jsonPath("$.resultingBalance").isEqualTo(500.0)
-
-        val entry = dsl.selectFrom(WALLET_ENTRIES).where(WALLET_ENTRIES.NAME.eq("Fee")).fetchSingle()
-
-        assertThat(entry.origin).isEqualTo("ADJUSTMENT")
-        assertThat(entry.idMovement).isNull()
-        assertThat(entry.idFinancialPeriod).isNull()
-    }
-
-    @Test
-    fun `should name the adjustment after the default when no name is sent`() {
-
-        adjust("""{"value": 0.03}""")
-            .expectStatus().isOk
-            .expectBody()
-            .jsonPath("$.name").isEqualTo("Ajuste de saldo")
-
-        adjust("""{"value": 0.03, "name": "  "}""")
-            .expectStatus().isOk
-            .expectBody()
-            .jsonPath("$.name").isEqualTo("Ajuste de saldo")
-    }
-
-    @Test
     fun `should sum and count the credits and debits of the filter and tell the last entry of the wallet`() {
 
         restTestClient.get()
@@ -263,49 +207,28 @@ class WalletEntryControllerTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `should refuse an adjustment that is zero or targets an inactive or unknown wallet`() {
-
-        adjust("""{"value": 0, "name": "Nothing"}""")
-            .expectStatus().isBadRequest
-            .expectBody()
-            .jsonPath("$.error").isEqualTo("invalid-adjustment-value")
-
-        adjust("""{"name": " "}""")
-            .expectStatus().isEqualTo(422)
-            .expectBody()
-            .jsonPath("$.parameters.value").isEqualTo("is-null")
-            .jsonPath("$.parameters.name").doesNotExist()
+    fun `should not have the standalone adjustment endpoint anymore`() {
 
         restTestClient.post()
-            .uri("/private/v1/financial/wallets/$INACTIVE_WALLET/adjustments")
+            .uri("/private/v1/financial/wallets/$WALLET/adjustments")
             .contentType(MediaType.APPLICATION_JSON)
-            .body("""{"value": 1, "name": "Inactive"}""")
-            .exchange()
-            .expectStatus().isBadRequest
-            .expectBody()
-            .jsonPath("$.error").isEqualTo("inactive-wallet")
-
-        restTestClient.post()
-            .uri("/private/v1/financial/wallets/${UUID.randomUUID()}/adjustments")
-            .contentType(MediaType.APPLICATION_JSON)
-            .body("""{"value": 1, "name": "Unknown"}""")
+            .body("""{"value": 1, "name": "Adjustment"}""")
             .exchange()
             .expectStatus().isNotFound
     }
 
     @Test
-    fun `should not count the adjustment in the result of the period`() {
-
-        adjust("""{"value": 10.00, "name": "Rounding"}""").expectStatus().isOk
+    fun `should keep an old adjustment in the statement without a reconciliation`() {
 
         restTestClient.get()
-            .uri("/private/v1/financial/financial-periods/$OPEN_PERIOD/result")
+            .uri("$STATEMENT_URL/$ROUNDING_ENTRY")
             .exchange()
             .expectStatus().isOk
             .expectBody()
-            .jsonPath("$.revenues").isEqualTo(0)
-            .jsonPath("$.expenses").isEqualTo(0)
-            .jsonPath("$.result").isEqualTo(0)
+            .jsonPath("$.origin").isEqualTo("ADJUSTMENT")
+            .jsonPath("$.name").isEqualTo("Rounding")
+            .jsonPath("$.reference").doesNotExist()
+            .jsonPath("$.reconciliation").doesNotExist()
     }
 
     private fun assertTotal(query: String, expected: Int) {
@@ -317,18 +240,9 @@ class WalletEntryControllerTest : BaseIntegrationTest() {
             .jsonPath("$.page.totalElements").isEqualTo(expected)
     }
 
-    private fun adjust(body: String) = restTestClient.post()
-        .uri("/private/v1/financial/wallets/$WALLET/adjustments")
-        .contentType(MediaType.APPLICATION_JSON)
-        .body(body)
-        .exchange()
-
-    private fun balanceOf(walletId: Long): BigDecimal =
-        dsl.select(WALLETS.CURRENT_BALANCE).from(WALLETS).where(WALLETS.ID.eq(walletId)).fetchSingle().value1()!!
-
     companion object {
         private const val WALLET = "7e1b6f3a-2c4d-4b8e-9a10-5d3f0c9b7a01"
-        private const val INACTIVE_WALLET = "7e1b6f3a-2c4d-4b8e-9a10-5d3f0c9b7a02"
+        private const val ROUNDING_ENTRY = "5d2a6c1e-8b0f-4f5d-9c0e-7a1b2c3d4e05"
         private const val STATEMENT_URL = "/private/v1/financial/wallets/$WALLET/statement"
         private const val OPEN_PERIOD = "2a7b99bc-f077-4dbf-8458-87c5d0e8fd7a"
         private const val GYM_ID = "4a26f975-c9a9-4231-958c-9b59ee55e04f"

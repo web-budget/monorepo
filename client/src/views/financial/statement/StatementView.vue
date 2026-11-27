@@ -3,8 +3,8 @@ import {
   ArrowDownLeft,
   ArrowLeftRight,
   ArrowUpRight,
+  CheckCheck,
   FileUp,
-  Scale,
   ScrollText,
   Undo2,
   X,
@@ -12,7 +12,7 @@ import {
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useRouter } from 'vue-router'
+import { useRouter, type RouteLocationRaw } from 'vue-router'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
 import DateTimeDisplay from '@/components/common/DateTimeDisplay.vue'
 import PageContainer from '@/components/common/PageContainer.vue'
@@ -29,20 +29,20 @@ import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import AdjustBalanceDialog from '@/components/wallets/AdjustBalanceDialog.vue'
+import ReconcileDialog from '@/components/wallets/ReconcileDialog.vue'
 import { useActiveWallets } from '@/composables/useActiveWallets'
 import { useGiveBack } from '@/composables/useGiveBack'
 import { useListFilters } from '@/composables/useListFilters'
 import { useMovementFilterOptions } from '@/composables/useMovementFilterOptions'
-import { useNotification } from '@/composables/useNotification'
+import { useReconciliation } from '@/composables/useReconciliation'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { STATEMENT_FILTER_KEYS, useStatementStore, WALLET_ENTRY_ORIGINS } from '@/stores/statement'
 import { useTransfersStore } from '@/stores/transfers'
 import type { WalletEntryDirectionFilter, WalletEntryView } from '@/types'
-import { adjustmentNotice, defaultStatementWallet, entryLabel } from '@/utils/statement'
+import { defaultStatementWallet, entryLabel } from '@/utils/statement'
 import { typeKey } from '@/utils/typeLabels'
 
-const { t, n } = useI18n()
+const { t } = useI18n()
 const router = useRouter()
 
 const store = useStatementStore()
@@ -55,11 +55,8 @@ const giveBack = useGiveBack()
 const loadErrors = useServerErrors()
 const optionErrors = useServerErrors()
 const actionErrors = useServerErrors()
-const adjustErrors = useServerErrors()
-const { showSuccess } = useNotification()
 
 const balance = ref<number | null>(null)
-const adjusting = ref(false)
 const loadFailed = ref(false)
 const initializing = ref(true)
 
@@ -195,6 +192,7 @@ const columns = computed(() => [
     field: 'name',
     header: t('statement.table-columns.name'),
     sortable: true,
+    class: 'max-w-[24rem]',
     mobile: 'title' as const,
   },
   {
@@ -220,13 +218,14 @@ const columns = computed(() => [
     field: 'reference',
     header: t('statement.open-origin-header'),
     srOnly: true,
-    mobile: 'hide' as const,
+    mobile: 'line' as const,
+    mobileLabel: false,
   },
 ])
 
 const REFERENCE_PATHS = { MOVEMENT: 'movements', TRANSFER: 'transfers' } as const
 
-function originPath(entry: WalletEntryView) {
+function originPath(entry: WalletEntryView): RouteLocationRaw | null {
   const reference = entry.reference
   if (!reference) {
     return null
@@ -234,12 +233,26 @@ function originPath(entry: WalletEntryView) {
   if (reference.type === 'COMPARTMENT') {
     return `/registration/wallets/${filters.value.wallet}/compartments/${reference.id}/detail?movement=${reference.movementId}`
   }
+  if (reference.type === 'RECONCILIATION') {
+    return {
+      name: 'wallets.detail',
+      params: { id: filters.value.wallet! },
+      query: { reconciliation: reference.id },
+    }
+  }
   return `/financial/${REFERENCE_PATHS[reference.type]}/${reference.id}/detail`
 }
 
+function isReconciled(entry: WalletEntryView) {
+  return entry.reference?.type === 'RECONCILIATION'
+}
+
 function openEntry(entry: WalletEntryView) {
+  const opensOrigin = entry.reference != null && !isReconciled(entry)
   return router.push(
-    originPath(entry) ?? `/financial/statement/${filters.value.wallet}/${entry.id}/detail`,
+    opensOrigin
+      ? originPath(entry)!
+      : `/financial/statement/${filters.value.wallet}/${entry.id}/detail`,
   )
 }
 
@@ -283,24 +296,10 @@ function clearSearch() {
   return search()
 }
 
-function openAdjust() {
-  adjustErrors.clear()
-  adjusting.value = true
-}
-
-function closeAdjust() {
-  adjusting.value = false
-}
-
-async function adjust(target: { id: string }, form: { value: number }) {
-  if (await adjustErrors.run(() => store.adjust(target.id, form))) {
-    adjusting.value = false
-    const notice = adjustmentNotice(form.value, wallet.value?.name, n)
-    showSuccess('statement.toast.adjusted', notice.detail, true, notice.params)
-    await reload()
-    await loadBalance()
-  }
-}
+const reconciliation = useReconciliation(async () => {
+  await reload()
+  await loadBalance()
+})
 </script>
 
 <template>
@@ -319,9 +318,9 @@ async function adjust(target: { id: string }, form: { value: number }) {
           type="button"
           variant="outline"
           :disabled="!wallet?.active || balance === null"
-          @click="openAdjust()"
+          @click="reconciliation.open(wallet!, balance!)"
         >
-          <Scale />{{ $t('statement.actions.adjust') }}
+          <CheckCheck />{{ $t('statement.actions.reconcile') }}
         </Button>
         <Button as-child variant="outline">
           <RouterLink :to="{ path: '/financial/transfers/create', query: { from: wallet?.id } }">
@@ -505,7 +504,9 @@ async function adjust(target: { id: string }, form: { value: number }) {
           <OperationBadge :origin="item.origin" />
         </template>
         <template #cell-name="{ item }">
-          {{ entryLabel(item, t) }}
+          <span class="block md:truncate" :title="entryLabel(item, t)">{{
+            entryLabel(item, t)
+          }}</span>
         </template>
         <template #cell-value="{ item }">
           <span class="inline-flex items-center justify-end gap-1">
@@ -538,15 +539,25 @@ async function adjust(target: { id: string }, form: { value: number }) {
         </template>
         <template #cell-reference="{ item }">
           <RouterLink
-            v-if="originPath(item)"
+            v-if="isReconciled(item)"
+            :to="originPath(item)!"
+            :aria-label="$t('statement.open-reconciliation', { name: entryLabel(item, t) })"
+            class="text-muted-foreground hover:text-foreground max-md:text-primary inline-flex items-center gap-0.5"
+            @click.stop
+          >
+            <span class="md:hidden">{{ $t('statement.view-reconciliation') }}</span>
+            <ArrowUpRight class="size-4 max-md:size-3.5" />
+          </RouterLink>
+          <RouterLink
+            v-else-if="originPath(item)"
             :to="originPath(item)!"
             :aria-label="$t('statement.open-origin', { name: entryLabel(item, t) })"
-            class="text-muted-foreground hover:text-foreground inline-flex"
+            class="text-muted-foreground hover:text-foreground inline-flex max-md:hidden"
             @click.stop
           >
             <ArrowUpRight class="size-4" />
           </RouterLink>
-          <span v-else class="text-muted-foreground">—</span>
+          <span v-else class="text-muted-foreground max-md:hidden">—</span>
         </template>
         <template #actions="{ item }">
           <Button
@@ -561,16 +572,13 @@ async function adjust(target: { id: string }, form: { value: number }) {
         </template>
       </ItemsTable>
     </div>
-    <AdjustBalanceDialog
-      :wallet="
-        adjusting && wallet && balance !== null
-          ? { id: wallet.id, name: wallet.name, balance }
-          : null
-      "
-      :loading="loading"
-      :messages="adjustErrors.messages.value"
-      @close="closeAdjust()"
-      @adjust="adjust"
+    <ReconcileDialog
+      :wallet="reconciliation.target.value"
+      :loading="reconciliation.loading.value"
+      :messages="reconciliation.messages.value"
+      :balance-change="reconciliation.balanceChange.value"
+      @close="reconciliation.close()"
+      @reconcile="reconciliation.reconcile"
     />
     <GiveBackDialog
       :transfer="giveBack.target.value"

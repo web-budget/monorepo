@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Box } from 'lucide-vue-next'
+import { Box, CheckCheck } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
@@ -52,6 +52,19 @@ watch(
           }"
         >
           <Box />{{ $t('statement.actions.open-compartment') }}
+        </RouterLink>
+      </Button>
+    </template>
+    <template v-else-if="entry?.reconciliation" #footer>
+      <Button as-child variant="outline">
+        <RouterLink
+          :to="{
+            name: 'wallets.detail',
+            params: { id: wallet },
+            query: { reconciliation: entry.reconciliation.id },
+          }"
+        >
+          <CheckCheck />{{ $t('statement.detail.open-reconciliation') }}
         </RouterLink>
       </Button>
     </template>
@@ -112,6 +125,45 @@ watch(
         "
       />
       <DetailField :label="$t('statement.detail.note')" :value="entry.compartment.note" />
+    </DetailSection>
+    <DetailSection
+      v-if="entry?.reconciliation"
+      :title="$t('statement.sections.reconciliation')"
+      columns="md:grid-cols-3"
+    >
+      <DetailField :label="$t('statement.detail.reconciled-on')" mono>
+        <DateTimeDisplay with-time :value="entry.reconciliation.createdOn" />
+      </DetailField>
+      <DetailField :label="$t('wallet.reconcile.informed-balance')" mono>
+        <CurrencyDisplay
+          :value="entry.reconciliation.informedBalance"
+          :signed="entry.reconciliation.informedBalance < 0"
+          bare
+          glued
+        />
+      </DetailField>
+      <DetailField :label="$t('wallet.reconcile.wallet-balance')" mono>
+        <CurrencyDisplay
+          :value="entry.reconciliation.walletBalance"
+          :signed="entry.reconciliation.walletBalance < 0"
+          bare
+          glued
+        />
+      </DetailField>
+      <DetailField :label="$t('wallet.reconcile.difference')">
+        <CurrencyDisplay
+          :value="entry.reconciliation.difference"
+          :tone="entry.reconciliation.difference > 0 ? 'income' : undefined"
+          :signed="entry.reconciliation.difference < 0"
+          bare
+          glued
+        />
+      </DetailField>
+      <DetailField
+        :label="$t('wallet.reconcile.reason')"
+        :value="entry.reconciliation.reason"
+        wide
+      />
     </DetailSection>
   </DetailCard>
 </template>

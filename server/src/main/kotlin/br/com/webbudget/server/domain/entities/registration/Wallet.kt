@@ -3,6 +3,7 @@ package br.com.webbudget.server.domain.entities.registration
 import br.com.webbudget.server.domain.entities.PersistentEntity
 import java.math.BigDecimal
 import java.time.LocalDateTime
+import java.util.UUID
 
 class Wallet(
     var name: String,
@@ -15,7 +16,8 @@ class Wallet(
     var number: String? = null,
     var lastEntryOn: LocalDateTime? = null,
     var compartmentsBalance: BigDecimal = BigDecimal.ZERO,
-    var compartmentCount: Int = 0
+    var compartmentCount: Int = 0,
+    var lastReconciliation: LastReconciliation? = null
 ) : PersistentEntity() {
 
     val totalBalance: BigDecimal
@@ -27,3 +29,9 @@ class Wallet(
         BANK_ACCOUNT, PERSONAL, INVESTMENT
     }
 }
+
+class LastReconciliation(
+    val externalId: UUID,
+    val createdOn: LocalDateTime,
+    val difference: BigDecimal
+)

@@ -47,9 +47,3 @@ class TransferLink(
     val externalId: UUID,
     val createdOn: LocalDateTime
 )
-
-class WalletAdjustment(
-    val wallet: WalletReference,
-    val value: BigDecimal,
-    val name: String?
-)

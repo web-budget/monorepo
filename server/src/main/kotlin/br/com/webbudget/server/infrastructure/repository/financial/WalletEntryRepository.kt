@@ -1,6 +1,7 @@
 package br.com.webbudget.server.infrastructure.repository.financial
 
 import br.com.webbudget.server.domain.entities.financial.CompartmentMovement
+import br.com.webbudget.server.domain.entities.financial.ReconciliationLine
 import br.com.webbudget.server.domain.entities.financial.StatementCompartment
 import br.com.webbudget.server.domain.entities.financial.StatementLine
 import br.com.webbudget.server.domain.entities.financial.StatementSummary
@@ -13,6 +14,7 @@ import br.com.webbudget.server.jooq.financial.tables.references.COMPARTMENT_MOVE
 import br.com.webbudget.server.jooq.financial.tables.references.MOVEMENTS
 import br.com.webbudget.server.jooq.financial.tables.references.TRANSFERS
 import br.com.webbudget.server.jooq.financial.tables.references.WALLET_ENTRIES
+import br.com.webbudget.server.jooq.financial.tables.references.WALLET_RECONCILIATIONS
 import br.com.webbudget.server.jooq.registration.tables.references.COMPARTMENTS
 import br.com.webbudget.server.jooq.registration.tables.references.FINANCIAL_PERIODS
 import br.com.webbudget.server.jooq.registration.tables.references.WALLETS
@@ -41,6 +43,7 @@ class WalletEntryRepository(
     private val financialPeriods = FINANCIAL_PERIODS.`as`("financial_periods")
     private val compartmentMovements = COMPARTMENT_MOVEMENTS.`as`("compartment_movements")
     private val compartments = COMPARTMENTS.`as`("compartments")
+    private val reconciliations = WALLET_RECONCILIATIONS.`as`("wallet_reconciliations")
 
     fun lockWallets(sortedWalletIds: List<Long>) {
         dsl.select(WALLETS.ID)
@@ -165,6 +168,7 @@ class WalletEntryRepository(
         .leftJoin(financialPeriods).on(financialPeriods.ID.eq(entries.ID_FINANCIAL_PERIOD))
         .leftJoin(compartmentMovements).on(compartmentMovements.ID.eq(entries.ID_COMPARTMENT_MOVEMENT))
         .leftJoin(compartments).on(compartments.ID.eq(compartmentMovements.ID_COMPARTMENT))
+        .leftJoin(reconciliations).on(reconciliations.ID_WALLET_ENTRY.eq(entries.ID))
 
     private fun Record.toStatementCompartment(): StatementCompartment? {
 
@@ -187,6 +191,7 @@ class WalletEntryRepository(
         val entry = into(entries)
         val period = into(financialPeriods)
         val transfer = into(transfers)
+        val reconciliation = into(reconciliations)
         val isReturn = transfer.idReturnedTransfer != null
 
         return StatementLine(
@@ -203,7 +208,18 @@ class WalletEntryRepository(
             transferExternalId = transfer.externalId,
             transferIsReturn = isReturn,
             transferReturnable = transfer.id != null && !isReturn && into(returnTransfers).id == null,
-            compartment = toStatementCompartment()
+            compartment = toStatementCompartment(),
+            reconciliation = reconciliation.id?.let {
+                ReconciliationLine(
+                    externalId = reconciliation.externalId!!,
+                    createdOn = reconciliation.createdOn!!,
+                    informedBalance = reconciliation.informedBalance!!,
+                    walletBalance = reconciliation.walletBalance!!,
+                    difference = reconciliation.difference!!,
+                    reason = reconciliation.reason!!,
+                    entryExternalId = entry.externalId!!
+                )
+            }
         )
     }
 }

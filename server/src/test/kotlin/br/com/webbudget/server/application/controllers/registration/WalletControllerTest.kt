@@ -173,9 +173,9 @@ class WalletControllerTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `should tell in the list the last entry of a wallet after an adjustment`() {
+    fun `should tell in the list the last entry of a wallet after a reconciliation`() {
 
-        adjust(PERSONAL_ID, 25)
+        reconcile(PERSONAL_ID, "25", "0")
 
         assertThat(listedLastEntryOn(PERSONAL_ID)).isNotNull().isEqualTo(detailLastEntryOn(PERSONAL_ID))
         assertThat(listedLastEntryOn(INVESTMENTS_ID)).isNull()
@@ -185,7 +185,7 @@ class WalletControllerTest : BaseIntegrationTest() {
     @Test
     fun `should tell in the list the last entry of the two wallets after a transfer`() {
 
-        adjust(PERSONAL_ID, 100)
+        reconcile(PERSONAL_ID, "100", "0")
         transfer(PERSONAL_ID, INVESTMENTS_ID, 40)
 
         val personal = listedLastEntryOn(PERSONAL_ID)
@@ -199,7 +199,7 @@ class WalletControllerTest : BaseIntegrationTest() {
     @Test
     fun `should keep the last entry in the list when filtering and sorting`() {
 
-        adjust(BANK_ACCOUNT_ID, -10)
+        reconcile(BANK_ACCOUNT_ID, "140.50", "150.50")
 
         val body = restTestClient.get()
             .uri("$ENDPOINT_URL?filter=bank&sort=name,asc")
@@ -446,13 +446,13 @@ class WalletControllerTest : BaseIntegrationTest() {
             .isTrue()
     }
 
-    private fun adjust(walletId: String, value: Int) {
+    private fun reconcile(walletId: String, informedBalance: String, shownBalance: String) {
         restTestClient.post()
-            .uri("/private/v1/financial/wallets/$walletId/adjustments")
+            .uri("/private/v1/financial/wallets/$walletId/reconciliations")
             .contentType(MediaType.APPLICATION_JSON)
-            .body("""{"value": $value}""")
+            .body("""{"informedBalance": $informedBalance, "shownBalance": $shownBalance, "reason": "Reconciliation"}""")
             .exchange()
-            .expectStatus().isOk
+            .expectStatus().isCreated
     }
 
     private fun transfer(fromWallet: String, toWallet: String, value: Int) {
