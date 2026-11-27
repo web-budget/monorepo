@@ -30,6 +30,7 @@
       },
       "invalid-user-status-transition": "A conta mudou de status enquanto a tela estava aberta. Atualize a lista.",
       "transfer-already-returned": "A transferência já foi devolvida.",
+      "reconciliation-balance-changed": "O saldo da carteira mudou enquanto você conciliava",
       "transfer-is-a-return": "Uma devolução não se devolve.",
       "import-draft-already-exists": "Já existe um rascunho para este destino neste período",
       "import-not-editable": "A importação não é mais um rascunho, atualize a tela",
@@ -65,7 +66,8 @@
       "payment-date-in-future": "A data do pagamento não pode ser futura",
       "wallet-has-entries": "A carteira tem lançamentos no extrato e não pode ser excluída",
       "transfer-between-same-wallet": "Origem e destino precisam ser carteiras diferentes",
-      "invalid-adjustment-value": "O valor do ajuste não pode ser zero",
+      "reconciliation-without-difference": "O saldo informado é igual ao saldo da carteira. Não há o que conciliar.",
+      "invalid-reconciliation-reason": "O motivo precisa ter de 1 a 150 caracteres",
       "no-open-invoice": "Não há fatura aberta para esse cartão no período escolhido. Nada foi lançado.",
       "invoice-not-open": "A fatura não está aberta e não aceita mudanças",
       "invoice-without-purchases": "A fatura não tem compras; ela só fecha, zerada, no fechamento do período",
@@ -1459,7 +1461,8 @@
       "active-hint": "Inativar para remover das listagens",
       "type-hint": "O tipo não muda depois de criada.",
       "balance": "Saldo atual",
-      "last-entry": "Última movimentação"
+      "last-entry": "Última movimentação",
+      "last-reconciliation": "Última conciliação"
     },
     "type": {
       "bank-account": "Conta bancária",
@@ -1500,12 +1503,47 @@
     },
     "actions": {
       "view-statement": "Ver extrato",
-      "adjust-balance": "Ajustar saldo",
+      "reconcile": "Conciliar",
       "transfer": "Transferir"
     },
     "notices": {
       "balance": "O saldo não se edita na carteira",
       "balance-description": "Ele vem do extrato."
+    },
+    "reconciliation": {
+      "none": "Nenhuma ainda",
+      "last-credit": "Ajuste de crédito de {amount}",
+      "last-debit": "Ajuste de débito de {amount}"
+    },
+    "history": {
+      "title": "Conciliações",
+      "empty": "Nenhuma conciliação ainda",
+      "noun": "conciliação | conciliações",
+      "adjustment": "Ajuste",
+      "open-adjustment": "Abrir o ajuste no extrato",
+      "view-adjustment": "Ver ajuste",
+      "informed": "Informado",
+      "wallet": "Carteira"
+    },
+    "reconcile": {
+      "title": "Conciliar {name}",
+      "bank-balance": "Saldo no banco agora",
+      "counted-balance": "Dinheiro contado agora",
+      "balance-example": "0,00",
+      "wallet-balance": "Saldo da carteira",
+      "informed-balance": "Saldo informado",
+      "difference": "Diferença",
+      "balance-matches": "O saldo bate com o banco. Não há o que conciliar.",
+      "reason": "Motivo",
+      "reason-example": "Por que o saldo não bate com o banco",
+      "confirm": "Conciliar",
+      "balance-changed": "O saldo da carteira mudou enquanto você conciliava",
+      "balance-changed-detail": "O saldo passou a {balance}. A diferença agora é {difference}.",
+      "toast": {
+        "title": "Carteira conciliada",
+        "credit": "Ajuste de crédito de {amount} em {name}. Não entra no resultado.",
+        "debit": "Ajuste de débito de {amount} em {name}. Não entra no resultado."
+      }
     }
   },
   "card": {
@@ -1837,7 +1875,9 @@
     "end-before-start": "A data de fim não pode ser anterior à data de início",
     "roles-required": "Escolha pelo menos uma área.",
     "discount-too-high": "O desconto precisa ser menor que o valor.",
-    "adjustment-not-zero": "O ajuste não pode ser zero.",
+    "reconciliation-balance-required": "Informe o saldo.",
+    "reconciliation-balance-invalid": "Informe um valor como 4.812,37 ou −120,00.",
+    "reconciliation-reason-required": "Informe o motivo da diferença.",
     "transfer-same-wallet": "Origem e destino precisam ser carteiras diferentes.",
     "first-installment-after-last": "A parcela atual não pode passar do número de parcelas."
   },
@@ -2230,6 +2270,8 @@
       "reference": "Origem"
     },
     "open-origin": "Abrir a origem de {name}",
+    "open-reconciliation": "Abrir a conciliação de {name}",
+    "view-reconciliation": "Ver conciliação",
     "list": {
       "empty-title": "{name} ainda não tem lançamentos",
       "empty-description": "Lance uma receita para dar saldo.",
@@ -2243,22 +2285,8 @@
     },
     "actions": {
       "import": "Importar extrato",
-      "adjust": "Ajustar saldo",
+      "reconcile": "Conciliar",
       "transfer": "Transferir"
-    },
-    "adjust": {
-      "title": "Ajustar o saldo de {name}",
-      "value": "Valor do ajuste",
-      "wallet-balance": "Saldo da carteira",
-      "adjustment": "Ajuste",
-      "balance-after": "Saldo depois",
-      "confirm": "Ajustar",
-      "value-example": "0,03 ou −0,02"
-    },
-    "toast": {
-      "adjusted": "Saldo ajustado",
-      "adjusted-credit": "Crédito de {amount} em {name}. Não entra no resultado.",
-      "adjusted-debit": "Débito de {amount} em {name}. Não entra no resultado."
     },
     "updated-on": "Atualizado em",
     "credits": "Créditos no filtro",
@@ -2267,10 +2295,13 @@
     "detailing": "Detalhando",
     "open-origin-header": "Abrir origem",
     "sections": {
-      "entry": "Lançamento"
+      "entry": "Lançamento",
+      "reconciliation": "Conciliação"
     },
     "detail": {
-      "value": "Valor"
+      "value": "Valor",
+      "reconciled-on": "Conciliada em",
+      "open-reconciliation": "Abrir a conciliação"
     },
     "entry": {
       "reversal": "Estorno de {name}",

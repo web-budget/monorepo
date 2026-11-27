@@ -46,8 +46,12 @@ function format(value: number | null | undefined) {
 
 const pendingMinus = ref(false)
 
+function isEmpty(value: number | null | undefined): value is null | undefined {
+  return value === null || value === undefined || Number.isNaN(value)
+}
+
 function show(value: number | null | undefined) {
-  if (value === null || value === undefined) {
+  if (isEmpty(value)) {
     return pendingMinus.value ? '−' : ''
   }
   return value < 0 ? `−${format(Math.abs(value))}` : format(value)
@@ -59,10 +63,16 @@ function readSigned(input: HTMLInputElement, value: number | null | undefined) {
   const negative = sign === '-' || sign === '−'
   const magnitude = parseMoneyInput(
     input.value.replace(SIGNS, ''),
-    value === null || value === undefined ? '' : format(Math.abs(value)),
+    isEmpty(value) ? '' : format(Math.abs(value)),
   )
-  const amount = magnitude === null ? null : negative ? -magnitude : magnitude
-  pendingMinus.value = amount === null && negative
+  pendingMinus.value = magnitude === null && negative
+  const amount = pendingMinus.value
+    ? Number.NaN
+    : magnitude === null
+      ? null
+      : negative
+        ? -magnitude
+        : magnitude
   input.value = show(amount)
   return amount
 }

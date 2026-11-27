@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ArrowLeftRight, Info, Scale, ScrollText } from 'lucide-vue-next'
+import { ArrowLeftRight, CheckCheck, Info, ScrollText } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
-import { ref } from 'vue'
+import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
 import DateTimeDisplay from '@/components/common/DateTimeDisplay.vue'
@@ -10,27 +10,22 @@ import DetailField from '@/components/common/DetailField.vue'
 import DetailSection from '@/components/common/DetailSection.vue'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
-import AdjustBalanceDialog from '@/components/wallets/AdjustBalanceDialog.vue'
+import ReconcileDialog from '@/components/wallets/ReconcileDialog.vue'
+import ReconciliationHistory from '@/components/wallets/ReconciliationHistory.vue'
 import { useCrudDetail } from '@/composables/useCrudDetail'
-import { useNotification } from '@/composables/useNotification'
+import { useReconciliation } from '@/composables/useReconciliation'
+import { useReconciliationHistory } from '@/composables/useReconciliationHistory'
 import { useServerErrors } from '@/composables/useServerErrors'
-import { useStatementStore } from '@/stores/statement'
 import { useWalletsStore } from '@/stores/wallets'
-import { adjustmentNotice } from '@/utils/statement'
+import { bareAmount } from '@/utils/reconciliation'
 import { typeKey } from '@/utils/typeLabels'
 
 const props = defineProps<{ id: string }>()
 
-const { n } = useI18n()
-
 const store = useWalletsStore()
 const { wallet } = storeToRefs(store)
 
-const statement = useStatementStore()
-const { showSuccess } = useNotification()
-const adjustErrors = useServerErrors()
 const reloadErrors = useServerErrors()
-const adjusting = ref(false)
 
 const { messages, changeToUpdate, remove } = useCrudDetail({
   routeName: 'wallets',
@@ -41,23 +36,25 @@ const { messages, changeToUpdate, remove } = useCrudDetail({
   remove: store.remove,
 })
 
-function openAdjust() {
-  adjustErrors.clear()
-  adjusting.value = true
-}
+const { n } = useI18n()
 
-function closeAdjust() {
-  adjusting.value = false
-}
+const history = useReconciliationHistory(() => props.id)
 
-async function adjust(target: { id: string }, form: { value: number }) {
-  if (await adjustErrors.run(() => statement.adjust(target.id, form))) {
-    adjusting.value = false
-    const notice = adjustmentNotice(form.value, wallet.value?.name, n)
-    showSuccess('statement.toast.adjusted', notice.detail, true, notice.params)
-    await reloadErrors.run(() => store.findOne(props.id))
+const reconciliation = useReconciliation(() =>
+  Promise.all([reloadErrors.run(() => store.findOne(props.id)), history.restart()]),
+)
+
+const lastReconciliation = computed(() => {
+  const last = wallet.value?.lastReconciliation
+  if (last == null) {
+    return null
   }
-}
+  return {
+    createdOn: last.createdOn,
+    text: `wallet.reconciliation.last-${last.difference > 0 ? 'credit' : 'debit'}`,
+    amount: bareAmount(last.difference, n),
+  }
+})
 </script>
 
 <template>
@@ -65,7 +62,7 @@ async function adjust(target: { id: string }, form: { value: number }) {
     :title="wallet?.name ?? $t('wallet.form.detailing')"
     :active="wallet?.active"
     feminine-status
-    :messages="[...messages, ...reloadErrors.messages.value]"
+    :messages="[...messages, ...reloadErrors.messages.value, ...history.messages.value]"
     @edit="changeToUpdate"
     @delete="remove"
   >
@@ -87,8 +84,13 @@ async function adjust(target: { id: string }, form: { value: number }) {
           <ArrowLeftRight />{{ $t('wallet.actions.transfer') }}
         </RouterLink>
       </Button>
-      <Button type="button" variant="outline" :disabled="!wallet.active" @click="openAdjust()">
-        <Scale />{{ $t('wallet.actions.adjust-balance') }}
+      <Button
+        type="button"
+        variant="outline"
+        :disabled="!wallet.active"
+        @click="reconciliation.open(wallet, wallet.currentBalance)"
+      >
+        <CheckCheck />{{ $t('wallet.actions.reconcile') }}
       </Button>
     </template>
     <template v-if="wallet">
@@ -105,7 +107,7 @@ async function adjust(target: { id: string }, form: { value: number }) {
         <DetailField :label="$t('wallet.form.agency')" :value="wallet.agency" mono />
         <DetailField :label="$t('wallet.form.number')" :value="wallet.number" mono />
       </DetailSection>
-      <DetailSection :title="$t('wallet.sections.balance')">
+      <DetailSection :title="$t('wallet.sections.balance')" columns="md:grid-cols-3">
         <DetailField :label="$t('wallet.form.balance')">
           <CurrencyDisplay
             :value="wallet.currentBalance"
@@ -119,18 +121,42 @@ async function adjust(target: { id: string }, form: { value: number }) {
           <DateTimeDisplay v-if="wallet.lastEntryOn" with-time :value="wallet.lastEntryOn" />
           <template v-else>---</template>
         </DetailField>
+        <DetailField :label="$t('wallet.form.last-reconciliation')">
+          <template v-if="lastReconciliation">
+            <DateTimeDisplay
+              with-time
+              class="font-mono tabular-nums"
+              :value="lastReconciliation.createdOn"
+            />
+            <span class="text-muted-foreground mt-0.5 block text-xs">
+              {{ $t(lastReconciliation.text, { amount: lastReconciliation.amount }) }}
+            </span>
+          </template>
+          <span v-else class="text-muted-foreground">{{ $t('wallet.reconciliation.none') }}</span>
+        </DetailField>
       </DetailSection>
     </template>
+    <template v-if="wallet && !(history.failed.value && history.total.value === 0)" #after>
+      <ReconciliationHistory
+        :wallet-id="wallet.id"
+        :reconciliations="history.reconciliations.value"
+        :total="history.total.value"
+        :current-page="history.current.value"
+        :page-size="history.size.value"
+        :selected-id="history.selectedId.value"
+        :loading="history.loading.value"
+        :can-reconcile="wallet.active"
+        @page-changed="history.change"
+        @reconcile="reconciliation.open(wallet, wallet.currentBalance)"
+      />
+    </template>
   </DetailCard>
-  <AdjustBalanceDialog
-    :wallet="
-      adjusting && wallet
-        ? { id: wallet.id, name: wallet.name, balance: wallet.currentBalance }
-        : null
-    "
-    :loading="statement.loading"
-    :messages="adjustErrors.messages.value"
-    @close="closeAdjust()"
-    @adjust="adjust"
+  <ReconcileDialog
+    :wallet="reconciliation.target.value"
+    :loading="reconciliation.loading.value"
+    :messages="reconciliation.messages.value"
+    :balance-change="reconciliation.balanceChange.value"
+    @close="reconciliation.close()"
+    @reconcile="reconciliation.reconcile"
   />
 </template>

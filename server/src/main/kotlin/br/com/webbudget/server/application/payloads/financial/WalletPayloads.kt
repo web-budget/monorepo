@@ -1,12 +1,12 @@
 package br.com.webbudget.server.application.payloads.financial
 
 import br.com.webbudget.server.application.payloads.ErrorCodes.IS_NOT_POSITIVE
+import br.com.webbudget.server.application.payloads.ErrorCodes.IS_OUT_OF_RANGE
 import br.com.webbudget.server.application.payloads.ErrorCodes.IS_NULL
-import br.com.webbudget.server.application.payloads.ErrorCodes.MAX_CHARS
 import br.com.webbudget.server.domain.entities.financial.WalletEntry
+import jakarta.validation.constraints.Digits
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Positive
-import jakarta.validation.constraints.Size
 import org.springframework.format.annotation.DateTimeFormat
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -65,14 +65,37 @@ data class WalletEntryView(
     val resultingBalance: BigDecimal,
     val financialPeriod: StatementEntryPeriodView?,
     val reference: StatementEntryReferenceView?,
-    val wallet: StatementEntryWalletView? = null
+    val wallet: StatementEntryWalletView? = null,
+    val reconciliation: ReconciliationView? = null
 )
 
-data class AdjustmentForm(
+data class ReconciliationForm(
     @field:NotNull(message = IS_NULL)
-    val value: BigDecimal?,
-    @field:Size(message = MAX_CHARS, max = 150)
-    val name: String? = null
+    @field:Digits(integer = 13, fraction = 10, message = IS_OUT_OF_RANGE)
+    val informedBalance: BigDecimal?,
+    @field:NotNull(message = IS_NULL)
+    @field:Digits(integer = 13, fraction = 10, message = IS_OUT_OF_RANGE)
+    val shownBalance: BigDecimal?,
+    val reason: String? = null
+)
+
+data class ReconciliationView(
+    val id: UUID,
+    val createdOn: LocalDateTime,
+    val informedBalance: BigDecimal,
+    val walletBalance: BigDecimal,
+    val difference: BigDecimal,
+    val reason: String,
+    val entryId: UUID
+)
+
+data class ReconciliationResultView(
+    val reconciliation: ReconciliationView,
+    val entry: WalletEntryView
+)
+
+data class ReconciliationPositionView(
+    val position: Long
 )
 
 data class TransferForm(

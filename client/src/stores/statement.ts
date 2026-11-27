@@ -1,8 +1,12 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
+import { reconciliationsApi } from '@/api/reconciliations'
 import { walletEntriesApi } from '@/api/walletEntries'
 import type {
-  AdjustmentForm,
+  PagedResponse,
+  ReconciliationForm,
+  ReconciliationResultView,
+  ReconciliationView,
   StatementQuery,
   StatementSummary,
   WalletEntryDirectionFilter,
@@ -95,13 +99,37 @@ export const useStatementStore = defineStore('statement', () => {
     }
   }
 
-  async function adjust(walletId: string, form: AdjustmentForm): Promise<WalletEntryView> {
+  async function reconcile(
+    walletId: string,
+    form: ReconciliationForm,
+  ): Promise<ReconciliationResultView> {
     pending.value++
     try {
-      return await walletEntriesApi.adjust(walletId, form)
+      return await reconciliationsApi.reconcile(walletId, form)
     } finally {
       pending.value--
     }
+  }
+
+  async function findReconciliations(
+    walletId: string,
+    page: number,
+    size: number,
+  ): Promise<PagedResponse<ReconciliationView>> {
+    pending.value++
+    try {
+      return await reconciliationsApi.findAll(walletId, { page, size })
+    } finally {
+      pending.value--
+    }
+  }
+
+  async function findReconciliationPosition(
+    walletId: string,
+    reconciliationId: string,
+  ): Promise<number> {
+    const { position } = await reconciliationsApi.findPosition(walletId, reconciliationId)
+    return position
   }
 
   function reset() {
@@ -120,7 +148,9 @@ export const useStatementStore = defineStore('statement', () => {
     findAll,
     findSummary,
     findEntry,
-    adjust,
+    reconcile,
+    findReconciliations,
+    findReconciliationPosition,
     reset,
   }
 })

@@ -30,6 +30,7 @@
       },
       "invalid-user-status-transition": "The account changed status while the screen was open. Refresh the list.",
       "transfer-already-returned": "The transfer was already returned.",
+      "reconciliation-balance-changed": "The wallet balance changed while you were reconciling",
       "transfer-is-a-return": "A return cannot be returned.",
       "import-draft-already-exists": "There is already a draft for this destination in this period",
       "import-not-editable": "The import is no longer a draft, refresh the screen",
@@ -65,7 +66,8 @@
       "payment-date-in-future": "The payment date cannot be in the future",
       "wallet-has-entries": "The wallet has statement entries and cannot be deleted",
       "transfer-between-same-wallet": "Origin and destination must be different wallets",
-      "invalid-adjustment-value": "The adjustment value cannot be zero",
+      "reconciliation-without-difference": "The informed balance equals the wallet balance. There is nothing to reconcile.",
+      "invalid-reconciliation-reason": "The reason must have from 1 to 150 characters",
       "no-open-invoice": "There is no open invoice for this card in the chosen period. Nothing was posted.",
       "invoice-not-open": "The invoice is not open and accepts no changes",
       "invoice-without-purchases": "The invoice has no purchases; it only closes, zeroed, when the period closes",
@@ -1459,7 +1461,8 @@
       "active-hint": "Deactivate to remove from listings",
       "type-hint": "The type does not change after creation.",
       "balance": "Current balance",
-      "last-entry": "Last entry"
+      "last-entry": "Last entry",
+      "last-reconciliation": "Last reconciliation"
     },
     "type": {
       "bank-account": "Bank account",
@@ -1500,12 +1503,47 @@
     },
     "actions": {
       "view-statement": "View statement",
-      "adjust-balance": "Adjust balance",
+      "reconcile": "Reconcile",
       "transfer": "Transfer"
+    },
+    "reconcile": {
+      "title": "Reconcile {name}",
+      "bank-balance": "Balance at the bank now",
+      "counted-balance": "Cash counted now",
+      "balance-example": "0.00",
+      "wallet-balance": "Wallet balance",
+      "informed-balance": "Informed balance",
+      "difference": "Difference",
+      "balance-matches": "The balance matches the bank. There is nothing to reconcile.",
+      "reason": "Reason",
+      "reason-example": "Why the balance does not match the bank",
+      "confirm": "Reconcile",
+      "balance-changed": "The wallet balance changed while you were reconciling",
+      "balance-changed-detail": "The balance is now {balance}. The difference is now {difference}.",
+      "toast": {
+        "title": "Wallet reconciled",
+        "credit": "Credit adjustment of {amount} in {name}. It does not count in the result.",
+        "debit": "Debit adjustment of {amount} in {name}. It does not count in the result."
+      }
     },
     "notices": {
       "balance": "The balance is not edited on the wallet",
       "balance-description": "It comes from the statement."
+    },
+    "reconciliation": {
+      "none": "None yet",
+      "last-credit": "Credit adjustment of {amount}",
+      "last-debit": "Debit adjustment of {amount}"
+    },
+    "history": {
+      "title": "Reconciliations",
+      "empty": "No reconciliations yet",
+      "noun": "reconciliation | reconciliations",
+      "adjustment": "Adjustment",
+      "open-adjustment": "Open the adjustment in the statement",
+      "view-adjustment": "View adjustment",
+      "informed": "Reported",
+      "wallet": "Wallet"
     }
   },
   "card": {
@@ -1837,7 +1875,9 @@
     "end-before-start": "The end date cannot be before the start date",
     "roles-required": "Choose at least one area.",
     "discount-too-high": "The discount must be lower than the value.",
-    "adjustment-not-zero": "The adjustment cannot be zero.",
+    "reconciliation-balance-required": "Enter the balance.",
+    "reconciliation-balance-invalid": "Enter a value like 4,812.37 or −120.00.",
+    "reconciliation-reason-required": "Enter the reason for the difference.",
     "transfer-same-wallet": "Origin and destination must be different wallets.",
     "first-installment-after-last": "The current installment cannot pass the number of installments."
   },
@@ -2230,6 +2270,8 @@
       "reference": "Origin"
     },
     "open-origin": "Open the origin of {name}",
+    "open-reconciliation": "Open the reconciliation of {name}",
+    "view-reconciliation": "View reconciliation",
     "list": {
       "empty-title": "{name} has no entries yet",
       "empty-description": "Post an income to give it a balance.",
@@ -2243,22 +2285,8 @@
     },
     "actions": {
       "import": "Import statement",
-      "adjust": "Adjust balance",
+      "reconcile": "Reconcile",
       "transfer": "Transfer"
-    },
-    "adjust": {
-      "title": "Adjust the balance of {name}",
-      "value": "Adjustment value",
-      "wallet-balance": "Wallet balance",
-      "adjustment": "Adjustment",
-      "balance-after": "Balance after",
-      "confirm": "Adjust",
-      "value-example": "0.03 or −0.02"
-    },
-    "toast": {
-      "adjusted": "Balance adjusted",
-      "adjusted-credit": "Credit of {amount} in {name}. It does not count in the result.",
-      "adjusted-debit": "Debit of {amount} in {name}. It does not count in the result."
     },
     "updated-on": "Updated on",
     "credits": "Credits in the filter",
@@ -2267,10 +2295,13 @@
     "detailing": "Detailing",
     "open-origin-header": "Open origin",
     "sections": {
-      "entry": "Entry"
+      "entry": "Entry",
+      "reconciliation": "Reconciliation"
     },
     "detail": {
-      "value": "Value"
+      "value": "Value",
+      "reconciled-on": "Reconciled on",
+      "open-reconciliation": "Open the reconciliation"
     },
     "entry": {
       "reversal": "Reversal of {name}",

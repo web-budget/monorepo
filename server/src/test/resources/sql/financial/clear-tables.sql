@@ -6,6 +6,7 @@ DELETE FROM financial.recurring_launches;
 DELETE FROM financial.recurring_values;
 DELETE FROM financial.recurring_movements;
 DELETE FROM financial.card_purchases;
+DELETE FROM financial.wallet_reconciliations;
 DELETE FROM financial.wallet_entries;
 DELETE FROM financial.payments;
 DELETE FROM financial.movements;
