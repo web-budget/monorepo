@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <changeSet id="27-1100-1" author="${claude}">
+        <comment>
+            period_flow is a regular VIEW, so it always reflects the current data: a closed period reads
+            its recorded result and an open one sums what was paid by wallet, the invoice payments included.
+        </comment>
+        <sql>
+            CREATE VIEW financial.period_flow AS
+            SELECT
+                fp.id AS id_financial_period,
+                fp.starting_at,
+                fp.ending_at,
+                fp.status,
+                COALESCE(pr.revenues, paid.revenues) AS revenues,
+                COALESCE(pr.expenses, paid.expenses) AS expenses,
+                COALESCE(pr.result, paid.revenues - paid.expenses) AS result,
+                pr.id IS NOT NULL AS recorded
+            FROM registration.financial_periods fp
+            LEFT JOIN financial.period_results pr ON pr.id_financial_period = fp.id
+            CROSS JOIN LATERAL (
+                SELECT
+                    COALESCE(SUM(p.value_paid) FILTER (WHERE m.type = 'INCOME'), 0) AS revenues,
+                    COALESCE(SUM(p.value_paid) FILTER (WHERE m.type = 'EXPENSE'), 0) AS expenses
+                FROM financial.movements m
+                JOIN financial.payments p ON p.id_movement = m.id
+                WHERE m.id_financial_period = fp.id
+                  AND p.method = 'WALLET'
+                  AND pr.id IS NULL
+            ) paid;
+        </sql>
+        <rollback>
+            <sql>DROP VIEW financial.period_flow;</sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

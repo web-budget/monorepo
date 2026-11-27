@@ -15,7 +15,7 @@ import java.util.UUID
 
 @Sql("/sql/registration/clear-tables.sql", "/sql/financial/create-registration-data.sql")
 @Sql("/sql/registration/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
-class FlowDashboardControllerTest : BaseIntegrationTest() {
+class OverviewDashboardControllerTest : BaseIntegrationTest() {
 
     @Autowired
     private lateinit var dsl: DSLContext
@@ -25,19 +25,19 @@ class FlowDashboardControllerTest : BaseIntegrationTest() {
 
         authenticateWithRoles("FINANCIAL")
 
-        flow(2024).expectStatus().isForbidden
+        overview("2024").expectStatus().isForbidden
 
         authenticateWithRoles("DASHBOARDS")
 
-        flow(2024).expectStatus().isOk
+        overview("2024").expectStatus().isOk
 
         authenticateAnonymously()
 
-        flow(2024).expectStatus().isUnauthorized
+        overview("2024").expectStatus().isUnauthorized
     }
 
     @Test
-    fun `should list the periods of the year in chronological order with the recorded and the provisional results`() {
+    fun `should list the periods of the year with the recorded and the provisional results`() {
 
         insertPeriod(9104L, "12/2023-01/2024", "2023-12-15", "2024-01-14", "CLOSED")
         insertRecordedResult(9102L, "10000.00", "5000.00")
@@ -48,10 +48,12 @@ class FlowDashboardControllerTest : BaseIntegrationTest() {
         createMovement("Gift", "INCOME", "300.00", DECEMBER)
         createMovement("Open bill", "EXPENSE", "70.00", DECEMBER, paid = false)
 
-        flow(2024)
+        overview("2024")
             .expectStatus().isOk
             .expectBody()
-            .jsonPath("$.year").isEqualTo(2024)
+            .jsonPath("$.cut").isEqualTo("2024")
+            .jsonPath("$.years.length()").isEqualTo(1)
+            .jsonPath("$.years[0]").isEqualTo(2024)
             .jsonPath("$.periods.length()").isEqualTo(4)
             .jsonPath("$.periods[0].financialPeriod.name").isEqualTo("12/2023-01/2024")
             .jsonPath("$.periods[0].recorded").isEqualTo(true)
@@ -71,6 +73,85 @@ class FlowDashboardControllerTest : BaseIntegrationTest() {
             .jsonPath("$.totals.revenues").isEqualTo(18400.0)
             .jsonPath("$.totals.expenses").isEqualTo(7540.0)
             .jsonPath("$.totals.result").isEqualTo(10860.0)
+            .jsonPath("$.totals.savingsRate").isEqualTo(0.5902)
+            .jsonPath("$.totals.periodsWithMovement").isEqualTo(4)
+            .jsonPath("$.totals.redPeriods").isEqualTo(0)
+            .jsonPath("$.resultByYear.length()").isEqualTo(1)
+            .jsonPath("$.resultByYear[0].year").isEqualTo(2024)
+            .jsonPath("$.resultByYear[0].result").isEqualTo(10860.0)
+            .jsonPath("$.resultByYear[0].provisional").isEqualTo(true)
+    }
+
+    @Test
+    fun `should sum every period for all and keep the result by year whatever the cut`() {
+
+        insertPeriod(9105L, "03/2025", "2025-03-01", "2025-03-31", "CLOSED")
+        insertRecordedResult(9102L, "10000.00", "5000.00")
+        insertRecordedResult(9105L, "1000.00", "1500.00")
+
+        createMovement("Salary", "INCOME", "8000.00", AUGUST)
+        createMovement("Rent", "EXPENSE", "2500.00", AUGUST)
+
+        overview("all")
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.cut").isEqualTo("all")
+            .jsonPath("$.years.length()").isEqualTo(2)
+            .jsonPath("$.years[0]").isEqualTo(2024)
+            .jsonPath("$.years[1]").isEqualTo(2025)
+            .jsonPath("$.periods.length()").isEqualTo(4)
+            .jsonPath("$.totals.revenues").isEqualTo(19000.0)
+            .jsonPath("$.totals.expenses").isEqualTo(9000.0)
+            .jsonPath("$.totals.result").isEqualTo(10000.0)
+            .jsonPath("$.totals.redPeriods").isEqualTo(1)
+            .jsonPath("$.totals.periodsWithMovement").isEqualTo(3)
+            .jsonPath("$.resultByYear.length()").isEqualTo(2)
+            .jsonPath("$.resultByYear[0].year").isEqualTo(2024)
+            .jsonPath("$.resultByYear[0].result").isEqualTo(10500.0)
+            .jsonPath("$.resultByYear[0].savingsRate").isEqualTo(0.5833)
+            .jsonPath("$.resultByYear[0].provisional").isEqualTo(true)
+            .jsonPath("$.resultByYear[1].year").isEqualTo(2025)
+            .jsonPath("$.resultByYear[1].result").isEqualTo(-500.0)
+            .jsonPath("$.resultByYear[1].savingsRate").isEqualTo(-0.5)
+            .jsonPath("$.resultByYear[1].provisional").isEqualTo(false)
+
+        overview("2025")
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.cut").isEqualTo("2025")
+            .jsonPath("$.periods.length()").isEqualTo(1)
+            .jsonPath("$.totals.result").isEqualTo(-500.0)
+            .jsonPath("$.resultByYear.length()").isEqualTo(2)
+    }
+
+    @Test
+    fun `should leave the savings rate empty without revenues`() {
+
+        insertRecordedResult(9102L, "0.00", "200.00")
+
+        overview("2024")
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.totals.revenues").isEqualTo(0)
+            .jsonPath("$.totals.expenses").isEqualTo(200.0)
+            .jsonPath("$.totals.savingsRate").isEmpty
+            .jsonPath("$.resultByYear[0].savingsRate").isEmpty
+    }
+
+    @Test
+    fun `should count in the red only the periods with movement`() {
+
+        insertRecordedResult(9102L, "100.00", "300.00")
+        insertRecordedResult(9101L, "0.00", "0.00")
+        insertPeriod(9104L, "01/2024", "2024-01-01", "2024-01-31", "CLOSED")
+        insertRecordedResult(9104L, "500.00", "100.00")
+
+        overview("2024")
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.periods.length()").isEqualTo(4)
+            .jsonPath("$.totals.periodsWithMovement").isEqualTo(2)
+            .jsonPath("$.totals.redPeriods").isEqualTo(1)
     }
 
     @Test
@@ -78,42 +159,45 @@ class FlowDashboardControllerTest : BaseIntegrationTest() {
 
         createMovement("Salary", "INCOME", "1000.00", AUGUST)
 
-        flow(2024).expectBody().jsonPath("$.periods[1].financialPeriod.name").isEqualTo("Financial test 08/2024")
+        overview("2024").expectBody().jsonPath("$.periods[1].financialPeriod.name").isEqualTo("Financial test 08/2024")
             .jsonPath("$.periods[1].recorded").isEqualTo(false)
 
         restTestClient.patch().uri("/private/v1/financial/financial-periods/$AUGUST/close").exchange().expectStatus().isOk
 
-        flow(2024).expectBody().jsonPath("$.periods[1].recorded").isEqualTo(true)
+        overview("2024").expectBody().jsonPath("$.periods[1].recorded").isEqualTo(true)
             .jsonPath("$.periods[1].revenues").isEqualTo(1000.0)
 
         restTestClient.patch().uri("/private/v1/financial/financial-periods/$AUGUST/reopen").exchange().expectStatus().isOk
 
-        flow(2024).expectBody().jsonPath("$.periods[1].recorded").isEqualTo(false)
+        overview("2024").expectBody().jsonPath("$.periods[1].recorded").isEqualTo(false)
     }
 
     @Test
     fun `should answer an empty year with zeros and use the current year by default`() {
 
-        flow(2031)
+        overview("2031")
             .expectStatus().isOk
             .expectBody()
             .jsonPath("$.periods.length()").isEqualTo(0)
             .jsonPath("$.totals.revenues").isEqualTo(0)
             .jsonPath("$.totals.result").isEqualTo(0)
+            .jsonPath("$.totals.savingsRate").isEmpty
+            .jsonPath("$.totals.periodsWithMovement").isEqualTo(0)
 
         restTestClient.get().uri(ENDPOINT_URL).exchange()
             .expectStatus().isOk
-            .expectBody().jsonPath("$.year").isEqualTo(LocalDate.now().year)
+            .expectBody().jsonPath("$.cut").isEqualTo(LocalDate.now().year.toString())
     }
 
     @Test
     fun `should refuse an invalid year`() {
 
-        flow(1800).expectStatus().isBadRequest
-        restTestClient.get().uri("$ENDPOINT_URL?year=abc").exchange().expectStatus().isBadRequest
+        overview("1800").expectStatus().isBadRequest
+        overview("10000").expectStatus().isBadRequest
+        overview("abc").expectStatus().isBadRequest
     }
 
-    private fun flow(year: Int): ResponseSpec = restTestClient.get().uri("$ENDPOINT_URL?year=$year").exchange()
+    private fun overview(year: String): ResponseSpec = restTestClient.get().uri("$ENDPOINT_URL?year=$year").exchange()
 
     private fun insertPeriod(id: Long, name: String, startingAt: String, endingAt: String, status: String) {
         dsl.insertInto(FINANCIAL_PERIODS)
@@ -157,7 +241,7 @@ class FlowDashboardControllerTest : BaseIntegrationTest() {
     }
 
     companion object {
-        private const val ENDPOINT_URL = "/private/v1/dashboards/financial-flow"
+        private const val ENDPOINT_URL = "/private/v1/dashboards/overview"
         private const val DECEMBER = "2a7b99bc-f077-4dbf-8458-87c5d0e8fd7a"
         private const val AUGUST = "6248abb7-a8ad-4d2b-a0a4-0417b98cb008"
         private const val EXPENSE = "503cee43-583e-4df5-a9db-8bf049cf6a8d"
