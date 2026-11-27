@@ -1,8 +1,13 @@
 <script setup lang="ts">
 import { ArrowLeftRight, Info, Scale, ScrollText } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
-import { ref } from 'vue'
+import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { useRouter } from 'vue-router'
+import CompartmentFormDialog from '@/components/compartments/CompartmentFormDialog.vue'
+import CompartmentMovementDialog from '@/components/compartments/CompartmentMovementDialog.vue'
+import CompartmentsCard from '@/components/compartments/CompartmentsCard.vue'
+import DeleteCompartmentDialog from '@/components/compartments/DeleteCompartmentDialog.vue'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
 import DateTimeDisplay from '@/components/common/DateTimeDisplay.vue'
 import DetailCard from '@/components/common/DetailCard.vue'
@@ -11,9 +16,11 @@ import DetailSection from '@/components/common/DetailSection.vue'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import AdjustBalanceDialog from '@/components/wallets/AdjustBalanceDialog.vue'
+import { useCompartmentActions } from '@/composables/useCompartmentActions'
 import { useCrudDetail } from '@/composables/useCrudDetail'
 import { useNotification } from '@/composables/useNotification'
 import { useServerErrors } from '@/composables/useServerErrors'
+import { useCompartmentsStore } from '@/stores/compartments'
 import { useStatementStore } from '@/stores/statement'
 import { useWalletsStore } from '@/stores/wallets'
 import { adjustmentNotice } from '@/utils/statement'
@@ -22,9 +29,13 @@ import { typeKey } from '@/utils/typeLabels'
 const props = defineProps<{ id: string }>()
 
 const { n } = useI18n()
+const router = useRouter()
 
 const store = useWalletsStore()
 const { wallet } = storeToRefs(store)
+
+const compartmentsStore = useCompartmentsStore()
+const { compartments } = storeToRefs(compartmentsStore)
 
 const statement = useStatementStore()
 const { showSuccess } = useNotification()
@@ -41,6 +52,29 @@ const { messages, changeToUpdate, remove } = useCrudDetail({
   remove: store.remove,
 })
 
+async function reload() {
+  await reloadErrors.run(() =>
+    Promise.all([store.findOne(props.id), compartmentsStore.findAll(props.id)]),
+  )
+}
+
+const actions = useCompartmentActions({
+  walletId: () => props.id,
+  walletName: () => wallet.value?.name ?? '',
+  reload,
+})
+
+const hasCompartments = computed(() => (wallet.value?.compartmentCount ?? 0) > 0)
+
+onMounted(() => reloadErrors.run(() => compartmentsStore.findAll(props.id)))
+
+function openHistory(compartmentId: string) {
+  return router.push({
+    name: 'wallets.compartments.detail',
+    params: { id: props.id, compartmentId },
+  })
+}
+
 function openAdjust() {
   adjustErrors.clear()
   adjusting.value = true
@@ -55,7 +89,7 @@ async function adjust(target: { id: string }, form: { value: number }) {
     adjusting.value = false
     const notice = adjustmentNotice(form.value, wallet.value?.name, n)
     showSuccess('statement.toast.adjusted', notice.detail, true, notice.params)
-    await reloadErrors.run(() => store.findOne(props.id))
+    await reload()
   }
 }
 </script>
@@ -106,13 +140,24 @@ async function adjust(target: { id: string }, form: { value: number }) {
         <DetailField :label="$t('wallet.form.number')" :value="wallet.number" mono />
       </DetailSection>
       <DetailSection :title="$t('wallet.sections.balance')">
-        <DetailField :label="$t('wallet.form.balance')">
+        <DetailField v-if="hasCompartments" :label="$t('wallet.form.total')">
+          <CurrencyDisplay
+            :value="wallet.totalBalance"
+            :signed="wallet.totalBalance < 0"
+            glued
+            zero-if-null
+            class="text-xl font-semibold"
+          />
+        </DetailField>
+        <DetailField
+          :label="hasCompartments ? $t('wallet.form.free-balance') : $t('wallet.form.balance')"
+        >
           <CurrencyDisplay
             :value="wallet.currentBalance"
             :signed="wallet.currentBalance < 0"
             glued
             zero-if-null
-            class="text-xl font-semibold"
+            :class="hasCompartments ? 'text-base font-semibold' : 'text-xl font-semibold'"
           />
         </DetailField>
         <DetailField :label="$t('wallet.form.last-entry')" mono>
@@ -120,6 +165,18 @@ async function adjust(target: { id: string }, form: { value: number }) {
           <template v-else>---</template>
         </DetailField>
       </DetailSection>
+    </template>
+    <template v-if="wallet" #after>
+      <CompartmentsCard
+        :compartments="compartments"
+        :wallet-active="wallet.active"
+        @deposit="actions.openMovement('DEPOSIT', $event)"
+        @withdraw="actions.openMovement('WITHDRAWAL', $event)"
+        @create="actions.openCreate()"
+        @history="openHistory"
+        @edit="actions.openEdit"
+        @remove="actions.openRemove"
+      />
     </template>
   </DetailCard>
   <AdjustBalanceDialog
@@ -132,5 +189,36 @@ async function adjust(target: { id: string }, form: { value: number }) {
     :messages="adjustErrors.messages.value"
     @close="closeAdjust()"
     @adjust="adjust"
+  />
+  <CompartmentFormDialog
+    :open="actions.formOpen.value"
+    :compartment="actions.formTarget.value"
+    :wallet-name="wallet?.name ?? ''"
+    :reset-token="actions.formResetToken.value"
+    :loading="compartmentsStore.loading"
+    :messages="actions.formErrors.generalMessages.value"
+    :field-errors="actions.formErrors.fieldMessages.value"
+    @close="actions.closeForm()"
+    @submit="actions.submitForm"
+  />
+  <DeleteCompartmentDialog
+    :compartment="actions.removeTarget.value"
+    :wallet-name="wallet?.name ?? ''"
+    :loading="compartmentsStore.loading"
+    :messages="actions.removeErrors.messages.value"
+    @close="actions.closeRemove()"
+    @confirm="actions.confirmRemove()"
+    @withdraw-all="actions.withdrawAll()"
+  />
+  <CompartmentMovementDialog
+    :request="actions.movementRequest.value"
+    :wallet-name="wallet?.name ?? ''"
+    :free-balance="wallet?.currentBalance ?? 0"
+    :compartments="compartments"
+    :loading="compartmentsStore.loading"
+    :messages="actions.movementErrors.generalMessages.value"
+    :field-errors="actions.movementErrors.fieldMessages.value"
+    @close="actions.closeMovement()"
+    @move="actions.move"
   />
 </template>

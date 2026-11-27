@@ -19,6 +19,8 @@ const card: CardView = {
     type: 'BANK_ACCOUNT',
     bank: 'ACME',
     currentBalance: 0,
+    totalBalance: 0,
+    compartmentCount: 0,
     agency: null,
     number: null,
     active: true,

@@ -25,6 +25,8 @@ const wallet: WalletView = {
   name: 'Main',
   type: 'BANK_ACCOUNT',
   currentBalance: 10,
+  totalBalance: 10,
+  compartmentCount: 0,
   active: true,
   description: null,
   bank: 'ACME',

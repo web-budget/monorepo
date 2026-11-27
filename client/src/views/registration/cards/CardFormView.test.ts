@@ -27,6 +27,8 @@ const wallet = {
   type: 'BANK_ACCOUNT',
   bank: 'ACME',
   currentBalance: 0,
+  totalBalance: 0,
+  compartmentCount: 0,
   agency: null,
   number: null,
   active: true,
@@ -250,7 +252,10 @@ describe('CardFormView', () => {
     expect((field(wrapper, 'invoicePaymentDay').element as HTMLInputElement).value).toBe('10')
     expect(options(wrapper, 0).map((option) => option.label)).toContain('Hipercard')
     expect(selects(wrapper)[0]!.props('modelValue')).toBe('Hipercard')
-    expect(options(wrapper, 1).map((option) => option.label)).toEqual(['Main, ACME', 'Old wallet, ACME'])
+    expect(options(wrapper, 1).map((option) => option.label)).toEqual([
+      'Main, ACME',
+      'Old wallet, ACME',
+    ])
     expect(selects(wrapper)[1]!.props('modelValue')).toBe('w-9')
   })
 

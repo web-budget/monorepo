@@ -20,6 +20,15 @@ export const registrationRoutes: RouteRecordRaw[] = [
         list: () => import('@/views/registration/wallets/WalletListView.vue'),
         form: () => import('@/views/registration/wallets/WalletFormView.vue'),
         detail: () => import('@/views/registration/wallets/WalletDetailView.vue'),
+        extra: [
+          {
+            path: ':id/compartments/:compartmentId/detail',
+            name: 'wallets.compartments.detail',
+            props: true,
+            meta: { breadcrumb: 'compartment.form.detailing' },
+            component: () => import('@/views/registration/wallets/CompartmentHistoryView.vue'),
+          },
+        ],
       }),
       crudRoutes({
         path: 'cards',
