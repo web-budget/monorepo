@@ -4,6 +4,7 @@ import {
   CalendarRange,
   ChartBarBig,
   CreditCard,
+  FileUp,
   Gauge,
   Lock,
   Network,
@@ -77,6 +78,12 @@ export const financialSection: ModuleSectionDefinition = {
       icon: CreditCard,
       to: '/financial/invoices',
       description: 'module-home.items.credit-card-invoice',
+    },
+    {
+      label: 'imports.menu',
+      icon: FileUp,
+      to: '/financial/imports',
+      description: 'module-home.items.import',
     },
     {
       label: 'financial-period.menu',

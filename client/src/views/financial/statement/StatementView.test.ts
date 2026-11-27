@@ -190,6 +190,7 @@ const leaf = { render: () => h('div') }
 const extraRoutes = [
   { path: '/transfers/:id/detail', name: 'transfers.detail', component: leaf },
   { path: '/movements/create', name: 'movements.create', component: leaf },
+  { path: '/imports/create', name: 'imports.create', component: leaf },
 ]
 
 function selects(wrapper: Awaited<ReturnType<typeof render>>['wrapper']) {
@@ -226,15 +227,18 @@ describe('StatementView', () => {
     })
   })
 
-  it('introduces the wallet with the adjustment first and the transfer second', async () => {
+  it('introduces the wallet with the import first, then the adjustment and the transfer', async () => {
     const { wrapper } = await render()
 
     expect(wrapper.find('h1').text()).toBe('Extrato')
     expect(wrapper.find('[data-slot="page-description"]').text()).toBe(
       'Mudanças de saldo de Conta corrente.',
     )
-    expect(wrapper.find('[data-slot="page-actions"]').text()).toBe('Ajustar saldoTransferir')
+    expect(wrapper.find('[data-slot="page-actions"]').text()).toBe(
+      'Importar extratoAjustar saldoTransferir',
+    )
     expect(wrapper.find('a[href="/financial/transfers/create?from=w-1"]').exists()).toBe(true)
+    expect(wrapper.find('a[href="/imports/create?wallet=w-1"]').exists()).toBe(true)
   })
 
   it('shows the wallet, the balance with its last update and the totals of the filter', async () => {
@@ -264,7 +268,7 @@ describe('StatementView', () => {
       lastEntryOn: null,
     })
 
-    const { wrapper } = await mountView(StatementView, 'statement')
+    const { wrapper } = await mountView(StatementView, 'statement', {}, {}, undefined, extraRoutes)
 
     expect(wrapper.find('[data-slot="balance"] .text-expense').exists()).toBe(true)
     expect(wrapper.find('[data-slot="balance"]').text()).not.toContain('Atualizado')
@@ -621,7 +625,14 @@ describe('StatementView', () => {
     it('shows the error state with the design text and retries', async () => {
       serve()
       vi.mocked(walletEntriesApi.findStatement).mockRejectedValue(problem(500))
-      const { wrapper } = await mountView(StatementView, 'statement')
+      const { wrapper } = await mountView(
+        StatementView,
+        'statement',
+        {},
+        {},
+        undefined,
+        extraRoutes,
+      )
       const state = wrapper.find('[data-state="error"]')
       expect(state.text()).toContain('Não foi possível carregar o extrato')
       expect(state.text()).toContain('O servidor não respondeu. Seus filtros continuam na URL.')
@@ -637,7 +648,14 @@ describe('StatementView', () => {
       serve()
       vi.mocked(financialPeriodsApi.findAll).mockRejectedValue(problem(500))
 
-      const { wrapper } = await mountView(StatementView, 'statement')
+      const { wrapper } = await mountView(
+        StatementView,
+        'statement',
+        {},
+        {},
+        undefined,
+        extraRoutes,
+      )
 
       expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
     })
@@ -646,7 +664,14 @@ describe('StatementView', () => {
       serve()
       vi.mocked(walletsApi.findById).mockRejectedValue(problem(500))
 
-      const { wrapper } = await mountView(StatementView, 'statement')
+      const { wrapper } = await mountView(
+        StatementView,
+        'statement',
+        {},
+        {},
+        undefined,
+        extraRoutes,
+      )
 
       expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(true)
       expect(buttonWithText(wrapper, 'Ajustar saldo').attributes('disabled')).toBeDefined()

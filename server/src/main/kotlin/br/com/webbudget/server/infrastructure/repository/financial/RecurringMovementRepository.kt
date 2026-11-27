@@ -79,6 +79,10 @@ class RecurringMovementRepository(
             .fetchOne()
             ?.toRecurringMovement()
 
+    fun findByIds(ids: Collection<Long>): List<RecurringMovement> = selectJoined(null)
+        .where(recurringMovements.ID.`in`(ids))
+        .fetch { record -> record.toRecurringMovement() }
+
     fun findAll(
         criteria: RecurringMovementCriteria,
         pageable: Pageable

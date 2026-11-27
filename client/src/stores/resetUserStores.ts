@@ -5,6 +5,7 @@ import { useClassificationsStore } from '@/stores/classifications'
 import { useCompositionStore } from '@/stores/composition'
 import { useCostCentersStore } from '@/stores/costCenters'
 import { useFinancialPeriodsStore } from '@/stores/financialPeriods'
+import { useImportsStore } from '@/stores/imports'
 import { useInvoicesStore } from '@/stores/invoices'
 import { useMovementsStore } from '@/stores/movements'
 import { useOverviewStore } from '@/stores/overview'
@@ -29,6 +30,7 @@ export function resetUserStores() {
   useCompositionStore().reset()
   useOverviewStore().reset()
   useFinancialPeriodsStore().reset()
+  useImportsStore().reset()
   useInvoicesStore().reset()
   useMovementsStore().reset()
   usePeriodClosingStore().reset()

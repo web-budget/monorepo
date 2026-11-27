@@ -24,6 +24,17 @@ describe('FilterSelect', () => {
     expect(wrapper.getComponent(Select).props('modelValue')).toBe('__none__')
   })
 
+  it('marks the label with an asterisk only when required', () => {
+    const plain = render('')
+    const required = mount(FilterSelect, {
+      props: { label: 'Tipo', options: [], modelValue: '', required: true },
+      global: { plugins: [i18n] },
+    })
+
+    expect(plain.text()).not.toContain('*')
+    expect(required.text()).toContain('*')
+  })
+
   it('has no none option without a none label', () => {
     const wrapper = mount(FilterSelect, {
       props: { label: 'Carteira', options: [{ label: 'A', value: 'a' }], modelValue: 'a' },

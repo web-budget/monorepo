@@ -34,6 +34,11 @@ class TransferRepository(
         .fetchOne()
         ?.toTransfer()
 
+    fun findById(id: Long): Transfer? = selectTransfers()
+        .where(transfers.ID.eq(id))
+        .fetchOne()
+        ?.toTransfer()
+
     fun findAll(criteria: TransferCriteria, pageable: Pageable): PagedModel<Transfer> {
 
         val condition = DSL.and(
