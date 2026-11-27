@@ -49,7 +49,7 @@ const {
   entity: 'wallet',
   initialStatus: 'ACTIVE',
   statuses: FEMININE_STATUS_OPTIONS.map((option) => option.value),
-  sortFields: ['name', 'type', 'currentBalance'],
+  sortFields: ['name', 'type', 'totalBalance', 'currentBalance'],
   pageRequest,
   pageResponse,
   loading,
@@ -95,11 +95,18 @@ const columns = computed(() => [
     mobileLabel: false,
   },
   {
-    field: 'currentBalance',
-    header: t('wallet.table-columns.balance'),
+    field: 'totalBalance',
+    header: t('wallet.table-columns.total'),
     sortable: true,
     align: 'end' as const,
     mobile: 'value' as const,
+  },
+  {
+    field: 'currentBalance',
+    header: t('wallet.table-columns.free'),
+    sortable: true,
+    align: 'end' as const,
+    mobile: 'line' as const,
   },
 ])
 
@@ -170,6 +177,9 @@ const reconciliation = useReconciliation(reload)
         <template #cell-bank="{ item }">{{ item.bank || '—' }}</template>
         <template #cell-agency="{ item }">
           <span class="text-muted-foreground font-mono">{{ agencyAndNumber(item) }}</span>
+        </template>
+        <template #cell-totalBalance="{ item }">
+          <CurrencyDisplay :value="item.totalBalance" :signed="item.totalBalance < 0" bare glued />
         </template>
         <template #cell-currentBalance="{ item }">
           <CurrencyDisplay

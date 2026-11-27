@@ -12,6 +12,8 @@ const row: WalletListView = {
   type: 'PERSONAL',
   bank: null,
   currentBalance: 0,
+  totalBalance: 0,
+  compartmentCount: 0,
   agency: null,
   number: null,
   active: true,
@@ -19,6 +21,8 @@ const row: WalletListView = {
 const view: WalletView = {
   ...row,
   currentBalance: 120.5,
+  totalBalance: 120.5,
+  compartmentCount: 0,
   description: null,
   number: null,
   agency: null,

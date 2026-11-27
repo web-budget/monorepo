@@ -2,6 +2,7 @@ import { flushPromises } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { h } from 'vue'
 import { toast } from 'vue-sonner'
+import { compartmentsApi } from '@/api/compartments'
 import { reconciliationsApi } from '@/api/reconciliations'
 import { walletsApi } from '@/api/wallets'
 import ReconcileDialog from '@/components/wallets/ReconcileDialog.vue'
@@ -12,6 +13,7 @@ import type { ReconciliationView, WalletView } from '@/types'
 import WalletDetailView from '@/views/registration/wallets/WalletDetailView.vue'
 
 vi.mock('@/api/wallets')
+vi.mock('@/api/compartments')
 vi.mock('@/api/reconciliations')
 vi.mock('vue-sonner', () => ({
   toast: {
@@ -27,6 +29,8 @@ const wallet: WalletView = {
   name: 'Main',
   type: 'BANK_ACCOUNT',
   currentBalance: 10,
+  totalBalance: 10,
+  compartmentCount: 0,
   active: true,
   description: null,
   bank: 'ACME',
@@ -62,6 +66,7 @@ async function render(
   total = rows.length,
 ) {
   vi.mocked(walletsApi.findById).mockResolvedValue(view)
+  vi.mocked(compartmentsApi.findAll).mockResolvedValue([])
   vi.mocked(reconciliationsApi.findAll).mockResolvedValue(pageOf(rows, total))
   return mountView(WalletDetailView, 'wallets', { id: 'w-1' }, {}, location, extraRoutes)
 }
@@ -91,6 +96,7 @@ describe('WalletDetailView', () => {
       'Identificação',
       'Dados do banco',
       'Saldo',
+      'Cofrinhos',
       'Conciliações',
     ])
     expect(wrapper.text()).toContain('Conta bancária')
@@ -134,6 +140,7 @@ describe('WalletDetailView', () => {
     expect(wrapper.findAll('h2').map((title) => title.text())).toEqual([
       'Identificação',
       'Saldo',
+      'Cofrinhos',
       'Conciliações',
     ])
   })

@@ -3,6 +3,7 @@ package br.com.webbudget.server.application.mappers.financial
 import br.com.webbudget.server.application.payloads.financial.ReconciliationForm
 import br.com.webbudget.server.application.payloads.financial.ReconciliationResultView
 import br.com.webbudget.server.application.payloads.financial.ReconciliationView
+import br.com.webbudget.server.application.payloads.financial.StatementEntryCompartmentView
 import br.com.webbudget.server.application.payloads.financial.StatementEntryPeriodView
 import br.com.webbudget.server.application.payloads.financial.StatementEntryReferenceView
 import br.com.webbudget.server.application.payloads.financial.StatementEntryWalletView
@@ -48,6 +49,9 @@ class WalletEntryMapper(
     fun mapToDetailView(line: StatementLine, wallet: WalletReference): WalletEntryView =
         mapToView(line).copy(
             wallet = StatementEntryWalletView(wallet.externalId, wallet.name),
+            compartment = line.compartment?.let {
+                StatementEntryCompartmentView(it.externalId, it.name, it.movementExternalId, it.movementDirection.name, it.note)
+            },
             reconciliation = line.reconciliation?.let { mapToView(it) }
         )
 
@@ -124,6 +128,11 @@ class WalletEntryMapper(
             line.transferExternalId,
             returnTransfer = line.transferIsReturn,
             returnable = line.transferReturnable
+        )
+        line.compartment != null -> StatementEntryReferenceView(
+            "COMPARTMENT",
+            line.compartment.externalId,
+            movementId = line.compartment.movementExternalId
         )
         line.reconciliation != null -> StatementEntryReferenceView(RECONCILIATION_REFERENCE, line.reconciliation.externalId)
         else -> null

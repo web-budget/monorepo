@@ -15,13 +15,22 @@ class WalletEntry(
     val walletId: Long,
     val movementId: Long? = null,
     val financialPeriodId: Long? = null,
-    val transferId: Long? = null
+    val transferId: Long? = null,
+    val compartmentMovementId: Long? = null
 ) : PersistentEntity() {
 
     enum class Direction { CREDIT, DEBIT }
 
-    enum class Origin { INCOME, EXPENSE, REVERSAL, ADJUSTMENT, TRANSFER, INVOICE_PAYMENT }
+    enum class Origin { INCOME, EXPENSE, REVERSAL, ADJUSTMENT, TRANSFER, INVOICE_PAYMENT, COMPARTMENT }
 }
+
+class StatementCompartment(
+    val externalId: UUID,
+    val name: String,
+    val movementExternalId: UUID,
+    val movementDirection: CompartmentMovement.Direction,
+    val note: String?
+)
 
 class StatementLine(
     val externalId: UUID,
@@ -37,6 +46,7 @@ class StatementLine(
     val transferExternalId: UUID?,
     val transferIsReturn: Boolean = false,
     val transferReturnable: Boolean = false,
+    val compartment: StatementCompartment? = null,
     val reconciliation: ReconciliationLine? = null
 )
 

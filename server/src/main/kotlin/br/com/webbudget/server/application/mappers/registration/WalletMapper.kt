@@ -21,6 +21,8 @@ class WalletMapper {
         description = wallet.description,
         active = wallet.active,
         currentBalance = wallet.currentBalance,
+        totalBalance = wallet.totalBalance,
+        compartmentCount = wallet.compartmentCount,
         lastEntryOn = wallet.lastEntryOn,
         lastReconciliation = wallet.lastReconciliation?.let {
             LastReconciliationView(it.externalId, it.createdOn, it.difference)
@@ -32,6 +34,8 @@ class WalletMapper {
         name = wallet.name,
         type = wallet.type,
         currentBalance = wallet.currentBalance,
+        totalBalance = wallet.totalBalance,
+        compartmentCount = wallet.compartmentCount,
         bank = wallet.bank,
         agency = wallet.agency,
         number = wallet.number,
