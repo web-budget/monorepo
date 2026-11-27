@@ -1,5 +1,6 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { Dialog } from '@/components/ui/dialog'
 import CompartmentFormDialog from '@/components/compartments/CompartmentFormDialog.vue'
 import { installZodErrorMap } from '@/schemas/zodErrorMap'
 import { settle } from '@/test/crud'
@@ -163,6 +164,20 @@ describe('CompartmentFormDialog', () => {
     )!
     cancel.dispatchEvent(new MouseEvent('click', { bubbles: true }))
 
+    expect(wrapper.emitted('close')).toHaveLength(1)
+  })
+
+  it('closes when the dialog asks to and does not take the focus from the field on cancel', async () => {
+    const wrapper = await render()
+
+    const cancel = [...document.body.querySelectorAll('button')].find(
+      (button) => button.textContent?.trim() === 'Cancelar',
+    )!
+    const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
+    cancel.dispatchEvent(press)
+    wrapper.getComponent(Dialog).vm.$emit('update:open', false)
+
+    expect(press.defaultPrevented).toBe(true)
     expect(wrapper.emitted('close')).toHaveLength(1)
   })
 })

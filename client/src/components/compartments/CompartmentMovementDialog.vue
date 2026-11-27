@@ -51,7 +51,7 @@ const emit = defineEmits<{
   move: [compartmentId: string, form: CompartmentMovementForm]
 }>()
 
-const { n } = useI18n()
+const { n, t } = useI18n()
 
 const form = useForm({ validationSchema: compartmentMovementFormSchema })
 
@@ -86,14 +86,13 @@ const compartmentOptions = computed(() =>
     label: `${compartment.name} · ${n(compartment.balance, 'currency').replace(/^R\$\s*/, '')}`,
   })),
 )
-const overdrawnMessage = computed(() =>
-  selected.value
-    ? {
-        name: selected.value.name,
-        balance: n(selected.value.balance, 'currency').replace(/^R\$\s*/, ''),
-      }
-    : null,
-)
+function overdrawnText() {
+  const target = selected.value as CompartmentView
+  return t('compartment.movement.over', {
+    name: target.name,
+    balance: n(target.balance, 'currency').replace(/^R\$\s*/, ''),
+  })
+}
 
 watch(
   () => props.request,
@@ -109,6 +108,7 @@ watch(
       })
     }
   },
+  { immediate: true },
 )
 
 watch(
@@ -160,8 +160,8 @@ const submit = form.handleSubmit((submitted) => {
         />
         <div class="grid gap-1.5">
           <MoneyField name="value" :label="$t('compartment.movement.value')" required />
-          <p v-if="overdrawn && overdrawnMessage" class="text-destructive text-xs" role="alert">
-            {{ $t('compartment.movement.over', overdrawnMessage) }}
+          <p v-if="overdrawn" class="text-destructive text-xs" role="alert">
+            {{ overdrawnText() }}
           </p>
         </div>
         <dl
@@ -207,7 +207,7 @@ const submit = form.handleSubmit((submitted) => {
             multiline
           />
           <span class="text-muted-foreground justify-self-end font-mono text-[11px]">
-            {{ (values.note ?? '').length }}/150
+            {{ (values.note as string).length }}/150
           </span>
         </div>
         <DialogFooter>

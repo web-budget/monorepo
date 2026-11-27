@@ -60,11 +60,11 @@ async function reload() {
 
 const actions = useCompartmentActions({
   walletId: () => props.id,
-  walletName: () => wallet.value?.name ?? '',
+  walletName: () => wallet.value!.name,
   reload,
 })
 
-const hasCompartments = computed(() => (wallet.value?.compartmentCount ?? 0) > 0)
+const hasCompartments = computed(() => wallet.value!.compartmentCount > 0)
 
 onMounted(() => reloadErrors.run(() => compartmentsStore.findAll(props.id)))
 

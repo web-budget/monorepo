@@ -29,14 +29,14 @@ export function useServerErrors() {
     } catch (error) {
       markHandled(error)
       const notice = describeApiError(error)
-      const details = notice?.details ?? []
-      const translated = details.map(({ key, params }) => i18n.global.t(key, params ?? {}))
-      messages.value = translated
-      fields.value = details.flatMap(({ field }) => (field === undefined ? [] : [field]))
+      const translated = (notice?.details ?? []).map(({ key, params, field }) => ({
+        field,
+        text: i18n.global.t(key, params ?? {}),
+      }))
+      messages.value = translated.map(({ text }) => text)
+      fields.value = translated.flatMap(({ field }) => (field === undefined ? [] : [field]))
       fieldMessages.value = Object.fromEntries(
-        details.flatMap(({ field }, index) =>
-          field === undefined ? [] : [[field, translated[index] ?? '']],
-        ),
+        translated.flatMap(({ field, text }) => (field === undefined ? [] : [[field, text]])),
       )
       return false
     }

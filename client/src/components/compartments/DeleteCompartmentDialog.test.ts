@@ -1,5 +1,6 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { Dialog } from '@/components/ui/dialog'
 import DeleteCompartmentDialog from '@/components/compartments/DeleteCompartmentDialog.vue'
 import { createTestPlugins } from '@/test/mounting'
 import type { CompartmentView } from '@/types'
@@ -78,9 +79,7 @@ describe('DeleteCompartmentDialog', () => {
     const wrapper = await render({ ...compartment, balance: 1050 })
 
     expect(document.body.textContent).toMatch(/Emergency ainda tem R\$\s?1\.050,00/)
-    expect(document.body.textContent).toContain(
-      'Resgate tudo para o saldo livre antes de excluir.',
-    )
+    expect(document.body.textContent).toContain('Resgate tudo para o saldo livre antes de excluir.')
     expect(button('Excluir')).toBeUndefined()
 
     button('Resgatar tudo')!.dispatchEvent(new MouseEvent('click', { bubbles: true }))
@@ -88,5 +87,24 @@ describe('DeleteCompartmentDialog', () => {
 
     expect(wrapper.emitted('withdrawAll')).toHaveLength(1)
     expect(wrapper.emitted('close')).toHaveLength(1)
+  })
+
+  it('closes when the dialog asks to and does not take the focus on cancel', async () => {
+    const wrapper = await render(compartment)
+
+    const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
+    button('Cancelar')!.dispatchEvent(press)
+    wrapper.getComponent(Dialog).vm.$emit('update:open', false)
+
+    expect(press.defaultPrevented).toBe(true)
+    expect(wrapper.emitted('close')).toHaveLength(1)
+  })
+
+  it('keeps showing the last piggy bank while the dialog closes', async () => {
+    const wrapper = await render(compartment)
+
+    await wrapper.setProps({ compartment: null })
+
+    expect(document.body.textContent).toContain('Excluir Emergency?')
   })
 })

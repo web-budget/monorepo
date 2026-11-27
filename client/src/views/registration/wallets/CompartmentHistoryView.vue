@@ -80,7 +80,7 @@ async function reload() {
 
 const actions = useCompartmentActions({
   walletId: () => props.id,
-  walletName: () => wallet.value?.name ?? '',
+  walletName: () => wallet.value!.name,
   reload,
   onRemoved: () => router.push({ name: 'wallets.detail', params: { id: props.id } }),
 })

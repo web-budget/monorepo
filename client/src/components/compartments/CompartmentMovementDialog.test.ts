@@ -1,5 +1,6 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it } from 'vitest'
+import { Dialog } from '@/components/ui/dialog'
 import CompartmentMovementDialog, {
   type MovementRequest,
 } from '@/components/compartments/CompartmentMovementDialog.vue'
@@ -128,9 +129,9 @@ describe('CompartmentMovementDialog', () => {
     expect(document.body.querySelector('[role="alert"]')!.textContent).toMatch(
       /O resgate passa do saldo de Stocks, que é 50,00\./,
     )
-    expect(
-      document.body.querySelector('button[type="submit"]')!.hasAttribute('disabled'),
-    ).toBe(true)
+    expect(document.body.querySelector('button[type="submit"]')!.hasAttribute('disabled')).toBe(
+      true,
+    )
     expect(summary()).not.toContain('→')
 
     await submit()
@@ -193,6 +194,17 @@ describe('CompartmentMovementDialog', () => {
     expect(document.body.textContent).toContain('Resgatar de')
 
     button('Cancelar')!.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+    expect(wrapper.emitted('close')).toHaveLength(1)
+  })
+
+  it('closes when the dialog asks to and does not take the focus on cancel', async () => {
+    const wrapper = await render({ direction: 'DEPOSIT', compartmentId: 'k-1' })
+
+    const press = new MouseEvent('mousedown', { bubbles: true, cancelable: true })
+    button('Cancelar')!.dispatchEvent(press)
+    wrapper.getComponent(Dialog).vm.$emit('update:open', false)
+
+    expect(press.defaultPrevented).toBe(true)
     expect(wrapper.emitted('close')).toHaveLength(1)
   })
 })

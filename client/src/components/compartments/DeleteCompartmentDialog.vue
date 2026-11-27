@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ArrowUpFromLine, Trash2 } from 'lucide-vue-next'
-import { computed } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import ServerErrorAlert from '@/components/forms/ServerErrorAlert.vue'
 import { Button } from '@/components/ui/button'
@@ -25,8 +25,19 @@ const emit = defineEmits<{ close: []; confirm: []; withdrawAll: [] }>()
 
 const { n } = useI18n()
 
-const hasBalance = computed(() => (props.compartment?.balance ?? 0) !== 0)
-const amount = computed(() => n(props.compartment?.balance ?? 0, 'currency'))
+const target = ref(props.compartment as CompartmentView)
+
+watch(
+  () => props.compartment,
+  (value) => {
+    if (value) {
+      target.value = value
+    }
+  },
+)
+
+const hasBalance = computed(() => target.value.balance !== 0)
+const amount = computed(() => n(target.value.balance, 'currency'))
 </script>
 
 <template>
@@ -34,18 +45,18 @@ const amount = computed(() => n(props.compartment?.balance ?? 0, 'currency'))
     <DialogContent class="sm:max-w-md">
       <DialogHeader v-if="hasBalance">
         <DialogTitle>
-          {{ $t('compartment.remove.balance-title', { name: compartment?.name, amount }) }}
+          {{ $t('compartment.remove.balance-title', { name: target.name, amount }) }}
         </DialogTitle>
         <DialogDescription>{{ $t('compartment.remove.balance-description') }}</DialogDescription>
       </DialogHeader>
       <DialogHeader v-else>
-        <DialogTitle>{{ $t('compartment.remove.title', { name: compartment?.name }) }}</DialogTitle>
-        <DialogDescription v-if="(compartment?.statementEntryCount ?? 0) > 0">
+        <DialogTitle>{{ $t('compartment.remove.title', { name: target.name }) }}</DialogTitle>
+        <DialogDescription v-if="target.statementEntryCount > 0">
           {{
             $t(
               'compartment.remove.description',
-              { count: compartment?.statementEntryCount },
-              compartment?.statementEntryCount ?? 0,
+              { count: target.statementEntryCount },
+              target.statementEntryCount,
             )
           }}
         </DialogDescription>

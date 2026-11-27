@@ -53,7 +53,7 @@ const form = useForm({ validationSchema: compartmentFormSchema })
 const editing = computed(() => props.compartment !== null)
 const goal = computed(() => isGoal((form.values as Partial<CompartmentFormValues>).type))
 const descriptionLength = computed(
-  () => ((form.values as Partial<CompartmentFormValues>).description ?? '').length,
+  () => ((form.values as Partial<CompartmentFormValues>).description as string).length,
 )
 const typeChoices = computed(() => typeOptions('compartment', COMPARTMENT_TYPES, t))
 
