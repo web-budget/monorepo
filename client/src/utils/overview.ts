@@ -120,6 +120,18 @@ export function resultScale(results: number[]): ResultScale {
   }
 }
 
+export function formatShare(share: number, locale: string): string {
+  return new Intl.NumberFormat(locale, { style: 'percent', maximumFractionDigits: 0 }).format(share)
+}
+
+export function reserveShare(current: number, ideal: number): number {
+  return ideal > 0 ? current / ideal : 1
+}
+
+export function reserveMeterWidth(share: number): number {
+  return Math.min(100, Math.max(0, share * 100))
+}
+
 /** The savings rate as the screen writes it: "25,0%", "−3,2%" when negative, "—" without revenues. */
 export function formatRate(rate: number | null, locale: string): string {
   if (rate === null) return '—'
