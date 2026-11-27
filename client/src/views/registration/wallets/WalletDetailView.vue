@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { ArrowLeftRight, CheckCheck, Info, ScrollText } from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
+import { computed } from 'vue'
+import { useI18n } from 'vue-i18n'
 import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
 import DateTimeDisplay from '@/components/common/DateTimeDisplay.vue'
 import DetailCard from '@/components/common/DetailCard.vue'
@@ -9,10 +11,13 @@ import DetailSection from '@/components/common/DetailSection.vue'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Button } from '@/components/ui/button'
 import ReconcileDialog from '@/components/wallets/ReconcileDialog.vue'
+import ReconciliationHistory from '@/components/wallets/ReconciliationHistory.vue'
 import { useCrudDetail } from '@/composables/useCrudDetail'
 import { useReconciliation } from '@/composables/useReconciliation'
+import { useReconciliationHistory } from '@/composables/useReconciliationHistory'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { useWalletsStore } from '@/stores/wallets'
+import { bareAmount } from '@/utils/reconciliation'
 import { typeKey } from '@/utils/typeLabels'
 
 const props = defineProps<{ id: string }>()
@@ -31,7 +36,25 @@ const { messages, changeToUpdate, remove } = useCrudDetail({
   remove: store.remove,
 })
 
-const reconciliation = useReconciliation(() => reloadErrors.run(() => store.findOne(props.id)))
+const { n } = useI18n()
+
+const history = useReconciliationHistory(() => props.id)
+
+const reconciliation = useReconciliation(() =>
+  Promise.all([reloadErrors.run(() => store.findOne(props.id)), history.restart()]),
+)
+
+const lastReconciliation = computed(() => {
+  const last = wallet.value?.lastReconciliation
+  if (last == null) {
+    return null
+  }
+  return {
+    createdOn: last.createdOn,
+    text: `wallet.reconciliation.last-${last.difference > 0 ? 'credit' : 'debit'}`,
+    amount: bareAmount(last.difference, n),
+  }
+})
 </script>
 
 <template>
@@ -39,7 +62,7 @@ const reconciliation = useReconciliation(() => reloadErrors.run(() => store.find
     :title="wallet?.name ?? $t('wallet.form.detailing')"
     :active="wallet?.active"
     feminine-status
-    :messages="[...messages, ...reloadErrors.messages.value]"
+    :messages="[...messages, ...reloadErrors.messages.value, ...history.messages.value]"
     @edit="changeToUpdate"
     @delete="remove"
   >
@@ -84,7 +107,7 @@ const reconciliation = useReconciliation(() => reloadErrors.run(() => store.find
         <DetailField :label="$t('wallet.form.agency')" :value="wallet.agency" mono />
         <DetailField :label="$t('wallet.form.number')" :value="wallet.number" mono />
       </DetailSection>
-      <DetailSection :title="$t('wallet.sections.balance')">
+      <DetailSection :title="$t('wallet.sections.balance')" columns="md:grid-cols-3">
         <DetailField :label="$t('wallet.form.balance')">
           <CurrencyDisplay
             :value="wallet.currentBalance"
@@ -98,7 +121,34 @@ const reconciliation = useReconciliation(() => reloadErrors.run(() => store.find
           <DateTimeDisplay v-if="wallet.lastEntryOn" with-time :value="wallet.lastEntryOn" />
           <template v-else>---</template>
         </DetailField>
+        <DetailField :label="$t('wallet.form.last-reconciliation')">
+          <template v-if="lastReconciliation">
+            <DateTimeDisplay
+              with-time
+              class="font-mono tabular-nums"
+              :value="lastReconciliation.createdOn"
+            />
+            <span class="text-muted-foreground mt-0.5 block text-xs">
+              {{ $t(lastReconciliation.text, { amount: lastReconciliation.amount }) }}
+            </span>
+          </template>
+          <span v-else class="text-muted-foreground">{{ $t('wallet.reconciliation.none') }}</span>
+        </DetailField>
       </DetailSection>
+    </template>
+    <template v-if="wallet" #after>
+      <ReconciliationHistory
+        :wallet-id="wallet.id"
+        :reconciliations="history.reconciliations.value"
+        :total="history.total.value"
+        :current-page="history.current.value"
+        :page-size="history.size.value"
+        :selected-id="history.selectedId.value"
+        :loading="history.loading.value"
+        :can-reconcile="wallet.active"
+        @page-changed="history.change"
+        @reconcile="reconciliation.open(wallet, wallet.currentBalance)"
+      />
     </template>
   </DetailCard>
   <ReconcileDialog

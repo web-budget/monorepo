@@ -144,6 +144,19 @@ const entries: WalletEntryView[] = [
   },
 ]
 
+const reconciledEntry: WalletEntryView = {
+  id: 'e-8',
+  createdOn: '2026-11-13T10:00:00',
+  name: 'Tarifa do banco',
+  direction: 'DEBIT',
+  origin: 'ADJUSTMENT',
+  value: 12.4,
+  previousBalance: 100,
+  resultingBalance: 87.6,
+  financialPeriod: null,
+  reference: { type: 'RECONCILIATION', id: 'r-1' },
+}
+
 const summary: StatementSummary = {
   credits: { total: 18886.53, count: 7 },
   debits: { total: 14074.16, count: 1 },
@@ -192,6 +205,7 @@ const leaf = { render: () => h('div') }
 const extraRoutes = [
   { path: '/transfers/:id/detail', name: 'transfers.detail', component: leaf },
   { path: '/movements/create', name: 'movements.create', component: leaf },
+  { path: '/registration/wallets/:id/detail', name: 'wallets.detail', component: leaf },
 ]
 
 function selects(wrapper: Awaited<ReturnType<typeof render>>['wrapper']) {
@@ -385,6 +399,51 @@ describe('StatementView', () => {
       await flushPromises()
 
       expect(router.currentRoute.value.fullPath).toBe('/financial/movements/m-1/detail')
+    })
+
+    it('leads the arrow of an adjustment with a reconciliation to the wallet, with the reconciliation open', async () => {
+      const { wrapper } = await render(undefined, [...entries.slice(0, 3), reconciledEntry])
+
+      const row = wrapper.findAll('tbody tr')[3]!
+      expect(row.text()).toContain('Tarifa do banco')
+      const link = row.find('a')
+      expect(link.attributes('href')).toBe('/registration/wallets/w-1/detail?reconciliation=r-1')
+      expect(link.attributes('aria-label')).toBe('Abrir a conciliação de Tarifa do banco')
+      expect(link.find('svg').classes()).toContain('lucide-arrow-up-right')
+    })
+
+    it('opens the entry itself from the row of a reconciled adjustment, not the wallet', async () => {
+      const { wrapper, router } = await render(undefined, [reconciledEntry])
+
+      await wrapper.find('tbody tr').trigger('click')
+      await flushPromises()
+
+      expect(router.currentRoute.value.fullPath).toBe('/financial/statement/w-1/e-8/detail')
+    })
+
+    it('opens the wallet with the reconciliation from the arrow, without going through the row', async () => {
+      const { wrapper, router } = await render(undefined, [reconciledEntry])
+
+      await wrapper.find('tbody a').trigger('click')
+      await flushPromises()
+
+      expect(router.currentRoute.value.fullPath).toBe(
+        '/registration/wallets/w-1/detail?reconciliation=r-1',
+      )
+    })
+
+    it('offers to see the reconciliation on the card of the adjustment, and nothing else of the origin', async () => {
+      useCompactViewport(true)
+
+      const { wrapper } = await render(undefined, [reconciledEntry, ...entries.slice(0, 3)])
+
+      const cards = wrapper.findAll('[data-layout="compact"] > div')
+      expect(cards[0]!.find('a').text()).toBe('Ver conciliação')
+      expect(cards[0]!.find('a').attributes('href')).toBe(
+        '/registration/wallets/w-1/detail?reconciliation=r-1',
+      )
+      expect(cards[1]!.find('a').classes()).toContain('max-md:hidden')
+      expect(cards[3]!.find('span[class*="max-md:hidden"]').exists()).toBe(true)
     })
 
     it('shows the lines as compact cards on a small screen', async () => {
