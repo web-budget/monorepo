@@ -58,7 +58,7 @@ const badge = computed(() => t(`period-dashboard.goals.${props.kind}.${signal.va
       <span class="text-sm">
         <CurrencyDisplay :value="realized" :tone="kind" />
         <template v-if="goal !== null">
-          <span class="text-muted-foreground"> {{ $t('period-dashboard.goals.of') }} </span>
+          <span class="text-muted-foreground mx-1">{{ $t('period-dashboard.goals.of') }}</span>
           <CurrencyDisplay :value="goal" />
         </template>
       </span>
