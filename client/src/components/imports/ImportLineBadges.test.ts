@@ -4,10 +4,14 @@ import ImportLineBadges from '@/components/imports/ImportLineBadges.vue'
 import { createTestPlugins } from '@/test/mounting'
 import type { ImportLineView } from '@/types'
 
-function render(overrides: Partial<ImportLineView> = {}) {
+function render(
+  overrides: Partial<ImportLineView> = {},
+  props: { hideInstallment?: boolean; memoryLabel?: boolean } = {},
+) {
   const { plugins } = createTestPlugins()
   return mount(ImportLineBadges, {
     props: {
+      ...props,
       line: {
         id: 'l-1',
         value: -100,
@@ -44,8 +48,28 @@ describe('ImportLineBadges', () => {
     expect(text).toContain('3/10')
   })
 
+  it('hides the installment badge when asked to', () => {
+    const wrapper = render({ installment: 3, installments: 10 }, { hideInstallment: true })
+
+    expect(wrapper.text()).not.toContain('3/10')
+    expect(wrapper.find('[data-slot="line-badges"]').text()).toBe('')
+  })
+
+  it('writes out the memory as a badge when asked to, and as an icon otherwise', () => {
+    const labelled = render({ fromMemory: true }, { memoryLabel: true })
+    const icon = render({ fromMemory: true })
+
+    expect(labelled.find('[data-slot="line-memory"]').text()).toBe('Sugerida pela memória')
+    expect(labelled.find('[data-slot="line-memory"]').classes()).toContain('inline-flex')
+    expect(icon.find('[data-slot="line-memory"]').find('.sr-only').text()).toBe(
+      'Sugerida pela memória',
+    )
+  })
+
   it('does not warn about a credit when the line is ignored for another reason', () => {
-    expect(render({ ignoreReason: { code: 'iof-pair' } }).text()).not.toContain('Crédito sem compra')
+    expect(render({ ignoreReason: { code: 'iof-pair' } }).text()).not.toContain(
+      'Crédito sem compra',
+    )
   })
 
   it('shows the difference to the linked entry with the sign only when negative', () => {

@@ -70,7 +70,7 @@ const classifications = [
   { id: 'cl-1', name: 'Mercado', type: 'EXPENSE', active: true },
   { id: 'cl-2', name: 'Freelas', type: 'INCOME', active: true },
 ] as ClassificationListView[]
-const wallets = [{ id: "w-2", name: "Poupança", type: "SAVINGS" }] as unknown as WalletListView[]
+const wallets = [{ id: 'w-2', name: 'Poupança', type: 'SAVINGS' }] as unknown as WalletListView[]
 
 function render(current: ImportLineView | null) {
   const { plugins } = createTestPlugins({ stubActions: false })
@@ -95,9 +95,9 @@ function dialog() {
 }
 
 function dialogButton(text: string) {
-  const button = Array.from(document.body.querySelectorAll('[data-slot="line-dialog"] button')).find(
-    (candidate) => candidate.textContent?.trim() === text,
-  )
+  const button = Array.from(
+    document.body.querySelectorAll('[data-slot="line-dialog"] button'),
+  ).find((candidate) => candidate.textContent?.trim() === text)
   if (!button) {
     throw new Error(`no dialog button "${text}"`)
   }
@@ -125,6 +125,35 @@ describe('ImportLineDialog', () => {
     vi.clearAllMocks()
     document.body.replaceChildren()
     vi.mocked(importsApi.candidates).mockResolvedValue(candidates)
+  })
+
+  it('keeps the amount out of the header, next to the bank description in the file block', async () => {
+    render(
+      line({ installment: 11, installments: 12, action: 'CREATE_RECURRING', fromMemory: true }),
+    )
+    await flushPromises()
+
+    const header = dialog()!.querySelector('[data-slot="dialog-header"]')!
+    const file = dialog()!.querySelector('[data-slot="line-file"]')!
+
+    expect(header.querySelector('[data-slot="line-value"]')).toBeNull()
+    expect(header.textContent).toContain('Linha de 02/11')
+    expect(file.querySelector('[data-slot="line-value"]')).not.toBeNull()
+    expect(file.textContent).toContain('SUPERMERCADO BOA COMPRA')
+  })
+
+  it('hides the installment badge, which the fields already show, and labels the memory', async () => {
+    render(
+      line({ installment: 11, installments: 12, action: 'CREATE_RECURRING', fromMemory: true }),
+    )
+    await flushPromises()
+
+    const file = dialog()!.querySelector('[data-slot="line-file"]')!
+
+    expect(file.textContent).not.toContain('11/12')
+    expect(file.querySelector('[data-slot="line-memory"]')!.textContent).toContain(
+      'Sugerida pela memória',
+    )
   })
 
   it('stays closed without a line', async () => {
@@ -211,7 +240,9 @@ describe('ImportLineDialog', () => {
 
   it('puts back the link and the wallet of the line when the change of action is cancelled', async () => {
     const own = candidates[0]!
-    const wrapper = render(line({ action: 'LINK', link: own, wallet: { id: 'w-2', name: 'Poupança' } }))
+    const wrapper = render(
+      line({ action: 'LINK', link: own, wallet: { id: 'w-2', name: 'Poupança' } }),
+    )
     vi.mocked(importsApi.updateLine).mockResolvedValue(line({ action: 'CREATE' }))
     await flushPromises()
 
@@ -347,9 +378,9 @@ describe('ImportLineDialog', () => {
     vi.mocked(importsApi.updateLine).mockResolvedValue(line())
     await flushPromises()
 
-    expect((document.body.querySelector('#import-line-installment') as HTMLInputElement).value).toBe(
-      '2',
-    )
+    expect(
+      (document.body.querySelector('#import-line-installment') as HTMLInputElement).value,
+    ).toBe('2')
     await type('#import-line-installment', '3')
     await type('#import-line-installments', '12')
     dialogButton('Salvar').click()
@@ -417,9 +448,7 @@ describe('ImportLineDialog', () => {
   })
 
   it('shows the wallet already chosen for the transfer', async () => {
-    const wrapper = render(
-      line({ action: 'TRANSFER', wallet: { id: 'w-2', name: 'Poupança' } }),
-    )
+    const wrapper = render(line({ action: 'TRANSFER', wallet: { id: 'w-2', name: 'Poupança' } }))
     await flushPromises()
 
     expect(selects(wrapper)[1]!.props('modelValue')).toBe('w-2')

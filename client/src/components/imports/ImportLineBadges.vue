@@ -5,7 +5,11 @@ import { Badge } from '@/components/ui/badge'
 import type { ImportLineView } from '@/types'
 import { fileDifference } from '@/utils/imports'
 
-defineProps<{ line: ImportLineView }>()
+defineProps<{
+  line: ImportLineView
+  hideInstallment?: boolean
+  memoryLabel?: boolean
+}>()
 
 const { n } = useI18n()
 
@@ -17,9 +21,12 @@ function difference(line: ImportLineView): string {
 </script>
 
 <template>
-  <span class="inline-flex flex-wrap items-center gap-1.5" data-slot="line-badges">
+  <span class="inline-flex flex-wrap items-center gap-1.5 empty:hidden" data-slot="line-badges">
+    <Badge v-if="line.fromMemory && memoryLabel" variant="outline" data-slot="line-memory">
+      <History />{{ $t('imports.draft.memory') }}
+    </Badge>
     <span
-      v-if="line.fromMemory"
+      v-else-if="line.fromMemory"
       class="text-muted-foreground inline-flex shrink-0"
       :title="$t('imports.draft.memory')"
       data-slot="line-memory"
@@ -36,7 +43,7 @@ function difference(line: ImportLineView): string {
     <Badge v-if="line.ignoreReason?.code === 'credit'" variant="pending">
       <TriangleAlert />{{ $t('imports.draft.badges.credit') }}
     </Badge>
-    <Badge v-if="line.installment && line.installments" variant="outline">
+    <Badge v-if="line.installment && line.installments && !hideInstallment" variant="outline">
       {{ line.installment }}/{{ line.installments }}
     </Badge>
     <Badge v-if="line.differentValue" variant="pending">

@@ -209,20 +209,22 @@ async function save() {
     <DialogContent v-if="working" class="sm:max-w-lg" data-slot="line-dialog">
       <form class="flex flex-col gap-4" novalidate @submit.prevent="save()">
         <DialogHeader>
-          <div class="flex items-start justify-between gap-3">
-            <DialogTitle>
-              {{ $t('imports.draft.dialog.title') }}
-              {{ dayAndMonth(working.postedOn) }}
-            </DialogTitle>
-            <ImportLineValue :value="working.value" />
-          </div>
-          <DialogDescription
-            class="text-muted-foreground font-mono text-xs [overflow-wrap:anywhere]"
-          >
-            {{ working.description }}
-          </DialogDescription>
-          <ImportLineBadges :line="working" />
+          <DialogTitle class="pr-8">
+            {{ $t('imports.draft.dialog.title') }}
+            {{ dayAndMonth(working.postedOn) }}
+          </DialogTitle>
         </DialogHeader>
+        <div class="bg-muted/40 grid gap-2 rounded-md border px-3 py-2.5" data-slot="line-file">
+          <div class="flex items-start justify-between gap-3">
+            <DialogDescription
+              class="text-muted-foreground min-w-0 font-mono text-xs [overflow-wrap:anywhere]"
+            >
+              {{ working.description }}
+            </DialogDescription>
+            <ImportLineValue class="shrink-0" :value="working.value" />
+          </div>
+          <ImportLineBadges :line="working" hide-installment memory-label />
+        </div>
         <ServerErrorAlert :messages="errors.messages.value" />
         <div class="grid gap-4">
           <div class="grid gap-2">
@@ -236,7 +238,7 @@ async function save() {
             :model-value="working.action"
             @update:model-value="changeAction"
           />
-          <div v-if="action === 'CREATE_RECURRING'" class="grid grid-cols-2 gap-3">
+          <div v-if="action === 'CREATE_RECURRING'" class="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div class="grid gap-2">
               <Label for="import-line-installment">
                 {{ $t('imports.draft.fields.installment') }}
@@ -252,7 +254,7 @@ async function save() {
           </div>
           <div
             v-if="action === 'CREATE' || action === 'CREATE_RECURRING'"
-            class="grid grid-cols-2 gap-3"
+            class="grid grid-cols-1 gap-3 sm:grid-cols-2"
           >
             <FilterSelect
               v-model="costCenter"
@@ -280,11 +282,7 @@ async function save() {
               :none-label="$t('imports.draft.choose')"
               :options="linkOptions"
             />
-            <span
-              v-if="chosenSource"
-              class="text-muted-foreground text-xs"
-              data-slot="link-source"
-            >
+            <span v-if="chosenSource" class="text-muted-foreground text-xs" data-slot="link-source">
               {{ chosenSource }}
             </span>
           </div>
@@ -316,17 +314,10 @@ async function save() {
           </Alert>
         </div>
         <DialogFooter>
-          <Button
-            type="button"
-            variant="outline"
-            @mousedown.prevent
-            @click="dismiss()"
-          >
+          <Button type="button" variant="outline" @mousedown.prevent @click="dismiss()">
             {{ $t('form.cancel') }}
           </Button>
-          <Button type="submit" :disabled="store.loading">
-            <Check />{{ $t('form.save') }}
-          </Button>
+          <Button type="submit" :disabled="store.loading"> <Check />{{ $t('form.save') }} </Button>
         </DialogFooter>
       </form>
     </DialogContent>
