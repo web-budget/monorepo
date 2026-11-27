@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <changeSet id="27-1200-1" author="${claude}">
+        <comment>
+            cost_center_tree has one row per cost center and ancestor, the cost center being its own ancestor at
+            depth 0, so the use of a cost center is the sum of the lines whose cost center has it as an ancestor.
+        </comment>
+        <sql>
+            CREATE VIEW registration.cost_center_tree AS
+            WITH RECURSIVE tree AS (
+                SELECT cc.id AS id_cost_center, cc.id AS id_ancestor, 0 AS depth
+                FROM registration.cost_centers cc
+                UNION ALL
+                SELECT tree.id_cost_center, parent.id_parent, tree.depth + 1
+                FROM tree
+                JOIN registration.cost_centers parent ON parent.id = tree.id_ancestor
+                WHERE parent.id_parent IS NOT NULL
+            )
+            SELECT id_cost_center, id_ancestor, depth
+            FROM tree;
+        </sql>
+        <rollback>
+            <sql>DROP VIEW registration.cost_center_tree;</sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="27-1200-2" author="${claude}">
+        <comment>
+            report_lines follows the reports rule: what was paid by wallet (the invoice payments left out) plus the
+            card purchases, the ones of invoices not yet paid included. A movement paid by card has its purchase
+            written with the movement id, so only the purchase line stays and nothing is counted twice. A card
+            purchase belongs to the period of its invoice, and a line is fixed when the movement (or the movement
+            behind the purchase) was launched by a recurring movement.
+        </comment>
+        <sql>
+            CREATE VIEW financial.report_lines AS
+            SELECT
+                m.id_financial_period,
+                m.type,
+                m.id_cost_center,
+                m.id_classification,
+                p.value_paid AS value,
+                EXISTS (SELECT 1 FROM financial.recurring_launches rl WHERE rl.id_movement = m.id) AS fixed
+            FROM financial.movements m
+            JOIN financial.payments p ON p.id_movement = m.id
+            WHERE p.method = 'WALLET'
+              AND m.id_invoice IS NULL
+            UNION ALL
+            SELECT
+                i.id_financial_period,
+                'EXPENSE' AS type,
+                cp.id_cost_center,
+                cp.id_classification,
+                cp.value,
+                EXISTS (SELECT 1 FROM financial.recurring_launches rl WHERE rl.id_movement = cp.id_movement) AS fixed
+            FROM financial.card_purchases cp
+            JOIN financial.invoices i ON i.id = cp.id_invoice;
+        </sql>
+        <rollback>
+            <sql>DROP VIEW financial.report_lines;</sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>
