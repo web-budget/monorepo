@@ -119,7 +119,7 @@ class ReliabilityRepository(
     fun findGenericClassifications(): List<Overview.GenericClassification> = dsl
         .select(classifications.EXTERNAL_ID, classifications.NAME)
         .from(classifications)
-        .where(classifications.GENERIC.isTrue)
+        .where(classifications.GENERIC.isTrue.and(classifications.TYPE.eq(Movement.Type.EXPENSE.name)))
         .orderBy(classifications.NAME, classifications.ID)
         .fetch { record -> Overview.GenericClassification(record.value1()!!, record.value2()!!) }
 

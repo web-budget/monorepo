@@ -384,7 +384,9 @@ class OverviewDashboardControllerTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `should leave the generic classifications empty when none is marked`() {
+    fun `should leave the generic classifications empty when only an income one is marked`() {
+
+        dsl.execute("UPDATE registration.classifications SET generic = true WHERE id = 9102")
 
         createMovement("Misc", "EXPENSE", "300.00", AUGUST)
 
