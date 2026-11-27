@@ -1,7 +1,13 @@
 package br.com.webbudget.server.application.controllers.financial
 
 import br.com.webbudget.server.application.payloads.financial.ClosingPeriodView
+import br.com.webbudget.server.application.payloads.financial.OverviewAdjustmentsView
+import br.com.webbudget.server.application.payloads.financial.OverviewCostOfLivingView
+import br.com.webbudget.server.application.payloads.financial.OverviewGenericClassificationView
+import br.com.webbudget.server.application.payloads.financial.OverviewGenericView
 import br.com.webbudget.server.application.payloads.financial.OverviewPeriodView
+import br.com.webbudget.server.application.payloads.financial.OverviewReliabilityView
+import br.com.webbudget.server.application.payloads.financial.OverviewReserveView
 import br.com.webbudget.server.application.payloads.financial.OverviewTotalsView
 import br.com.webbudget.server.application.payloads.financial.OverviewView
 import br.com.webbudget.server.application.payloads.financial.OverviewYearResultView
@@ -62,7 +68,37 @@ class OverviewDashboardController(
                         result = period.result,
                         recorded = period.recorded
                     )
-                }
+                },
+                accumulated = overview.accumulated,
+                costOfLiving = OverviewCostOfLivingView(
+                    value = overview.costOfLiving.value,
+                    basedOn = overview.costOfLiving.basedOn
+                ),
+                reserve = OverviewReserveView(
+                    current = overview.reserve.current,
+                    months = overview.reserve.months,
+                    ideal = overview.reserve.ideal
+                ),
+                reliability = OverviewReliabilityView(
+                    accumulated = overview.reliability.accumulated,
+                    balancesTotal = overview.reliability.balancesTotal,
+                    walletCount = overview.reliability.walletCount,
+                    difference = overview.reliability.difference,
+                    adjustmentsTotal = overview.reliability.adjustmentsTotal,
+                    residue = overview.reliability.residue,
+                    adjustments = OverviewAdjustmentsView(
+                        count = overview.reliability.adjustments.count,
+                        credited = overview.reliability.adjustments.credited,
+                        debited = overview.reliability.adjustments.debited
+                    ),
+                    generic = OverviewGenericView(
+                        value = overview.reliability.generic.value,
+                        total = overview.reliability.generic.total,
+                        classifications = overview.reliability.generic.classifications.map { classification ->
+                            OverviewGenericClassificationView(classification.id, classification.name)
+                        }
+                    )
+                )
             )
         )
     }

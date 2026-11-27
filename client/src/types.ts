@@ -775,12 +775,50 @@ export interface OverviewYearResult {
   provisional: boolean
 }
 
+export interface OverviewCostOfLiving {
+  value: number | null
+  basedOn: number
+}
+
+export interface OverviewReserve {
+  current: number
+  months: number
+  ideal: number | null
+}
+
+export interface OverviewAdjustments {
+  count: number
+  credited: number
+  debited: number
+}
+
+export interface OverviewGeneric {
+  value: number
+  total: number
+  classifications: { id: string; name: string }[]
+}
+
+export interface OverviewReliability {
+  accumulated: number
+  balancesTotal: number
+  walletCount: number
+  difference: number
+  adjustmentsTotal: number
+  residue: number
+  adjustments: OverviewAdjustments
+  generic: OverviewGeneric
+}
+
 export interface OverviewView {
   cut: string
   years: number[]
   totals: OverviewTotals
   resultByYear: OverviewYearResult[]
   periods: OverviewPeriod[]
+  accumulated: number
+  costOfLiving: OverviewCostOfLiving
+  reserve: OverviewReserve
+  reliability: OverviewReliability
 }
 
 export interface PeriodDashboardPeriod {
@@ -1189,11 +1227,7 @@ export type ImportCandidateKind = 'MOVEMENT' | 'PURCHASE' | 'TRANSFER' | 'RECURR
 export type ImportLineStatusFilter = 'PENDING' | 'IGNORED' | 'ALL'
 
 export type ImportIgnoreReasonCode =
-  | 'payment-received'
-  | 'iof-pair'
-  | 'credit'
-  | 'already-imported'
-  | 'already-registered'
+  'payment-received' | 'iof-pair' | 'credit' | 'already-imported' | 'already-registered'
 
 export interface ImportCandidateView {
   kind: ImportCandidateKind
@@ -1292,9 +1326,4 @@ export interface ImportBlocker {
 }
 
 export type ImportResultFilter =
-  | 'CREATED'
-  | 'LINKED'
-  | 'RECURRING'
-  | 'TRANSFERS'
-  | 'IGNORED'
-  | 'ALL'
+  'CREATED' | 'LINKED' | 'RECURRING' | 'TRANSFERS' | 'IGNORED' | 'ALL'
