@@ -48,7 +48,37 @@ describe('balanceChangeOf', () => {
     expect(balanceChangeOf(changed({ currentBalance: 5948.16, difference: 48.5 }))).toEqual({
       balance: 5948.16,
       difference: 48.5,
+      freeBalance: 5948.16,
+      compartments: [],
     })
+  })
+
+  it('reads the free balance and the compartments of a wallet with them', () => {
+    expect(
+      balanceChangeOf(
+        changed({
+          currentBalance: 1450,
+          difference: 10,
+          freeBalance: 450,
+          compartments: [
+            { id: 'c-1', name: 'Reserva da casa', balance: 1000 },
+            { id: 'c-2', name: 'Sem saldo', balance: 'x' },
+            { id: 3, name: 'Sem id', balance: 1 },
+          ],
+        }),
+      ),
+    ).toEqual({
+      balance: 1450,
+      difference: 10,
+      freeBalance: 450,
+      compartments: [{ id: 'c-1', name: 'Reserva da casa', balance: 1000 }],
+    })
+  })
+
+  it('ignores compartments that are not a list', () => {
+    expect(
+      balanceChangeOf(changed({ currentBalance: 1, difference: 2, compartments: 'x' })),
+    ).toEqual({ balance: 1, difference: 2, freeBalance: 1, compartments: [] })
   })
 
   it('ignores a refusal without the new values', () => {

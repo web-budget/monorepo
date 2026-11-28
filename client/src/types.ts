@@ -613,6 +613,18 @@ export interface ReconciliationView {
   entryId: string
 }
 
+export interface ReconciliationCompartmentView {
+  id: string
+  name: string
+  balance: number
+}
+
+export interface ReconciliationBalanceView {
+  freeBalance: number
+  totalBalance: number
+  compartments: ReconciliationCompartmentView[]
+}
+
 export interface ReconciliationPosition {
   position: number
 }
@@ -1119,6 +1131,7 @@ export interface CompartmentMovementView {
   resultingBalance: number
   note?: string | null
   entryId?: string | null
+  importId?: string | null
 }
 
 export interface CompartmentMovementResult {
@@ -1144,6 +1157,7 @@ export type ImportAction =
   | 'CREATE_RECURRING'
   | 'INVOICE_PAYMENT'
   | 'TRANSFER'
+  | 'COMPARTMENT'
   | 'IGNORE'
 
 export interface ImportCardView {
@@ -1155,6 +1169,7 @@ export interface ImportCardView {
 export interface ImportWalletView {
   id: string
   name: string
+  compartmentCount?: number
 }
 
 export interface ImportListView {
@@ -1222,7 +1237,7 @@ export interface ImportView {
   undoBlockers: ImportBlocker[]
 }
 
-export type ImportCandidateKind = 'MOVEMENT' | 'PURCHASE' | 'TRANSFER' | 'RECURRING'
+export type ImportCandidateKind = 'MOVEMENT' | 'PURCHASE' | 'TRANSFER' | 'RECURRING' | 'COMPARTMENT'
 
 export type ImportLineStatusFilter = 'PENDING' | 'IGNORED' | 'ALL'
 
@@ -1241,6 +1256,20 @@ export interface ImportCandidateView {
   recurring: boolean
   installment?: number
   installments?: number
+}
+
+export interface ImportCompartmentView {
+  id: string
+  name: string
+  balance: number
+}
+
+export interface ImportCompartmentRejection {
+  id: string
+  position: number
+  postedOn: string
+  compartment: string
+  balance: number
 }
 
 export interface ImportLineView {
@@ -1262,6 +1291,9 @@ export interface ImportLineView {
   costCenter?: MovementCostCenterView
   classification?: MovementClassificationView
   wallet?: ImportWalletView
+  compartment?: ImportCompartmentView
+  compartmentMovement?: string
+  compartmentName?: string
   link?: ImportCandidateView
   created: ImportCandidateView[]
   ignoreReason?: { code: ImportIgnoreReasonCode; date?: string }
@@ -1283,6 +1315,7 @@ export interface ImportLineUpdateForm {
   costCenter?: string
   classification?: string
   wallet?: string
+  compartment?: string
   link?: { kind: ImportCandidateKind; id: string }
   installment?: number
   installments?: number
@@ -1307,6 +1340,7 @@ export interface ImportResult {
   linked: number
   recurring: number
   transfers: number
+  compartments: number
   ignored: number
 }
 
@@ -1317,13 +1351,16 @@ export interface ImportWarnings {
   ledgerBalance?: number
   currentBalance?: number
   ignoredCredits: number
+  totalAfterSave?: number
 }
 
 export interface ImportBlocker {
   reason: string
   position?: number
   name?: string
+  compartment?: string
+  value?: number
 }
 
 export type ImportResultFilter =
-  'CREATED' | 'LINKED' | 'RECURRING' | 'TRANSFERS' | 'IGNORED' | 'ALL'
+  'CREATED' | 'LINKED' | 'RECURRING' | 'TRANSFERS' | 'COMPARTMENTS' | 'IGNORED' | 'ALL'

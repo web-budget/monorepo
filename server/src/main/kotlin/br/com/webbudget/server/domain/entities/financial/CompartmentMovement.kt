@@ -25,7 +25,8 @@ class CompartmentMovementLine(
     val note: String?,
     val previousBalance: BigDecimal,
     val resultingBalance: BigDecimal,
-    val walletEntryExternalId: UUID?
+    val walletEntryExternalId: UUID?,
+    val importExternalId: UUID? = null
 )
 
 class CompartmentMovementResult(

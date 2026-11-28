@@ -34,6 +34,7 @@ const effects = computed(() => {
     t(`${prefix}.created`, result.created),
     t(`${prefix}.linked`, result.linked),
     ...(extra > 0 ? [t(`${prefix}.extra`, extra)] : []),
+    ...(result.compartments > 0 ? [t(`${prefix}.compartments`, result.compartments)] : []),
     ...(card ? [] : [t(`${prefix}.note`)]),
   ]
 })
@@ -44,7 +45,9 @@ const effects = computed(() => {
     <DialogContent class="sm:max-w-lg" data-slot="undo-dialog">
       <DialogHeader>
         <DialogTitle>{{ $t('imports.saved.undo.title', { file: item.fileName }) }}</DialogTitle>
-        <DialogDescription class="sr-only">{{ $t('imports.saved.undo.title', { file: item.fileName }) }}</DialogDescription>
+        <DialogDescription class="sr-only">{{
+          $t('imports.saved.undo.title', { file: item.fileName })
+        }}</DialogDescription>
       </DialogHeader>
       <ul class="text-muted-foreground grid list-disc gap-1 pl-5 text-sm" data-slot="undo-effects">
         <li v-for="effect in effects" :key="effect">{{ effect }}</li>

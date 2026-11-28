@@ -78,6 +78,11 @@ function historyCalls() {
 describe('WalletDetailView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(reconciliationsApi.findBalance).mockResolvedValue({
+      freeBalance: 10,
+      totalBalance: 10,
+      compartments: [],
+    })
     document.body.replaceChildren()
     useCompactViewport(false)
     vi.mocked(reconciliationsApi.findAll).mockResolvedValue(pageOf([]))
@@ -175,13 +180,17 @@ describe('WalletDetailView', () => {
     const { wrapper } = await render()
 
     await buttonWithText(wrapper, 'Conciliar').trigger('click')
+    await flushPromises()
     const dialog = wrapper.getComponent(ReconcileDialog)
     expect(dialog.props('wallet')).toEqual({
       id: 'w-1',
       name: 'Main',
       personal: false,
       balance: 10,
+      freeBalance: 10,
+      compartments: [],
     })
+    expect(reconciliationsApi.findBalance).toHaveBeenCalledWith('w-1')
 
     const form = { informedBalance: 11, shownBalance: 10, reason: 'Centavos' }
     dialog.vm.$emit('reconcile', dialog.props('wallet'), form)
@@ -203,6 +212,7 @@ describe('WalletDetailView', () => {
     const { wrapper } = await render()
 
     await buttonWithText(wrapper, 'Conciliar').trigger('click')
+    await flushPromises()
     const dialog = wrapper.getComponent(ReconcileDialog)
     dialog.vm.$emit('reconcile', dialog.props('wallet'), {
       informedBalance: 11,
@@ -226,6 +236,7 @@ describe('WalletDetailView', () => {
     const { wrapper } = await render()
 
     await buttonWithText(wrapper, 'Conciliar').trigger('click')
+    await flushPromises()
     const dialog = wrapper.getComponent(ReconcileDialog)
     dialog.vm.$emit('reconcile', dialog.props('wallet'), {
       informedBalance: 5996.66,
@@ -239,8 +250,15 @@ describe('WalletDetailView', () => {
       name: 'Main',
       personal: false,
       balance: 5948.16,
+      freeBalance: 5948.16,
+      compartments: [],
     })
-    expect(dialog.props('balanceChange')).toEqual({ balance: 5948.16, difference: 48.5 })
+    expect(dialog.props('balanceChange')).toEqual({
+      balance: 5948.16,
+      difference: 48.5,
+      freeBalance: 5948.16,
+      compartments: [],
+    })
     expect(dialog.props('messages')).toHaveLength(0)
     expect(toast.success).not.toHaveBeenCalled()
     expect(walletsApi.findById).toHaveBeenCalledTimes(1)
@@ -250,6 +268,7 @@ describe('WalletDetailView', () => {
     const { wrapper } = await render()
 
     await buttonWithText(wrapper, 'Conciliar').trigger('click')
+    await flushPromises()
     wrapper.getComponent(ReconcileDialog).vm.$emit('close')
     await flushPromises()
 
@@ -380,6 +399,7 @@ describe('WalletDetailView', () => {
       const empty = wrapper.find('[data-slot="reconciliation-history-empty"]')
       expect(empty.text()).toContain('Nenhuma conciliação ainda')
       await empty.find('button').trigger('click')
+      await flushPromises()
       expect(wrapper.getComponent(ReconcileDialog).props('wallet')).toMatchObject({ id: 'w-1' })
     })
 
@@ -590,6 +610,7 @@ describe('WalletDetailView', () => {
         40,
       )
       await buttonWithText(wrapper, 'Conciliar').trigger('click')
+      await flushPromises()
       const dialog = wrapper.getComponent(ReconcileDialog)
       dialog.vm.$emit('reconcile', dialog.props('wallet'), {
         informedBalance: 11,

@@ -1,5 +1,6 @@
 package br.com.webbudget.server.domain.services.financial
 
+import br.com.webbudget.server.domain.entities.financial.CompartmentMovement
 import br.com.webbudget.server.domain.entities.financial.Import
 import br.com.webbudget.server.domain.entities.financial.ImportAction
 import br.com.webbudget.server.domain.entities.financial.ImportBlocker
@@ -8,7 +9,12 @@ import br.com.webbudget.server.domain.entities.financial.ImportLine
 import br.com.webbudget.server.domain.entities.financial.Movement
 import br.com.webbudget.server.domain.entities.financial.Payment
 import br.com.webbudget.server.domain.entities.financial.Transfer
+import br.com.webbudget.server.domain.exceptions.DomainException
+import br.com.webbudget.server.domain.exceptions.ErrorCodes.INSUFFICIENT_COMPARTMENT_BALANCE
+import br.com.webbudget.server.infrastructure.repository.financial.CompartmentMovementRepository
+import br.com.webbudget.server.infrastructure.repository.financial.MovementReferenceRepository
 import br.com.webbudget.server.infrastructure.repository.financial.MovementRepository
+import br.com.webbudget.server.infrastructure.repository.financial.WalletEntryRepository
 import br.com.webbudget.server.infrastructure.repository.financial.TransferRepository
 import org.springframework.stereotype.Component
 
@@ -17,7 +23,11 @@ class WalletImportSaver(
     private val movementService: MovementService,
     private val movementRepository: MovementRepository,
     private val transferService: TransferService,
-    private val transferRepository: TransferRepository
+    private val transferRepository: TransferRepository,
+    private val compartmentMovementService: CompartmentMovementService,
+    private val compartmentMovementRepository: CompartmentMovementRepository,
+    private val movementReferenceRepository: MovementReferenceRepository,
+    private val walletEntryRepository: WalletEntryRepository
 ) : ImportSaver {
 
     override fun supports(import: Import): Boolean = !import.isCard
@@ -29,24 +39,34 @@ class WalletImportSaver(
                 ImportAction.LINK -> link(import, line)
                 ImportAction.INVOICE_PAYMENT -> pay(import, line, findMovement(line))
                 ImportAction.TRANSFER -> transfer(import, line)
+                ImportAction.COMPARTMENT -> moveToCompartment(import, line)
                 else -> Unit
             }
         }
     }
 
     override fun undo(import: Import, lines: List<ImportLine>) {
+
+        if (lines.any { it.action == ImportAction.COMPARTMENT }) {
+            walletEntryRepository.lockWallets(listOf(import.wallet!!.id))
+        }
+
         lines.asReversed().forEach { line ->
             when (line.action) {
                 ImportAction.CREATE -> undoCreate(line)
                 ImportAction.LINK -> undoLink(line)
                 ImportAction.INVOICE_PAYMENT -> movementService.undoPayment(findMovement(line))
                 ImportAction.TRANSFER -> transferService.returnTransfer(transferRepository.findById(line.createdTransferId!!)!!)
+                ImportAction.COMPARTMENT -> undoCompartment(import, line)
                 else -> Unit
             }
         }
     }
 
-    override fun blockers(import: Import, lines: List<ImportLine>): List<ImportBlocker> = lines.mapNotNull { line ->
+    override fun blockers(import: Import, lines: List<ImportLine>): List<ImportBlocker> =
+        lineBlockers(import, lines) + compartmentBlockers(import, lines)
+
+    private fun lineBlockers(import: Import, lines: List<ImportLine>): List<ImportBlocker> = lines.mapNotNull { line ->
 
         val reason = when (line.action) {
             ImportAction.CREATE -> createBlocker(import, line)
@@ -108,6 +128,68 @@ class WalletImportSaver(
         transferService.transfer(transfer)
 
         line.createdTransferId = transfer.id
+    }
+
+    private fun moveToCompartment(import: Import, line: ImportLine) {
+
+        val compartment = movementReferenceRepository.findCompartment(import.wallet!!.externalId, line.targetCompartment!!.externalId)!!
+
+        val movement = CompartmentMovement(
+            compartment = compartment,
+            direction = if (line.isCredit) CompartmentMovement.Direction.WITHDRAWAL else CompartmentMovement.Direction.DEPOSIT,
+            value = line.absoluteValue
+        )
+
+        compartmentMovementService.move(movement)
+
+        line.createdCompartmentMovementId = movement.id
+        line.compartmentName = compartment.name
+    }
+
+    private fun undoCompartment(import: Import, line: ImportLine) {
+
+        compartmentMovementRepository.delete(line.createdCompartmentMovementId!!)
+
+        val compartment = line.targetCompartment!!
+
+        compartmentMovementRepository.applyBalanceDelta(compartment.id, line.value)
+            ?: throw DomainException(
+                "The compartment does not have enough balance to undo the import",
+                INSUFFICIENT_COMPARTMENT_BALANCE,
+                mapOf("balance" to compartmentMovementRepository.findBalance(compartment.id))
+            )
+
+        walletEntryRepository.applyBalanceDelta(import.wallet!!.id, line.value.negate())
+
+        line.createdCompartmentMovementId = null
+    }
+
+    private fun compartmentBlockers(import: Import, lines: List<ImportLine>): List<ImportBlocker> {
+
+        val compartmentLines = lines.filter { it.action == ImportAction.COMPARTMENT }
+
+        if (compartmentLines.isEmpty()) {
+            return emptyList()
+        }
+
+        val inactiveWallet = if (import.wallet!!.active) emptyList() else listOf(ImportBlocker(WALLET_INACTIVE))
+
+        val deleted = compartmentLines.filter { it.createdCompartmentMovementId == null }
+            .map { it.compartmentName.orEmpty() }
+            .distinct()
+            .map { ImportBlocker(COMPARTMENT_DELETED, compartment = it) }
+
+        val negative = compartmentLines.filter { it.createdCompartmentMovementId != null }
+            .groupBy { it.targetCompartment!!.id }
+            .values
+            .mapNotNull { group ->
+                val compartment = group.first().targetCompartment!!
+                val resulting = group.fold(compartment.balance) { total, line -> total.add(line.value) }
+                ImportBlocker(COMPARTMENT_NEGATIVE, compartment = compartment.name, value = resulting)
+                    .takeIf { resulting.signum() < 0 }
+            }
+
+        return inactiveWallet + deleted + negative
     }
 
     private fun undoCreate(line: ImportLine) {
@@ -176,5 +258,8 @@ class WalletImportSaver(
         const val LINK_CHANGED = "linked-entry-changed"
         const val LINKED_PERIOD_CLOSED = "linked-period-not-open"
         const val TRANSFER_CHANGED = "created-transfer-changed"
+        const val COMPARTMENT_DELETED = "created-compartment-deleted"
+        const val COMPARTMENT_NEGATIVE = "compartment-balance-insufficient"
+        const val WALLET_INACTIVE = "wallet-inactive"
     }
 }

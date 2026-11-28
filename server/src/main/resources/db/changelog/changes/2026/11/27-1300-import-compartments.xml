@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <changeSet id="27-1300-1" author="${claude}">
+        <sql>
+            ALTER TABLE financial.import_lines DROP CONSTRAINT ck_import_lines_on_action;
+            ALTER TABLE financial.import_lines
+                ADD CONSTRAINT ck_import_lines_on_action CHECK (action IN ('CREATE', 'LINK', 'LAUNCH_RECURRING', 'CREATE_RECURRING', 'INVOICE_PAYMENT', 'TRANSFER', 'COMPARTMENT', 'IGNORE'));
+        </sql>
+        <rollback>
+            <sql>
+                ALTER TABLE financial.import_lines DROP CONSTRAINT ck_import_lines_on_action;
+                ALTER TABLE financial.import_lines
+                    ADD CONSTRAINT ck_import_lines_on_action CHECK (action IN ('CREATE', 'LINK', 'LAUNCH_RECURRING', 'CREATE_RECURRING', 'INVOICE_PAYMENT', 'TRANSFER', 'IGNORE'));
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="27-1300-2" author="${claude}">
+        <sql>
+            ALTER TABLE financial.import_name_memories DROP CONSTRAINT ck_import_name_memories_on_action;
+            ALTER TABLE financial.import_name_memories
+                ADD CONSTRAINT ck_import_name_memories_on_action CHECK (action IN ('CREATE', 'LINK', 'LAUNCH_RECURRING', 'CREATE_RECURRING', 'INVOICE_PAYMENT', 'TRANSFER', 'COMPARTMENT', 'IGNORE'));
+        </sql>
+        <rollback>
+            <sql>
+                ALTER TABLE financial.import_name_memories DROP CONSTRAINT ck_import_name_memories_on_action;
+                ALTER TABLE financial.import_name_memories
+                    ADD CONSTRAINT ck_import_name_memories_on_action CHECK (action IN ('CREATE', 'LINK', 'LAUNCH_RECURRING', 'CREATE_RECURRING', 'INVOICE_PAYMENT', 'TRANSFER', 'IGNORE'));
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="27-1300-3" author="${claude}">
+        <sql>
+            ALTER TABLE financial.import_lines
+                ADD COLUMN id_target_compartment bigint,
+                ADD COLUMN id_created_compartment_movement bigint,
+                ADD COLUMN compartment_name varchar(150),
+                ADD CONSTRAINT fk_target_compartments_on_import_lines FOREIGN KEY (id_target_compartment) REFERENCES registration.compartments (id) ON DELETE SET NULL,
+                ADD CONSTRAINT fk_created_compartment_movements_on_import_lines FOREIGN KEY (id_created_compartment_movement) REFERENCES financial.compartment_movements (id) ON DELETE SET NULL;
+            CREATE INDEX ix_import_lines_on_target_compartment ON financial.import_lines (id_target_compartment);
+            CREATE INDEX ix_import_lines_on_created_compartment_movement ON financial.import_lines (id_created_compartment_movement);
+        </sql>
+        <rollback>
+            <sql>
+                DROP INDEX financial.ix_import_lines_on_created_compartment_movement;
+                DROP INDEX financial.ix_import_lines_on_target_compartment;
+                ALTER TABLE financial.import_lines
+                    DROP COLUMN id_target_compartment,
+                    DROP COLUMN id_created_compartment_movement,
+                    DROP COLUMN compartment_name;
+            </sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="27-1300-4" author="${claude}">
+        <sql>
+            ALTER TABLE financial.import_name_memories
+                ADD COLUMN id_compartment bigint,
+                ADD CONSTRAINT fk_compartments_on_import_name_memories FOREIGN KEY (id_compartment) REFERENCES registration.compartments (id) ON DELETE SET NULL;
+        </sql>
+        <rollback>
+            <sql>ALTER TABLE financial.import_name_memories DROP COLUMN id_compartment;</sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

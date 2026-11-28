@@ -25,12 +25,13 @@ const differenceText = computed(() => {
 const ledgerDate = computed(() =>
   props.item.ledgerBalanceOn ? d(`${props.item.ledgerBalanceOn}T00:00:00`, 'short') : '',
 )
+const compartments = computed(() => wallet.value && (props.item.wallet?.compartmentCount ?? 0) > 0)
 const unlinked = computed(() => props.item.warnings.unlinkedRecurring.length)
 </script>
 
 <template>
   <div class="grid gap-3" data-slot="draft-totals">
-    <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
+    <div class="grid grid-cols-2 gap-3" :class="compartments ? 'xl:grid-cols-5' : 'xl:grid-cols-4'">
       <Card class="grid content-start gap-1 p-4" data-slot="total-lines">
         <span class="text-muted-foreground text-xs">{{ $t('imports.draft.totals.lines') }}</span>
         <span class="font-mono text-xl font-semibold tracking-tight tabular-nums md:text-2xl">
@@ -68,7 +69,15 @@ const unlinked = computed(() => props.item.warnings.unlinkedRecurring.length)
       </Card>
       <Card class="grid content-start gap-1 p-4" data-slot="total-after">
         <span class="text-muted-foreground text-xs">
-          {{ $t(wallet ? 'imports.draft.totals.balance-after' : 'imports.draft.totals.invoice-after') }}
+          {{
+            $t(
+              compartments
+                ? 'imports.draft.totals.free-balance-after'
+                : wallet
+                  ? 'imports.draft.totals.balance-after'
+                  : 'imports.draft.totals.invoice-after',
+            )
+          }}
         </span>
         <CurrencyDisplay
           :value="item.warnings.afterSave"
@@ -86,6 +95,20 @@ const unlinked = computed(() => props.item.warnings.unlinkedRecurring.length)
             }}
           </template>
         </span>
+      </Card>
+      <Card
+        v-if="compartments"
+        class="grid content-start gap-1 p-4"
+        data-slot="total-after-compartments"
+      >
+        <span class="text-muted-foreground text-xs">
+          {{ $t('imports.draft.totals.total-after') }}
+        </span>
+        <CurrencyDisplay
+          :value="item.warnings.totalAfterSave!"
+          :signed="item.warnings.totalAfterSave! < 0"
+          class="text-xl font-semibold tracking-tight md:text-2xl"
+        />
       </Card>
     </div>
     <div

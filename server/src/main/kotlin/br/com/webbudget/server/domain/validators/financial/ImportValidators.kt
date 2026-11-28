@@ -9,6 +9,8 @@ import br.com.webbudget.server.domain.exceptions.DomainException
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.CLASSIFICATION_TYPE_MISMATCH
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.FINANCIAL_PERIOD_NOT_OPEN
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.IMPORT_ACTION_NOT_ALLOWED
+import br.com.webbudget.server.domain.exceptions.ErrorCodes.IMPORT_COMPARTMENT_BALANCE_EXCEEDED
+import br.com.webbudget.server.domain.exceptions.ErrorCodes.IMPORT_COMPARTMENT_NOT_AVAILABLE
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.IMPORT_DRAFT_ALREADY_EXISTS
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.IMPORT_NOT_EDITABLE
 import br.com.webbudget.server.domain.exceptions.ErrorCodes.IMPORT_NOT_READY
@@ -29,8 +31,10 @@ import br.com.webbudget.server.domain.validators.OnUndoValidation
 import br.com.webbudget.server.domain.validators.OnUpdateValidation
 import br.com.webbudget.server.infrastructure.repository.financial.ImportRepository
 import br.com.webbudget.server.infrastructure.repository.financial.InvoiceRepository
+import org.springframework.http.HttpStatus
 import org.springframework.core.annotation.Order
 import org.springframework.stereotype.Component
+import java.math.BigDecimal
 
 interface ImportValidator : BusinessValidator<Import>
 
@@ -196,6 +200,28 @@ class ImportLineTransferWalletValidator : ImportLineValidator {
     }
 }
 
+@Component
+@OnUpdateValidation
+class ImportLineCompartmentValidator : ImportLineValidator {
+
+    override fun validate(value: ImportLine) {
+
+        val compartment = value.targetCompartment ?: return
+
+        if (value.action != ImportAction.COMPARTMENT) {
+            throw DomainException("Only a compartment action takes a compartment", IMPORT_ACTION_NOT_ALLOWED)
+        }
+
+        if (compartment.walletId != value.import.wallet?.id) {
+            throw DomainException(
+                "The compartment does not belong to the wallet of the import",
+                IMPORT_COMPARTMENT_NOT_AVAILABLE,
+                status = HttpStatus.UNPROCESSABLE_ENTITY
+            )
+        }
+    }
+}
+
 interface ImportSaveValidator : BusinessValidator<ImportSave>
 
 interface ImportUndoValidator : BusinessValidator<Import>
@@ -252,6 +278,64 @@ class ImportSavePendingLinesValidator : ImportSaveValidator {
                 "The import has lines to resolve",
                 IMPORT_WITH_PENDING_LINES,
                 mapOf("pending" to pending)
+            )
+        }
+    }
+}
+
+@Component
+@OnSaveValidation
+class ImportSaveCompartmentValidator : ImportSaveValidator {
+
+    override fun validate(value: ImportSave) {
+
+        val compartmentLines = value.lines
+            .filter { it.action == ImportAction.COMPARTMENT && it.targetCompartment != null }
+            .sortedWith(compareBy({ it.postedOn }, { it.position }))
+
+        compartmentLines.forEach { line ->
+            if (line.targetCompartment!!.walletId != value.import.wallet?.id) {
+                throw DomainException(
+                    "The compartment does not belong to the wallet of the import",
+                    IMPORT_COMPARTMENT_NOT_AVAILABLE,
+                    status = HttpStatus.UNPROCESSABLE_ENTITY
+                )
+            }
+        }
+
+        val balances = mutableMapOf<Long, BigDecimal>()
+
+        val exceeded = compartmentLines.filter { line ->
+
+            val compartment = line.targetCompartment!!
+            val current = balances.getOrDefault(compartment.id, compartment.balance)
+            val resulting = current.add(line.value.negate())
+
+            val refused = resulting.signum() < 0
+
+            if (!refused) {
+                balances[compartment.id] = resulting
+            }
+
+            refused
+        }
+
+        if (exceeded.isNotEmpty()) {
+            throw DomainException(
+                "The withdrawals exceed the balance of the compartments",
+                IMPORT_COMPARTMENT_BALANCE_EXCEEDED,
+                mapOf(
+                    "lines" to exceeded.map { line ->
+                        mapOf(
+                            "id" to line.externalId,
+                            "position" to line.position,
+                            "postedOn" to line.postedOn,
+                            "compartment" to line.targetCompartment!!.name,
+                            "balance" to line.targetCompartment!!.balance
+                        )
+                    }
+                ),
+                HttpStatus.UNPROCESSABLE_ENTITY
             )
         }
     }

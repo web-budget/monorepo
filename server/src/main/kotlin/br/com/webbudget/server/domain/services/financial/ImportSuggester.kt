@@ -63,7 +63,8 @@ class ImportSuggester {
                 { current -> invoicePayment(current, state) },
                 { current -> linkByMemory(current, state) },
                 { current -> registeredTransfer(current, state) },
-                { current -> transferByMemory(current, state) }
+                { current -> transferByMemory(current, state) },
+                { current -> compartmentByMemory(current, state) }
             )
         }
 
@@ -240,6 +241,25 @@ class ImportSuggester {
         }
 
         return transfer || ignoreByMemory(line, memory)
+    }
+
+    private fun compartmentByMemory(line: ImportLine, state: State): Boolean {
+
+        val memory = state.context.memories[ImportNameMemory.normalize(line.name)] ?: return false
+
+        val compartment = memory.compartment
+
+        val remembered = memory.action == ImportAction.COMPARTMENT &&
+            compartment != null &&
+            compartment.walletId == state.import.wallet!!.id
+
+        if (remembered) {
+            line.action = ImportAction.COMPARTMENT
+            line.targetCompartment = compartment
+            line.fromMemory = true
+        }
+
+        return remembered
     }
 
     private fun ignoreByMemory(line: ImportLine, memory: ImportNameMemory): Boolean {

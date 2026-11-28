@@ -2,6 +2,7 @@ import { apiClient } from './client'
 import type {
   PagedResponse,
   PageQuery,
+  ReconciliationBalanceView,
   ReconciliationForm,
   ReconciliationPosition,
   ReconciliationResultView,
@@ -16,6 +17,14 @@ export const reconciliationsApi = {
       .get<PagedResponse<ReconciliationView>>(
         `${PATH}/${encodeURIComponent(walletId)}/reconciliations`,
         { params: query },
+      )
+      .then((response) => response.data)
+  },
+
+  findBalance(walletId: string): Promise<ReconciliationBalanceView> {
+    return apiClient
+      .get<ReconciliationBalanceView>(
+        `${PATH}/${encodeURIComponent(walletId)}/reconciliations/balance`,
       )
       .then((response) => response.data)
   },
