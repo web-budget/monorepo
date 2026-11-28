@@ -2620,7 +2620,8 @@
       "result": "Resultado",
       "savings-rate": "Taxa de poupança",
       "red-periods": "Meses no vermelho",
-      "red-of": "de {count}"
+      "red-of": "de {count}",
+      "card-to-pay": "{amount} no cartão a pagar"
     },
     "chart": {
       "title": "Receitas e despesas por período"
