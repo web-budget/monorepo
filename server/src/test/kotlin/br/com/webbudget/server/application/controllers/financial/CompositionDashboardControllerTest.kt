@@ -218,13 +218,16 @@ class CompositionDashboardControllerTest : BaseIntegrationTest() {
     fun `should give zero in a month with lines of another classification and null in a month with none`() {
 
         insertClassification(SUPERMARKET_ID, "Supermarket", "EXPENSE")
-        insertPeriod(9201L, "10/2026", LocalDate.of(2026, 10, 1), LocalDate.of(2026, 11, 30))
+        insertPeriod(9201L, "10/2026 to 12/2026", LocalDate.of(2026, 10, 1), LocalDate.of(2026, 12, 31))
         paidMovement(9201L, "EXPENSE", "30.00", GYM_ID, HEALTH_ID, LocalDate.of(2026, 10, 20))
         paidMovement(9201L, "EXPENSE", "80.00", SUPERMARKET_ID, HOME_ID, LocalDate.of(2026, 11, 10))
+        paidMovement(9201L, "INCOME", "500.00", SALARY_ID, HEALTH_ID, LocalDate.of(2026, 12, 5))
 
         composition("2026")
             .expectBody()
             .jsonPath("$.seasonality.length()").isEqualTo(2)
+            .jsonPath("$.seasonality[0].months[11]").isEqualTo(0)
+            .jsonPath("$.seasonality[1].months[11]").isEqualTo(0)
             .jsonPath("$.seasonality[0].name").isEqualTo("Supermarket")
             .jsonPath("$.seasonality[0].months[9]").isEqualTo(0)
             .jsonPath("$.seasonality[0].months[10]").isEqualTo(80.0)
