@@ -90,6 +90,7 @@ web-budget:
     reply-to-address: ${MAIL_REPLY_TO_ADDRESS:noreply@webbudget.com.br}
     default-from-address: ${MAIL_DEFAULT_FROM_ADDRESS:noreply@webbudget.com.br}
     time-zone: ${MAIL_TIME_ZONE:America/Sao_Paulo}
+    encryption-key: ${MAIL_ENCRYPTION_KEY:}
   due-date-notices:
     daily-cron: ${DUE_DATE_NOTICES_DAILY_CRON:0 0 7 * * *}
     weekly-cron: ${DUE_DATE_NOTICES_WEEKLY_CRON:0 0 7 * * FRI}

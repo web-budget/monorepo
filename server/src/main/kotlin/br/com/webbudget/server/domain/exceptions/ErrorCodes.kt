@@ -97,4 +97,6 @@ object ErrorCodes {
     const val INVALID_COMPARTMENT_MOVEMENT_VALUE = "invalid-compartment-movement-value"
     const val INSUFFICIENT_COMPARTMENT_BALANCE = "insufficient-compartment-balance"
     const val RESERVE_MONTHS_OUT_OF_RANGE = "reserve-months-out-of-range"
+    const val MAIL_NOT_CONFIGURED = "mail-not-configured"
+    const val MAIL_ENCRYPTION_KEY_MISSING = "mail-encryption-key-missing"
 }
