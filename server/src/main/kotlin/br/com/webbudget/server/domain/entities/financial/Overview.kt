@@ -19,7 +19,8 @@ class Overview(
         val revenues: BigDecimal,
         val expenses: BigDecimal,
         val redPeriods: Int,
-        val periodsWithMovement: Int
+        val periodsWithMovement: Int,
+        val cardToPay: BigDecimal
     ) {
 
         val result: BigDecimal

@@ -17,6 +17,7 @@ const overview: OverviewView = {
     savingsRate: 0.6,
     redPeriods: 0,
     periodsWithMovement: 1,
+    cardToPay: 0,
   },
   resultByYear: [],
   periods: [],

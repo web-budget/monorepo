@@ -178,6 +178,13 @@ function createPeriod() {
           <template #value-expenses>
             <CurrencyDisplay :value="overview.totals.expenses" tone="expense" />
           </template>
+          <template v-if="overview.totals.cardToPay > 0" #note-expenses>
+            <i18n-t keypath="overview.figures.card-to-pay" scope="global">
+              <template #amount>
+                <CurrencyDisplay :value="overview.totals.cardToPay" />
+              </template>
+            </i18n-t>
+          </template>
           <template #value-result>
             <CurrencyDisplay
               :value="overview.totals.result"
