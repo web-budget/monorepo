@@ -33,7 +33,12 @@ class WalletReconciliationBalanceValidator : WalletReconciliationValidator {
     override fun validate(value: WalletReconciliation) {
         if (value.walletBalance.compareTo(value.shownBalance) != 0) {
             throw DomainException.conflict(
-                parameters = mapOf("currentBalance" to value.walletBalance, "difference" to value.difference),
+                parameters = mapOf(
+                    "currentBalance" to value.walletBalance,
+                    "difference" to value.difference,
+                    "freeBalance" to value.balances.freeBalance,
+                    "compartments" to value.balances.compartments
+                ),
                 message = "The balance of the wallet changed after it was shown",
                 error = RECONCILIATION_BALANCE_CHANGED
             )

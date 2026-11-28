@@ -56,6 +56,7 @@ data class ImportResultView(
     val linked: Int,
     val recurring: Int,
     val transfers: Int,
+    val compartments: Int,
     val ignored: Int
 )
 
@@ -76,7 +77,9 @@ data class ImportCandidateView(
 data class ImportBlockerView(
     val reason: String,
     val position: Int?,
-    val name: String?
+    val name: String?,
+    val compartment: String?,
+    val value: BigDecimal?
 )
 
 data class ImportWarningsView(
@@ -85,7 +88,8 @@ data class ImportWarningsView(
     val afterSave: BigDecimal,
     val ledgerBalance: BigDecimal?,
     val currentBalance: BigDecimal?,
-    val ignoredCredits: BigDecimal
+    val ignoredCredits: BigDecimal,
+    val totalAfterSave: BigDecimal?
 )
 
 data class ImportView(
@@ -93,7 +97,7 @@ data class ImportView(
     val fileName: String,
     val target: String,
     val card: PaymentCardView?,
-    val wallet: PaymentWalletView?,
+    val wallet: ImportWalletView?,
     val financialPeriod: MovementFinancialPeriodView,
     val status: String,
     val error: String?,
@@ -110,6 +114,18 @@ data class ImportView(
     val result: ImportResultView,
     val warnings: ImportWarningsView,
     val undoBlockers: List<ImportBlockerView>
+)
+
+data class ImportWalletView(
+    val id: UUID,
+    val name: String,
+    val compartmentCount: Int
+)
+
+data class ImportLineCompartmentView(
+    val id: UUID,
+    val name: String,
+    val balance: BigDecimal
 )
 
 data class ImportIgnoreReasonView(
@@ -136,6 +152,9 @@ data class ImportLineView(
     val costCenter: MovementCostCenterView?,
     val classification: MovementClassificationView?,
     val wallet: PaymentWalletView?,
+    val compartment: ImportLineCompartmentView?,
+    val compartmentMovement: UUID?,
+    val compartmentName: String?,
     val link: ImportCandidateView?,
     val created: List<ImportCandidateView>,
     val ignoreReason: ImportIgnoreReasonView?,
@@ -171,6 +190,7 @@ data class ImportLineUpdateForm(
     val costCenter: UUID? = null,
     val classification: UUID? = null,
     val wallet: UUID? = null,
+    val compartment: UUID? = null,
     @field:Valid
     val link: ImportLinkForm? = null,
     val installment: Int? = null,

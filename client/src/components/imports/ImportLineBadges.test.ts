@@ -83,4 +83,18 @@ describe('ImportLineBadges', () => {
     expect(more.text().replace(/\s/g, ' ')).toContain('Diferença de R$ 40,00')
     expect(less.text().replace(/\s/g, ' ')).toContain('Diferença de −R$ 10,00')
   })
+  it('shows the refusal of a withdrawal that passes the balance', () => {
+    const wrapper = mount(ImportLineBadges, {
+      props: {
+        balanceError: 'Reserva da casa',
+        line: { id: 'l-1', value: 10 } as ImportLineView,
+      },
+      global: { plugins: createTestPlugins().plugins },
+    })
+
+    expect(wrapper.find('[data-slot="line-balance-error"]').text()).toBe(
+      'Passa do saldo de Reserva da casa',
+    )
+    expect(render().find('[data-slot="line-balance-error"]').exists()).toBe(false)
+  })
 })

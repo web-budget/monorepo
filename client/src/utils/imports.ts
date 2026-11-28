@@ -1,6 +1,8 @@
+import { ApiError } from '@/api/client'
 import type {
   ImportAction,
   ImportCandidateKind,
+  ImportCompartmentRejection,
   ImportLineView,
   ImportListView,
   ImportTarget,
@@ -63,6 +65,7 @@ export const WALLET_ACTIONS: ImportAction[] = [
   'LINK',
   'INVOICE_PAYMENT',
   'TRANSFER',
+  'COMPARTMENT',
   'IGNORE',
 ]
 
@@ -93,6 +96,7 @@ const CANDIDATE_ROUTES: Record<ImportCandidateKind, string> = {
   PURCHASE: 'purchases.detail',
   TRANSFER: 'transfers.detail',
   RECURRING: 'recurring-movements.detail',
+  COMPARTMENT: 'wallets.compartments.detail',
 }
 
 export function resultTarget(
@@ -105,4 +109,30 @@ export function resultTarget(
         line.link ??
         line.created[0])
   return target ? { name: CANDIDATE_ROUTES[target.kind], params: { id: target.id } } : null
+}
+
+const COMPARTMENT_BALANCE_EXCEEDED = 'import-compartment-balance-exceeded'
+
+export function rejectionsOf(error: unknown): ImportCompartmentRejection[] | null {
+  if (!(error instanceof ApiError) || error.error !== COMPARTMENT_BALANCE_EXCEEDED) {
+    return null
+  }
+  return (error.parameters?.lines ?? []) as ImportCompartmentRejection[]
+}
+
+export function compartmentTarget(
+  line: Pick<ImportLineView, 'compartment' | 'compartmentMovement'>,
+  walletId: string | undefined,
+): {
+  name: string
+  params: { id: string; compartmentId: string }
+  query: { movement: string }
+} | null {
+  return line.compartment && line.compartmentMovement && walletId
+    ? {
+        name: 'wallets.compartments.detail',
+        params: { id: walletId, compartmentId: line.compartment.id },
+        query: { movement: line.compartmentMovement },
+      }
+    : null
 }

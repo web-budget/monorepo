@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CopyCheck, History, Link2, TriangleAlert } from 'lucide-vue-next'
+import { CircleAlert, CopyCheck, History, Link2, TriangleAlert } from 'lucide-vue-next'
 import { useI18n } from 'vue-i18n'
 import { Badge } from '@/components/ui/badge'
 import type { ImportLineView } from '@/types'
@@ -9,6 +9,7 @@ defineProps<{
   line: ImportLineView
   hideInstallment?: boolean
   memoryLabel?: boolean
+  balanceError?: string
 }>()
 
 const { n } = useI18n()
@@ -42,6 +43,11 @@ function difference(line: ImportLineView): string {
     </Badge>
     <Badge v-if="line.ignoreReason?.code === 'credit'" variant="pending">
       <TriangleAlert />{{ $t('imports.draft.badges.credit') }}
+    </Badge>
+    <Badge v-if="balanceError" variant="blocked" data-slot="line-balance-error">
+      <CircleAlert />{{
+        $t('imports.draft.badges.balance-exceeded', { compartment: balanceError })
+      }}
     </Badge>
     <Badge v-if="line.installment && line.installments && !hideInstallment" variant="outline">
       {{ line.installment }}/{{ line.installments }}

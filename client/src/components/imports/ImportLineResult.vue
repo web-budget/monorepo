@@ -26,6 +26,8 @@ const key = computed(() => {
       return 'create-recurring'
     case 'INVOICE_PAYMENT':
       return 'invoice-payment'
+    case 'COMPARTMENT':
+      return isIncoming(props.line) ? 'compartment-withdraw' : 'compartment-save'
     default:
       return 'transfer'
   }
@@ -43,19 +45,20 @@ const text = computed(() => {
   const period = props.line.link?.financialPeriod
   return t(`imports.saved.result.${key.value}`, {
     name: props.line.link?.name,
-    other: period && period.id !== props.periodId ? t('imports.saved.result.of', { month: periodMonth(period.name) }) : '',
+    other:
+      period && period.id !== props.periodId
+        ? t('imports.saved.result.of', { month: periodMonth(period.name) })
+        : '',
     installment: props.line.installment,
     installments: props.line.installments,
     wallet: props.line.wallet?.name,
+    compartment: props.line.compartment?.name ?? props.line.compartmentName,
   })
 })
 </script>
 
 <template>
-  <span
-    :class="line.action === 'IGNORE' && 'text-muted-foreground'"
-    data-slot="line-result"
-  >
+  <span :class="line.action === 'IGNORE' && 'text-muted-foreground'" data-slot="line-result">
     {{ line.action === 'IGNORE' ? ignored : text }}
   </span>
 </template>

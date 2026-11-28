@@ -44,6 +44,7 @@ const emit = defineEmits<{
 const { n } = useI18n()
 
 const walletBalance = computed(() => props.wallet?.balance ?? 0)
+const hasCompartments = computed(() => (props.wallet?.compartments.length ?? 0) > 0)
 
 const form = useForm({
   validationSchema: createReconciliationFormSchema(() => walletBalance.value),
@@ -99,6 +100,43 @@ const submit = form.handleSubmit((values) => {
             }}
           </AlertDescription>
         </Alert>
+        <div
+          v-if="hasCompartments"
+          class="grid gap-1.5 rounded-md border p-3 text-sm"
+          data-slot="reconcile-reference"
+        >
+          <p class="text-muted-foreground text-xs font-medium">
+            {{ $t('wallet.reconcile.in-wallet-now') }}
+          </p>
+          <dl class="grid gap-1">
+            <div class="flex justify-between gap-3">
+              <dt class="text-muted-foreground">{{ $t('wallet.reconcile.free-balance') }}</dt>
+              <dd>
+                <CurrencyDisplay
+                  :value="wallet!.freeBalance"
+                  :signed="wallet!.freeBalance < 0"
+                  bare
+                  glued
+                />
+              </dd>
+            </div>
+            <div
+              v-for="compartment in wallet!.compartments"
+              :key="compartment.id"
+              class="flex justify-between gap-3"
+            >
+              <dt class="text-muted-foreground">{{ compartment.name }}</dt>
+              <dd>
+                <CurrencyDisplay
+                  :value="compartment.balance"
+                  :signed="compartment.balance < 0"
+                  bare
+                  glued
+                />
+              </dd>
+            </div>
+          </dl>
+        </div>
         <MoneyField
           name="informedBalance"
           :label="
@@ -115,7 +153,13 @@ const submit = form.handleSubmit((values) => {
           data-slot="reconcile-summary"
         >
           <div class="flex justify-between gap-3">
-            <dt class="text-muted-foreground">{{ $t('wallet.reconcile.wallet-balance') }}</dt>
+            <dt class="text-muted-foreground">
+              {{
+                hasCompartments
+                  ? $t('wallet.reconcile.total-balance')
+                  : $t('wallet.reconcile.wallet-balance')
+              }}
+            </dt>
             <dd>
               <CurrencyDisplay :value="walletBalance" :signed="walletBalance < 0" bare glued />
             </dd>

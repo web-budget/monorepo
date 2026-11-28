@@ -2,6 +2,8 @@ package br.com.webbudget.server.application.mappers.financial
 
 import br.com.webbudget.server.application.payloads.financial.ImportBlockerView
 import br.com.webbudget.server.application.payloads.financial.ImportCandidateView
+import br.com.webbudget.server.application.payloads.financial.ImportLineCompartmentView
+import br.com.webbudget.server.application.payloads.financial.ImportWalletView
 import br.com.webbudget.server.application.payloads.financial.ImportIgnoreReasonView
 import br.com.webbudget.server.application.payloads.financial.ImportLineTotalsView
 import br.com.webbudget.server.application.payloads.financial.ImportLineUpdateForm
@@ -23,6 +25,7 @@ import br.com.webbudget.server.domain.entities.financial.Import
 import br.com.webbudget.server.domain.entities.financial.ImportAction
 import br.com.webbudget.server.domain.entities.financial.ImportCandidate
 import br.com.webbudget.server.domain.entities.financial.ImportCandidateKind
+import br.com.webbudget.server.domain.entities.financial.ImportCompartment
 import br.com.webbudget.server.domain.entities.financial.ImportLine
 import br.com.webbudget.server.domain.entities.financial.ImportLineChange
 import br.com.webbudget.server.domain.entities.financial.ImportLinkReference
@@ -61,7 +64,7 @@ class ImportMapper(
         fileName = import.fileName,
         target = import.target.name,
         card = import.card?.let { PaymentCardView(it.externalId, it.name, it.lastFourDigits) },
-        wallet = import.wallet?.let { PaymentWalletView(it.externalId, it.name) },
+        wallet = import.wallet?.let { ImportWalletView(it.externalId, it.name, summary.compartmentCount) },
         financialPeriod = mapToPeriodView(import.financialPeriod),
         status = import.status.name,
         error = import.error,
@@ -87,9 +90,12 @@ class ImportMapper(
             afterSave = summary.afterSave,
             ledgerBalance = summary.ledgerBalance,
             currentBalance = summary.currentBalance,
-            ignoredCredits = summary.ignoredCredits
+            ignoredCredits = summary.ignoredCredits,
+            totalAfterSave = summary.totalAfterSave
         ),
-        undoBlockers = summary.undoBlockers.map { ImportBlockerView(it.reason, it.position, it.name) }
+        undoBlockers = summary.undoBlockers.map {
+            ImportBlockerView(it.reason, it.position, it.name, it.compartment, it.value)
+        }
     )
 
     fun mapToLineView(line: ImportLine): ImportLineView = ImportLineView(
@@ -111,6 +117,9 @@ class ImportMapper(
         costCenter = line.costCenter?.let { mapToCostCenterView(it) },
         classification = line.classification?.let { mapToClassificationView(it) },
         wallet = line.targetWallet?.let { PaymentWalletView(it.externalId, it.name) },
+        compartment = line.targetCompartment?.let { ImportLineCompartmentView(it.externalId, it.name, it.balance) },
+        compartmentMovement = line.createdCompartmentMovementExternalId,
+        compartmentName = line.compartmentName,
         link = line.link?.let { mapToCandidateView(it) },
         created = line.created.map { mapToCandidateView(it) },
         ignoreReason = line.ignoreReason?.takeIf { line.action == ImportAction.IGNORE }
@@ -138,6 +147,7 @@ class ImportMapper(
         costCenter = form.costCenter?.let { findCostCenter(it) },
         classification = form.classification?.let { findClassification(it) },
         wallet = form.wallet?.let { findWallet(it) },
+        compartment = form.compartment?.let { findCompartment(it) },
         link = form.link?.let { ImportLinkReference(it.kind!!, it.id!!) },
         installment = form.installment,
         installments = form.installments
@@ -158,6 +168,7 @@ class ImportMapper(
             linked = count(ImportAction.LINK, ImportAction.INVOICE_PAYMENT),
             recurring = count(ImportAction.LAUNCH_RECURRING, ImportAction.CREATE_RECURRING),
             transfers = count(ImportAction.TRANSFER),
+            compartments = count(ImportAction.COMPARTMENT),
             ignored = count(ImportAction.IGNORE)
         )
     }
@@ -170,6 +181,9 @@ class ImportMapper(
 
     private fun findWallet(id: UUID): WalletReference =
         movementReferenceRepository.findWallet(id) ?: throw ResourceNotFoundException()
+
+    private fun findCompartment(id: UUID): ImportCompartment =
+        movementReferenceRepository.findImportCompartment(id) ?: throw ResourceNotFoundException()
 
     private fun mapToCostCenterView(costCenter: CostCenterReference) =
         MovementCostCenterView(costCenter.externalId, costCenter.name, costCenter.fullName)

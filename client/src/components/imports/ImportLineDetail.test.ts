@@ -41,10 +41,26 @@ describe('ImportLineDetail', () => {
   })
 
   it('joins the reasons that are missing', () => {
-    const wrapper = render({ action: 'CREATE', pending: ['cost-center', 'classification', 'installments'] })
+    const wrapper = render({
+      action: 'CREATE',
+      pending: ['cost-center', 'classification', 'installments'],
+    })
 
     expect(wrapper.find('[data-slot="line-missing"]').text()).toBe(
       'Falta centro de custo e classificação e parcelas',
+    )
+  })
+  it('tells where a compartment line puts or takes the money from, and what is missing', () => {
+    const reserve = { id: 'k-1', name: 'Reserva', balance: 1 }
+
+    expect(render({ action: 'COMPARTMENT', value: -300, compartment: reserve }).text()).toBe(
+      'Guardar em Reserva',
+    )
+    expect(render({ action: 'COMPARTMENT', value: 300, compartment: reserve }).text()).toBe(
+      'Resgatar de Reserva',
+    )
+    expect(render({ action: 'COMPARTMENT', pending: ['compartment'] }).text()).toBe(
+      'Falta cofrinho',
     )
   })
 })

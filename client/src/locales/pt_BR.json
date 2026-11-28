@@ -1048,6 +1048,10 @@
       "save-blocked": "Resolva a linha para salvar | Resolva as {count} linhas para salvar",
       "saved": "Importação salva",
       "transfer-to": "Para {wallet}",
+      "compartment-save": "Guardar em {compartment}",
+      "compartment-withdraw": "Resgatar de {compartment}",
+      "save-error": "Não foi possível salvar",
+      "balance-exceeded": "O resgate de {date} passa do saldo de {compartment} ({balance}), somado ao das linhas anteriores.",
       "missing": "Falta {what}",
       "columns": {
         "date": "Data",
@@ -1063,19 +1067,22 @@
         "CREATE_RECURRING": "Criar recorrente",
         "INVOICE_PAYMENT": "Pagamento de fatura",
         "TRANSFER": "Transferência",
+        "COMPARTMENT": "Cofrinho",
         "IGNORE": "Ignorar"
       },
       "badges": {
         "already-imported": "Já importada",
         "already-registered": "Já registrada",
         "credit": "Crédito sem compra",
-        "difference": "Diferença de {value}"
+        "difference": "Diferença de {value}",
+        "balance-exceeded": "Passa do saldo de {compartment}"
       },
       "reasons": {
         "cost-center": "centro de custo",
         "classification": "classificação",
         "installments": "parcelas",
         "wallet": "carteira",
+        "compartment": "cofrinho",
         "link": {
           "LINK": "o lançamento vinculado",
           "INVOICE_PAYMENT": "pagamento de fatura",
@@ -1100,6 +1107,8 @@
         "ledger": "Saldo do arquivo",
         "ledger-on": "Em {date}",
         "balance-after": "Saldo depois de salvar",
+        "free-balance-after": "Saldo livre depois de salvar",
+        "total-after": "Total depois de salvar",
         "difference": "Diferença de {value}",
         "credits": "{value} em créditos ignorados"
       },
@@ -1128,6 +1137,8 @@
         "installment": "Parcela atual",
         "installments": "Número de parcelas",
         "wallet-to": "Para a carteira",
+        "compartment-save": "Guardar em",
+        "compartment-withdraw": "Resgatar de",
         "link": {
           "LINK": "Lançamento",
           "INVOICE_PAYMENT": "Pagamento de fatura",
@@ -1170,6 +1181,7 @@
         "linked": "Vinculadas",
         "recurring": "Recorrentes",
         "transfers": "Transferências",
+        "compartments": "Cofrinhos",
         "ignored": "Ignoradas"
       },
       "tabs": {
@@ -1177,6 +1189,7 @@
         "LINKED": "Vinculadas",
         "RECURRING": "Recorrentes",
         "TRANSFERS": "Transferências",
+        "COMPARTMENTS": "Cofrinhos",
         "IGNORED": "Ignoradas",
         "ALL": "Todas"
       },
@@ -1196,7 +1209,9 @@
         "launch-recurring": "Parcela lançada de “{name}” e paga no cartão",
         "create-recurring": "Recorrente criado ({installment}/{installments}) e parcela paga no cartão",
         "invoice-payment": "Pagou “{name}”",
-        "transfer": "Transferência para {wallet}"
+        "transfer": "Transferência para {wallet}",
+        "compartment-save": "Guardado em {compartment}",
+        "compartment-withdraw": "Resgatado de {compartment}"
       },
       "undo": {
         "action": "Desfazer importação",
@@ -1211,6 +1226,7 @@
           "created": "Exclui {count} movimento criado, com o estorno no extrato. | Exclui {count} movimentos criados, com o estorno no extrato.",
           "linked": "Desfaz o pagamento de {count} lançamento vinculado, que volta para em aberto. | Desfaz o pagamento de {count} lançamentos vinculados, que voltam para em aberto.",
           "extra": "Devolve {count} transferência criada pela importação. | Devolve {count} transferências criadas pela importação.",
+          "compartments": "Remove {count} movimentação de cofrinho, do extrato do saldo livre e do histórico. | Remove {count} movimentações de cofrinho, do extrato do saldo livre e do histórico.",
           "note": "Vínculos com transferências já registradas só são desfeitos; a transferência fica."
         }
       },
@@ -1224,7 +1240,10 @@
         "recurring-launched-elsewhere": "O recorrente de “{name}” (linha {position}) já lançou parcelas em outro período.",
         "created-movement-changed": "O movimento criado por “{name}” (linha {position}) foi alterado depois de salvo.",
         "linked-period-not-open": "O período do lançamento vinculado a “{name}” (linha {position}) não está aberto.",
-        "created-transfer-changed": "A transferência criada por “{name}” (linha {position}) foi alterada depois de salva."
+        "created-transfer-changed": "A transferência criada por “{name}” (linha {position}) foi alterada depois de salva.",
+        "created-compartment-deleted": "O cofrinho {compartment} foi excluído.",
+        "compartment-balance-insufficient": "O cofrinho {compartment} ficaria com {value}.",
+        "wallet-inactive": "A carteira {wallet} está inativa."
       }
     },
     "errors": {
@@ -1558,6 +1577,9 @@
       "counted-balance": "Dinheiro contado agora",
       "balance-example": "0,00",
       "wallet-balance": "Saldo da carteira",
+      "total-balance": "Total da carteira",
+      "in-wallet-now": "Na carteira agora",
+      "free-balance": "Saldo livre",
       "informed-balance": "Saldo informado",
       "difference": "Diferença",
       "balance-matches": "O saldo bate com o banco. Não há o que conciliar.",
@@ -1672,6 +1694,7 @@
       "empty-title": "Nenhuma movimentação ainda",
       "noun": "movimentação | movimentações",
       "open-entry": "Abrir a linha no extrato",
+      "open-import": "Abrir a importação",
       "anterior": "Anterior",
       "posterior": "Posterior"
     }
