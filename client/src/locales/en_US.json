@@ -2620,7 +2620,7 @@
       "expenses": "Expenses",
       "result": "Result",
       "savings-rate": "Savings rate",
-      "red-periods": "Months in the red",
+      "red-periods": "Periods in the red",
       "red-of": "of {count}"
     },
     "chart": {
@@ -2634,13 +2634,15 @@
     "year-chart": {
       "title": "Result by year",
       "result": "Result",
-      "savings": "savings {rate}"
+      "savings": "savings {rate}",
+      "empty": "No period with paid movement"
     },
     "table": {
       "period": "Period",
       "revenues": "Revenues (R$)",
       "expenses": "Expenses (R$)",
-      "result": "Result (R$)"
+      "result": "Result (R$)",
+      "empty": "No paid movement in {cut}"
     }
   },
   "period-dashboard": {

@@ -7,12 +7,12 @@ export interface FlowSlot {
   expenses: number
   recorded: boolean
   periodNames: string[]
+  range: string
   empty: boolean
 }
 
 export type OverviewCut = number | 'all'
 
-const MONTHS_IN_YEAR = 12
 const FIRST_YEAR = 1900
 const LAST_YEAR = 9999
 const SPARSE_LABELS_AFTER = 18
@@ -46,43 +46,30 @@ export function cutOf(value: string, currentYear: number): OverviewCut {
   return Number.isInteger(year) && year >= FIRST_YEAR && year <= LAST_YEAR ? year : currentYear
 }
 
-/**
- * The twelve months of a year for the chart. A month holds the periods that end in it, summed,
- * and counts as recorded only when all of them are; a month without movement is empty.
- */
-export function flowMonths(periods: OverviewPeriod[], locale: string): FlowSlot[] {
-  return Array.from({ length: MONTHS_IN_YEAR }, (_, index) => {
-    const inMonth = periods.filter(
-      (period) => parseLocalDate(period.financialPeriod.endingAt).getMonth() === index,
-    )
-    const revenues = inMonth.reduce((total, period) => total + period.revenues, 0)
-    const expenses = inMonth.reduce((total, period) => total + period.expenses, 0)
-    return {
-      label: capitalized(monthLabel(`2000-${String(index + 1).padStart(2, '0')}-01`, locale)),
-      revenues,
-      expenses,
-      recorded: inMonth.every((period) => period.recorded),
-      periodNames: inMonth.map((period) => period.financialPeriod.name),
-      empty: revenues === 0 && expenses === 0,
-    }
-  })
+export function periodRange(startingAt: string, endingAt: string, locale: string): string {
+  const format = new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit' })
+  return `${format.format(parseLocalDate(startingAt))} – ${format.format(parseLocalDate(endingAt))}`
 }
 
 /**
- * One slot per period, for the chart of all the periods: "mai/26". Past eighteen periods only
- * every third one is named, so the labels do not pile up.
+ * One slot per period, in the order they start, named by the month they end in: "mai/26". Past
+ * eighteen periods only every third one is named, so the labels do not pile up.
  */
 export function flowPeriods(periods: OverviewPeriod[], locale: string): FlowSlot[] {
   const sparse = periods.length > SPARSE_LABELS_AFTER
-  return periods.map((period, index) => {
+  const ordered = [...periods].sort((first, second) =>
+    first.financialPeriod.startingAt.localeCompare(second.financialPeriod.startingAt),
+  )
+  return ordered.map((period, index) => {
     const named = !sparse || index % SPARSE_LABELS_STEP === 0
-    const { endingAt, name } = period.financialPeriod
+    const { startingAt, endingAt, name } = period.financialPeriod
     return {
       label: named ? `${monthLabel(endingAt, locale)}/${endingAt.slice(2, 4)}` : '',
       revenues: period.revenues,
       expenses: period.expenses,
       recorded: period.recorded,
       periodNames: [name],
+      range: periodRange(startingAt, endingAt, locale),
       empty: !hasMovement(period),
     }
   })
