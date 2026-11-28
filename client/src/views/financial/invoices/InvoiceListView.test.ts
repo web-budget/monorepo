@@ -378,6 +378,19 @@ describe('InvoiceListView', () => {
     ).toEqual(['Abrir fatura'])
   })
 
+  it('offers no close on an open invoice without purchases', async () => {
+    const { wrapper } = await render(undefined, [{ ...invoices[0]!, purchaseCount: 0 }])
+
+    await wrapper.find('button[aria-label="Mais ações"]').trigger('keydown', { key: 'Enter' })
+    await flushPromises()
+
+    expect(
+      [...document.body.querySelectorAll('[role="menuitem"]')].map((item) =>
+        item.textContent?.trim(),
+      ),
+    ).toEqual(['Abrir fatura', 'Nova compra', 'Importar fatura'])
+  })
+
   it('previews the close from the row menu, then closes and reloads', async () => {
     const { wrapper } = await render()
     vi.mocked(cardsApi.findById).mockResolvedValue({
@@ -387,7 +400,7 @@ describe('InvoiceListView', () => {
     } as CardView)
     vi.mocked(financialPeriodsApi.findById).mockResolvedValue({
       id: 'p-11',
-      name: 'Novembro de 2026',
+      name: '11/2026',
       endingAt: '2026-11-30',
     } as FinancialPeriodView)
     vi.mocked(invoicesApi.close).mockResolvedValue({ ...invoices[0]!, status: 'CLOSED' })

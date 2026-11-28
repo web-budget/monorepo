@@ -34,13 +34,7 @@ const emit = defineEmits<{ close: []; confirm: [] }>()
         <DialogHeader>
           <DialogTitle>{{ title }}</DialogTitle>
           <DialogDescription>
-            {{
-              $t(
-                purchases > 0
-                  ? 'credit-card-invoice.close.description'
-                  : 'credit-card-invoice.close.description-empty',
-              )
-            }}
+            {{ $t('credit-card-invoice.close.description') }}
           </DialogDescription>
         </DialogHeader>
         <ServerErrorAlert :messages="messages" />

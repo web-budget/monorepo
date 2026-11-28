@@ -334,6 +334,7 @@ function createPeriod() {
         <template #actions="{ item }">
           <InvoiceRowActions
             :open="item.status === 'OPEN'"
+            :closable="item.purchaseCount > 0"
             @details="openDetail(item)"
             @purchase="createPurchase(item)"
             @import="importInvoice(item)"

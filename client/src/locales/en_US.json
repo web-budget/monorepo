@@ -1350,7 +1350,6 @@
     "close": {
       "title": "Close the {period} invoice of {card}?",
       "description": "Generates the invoice payment and closes the invoice to new purchases.",
-      "description-empty": "An invoice without purchases closes with a zero value.",
       "purchases": "Purchases",
       "payment": "Invoice payment",
       "due-date": "Due date",
