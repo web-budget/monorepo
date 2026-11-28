@@ -1435,7 +1435,8 @@
       "pendencies-done": "Nada em aberto",
       "invoices-open": "{count} fatura com lançamento ainda aberta | {count} faturas com lançamento ainda abertas",
       "invoices-done": "Nenhuma fatura bloqueia",
-      "next-period-missing": "Não há: pague tudo ou crie um"
+      "next-period-missing": "Não há: pague tudo ou crie um",
+      "next-period-unneeded": "Não é preciso: nada a mover"
     },
     "move": {
       "title": "Mover “{name}”",

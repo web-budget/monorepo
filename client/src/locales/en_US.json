@@ -1435,7 +1435,8 @@
       "pendencies-done": "Nothing open",
       "invoices-open": "{count} invoice with an entry still open | {count} invoices with entries still open",
       "invoices-done": "No invoice blocks it",
-      "next-period-missing": "There is none: pay everything or create one"
+      "next-period-missing": "There is none: pay everything or create one",
+      "next-period-unneeded": "Not needed: nothing to move"
     },
     "move": {
       "title": "Move “{name}”",
