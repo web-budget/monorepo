@@ -1349,7 +1349,6 @@
     "close": {
       "title": "Fechar a fatura de {period}, {card}?",
       "description": "Gera o pagamento de fatura e fecha a fatura para novas compras.",
-      "description-empty": "Fatura sem compras fecha com valor zero.",
       "purchases": "Compras",
       "payment": "Pagamento de fatura",
       "due-date": "Vencimento",

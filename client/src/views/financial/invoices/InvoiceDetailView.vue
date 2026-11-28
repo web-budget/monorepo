@@ -131,7 +131,12 @@ async function deletePayment() {
               <FileUp />{{ $t('credit-card-invoice.actions.import') }}
             </RouterLink>
           </Button>
-          <Button type="button" variant="outline" @click="closing.open(invoice)">
+          <Button
+            v-if="invoice.purchaseCount > 0"
+            type="button"
+            variant="outline"
+            @click="closing.open(invoice)"
+          >
             <Lock />{{ $t('credit-card-invoice.actions.close') }}
           </Button>
           <Button as-child>
