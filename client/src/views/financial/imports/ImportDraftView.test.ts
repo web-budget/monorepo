@@ -4,10 +4,17 @@ import { classificationsApi } from '@/api/classifications'
 import { costCentersApi } from '@/api/costCenters'
 import { importsApi } from '@/api/imports'
 import { walletsApi } from '@/api/wallets'
-import FilterSelect from '@/components/forms/FilterSelect.vue'
+import { filterFields } from '@/test/combobox'
 import ImportBulkBar from '@/components/imports/ImportBulkBar.vue'
 import { useConfirmDialog } from '@/composables/useConfirmDialog'
-import { buttonWithText, mountView, namedTestRoutes, pageOf, problem, useCompactViewport } from '@/test/crud'
+import {
+  buttonWithText,
+  mountView,
+  namedTestRoutes,
+  pageOf,
+  problem,
+  useCompactViewport,
+} from '@/test/crud'
 import type {
   ClassificationListView,
   CostCenterListView,
@@ -49,7 +56,7 @@ function draft(overrides: Partial<ImportView> = {}): ImportView {
     createdOn: '2026-11-26T09:02:00',
     lastUpdate: '2026-11-26T14:32:00',
     totals: { lines: 6, pending: 2, ignored: 2, byAction: {} },
-    result: { created: 0, linked: 0, recurring: 0, transfers: 0, ignored: 0 },
+    result: { created: 0, linked: 0, recurring: 0, transfers: 0, compartments: 0, ignored: 0 },
     warnings: { unlinkedRecurring: [], fileTotal: 1000, afterSave: 1010, ignoredCredits: 50 },
     undoBlockers: [],
     ...overrides,
@@ -90,7 +97,13 @@ const unlinked = {
 
 const lines = [
   line({ fromMemory: true }),
-  line({ id: 'l-2', name: 'Posto Estrela', pending: ['cost-center', 'classification'], costCenter: undefined, classification: undefined }),
+  line({
+    id: 'l-2',
+    name: 'Posto Estrela',
+    pending: ['cost-center', 'classification'],
+    costCenter: undefined,
+    classification: undefined,
+  }),
   line({
     id: 'l-3',
     name: 'Seguro de vida',
@@ -132,7 +145,9 @@ const lines = [
   }),
 ]
 
-const costCenters = [{ id: 'cc-1', name: 'Pessoal', active: true }] as CostCenterListView[]
+const costCenters = [
+  { id: 'cc-1', name: 'Pessoal', fullName: 'Pessoal', active: true },
+] as CostCenterListView[]
 const classifications = [
   { id: 'cl-1', name: 'Mercado', type: 'EXPENSE', active: true },
   { id: 'cl-2', name: 'Freelas', type: 'INCOME', active: true },
@@ -169,7 +184,9 @@ async function render(location?: string, item = draft(), content = lines, total 
 type Rendered = Awaited<ReturnType<typeof render>>['wrapper']
 
 function rowTexts(wrapper: Rendered) {
-  return wrapper.findAll('tbody tr').map((row) => row.findAll('td').map((cell) => cell.text().replace(/\s/g, ' ')))
+  return wrapper
+    .findAll('tbody tr')
+    .map((row) => row.findAll('td').map((cell) => cell.text().replace(/\s/g, ' ')))
 }
 
 function dialog() {
@@ -177,9 +194,9 @@ function dialog() {
 }
 
 function dialogButton(text: string) {
-  const button = Array.from(document.body.querySelectorAll('[data-slot="line-dialog"] button')).find(
-    (candidate) => candidate.textContent?.trim() === text,
-  )
+  const button = Array.from(
+    document.body.querySelectorAll('[data-slot="line-dialog"] button'),
+  ).find((candidate) => candidate.textContent?.trim() === text)
   if (!button) {
     throw new Error(`no dialog button "${text}"`)
   }
@@ -202,6 +219,35 @@ describe('ImportDraftView', () => {
     expect(wrapper.text()).toContain('Novembro de 2026')
     expect(wrapper.text()).toContain('enviada em 26/11/2026 09:02')
     expect(wrapper.find('[data-slot="saved-at"]').text()).toBe('Salvo às 14:32')
+  })
+
+  it('loads the cost center options in hierarchy order', async () => {
+    await render()
+
+    expect(costCentersApi.findAll).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'ACTIVE', sort: 'fullName,asc' }),
+    )
+  })
+
+  it('loads every page of cost centers and classifications', async () => {
+    const page = (content: unknown[], number: number) => ({
+      content,
+      page: { size: 100, number, totalElements: 101, totalPages: 2 },
+    })
+    vi.mocked(costCentersApi.findAll)
+      .mockResolvedValueOnce(page(costCenters, 0) as never)
+      .mockResolvedValueOnce(page([], 1) as never)
+    vi.mocked(classificationsApi.findAll)
+      .mockResolvedValueOnce(page(classifications, 0) as never)
+      .mockResolvedValueOnce(page([], 1) as never)
+
+    await render()
+
+    expect(costCentersApi.findAll).toHaveBeenCalledTimes(2)
+    expect(costCentersApi.findAll).toHaveBeenLastCalledWith(
+      expect.objectContaining({ status: 'ACTIVE', sort: 'fullName,asc', page: 1 }),
+    )
+    expect(classificationsApi.findAll).toHaveBeenCalledTimes(2)
   })
 
   it('falls back to the send time when nothing was updated yet', async () => {
@@ -230,13 +276,25 @@ describe('ImportDraftView', () => {
 
     expect(wrapper.find('[data-slot="total-lines"]').text()).toBe('Linhas62 ignoradas')
     expect(wrapper.find('[data-slot="total-pending"]').text()).toBe('A resolver2')
-    expect(wrapper.find('[data-slot="total-before"]').text().replace(/\s/g, " ")).toContain('Total do arquivo')
-    expect(wrapper.find('[data-slot="total-before"]').text().replace(/\s/g, " ")).toContain('R$ 1.000,00')
-    expect(wrapper.find('[data-slot="total-before"]').text().replace(/\s/g, " ")).toContain('Sem o pagamento recebido')
-    expect(wrapper.find('[data-slot="total-after"]').text().replace(/\s/g, " ")).toContain('Fatura depois de salvar')
-    expect(wrapper.find('[data-slot="total-after"]').text().replace(/\s/g, " ")).toContain('R$ 1.010,00')
-    expect(wrapper.find('[data-slot="total-after"]').text().replace(/\s/g, " ")).toContain('Diferença de R$ 10,00')
-    expect(wrapper.find('[data-slot="total-after"]').text().replace(/\s/g, " ")).toContain(
+    expect(wrapper.find('[data-slot="total-before"]').text().replace(/\s/g, ' ')).toContain(
+      'Total do arquivo',
+    )
+    expect(wrapper.find('[data-slot="total-before"]').text().replace(/\s/g, ' ')).toContain(
+      'R$ 1.000,00',
+    )
+    expect(wrapper.find('[data-slot="total-before"]').text().replace(/\s/g, ' ')).toContain(
+      'Sem o pagamento recebido',
+    )
+    expect(wrapper.find('[data-slot="total-after"]').text().replace(/\s/g, ' ')).toContain(
+      'Fatura depois de salvar',
+    )
+    expect(wrapper.find('[data-slot="total-after"]').text().replace(/\s/g, ' ')).toContain(
+      'R$ 1.010,00',
+    )
+    expect(wrapper.find('[data-slot="total-after"]').text().replace(/\s/g, ' ')).toContain(
+      'Diferença de R$ 10,00',
+    )
+    expect(wrapper.find('[data-slot="total-after"]').text().replace(/\s/g, ' ')).toContain(
       'R$ 50,00 em créditos ignorados',
     )
   })
@@ -250,16 +308,31 @@ describe('ImportDraftView', () => {
         wallet: checking,
         ledgerBalanceOn: '2026-11-23',
         totals: { lines: 3, pending: 0, ignored: 0, byAction: {} },
-        warnings: { unlinkedRecurring: [], ledgerBalance: 2000, afterSave: 1500, ignoredCredits: 0 },
+        warnings: {
+          unlinkedRecurring: [],
+          ledgerBalance: 2000,
+          afterSave: 1500,
+          ignoredCredits: 0,
+        },
       }),
       [],
     )
 
-    expect(wrapper.find('[data-slot="total-before"]').text().replace(/\s/g, " ")).toContain('Saldo do arquivo')
-    expect(wrapper.find('[data-slot="total-before"]').text().replace(/\s/g, " ")).toContain('Em 23/11/2026')
-    expect(wrapper.find('[data-slot="total-after"]').text().replace(/\s/g, " ")).toContain('Saldo depois de salvar')
-    expect(wrapper.find('[data-slot="total-after"]').text().replace(/\s/g, " ")).toContain('Diferença de −R$ 500,00')
-    expect(wrapper.find('[data-slot="total-after"]').text().replace(/\s/g, " ")).not.toContain('créditos')
+    expect(wrapper.find('[data-slot="total-before"]').text().replace(/\s/g, ' ')).toContain(
+      'Saldo do arquivo',
+    )
+    expect(wrapper.find('[data-slot="total-before"]').text().replace(/\s/g, ' ')).toContain(
+      'Em 23/11/2026',
+    )
+    expect(wrapper.find('[data-slot="total-after"]').text().replace(/\s/g, ' ')).toContain(
+      'Saldo depois de salvar',
+    )
+    expect(wrapper.find('[data-slot="total-after"]').text().replace(/\s/g, ' ')).toContain(
+      'Diferença de −R$ 500,00',
+    )
+    expect(wrapper.find('[data-slot="total-after"]').text().replace(/\s/g, ' ')).not.toContain(
+      'créditos',
+    )
     expect(wrapper.find('[data-slot="total-pending"]').text()).toBe('A resolver0Tudo resolvido')
   })
 
@@ -288,22 +361,36 @@ describe('ImportDraftView', () => {
     expect(rows[1]![5]).toBe('Falta centro de custo e classificação')
     expect(rows[2]![2]).toBe('Seguro de vidaDiferença de R$ 163,10')
     expect(rows[2]![5]).toBe('Seguro de vida · Outubro')
-    expect(rows[3]).toEqual(['', '02/11', 'Estorno lojaCrédito sem compra', '50,00', 'Ignorar', 'Crédito do cartão', ''])
+    expect(rows[3]).toEqual([
+      '',
+      '02/11',
+      'Estorno lojaCrédito sem compra',
+      '50,00',
+      'Ignorar',
+      'Crédito do cartão',
+      '',
+    ])
     expect(rows[4]![2]).toBe('Curso de fotografiaJá importada2/6')
     expect(rows[4]![5]).toBe('2/6 · Pessoal · Mercado')
     expect(rows[5]![2]).toBe('AcademiaJá registrada')
     expect(rows[5]![5]).toBe('Falta o recorrente')
     expect(wrapper.findAll('tbody tr')[1]!.attributes('data-state')).toBe('selected')
     expect(wrapper.findAll('tbody tr')[0]!.attributes('data-state')).toBeUndefined()
-    expect(wrapper.findAll('[data-slot="line-value"]').map((value) => value.attributes('data-direction'))).toEqual(
-      ['out', 'out', 'out', 'in', 'out', 'out'],
-    )
+    expect(
+      wrapper
+        .findAll('[data-slot="line-value"]')
+        .map((value) => value.attributes('data-direction')),
+    ).toEqual(['out', 'out', 'out', 'in', 'out', 'out'])
   })
 
   it('explains an ignored line by the reason', async () => {
     const { wrapper } = await render('/imports?status=IGNORED', draft(), [
       line({ id: 'l-1', action: 'IGNORE', ignoreReason: undefined }),
-      line({ id: 'l-2', action: 'IGNORE', ignoreReason: { code: 'already-imported', date: '2026-10-05' } }),
+      line({
+        id: 'l-2',
+        action: 'IGNORE',
+        ignoreReason: { code: 'already-imported', date: '2026-10-05' },
+      }),
       line({ id: 'l-3', action: 'IGNORE', ignoreReason: { code: 'payment-received' } }),
     ])
 
@@ -374,7 +461,11 @@ describe('ImportDraftView', () => {
   })
 
   it('offers to see all the lines when none is left to resolve', async () => {
-    const { wrapper } = await render(undefined, draft({ totals: { lines: 6, pending: 0, ignored: 2, byAction: {} } }), [])
+    const { wrapper } = await render(
+      undefined,
+      draft({ totals: { lines: 6, pending: 0, ignored: 2, byAction: {} } }),
+      [],
+    )
 
     expect(wrapper.find('[data-state="no-result"]').text()).toContain('Nenhuma linha a resolver')
 
@@ -434,7 +525,9 @@ describe('ImportDraftView', () => {
   it('shows the recurrings that did not come in the file and lists them in a dialog', async () => {
     const { wrapper } = await render(
       undefined,
-      draft({ warnings: { unlinkedRecurring: [unlinked], afterSave: 1, ignoredCredits: 0 } as never }),
+      draft({
+        warnings: { unlinkedRecurring: [unlinked], afterSave: 1, ignoredCredits: 0 } as never,
+      }),
     )
 
     expect(wrapper.find('[data-slot="unlinked-recurring"]').text()).toContain(
@@ -543,14 +636,18 @@ describe('ImportDraftView', () => {
 
   it('shows the error when discarding fails', async () => {
     const { wrapper } = await render()
-    vi.mocked(importsApi.remove).mockRejectedValue(problem(409, { error: 'import-not-discardable' } as never))
+    vi.mocked(importsApi.remove).mockRejectedValue(
+      problem(409, { error: 'import-not-discardable' } as never),
+    )
 
     await buttonWithText(wrapper, 'Descartar').trigger('click')
     await flushPromises()
     useConfirmDialog().accept()
     await flushPromises()
 
-    expect(wrapper.find('[data-slot="server-error"]').text()).toContain('Uma importação salva não se descarta')
+    expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
+      'Uma importação salva não se descarta',
+    )
   })
 
   describe('selection and bulk actions', () => {
@@ -604,7 +701,7 @@ describe('ImportDraftView', () => {
       vi.mocked(importsApi.updateLines).mockResolvedValue()
       await wrapper.find('thead [data-slot="checkbox"]').trigger('click')
 
-      const selects = wrapper.findComponent(ImportBulkBar).findAllComponents(FilterSelect)
+      const selects = filterFields(wrapper.findComponent(ImportBulkBar))
       selects[0]!.vm.$emit('update:modelValue', 'CREATE_RECURRING')
       selects[1]!.vm.$emit('update:modelValue', 'cc-1')
       await flushPromises()
@@ -626,7 +723,7 @@ describe('ImportDraftView', () => {
       vi.mocked(importsApi.updateLines).mockResolvedValue()
       await wrapper.find('thead [data-slot="checkbox"]').trigger('click')
 
-      const selects = wrapper.findComponent(ImportBulkBar).findAllComponents(FilterSelect)
+      const selects = filterFields(wrapper.findComponent(ImportBulkBar))
       selects[2]!.vm.$emit('update:modelValue', 'cl-1')
       await flushPromises()
       await buttonWithText(wrapper, 'Aplicar').trigger('click')
@@ -646,7 +743,7 @@ describe('ImportDraftView', () => {
       vi.mocked(importsApi.updateLines).mockResolvedValue()
       await checkboxes(wrapper)[0]!.trigger('click')
       await checkboxes(wrapper)[1]!.trigger('click')
-      const selects = wrapper.findComponent(ImportBulkBar).findAllComponents(FilterSelect)
+      const selects = filterFields(wrapper.findComponent(ImportBulkBar))
       selects[0]!.vm.$emit('update:modelValue', 'IGNORE')
       await flushPromises()
 
@@ -668,7 +765,7 @@ describe('ImportDraftView', () => {
         problem(400, { error: 'import-action-not-allowed' } as never),
       )
       await checkboxes(wrapper)[0]!.trigger('click')
-      const selects = wrapper.findComponent(ImportBulkBar).findAllComponents(FilterSelect)
+      const selects = filterFields(wrapper.findComponent(ImportBulkBar))
       selects[0]!.vm.$emit('update:modelValue', 'IGNORE')
       await flushPromises()
 
@@ -684,7 +781,7 @@ describe('ImportDraftView', () => {
     it('does not call the server when no selected line accepts the change', async () => {
       const { wrapper } = await render()
       await checkboxes(wrapper)[3]!.trigger('click')
-      const selects = wrapper.findComponent(ImportBulkBar).findAllComponents(FilterSelect)
+      const selects = filterFields(wrapper.findComponent(ImportBulkBar))
       selects[0]!.vm.$emit('update:modelValue', 'CREATE')
       await flushPromises()
 
@@ -701,12 +798,13 @@ describe('ImportDraftView', () => {
       )
       await checkboxes(wrapper)[0]!.trigger('click')
 
-      const options = wrapper.findComponent(ImportBulkBar).findAllComponents(FilterSelect)[0]!
+      const options = filterFields(wrapper.findComponent(ImportBulkBar))[0]!
       expect(options.props('options').map((option: { value: string }) => option.value)).toEqual([
         'CREATE',
         'LINK',
         'INVOICE_PAYMENT',
         'TRANSFER',
+        'COMPARTMENT',
         'IGNORE',
       ])
     })
@@ -764,6 +862,192 @@ describe('ImportDraftView', () => {
       await wrapper.find('tbody [data-slot="checkbox"]').trigger('click')
 
       expect(dialog()).toBeNull()
+    })
+  })
+
+  describe('with compartments', () => {
+    const reserve = { id: 'k-1', name: 'Reserva da casa', balance: 1000 }
+    const checkboxes = (wrapper: Rendered) => wrapper.findAll('tbody [data-slot="checkbox"]')
+    const WALLET_ACTIONS: ImportAction[] = ['CREATE', 'LINK', 'COMPARTMENT', 'IGNORE']
+    const compartmentLines = [
+      line({
+        id: 'k-1',
+        name: 'Poupança',
+        value: -300,
+        action: 'COMPARTMENT',
+        allowedActions: WALLET_ACTIONS,
+        compartment: reserve,
+        costCenter: undefined,
+        classification: undefined,
+      }),
+      line({
+        id: 'k-2',
+        position: 2,
+        postedOn: '2026-11-22',
+        name: 'Resgate',
+        value: 150,
+        action: 'COMPARTMENT',
+        allowedActions: WALLET_ACTIONS,
+        compartment: { id: 'k-2', name: 'IPTU 2027', balance: 1050 },
+        costCenter: undefined,
+        classification: undefined,
+      }),
+      line({
+        id: 'k-3',
+        position: 3,
+        name: 'Sem parte',
+        value: -20,
+        action: 'COMPARTMENT',
+        allowedActions: WALLET_ACTIONS,
+        pending: ['compartment'],
+        costCenter: undefined,
+        classification: undefined,
+      }),
+    ]
+    const walletDraft = (overrides: Partial<ImportView> = {}) =>
+      draft({
+        target: 'WALLET',
+        card: undefined,
+        wallet: { ...checking, compartmentCount: 2 },
+        totals: { lines: 3, pending: 1, ignored: 0, byAction: {} },
+        warnings: {
+          unlinkedRecurring: [],
+          ledgerBalance: 900,
+          afterSave: 1010,
+          currentBalance: 800,
+          ignoredCredits: 0,
+          totalAfterSave: 2010,
+        },
+        ...overrides,
+      })
+
+    it('shows five cards with the free balance and the total after saving', async () => {
+      const { wrapper } = await render(undefined, walletDraft(), compartmentLines)
+
+      expect(wrapper.find('[data-slot="draft-totals"] .grid').classes()).toContain('xl:grid-cols-5')
+      expect(wrapper.find('[data-slot="total-after"]').text()).toContain(
+        'Saldo livre depois de salvar',
+      )
+      expect(wrapper.find('[data-slot="total-after"]').text()).toContain('1.010,00')
+      expect(wrapper.find('[data-slot="total-after-compartments"]').text()).toContain(
+        'Total depois de salvar',
+      )
+      expect(wrapper.find('[data-slot="total-after-compartments"]').text()).toContain('2.010,00')
+    })
+
+    it('keeps the four cards when the wallet has no compartment', async () => {
+      const { wrapper } = await render(
+        undefined,
+        walletDraft({ wallet: { ...checking, compartmentCount: 0 } }),
+        compartmentLines,
+      )
+
+      expect(wrapper.find('[data-slot="draft-totals"] .grid').classes()).toContain('xl:grid-cols-4')
+      expect(wrapper.find('[data-slot="total-after"]').text()).toContain('Saldo depois de salvar')
+      expect(wrapper.find('[data-slot="total-after-compartments"]').exists()).toBe(false)
+    })
+
+    it('keeps the four cards in a card import', async () => {
+      const { wrapper } = await render()
+
+      expect(wrapper.find('[data-slot="draft-totals"] .grid').classes()).toContain('xl:grid-cols-4')
+    })
+
+    it('tells the action and where the money goes, and marks the line without the compartment', async () => {
+      const { wrapper } = await render(undefined, walletDraft(), compartmentLines)
+
+      expect(rowTexts(wrapper).map((row) => [row[4], row[5]])).toEqual([
+        ['Cofrinho', 'Guardar em Reserva da casa'],
+        ['Cofrinho', 'Resgatar de IPTU 2027'],
+        ['Cofrinho', 'Falta cofrinho'],
+      ])
+      expect(wrapper.findAll('tbody tr')[2]!.attributes('data-state')).toBe('selected')
+    })
+
+    it('offers the action in the bulk bar of the wallet', async () => {
+      const { wrapper } = await render(undefined, walletDraft(), compartmentLines)
+      await checkboxes(wrapper)[0]!.trigger('click')
+
+      const options = filterFields(wrapper.findComponent(ImportBulkBar))[0]!
+      expect(options.props('options').map((option: { label: string }) => option.label)).toContain(
+        'Cofrinho',
+      )
+    })
+
+    describe('when a withdrawal passes the balance', () => {
+      const refusal = problem(422, {
+        error: 'import-compartment-balance-exceeded',
+        parameters: {
+          lines: [
+            {
+              id: 'k-2',
+              position: 2,
+              postedOn: '2026-11-22',
+              compartment: 'Reserva da casa',
+              balance: 1000,
+            },
+          ],
+        },
+      } as never)
+
+      async function refused() {
+        const rendered = await render(
+          undefined,
+          walletDraft({ totals: { lines: 3, pending: 0, ignored: 0, byAction: {} } }),
+          compartmentLines,
+        )
+        vi.mocked(importsApi.save).mockRejectedValue(refusal)
+        await buttonWithText(rendered.wrapper, 'Salvar').trigger('click')
+        await flushPromises()
+        return rendered
+      }
+
+      it('shows the alert at the top, goes to all the lines and marks the refused one', async () => {
+        const { wrapper, router } = await refused()
+
+        const alert = wrapper.find('[data-slot="save-rejections"]')
+        expect(alert.text()).toContain('Não foi possível salvar')
+        expect(alert.text()).toContain(
+          'O resgate de 22/11 passa do saldo de Reserva da casa (1.000,00), somado ao das linhas anteriores.',
+        )
+        expect(wrapper.find('[data-slot="server-error"]').exists()).toBe(false)
+        expect(lastQuery().pending).toBeUndefined()
+        expect(router.currentRoute.value.name).not.toBe('imports.detail')
+
+        const rows = wrapper.findAll('tbody tr')
+        expect(rows[0]!.find('[data-slot="line-balance-error"]').exists()).toBe(false)
+        expect(rows[1]!.find('[data-slot="line-balance-error"]').text()).toBe(
+          'Passa do saldo de Reserva da casa',
+        )
+        expect(rows[1]!.attributes('data-state')).toBe('selected')
+      })
+
+      it('shows the badge in the dialog of the line and clears the error when the line is saved', async () => {
+        const { wrapper } = await refused()
+        vi.mocked(importsApi.updateLine).mockResolvedValue(compartmentLines[1]!)
+        vi.mocked(importsApi.candidates).mockResolvedValue([])
+
+        await wrapper.findAll('tbody tr')[1]!.trigger('click')
+        await flushPromises()
+
+        expect(dialog()!.textContent).toContain('Passa do saldo de Reserva da casa')
+
+        dialogButton('Salvar').click()
+        await flushPromises()
+
+        expect(wrapper.find('[data-slot="save-rejections"]').exists()).toBe(false)
+        expect(wrapper.find('[data-slot="line-balance-error"]').exists()).toBe(false)
+      })
+
+      it('clears the refusals when it saves again', async () => {
+        const { wrapper } = await refused()
+        vi.mocked(importsApi.save).mockResolvedValue(draft({ status: 'SAVED' }))
+
+        await buttonWithText(wrapper, 'Salvar').trigger('click')
+        await flushPromises()
+
+        expect(wrapper.find('[data-slot="save-rejections"]').exists()).toBe(false)
+      })
     })
   })
 

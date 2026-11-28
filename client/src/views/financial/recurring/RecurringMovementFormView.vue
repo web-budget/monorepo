@@ -10,7 +10,7 @@ import InputField from '@/components/forms/InputField.vue'
 import MoneyField from '@/components/forms/MoneyField.vue'
 import RadioOptionsField from '@/components/forms/RadioOptionsField.vue'
 import SegmentedField from '@/components/forms/SegmentedField.vue'
-import SelectField from '@/components/forms/SelectField.vue'
+import ComboboxField from '@/components/forms/ComboboxField.vue'
 import StatusSection from '@/components/forms/StatusSection.vue'
 import StatusToggle from '@/components/forms/StatusToggle.vue'
 import { Badge } from '@/components/ui/badge'
@@ -135,16 +135,22 @@ onMounted(() => run(options.load))
       <p v-else class="text-muted-foreground self-end pb-2 text-sm" data-slot="value-note">
         {{ $t('recurrent-movement.form.value-note') }}
       </p>
-      <SelectField
+      <ComboboxField
         name="costCenter"
         :label="$t('recurrent-movement.form.cost-center')"
         :options="costCenterChoices"
+        :search-placeholder="$t('cost-center.combobox.search')"
+        :empty-message="$t('cost-center.combobox.empty')"
+        :loading="options.loading.value"
         required
       />
-      <SelectField
+      <ComboboxField
         name="classification"
         :label="$t(`recurrent-movement.form.classification-of-type.${form.values.type}`)"
         :options="classificationChoices"
+        :search-placeholder="$t('classification.combobox.search')"
+        :empty-message="$t('classification.combobox.empty')"
+        :loading="options.loading.value"
         required
       />
     </FormSection>

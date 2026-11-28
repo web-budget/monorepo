@@ -178,6 +178,13 @@ function createPeriod() {
           <template #value-expenses>
             <CurrencyDisplay :value="overview.totals.expenses" tone="expense" />
           </template>
+          <template v-if="overview.totals.cardToPay > 0" #note-expenses>
+            <i18n-t keypath="overview.figures.card-to-pay" scope="global">
+              <template #amount>
+                <CurrencyDisplay :value="overview.totals.cardToPay" />
+              </template>
+            </i18n-t>
+          </template>
           <template #value-result>
             <CurrencyDisplay
               :value="overview.totals.result"
@@ -197,11 +204,14 @@ function createPeriod() {
             >
           </template>
           <template #value-red-periods>
-            <span class="font-mono tabular-nums">{{ overview.totals.redPeriods }}</span>
-            {{ ' ' }}
-            <span class="text-muted-foreground text-base font-normal">
-              {{ $t('overview.figures.red-of', { count: overview.totals.periodsWithMovement }) }}
-            </span>
+            <span v-if="overview.totals.periodsWithMovement === 0" class="font-mono">—</span>
+            <template v-else>
+              <span class="font-mono tabular-nums">{{ overview.totals.redPeriods }}</span>
+              {{ ' ' }}
+              <span class="text-muted-foreground text-base font-normal">
+                {{ $t('overview.figures.red-of', { count: overview.totals.periodsWithMovement }) }}
+              </span>
+            </template>
           </template>
         </FigureStrip>
       </Card>
@@ -213,14 +223,22 @@ function createPeriod() {
       />
       <div class="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]" data-slot="charts">
         <Card class="content-start p-5">
-          <FinancialFlowChart :periods="overview.periods" :cut="shownCut" />
+          <FinancialFlowChart :periods="overview.periods" />
         </Card>
         <Card class="content-start p-5">
           <YearResultChart :years="overview.resultByYear" :selected="selectedYear" />
         </Card>
       </div>
       <Card class="gap-0 overflow-hidden py-0" data-slot="periods">
-        <Table v-if="!compact">
+        <p
+          v-if="rows.length === 0"
+          class="text-muted-foreground px-5 py-10 text-center text-sm"
+          role="status"
+          data-state="empty"
+        >
+          {{ $t('overview.table.empty', { cut: cutLabel }) }}
+        </p>
+        <Table v-else-if="!compact">
           <TableHeader>
             <TableRow>
               <TableHead>{{ $t('overview.table.period') }}</TableHead>

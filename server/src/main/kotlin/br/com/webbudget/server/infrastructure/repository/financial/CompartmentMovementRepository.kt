@@ -5,6 +5,8 @@ import br.com.webbudget.server.domain.entities.financial.CompartmentMovementLine
 import br.com.webbudget.server.infrastructure.repository.pagedModelOf
 import br.com.webbudget.server.infrastructure.repository.toOrderBy
 import br.com.webbudget.server.jooq.financial.tables.references.COMPARTMENT_MOVEMENTS
+import br.com.webbudget.server.jooq.financial.tables.references.IMPORTS
+import br.com.webbudget.server.jooq.financial.tables.references.IMPORT_LINES
 import br.com.webbudget.server.jooq.financial.tables.references.WALLET_ENTRIES
 import br.com.webbudget.server.jooq.registration.tables.references.COMPARTMENTS
 import org.jooq.DSLContext
@@ -23,6 +25,8 @@ class CompartmentMovementRepository(
 
     private val movements = COMPARTMENT_MOVEMENTS.`as`("compartment_movements")
     private val entries = WALLET_ENTRIES.`as`("wallet_entries")
+    private val importLines = IMPORT_LINES.`as`("import_lines")
+    private val imports = IMPORTS.`as`("imports")
 
     private val sortable = mapOf(
         "createdOn" to movements.CREATED_ON,
@@ -37,6 +41,12 @@ class CompartmentMovementRepository(
         .returning(COMPARTMENTS.BALANCE)
         .fetchOne()
         ?.balance
+
+    fun delete(movementId: Long) {
+        dsl.deleteFrom(COMPARTMENT_MOVEMENTS)
+            .where(COMPARTMENT_MOVEMENTS.ID.eq(movementId))
+            .execute()
+    }
 
     fun findBalance(compartmentId: Long): BigDecimal = dsl.select(COMPARTMENTS.BALANCE)
         .from(COMPARTMENTS)
@@ -66,9 +76,11 @@ class CompartmentMovementRepository(
 
         val condition = movements.ID_COMPARTMENT.eq(compartmentId)
 
-        val content = dsl.select(movements.asterisk(), entries.EXTERNAL_ID)
+        val content = dsl.select(movements.asterisk(), entries.EXTERNAL_ID, imports.EXTERNAL_ID)
             .from(movements)
             .leftJoin(entries).on(entries.ID_COMPARTMENT_MOVEMENT.eq(movements.ID))
+            .leftJoin(importLines).on(importLines.ID_CREATED_COMPARTMENT_MOVEMENT.eq(movements.ID))
+            .leftJoin(imports).on(imports.ID.eq(importLines.ID_IMPORT))
             .where(condition)
             .orderBy(pageable.toOrderBy(sortable, movements.CREATED_ON, movements.ID))
             .limit(pageable.pageSize)
@@ -83,7 +95,8 @@ class CompartmentMovementRepository(
                     note = movement.note,
                     previousBalance = movement.previousBalance!!,
                     resultingBalance = movement.resultingBalance!!,
-                    walletEntryExternalId = record.get(entries.EXTERNAL_ID)
+                    walletEntryExternalId = record.get(entries.EXTERNAL_ID),
+                    importExternalId = record.get(imports.EXTERNAL_ID)
                 )
             }
 

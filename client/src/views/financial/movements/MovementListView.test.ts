@@ -7,7 +7,7 @@ import { costCentersApi } from '@/api/costCenters'
 import { financialPeriodsApi } from '@/api/financialPeriods'
 import { movementsApi } from '@/api/movements'
 import { walletsApi } from '@/api/wallets'
-import FilterSelect from '@/components/forms/FilterSelect.vue'
+import { filterFields } from '@/test/combobox'
 import PayMovementDialog from '@/components/movements/PayMovementDialog.vue'
 import UndoPaymentDialog from '@/components/movements/UndoPaymentDialog.vue'
 import { Switch } from '@/components/ui/switch'
@@ -182,7 +182,7 @@ async function render(location?: string, periods = [november, october], content 
 }
 
 function select(wrapper: Awaited<ReturnType<typeof render>>['wrapper'], index: number) {
-  return wrapper.findAllComponents(FilterSelect)[index]!
+  return filterFields(wrapper)[index]!
 }
 
 function clearButton(wrapper: Awaited<ReturnType<typeof render>>['wrapper']) {

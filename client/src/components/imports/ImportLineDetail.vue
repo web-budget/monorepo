@@ -44,6 +44,13 @@ const ignored = computed(() => {
   <template v-else-if="line.action === 'TRANSFER'">
     {{ $t('imports.draft.transfer-to', { wallet: line.wallet?.name }) }}
   </template>
+  <template v-else-if="line.action === 'COMPARTMENT'">
+    {{
+      $t(line.value < 0 ? 'imports.draft.compartment-save' : 'imports.draft.compartment-withdraw', {
+        compartment: line.compartment?.name,
+      })
+    }}
+  </template>
   <template v-else-if="line.action === 'IGNORE'">
     <span class="text-muted-foreground">{{ ignored }}</span>
   </template>

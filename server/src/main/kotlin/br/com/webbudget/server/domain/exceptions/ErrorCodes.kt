@@ -89,6 +89,8 @@ object ErrorCodes {
     const val IMPORT_NOT_SAVED = "import-not-saved"
     const val IMPORT_WITH_PENDING_LINES = "import-with-pending-lines"
     const val IMPORT_UNDO_BLOCKED = "import-undo-blocked"
+    const val IMPORT_COMPARTMENT_NOT_AVAILABLE = "import-compartment-not-available"
+    const val IMPORT_COMPARTMENT_BALANCE_EXCEEDED = "import-compartment-balance-exceeded"
     const val DUPLICATED_COMPARTMENT_NAME = "duplicated-compartment-name"
     const val COMPARTMENT_GOAL_FIELDS_NOT_ALLOWED = "compartment-goal-fields-not-allowed"
     const val INVALID_COMPARTMENT_TARGET_VALUE = "invalid-compartment-target-value"

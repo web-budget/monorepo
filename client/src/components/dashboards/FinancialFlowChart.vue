@@ -15,7 +15,7 @@ import { useI18n } from 'vue-i18n'
 import { flowMarksPlugin } from '@/components/dashboards/flowMarksPlugin'
 import { useAppearanceStore } from '@/stores/appearance'
 import type { OverviewPeriod } from '@/types'
-import { axisScale, flowMonths, flowPeriods, type OverviewCut } from '@/utils/overview'
+import { axisScale, flowPeriods } from '@/utils/overview'
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip)
 
@@ -26,7 +26,7 @@ const PROVISIONAL_OPACITY = 45
 const MIN_FONT_SIZE = 10
 const MAX_FONT_SIZE = 16
 
-const props = defineProps<{ periods: OverviewPeriod[]; cut: OverviewCut }>()
+const props = defineProps<{ periods: OverviewPeriod[] }>()
 
 const { t, n, locale } = useI18n()
 const appearance = useAppearanceStore()
@@ -53,30 +53,28 @@ watch(
   },
 )
 
-const months = computed(() =>
-  props.cut === 'all'
-    ? flowPeriods(props.periods, locale.value)
-    : flowMonths(props.periods, locale.value),
-)
+const slots = computed(() => flowPeriods(props.periods, locale.value))
+
+const withoutMovement = computed(() => slots.value.every((slot) => slot.empty))
 
 const axis = computed(() =>
-  axisScale(Math.max(...months.value.flatMap((month) => [month.revenues, month.expenses]))),
+  axisScale(Math.max(...slots.value.flatMap((slot) => [slot.revenues, slot.expenses]))),
 )
 
 const integer = computed(() => new Intl.NumberFormat(locale.value, { maximumFractionDigits: 0 }))
 
 function fills(color: string) {
-  return months.value.map((month) =>
-    month.recorded ? color : `color-mix(in oklch, ${color} ${PROVISIONAL_OPACITY}%, transparent)`,
+  return slots.value.map((slot) =>
+    slot.recorded ? color : `color-mix(in oklch, ${color} ${PROVISIONAL_OPACITY}%, transparent)`,
   )
 }
 
 const data = computed<ChartData<'bar'>>(() => ({
-  labels: months.value.map((month) => month.label),
+  labels: slots.value.map((slot) => slot.label),
   datasets: [
     {
       label: t('overview.legend.revenues'),
-      data: months.value.map((month) => month.revenues),
+      data: slots.value.map((slot) => slot.revenues),
       backgroundColor: fills(colors.value.income),
       hoverBackgroundColor: fills(colors.value.income),
       borderColor: colors.value.income,
@@ -85,7 +83,7 @@ const data = computed<ChartData<'bar'>>(() => ({
     },
     {
       label: t('overview.legend.expenses'),
-      data: months.value.map((month) => month.expenses),
+      data: slots.value.map((slot) => slot.expenses),
       backgroundColor: fills(colors.value.expense),
       hoverBackgroundColor: fills(colors.value.expense),
       borderColor: colors.value.expense,
@@ -115,12 +113,13 @@ const options = computed<ChartOptions<'bar'>>(() => ({
         color: colors.value.text,
         font: scaledFont(12),
         maxRotation: 0,
-        autoSkip: !months.value.some((month) => month.label === ''),
+        autoSkip: !slots.value.some((slot) => slot.label === ''),
       },
     },
     y: {
+      display: !withoutMovement.value,
       min: 0,
-      max: axis.value.max,
+      max: withoutMovement.value ? 1 : axis.value.max,
       grid: { color: colors.value.border },
       ticks: {
         color: colors.value.text,
@@ -133,9 +132,9 @@ const options = computed<ChartOptions<'bar'>>(() => ({
   plugins: {
     legend: { display: false },
     flowMarks: {
-      empty: months.value.flatMap((month, index) => (month.empty ? [index] : [])),
-      provisional: months.value.flatMap((month, index) =>
-        month.recorded || month.empty ? [] : [index],
+      empty: slots.value.flatMap((slot, index) => (slot.empty ? [index] : [])),
+      provisional: slots.value.flatMap((slot, index) =>
+        slot.recorded || slot.empty ? [] : [index],
       ),
       color: colors.value.text,
       font: colors.value.mono,
@@ -143,8 +142,8 @@ const options = computed<ChartOptions<'bar'>>(() => ({
     tooltip: {
       callbacks: {
         title: (items: TooltipItem<'bar'>[]) => {
-          const month = months.value[items[0]!.dataIndex]!
-          return month.periodNames.length > 0 ? month.periodNames.join(', ') : month.label
+          const slot = slots.value[items[0]!.dataIndex]!
+          return [...slot.periodNames, slot.range]
         },
         label: (item: TooltipItem<'bar'>) =>
           `${item.dataset.label}: ${n(Number(item.raw), 'currency')}`,

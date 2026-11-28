@@ -1,9 +1,18 @@
 <script setup lang="ts">
-import { CircleCheck, CloudCheck, ListChecks, Pencil, Trash2, Check } from 'lucide-vue-next'
+import {
+  Check,
+  CircleAlert,
+  CircleCheck,
+  CloudCheck,
+  ListChecks,
+  Pencil,
+  Trash2,
+} from 'lucide-vue-next'
 import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { findAllPages } from '@/api/allPages'
 import { classificationsApi } from '@/api/classifications'
 import { costCentersApi } from '@/api/costCenters'
 import DateTimeDisplay from '@/components/common/DateTimeDisplay.vue'
@@ -24,6 +33,7 @@ import ListState, { type ListStateKind } from '@/components/listing/ListState.vu
 import SearchControls from '@/components/listing/SearchControls.vue'
 import type { StatusOption } from '@/components/listing/statusOptions'
 import { Button } from '@/components/ui/button'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { Card } from '@/components/ui/card'
 import { Checkbox } from '@/components/ui/checkbox'
 import { useActiveWallets } from '@/composables/useActiveWallets'
@@ -32,21 +42,22 @@ import { useListFilters } from '@/composables/useListFilters'
 import { useNotification } from '@/composables/useNotification'
 import { useServerErrors } from '@/composables/useServerErrors'
 import { LINE_STATUSES, useImportsStore } from '@/stores/imports'
+import { markHandled } from '@/utils/handledErrors'
+import { bareAmount } from '@/utils/reconciliation'
 import type {
   ClassificationListView,
   CostCenterListView,
   ImportAction,
+  ImportCompartmentRejection,
   ImportLineStatusFilter,
   ImportLineView,
 } from '@/types'
-import { actionsOf, isIncoming, timeOf } from '@/utils/imports'
+import { actionsOf, isIncoming, rejectionsOf, timeOf } from '@/utils/imports'
 import { dayAndMonth } from '@/utils/invoices'
-
-const OPTIONS_PAGE_SIZE = 100
 
 const props = defineProps<{ id: string }>()
 
-const { t, locale } = useI18n()
+const { t, n, locale } = useI18n()
 const router = useRouter()
 const { showSuccess } = useNotification()
 const { confirm } = useConfirmDialog()
@@ -66,6 +77,7 @@ const initializing = ref(true)
 const editing = ref<ImportLineView | null>(null)
 const showingRecurring = ref(false)
 const selected = ref<Record<string, ImportLineView>>({})
+const rejections = ref<Record<string, ImportCompartmentRejection>>({})
 
 const statusOptions: StatusOption<ImportLineStatusFilter>[] = [
   { label: 'imports.draft.tabs.PENDING', value: 'PENDING' },
@@ -83,13 +95,19 @@ const { writeRoute } = useListFilters({
 })
 
 const ready = optionErrors.run(async () => {
-  const [costCenterPage, classificationPage] = await Promise.all([
-    costCentersApi.findAll({ status: 'ACTIVE', size: OPTIONS_PAGE_SIZE, sort: 'name,asc' }),
-    classificationsApi.findAll({ status: 'ACTIVE', size: OPTIONS_PAGE_SIZE, sort: 'name,asc' }),
+  const [loadedCostCenters, loadedClassifications] = await Promise.all([
+    findAllPages((query) => costCentersApi.findAll(query), {
+      status: 'ACTIVE',
+      sort: 'fullName,asc',
+    }),
+    findAllPages((query) => classificationsApi.findAll(query), {
+      status: 'ACTIVE',
+      sort: 'name,asc',
+    }),
     activeWallets.load(),
   ])
-  costCenters.value = costCenterPage.content
-  classifications.value = classificationPage.content
+  costCenters.value = loadedCostCenters
+  classifications.value = loadedClassifications
 })
 
 const item = computed(() => (current.value?.id === props.id ? current.value : null))
@@ -107,12 +125,15 @@ const savedAt = computed(() =>
 )
 const pending = computed(() => item.value!.totals.pending)
 const visible = computed(() => lineResponse.value.content)
+const rejected = computed(() => Object.values(rejections.value))
 const selectedLines = computed(() => Object.values(selected.value))
 const allVisible = computed(
   () => visible.value.length > 0 && visible.value.every((line) => line.id in selected.value),
 )
 const someVisible = computed(() => visible.value.some((line) => line.id in selected.value))
-const allState = computed(() => (allVisible.value ? true : someVisible.value ? 'indeterminate' : false))
+const allState = computed(() =>
+  allVisible.value ? true : someVisible.value ? 'indeterminate' : false,
+)
 
 const listState = computed<ListStateKind | 'table'>(() => {
   if (loadFailed.value) {
@@ -131,7 +152,9 @@ const listCopy = computed(() => {
         : 'imports.draft.list.none-ignored',
     ),
     noResultHint: searching ? t('imports.draft.list.no-result-hint') : '',
-    noResultAction: t(searching ? 'imports.draft.list.clear-search' : 'imports.draft.list.show-all'),
+    noResultAction: t(
+      searching ? 'imports.draft.list.clear-search' : 'imports.draft.list.show-all',
+    ),
   }
 })
 
@@ -156,7 +179,12 @@ const columns = computed(() => [
     align: 'end' as const,
     mobile: 'value' as const,
   },
-  { field: 'action', header: t('imports.draft.columns.action'), mobile: 'line' as const, mobileLabel: false },
+  {
+    field: 'action',
+    header: t('imports.draft.columns.action'),
+    mobile: 'line' as const,
+    mobileLabel: false,
+  },
   {
     field: 'detail',
     header: t('imports.draft.columns.detail'),
@@ -273,14 +301,35 @@ async function applyBulk(change: {
 }
 
 async function closeLine(changed: boolean) {
+  const line = editing.value!
   editing.value = null
   if (changed) {
+    rejections.value = Object.fromEntries(
+      Object.entries(rejections.value).filter(([id]) => id !== line.id),
+    )
     await reload()
   }
 }
 
 async function save() {
-  const done = await actionErrors.run(() => store.save(props.id))
+  rejections.value = {}
+  let done = false
+  try {
+    actionErrors.clear()
+    await store.save(props.id)
+    done = true
+  } catch (error) {
+    const refused = rejectionsOf(error)
+    if (refused) {
+      markHandled(error)
+      rejections.value = Object.fromEntries(refused.map((line) => [line.id, line]))
+      lineRequest.value.status = 'ALL'
+      lineRequest.value.current = 0
+      await reload()
+    } else {
+      await actionErrors.run(() => Promise.reject(error))
+    }
+  }
   if (done) {
     showSuccess('imports.draft.saved')
     await router.push({ name: 'imports.detail', params: { id: props.id } })
@@ -307,12 +356,34 @@ async function discard() {
 
 <template>
   <PageContainer class="gap-5">
-    <ServerErrorAlert :messages="[...optionErrors.messages.value, ...actionErrors.messages.value]" />
+    <ServerErrorAlert
+      :messages="[...optionErrors.messages.value, ...actionErrors.messages.value]"
+    />
+    <Alert v-if="rejected.length > 0" variant="destructive" data-slot="save-rejections">
+      <CircleAlert />
+      <AlertTitle>{{ $t('imports.draft.save-error') }}</AlertTitle>
+      <AlertDescription>
+        <ul class="grid gap-1">
+          <li v-for="line in rejected" :key="line.id">
+            {{
+              $t('imports.draft.balance-exceeded', {
+                date: dayAndMonth(line.postedOn),
+                compartment: line.compartment,
+                balance: bareAmount(line.balance, n),
+              })
+            }}
+          </li>
+        </ul>
+      </AlertDescription>
+    </Alert>
     <template v-if="item">
       <PageHeader :title="item.fileName">
         <template #badge><ImportStatusBadge :status="item.status" /></template>
         <template #actions>
-          <span class="text-muted-foreground flex h-9 items-center gap-1.5 text-xs" data-slot="saved-at">
+          <span
+            class="text-muted-foreground flex h-9 items-center gap-1.5 text-xs"
+            data-slot="saved-at"
+          >
             <CloudCheck class="size-4" />{{ $t('imports.draft.saved-at', { time: savedAt }) }}
           </span>
         </template>
@@ -361,7 +432,7 @@ async function discard() {
         :noun="$t('imports.draft.noun', lineResponse.totalElements)"
         :columns="columns"
         :show-status="false"
-        :marked-row="(line: ImportLineView) => line.pending.length > 0"
+        :marked-row="(line: ImportLineView) => line.pending.length > 0 || line.id in rejections"
         :loading="busy"
         :current-page="lineRequest.current"
         :page-size="lineRequest.size"
@@ -410,7 +481,7 @@ async function discard() {
             </span>
             <div class="flex flex-wrap items-center gap-1.5">
               <span class="font-medium">{{ line.name }}</span>
-              <ImportLineBadges :line="line" />
+              <ImportLineBadges :line="line" :balance-error="rejections[line.id]?.compartment" />
             </div>
           </div>
         </template>
@@ -474,6 +545,7 @@ async function discard() {
         :cost-centers="costCenters"
         :classifications="classifications"
         :wallets="transferWallets"
+        :balance-error="editing ? rejections[editing.id]?.compartment : undefined"
         @close="closeLine"
       />
       <UnlinkedRecurringDialog

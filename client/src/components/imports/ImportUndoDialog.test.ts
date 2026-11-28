@@ -9,13 +9,19 @@ const item = {
   id: 'i-1',
   fileName: 'fatura.ofx',
   target: 'CARD',
-  result: { created: 1, linked: 0, recurring: 0, transfers: 0, ignored: 0 },
+  result: { created: 1, linked: 0, recurring: 0, transfers: 0, compartments: 0, ignored: 0 },
 } as ImportView
 
-function render() {
+const walletItem = {
+  ...item,
+  target: 'WALLET',
+  result: { created: 1, linked: 0, recurring: 0, transfers: 0, compartments: 2, ignored: 0 },
+} as ImportView
+
+function render(target = item) {
   const { plugins } = createTestPlugins()
   return mount(ImportUndoDialog, {
-    props: { open: true, item, messages: [], loading: false },
+    props: { open: true, item: target, messages: [], loading: false },
     attachTo: document.body,
     global: { plugins },
   })
@@ -54,5 +60,22 @@ describe('ImportUndoDialog', () => {
 
     expect(wrapper.emitted('confirm')).toHaveLength(1)
     expect(dialogButton('Desfazer').disabled).toBe(true)
+  })
+  it('tells the movements of the compartments that will be removed, in a wallet only', async () => {
+    render(walletItem)
+    await flushPromises()
+
+    expect(document.body.querySelector('[data-slot="undo-effects"]')!.textContent).toContain(
+      'Remove 2 movimentações de cofrinho, do extrato do saldo livre e do histórico.',
+    )
+  })
+
+  it('leaves the compartments out when the import moved none', async () => {
+    render({ ...walletItem, result: { ...walletItem.result, compartments: 0 } } as ImportView)
+    await flushPromises()
+
+    expect(document.body.querySelector('[data-slot="undo-effects"]')!.textContent).not.toContain(
+      'cofrinho',
+    )
   })
 })

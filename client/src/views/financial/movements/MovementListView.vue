@@ -8,6 +8,7 @@ import CurrencyDisplay from '@/components/common/CurrencyDisplay.vue'
 import DateTimeDisplay from '@/components/common/DateTimeDisplay.vue'
 import PageContainer from '@/components/common/PageContainer.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
+import FilterCombobox from '@/components/forms/FilterCombobox.vue'
 import FilterSelect from '@/components/forms/FilterSelect.vue'
 import ServerErrorAlert from '@/components/forms/ServerErrorAlert.vue'
 import ItemsTable from '@/components/listing/ItemsTable.vue'
@@ -298,7 +299,7 @@ onMounted(async () => {
         <Button type="button" @click="changeToAdd()"> <Plus />{{ $t('form.create') }} </Button>
       </template>
     </PageHeader>
-    <div class="grid gap-4">
+    <div class="grid grid-cols-1 gap-4 *:min-w-0">
       <Alert v-if="selectedPeriod?.expired" variant="attention" data-slot="expired-notice">
         <Clock />
         <AlertTitle>
@@ -392,7 +393,7 @@ onMounted(async () => {
           </span>
         </Card>
       </div>
-      <Card class="grid gap-4 p-4" data-slot="filter-card">
+      <Card class="grid grid-cols-1 gap-4 p-4 *:min-w-0" data-slot="filter-card">
         <SearchControls
           v-model:status="pageRequest.status"
           v-model:filter="pageRequest.filterText"
@@ -421,17 +422,23 @@ onMounted(async () => {
             :model-value="filters.type ?? ''"
             @update:model-value="(value: string) => changeFilter('type', value)"
           />
-          <FilterSelect
+          <FilterCombobox
             :label="$t('movement.filters.cost-center')"
             :none-label="$t('movement.filters.all-cost-centers')"
             :options="costCenterChoices"
+            :search-placeholder="$t('cost-center.combobox.search')"
+            :empty-message="$t('cost-center.combobox.empty')"
+            :loading="filterOptions.loading.value"
             :model-value="filters.costCenter ?? ''"
             @update:model-value="(value: string) => changeFilter('costCenter', value)"
           />
-          <FilterSelect
+          <FilterCombobox
             :label="classificationLabel"
             :none-label="$t('movement.filters.all-classifications')"
             :options="classificationChoices"
+            :search-placeholder="$t('classification.combobox.search')"
+            :empty-message="$t('classification.combobox.empty')"
+            :loading="filterOptions.loading.value"
             :model-value="filters.classification ?? ''"
             @update:model-value="(value: string) => changeFilter('classification', value)"
           />

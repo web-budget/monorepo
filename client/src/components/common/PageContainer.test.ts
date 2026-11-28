@@ -4,10 +4,12 @@ import { h } from 'vue'
 import PageContainer from '@/components/common/PageContainer.vue'
 
 describe('PageContainer', () => {
-  it('stacks its blocks on a single full-width column with a 20px gap', () => {
+  it('stacks its blocks on a single full-width column, shrinkable, with a 20px gap', () => {
     const wrapper = mount(PageContainer, { slots: { default: () => h('p', 'block') } })
 
-    expect(wrapper.classes()).toEqual(expect.arrayContaining(['grid', 'grid-cols-1', 'gap-5']))
+    expect(wrapper.classes()).toEqual(
+      expect.arrayContaining(['grid', 'grid-cols-1', 'gap-5', '*:min-w-0']),
+    )
     expect(wrapper.html()).not.toContain('max-w-')
     expect(wrapper.text()).toBe('block')
   })

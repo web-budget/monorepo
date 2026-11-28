@@ -178,7 +178,7 @@ const listCopy = computed(() => ({
         <Button type="button" @click="changeToAdd()"> <Plus />{{ $t('form.create') }} </Button>
       </template>
     </PageHeader>
-    <div class="grid gap-4">
+    <div class="grid grid-cols-1 gap-4 *:min-w-0">
       <Alert v-if="expiredPeriods.length > 0" variant="attention" data-slot="expired-notice">
         <Clock />
         <AlertTitle>

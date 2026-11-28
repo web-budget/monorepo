@@ -446,7 +446,8 @@
     "delete": "Delete",
     "edit": "Edit",
     "go-home": "Go to home",
-    "go-login": "Go to sign in"
+    "go-login": "Go to sign in",
+    "try-again": "Try again"
   },
   "form": {
     "save": "Save",
@@ -458,7 +459,10 @@
     "yes": "Yes",
     "no": "No",
     "recover": "Recover",
-    "clear-selection": "Clear selection"
+    "clear-selection": "Clear selection",
+    "combobox": {
+      "loading": "Loading…"
+    }
   },
   "notification": {
     "success": "Success!",
@@ -1023,7 +1027,15 @@
       "no-result-query": "No import found for “{query}”",
       "no-result-filter": "No import with these filters",
       "no-result-hint": "Change the filters or clear the search.",
-      "no-result-action": "Clear filters"
+      "no-result-action": "Clear filters",
+      "show-all": "See all",
+      "empty-tab": {
+        "READY": "No import ready",
+        "PROCESSING": "No import processing",
+        "FAILED": "No import with errors",
+        "SAVED": "No import saved",
+        "UNDONE": "No import undone"
+      }
     },
     "status": {
       "PROCESSING": "Processing",
@@ -1124,6 +1136,10 @@
       "save-blocked": "Resolve the line to save | Resolve the {count} lines to save",
       "saved": "Import saved",
       "transfer-to": "To {wallet}",
+      "compartment-save": "Save in {compartment}",
+      "compartment-withdraw": "Withdraw from {compartment}",
+      "save-error": "Could not save",
+      "balance-exceeded": "The withdrawal of {date} exceeds the balance of {compartment} ({balance}), added to the previous lines.",
       "missing": "Missing {what}",
       "columns": {
         "date": "Date",
@@ -1139,19 +1155,22 @@
         "CREATE_RECURRING": "Create recurring",
         "INVOICE_PAYMENT": "Invoice payment",
         "TRANSFER": "Transfer",
+        "COMPARTMENT": "Piggy bank",
         "IGNORE": "Ignore"
       },
       "badges": {
         "already-imported": "Already imported",
         "already-registered": "Already registered",
         "credit": "Credit without purchase",
-        "difference": "Difference of {value}"
+        "difference": "Difference of {value}",
+        "balance-exceeded": "Exceeds the balance of {compartment}"
       },
       "reasons": {
         "cost-center": "cost center",
         "classification": "classification",
         "installments": "installments",
         "wallet": "wallet",
+        "compartment": "piggy bank",
         "link": {
           "LINK": "the linked entry",
           "INVOICE_PAYMENT": "invoice payment",
@@ -1176,6 +1195,8 @@
         "ledger": "File balance",
         "ledger-on": "On {date}",
         "balance-after": "Balance after saving",
+        "free-balance-after": "Free balance after saving",
+        "total-after": "Total after saving",
         "difference": "Difference of {value}",
         "credits": "{value} in ignored credits"
       },
@@ -1204,6 +1225,8 @@
         "installment": "Current installment",
         "installments": "Number of installments",
         "wallet-to": "To the wallet",
+        "compartment-save": "Save in",
+        "compartment-withdraw": "Withdraw from",
         "link": {
           "LINK": "Entry",
           "INVOICE_PAYMENT": "Invoice payment",
@@ -1246,6 +1269,7 @@
         "linked": "Linked",
         "recurring": "Recurrings",
         "transfers": "Transfers",
+        "compartments": "Piggy banks",
         "ignored": "Ignored"
       },
       "tabs": {
@@ -1253,6 +1277,7 @@
         "LINKED": "Linked",
         "RECURRING": "Recurrings",
         "TRANSFERS": "Transfers",
+        "COMPARTMENTS": "Piggy banks",
         "IGNORED": "Ignored",
         "ALL": "All"
       },
@@ -1272,7 +1297,9 @@
         "launch-recurring": "Installment launched from “{name}” and paid on the card",
         "create-recurring": "Recurring created ({installment}/{installments}) and installment paid on the card",
         "invoice-payment": "Paid “{name}”",
-        "transfer": "Transfer to {wallet}"
+        "transfer": "Transfer to {wallet}",
+        "compartment-save": "Saved in {compartment}",
+        "compartment-withdraw": "Withdrawn from {compartment}"
       },
       "undo": {
         "action": "Undo import",
@@ -1287,6 +1314,7 @@
           "created": "Deletes {count} movement created, with the reversal in the statement. | Deletes {count} movements created, with the reversal in the statement.",
           "linked": "Undoes the payment of {count} linked entry, which goes back to open. | Undoes the payment of {count} linked entries, which go back to open.",
           "extra": "Returns {count} transfer created by the import. | Returns {count} transfers created by the import.",
+          "compartments": "Removes {count} piggy bank movement, from the free balance statement and from the history. | Removes {count} piggy bank movements, from the free balance statement and from the history.",
           "note": "Links to transfers already registered are only undone; the transfer stays."
         }
       },
@@ -1300,7 +1328,10 @@
         "recurring-launched-elsewhere": "The recurring of “{name}” (line {position}) already launched installments in another period.",
         "created-movement-changed": "The movement created by “{name}” (line {position}) was changed after saving.",
         "linked-period-not-open": "The period of the entry linked to “{name}” (line {position}) is not open.",
-        "created-transfer-changed": "The transfer created by “{name}” (line {position}) was changed after saving."
+        "created-transfer-changed": "The transfer created by “{name}” (line {position}) was changed after saving.",
+        "created-compartment-deleted": "The piggy bank {compartment} was deleted.",
+        "compartment-balance-insufficient": "The piggy bank {compartment} would be left with {value}.",
+        "wallet-inactive": "The wallet {wallet} is inactive."
       }
     },
     "errors": {
@@ -1406,7 +1437,6 @@
     "close": {
       "title": "Close the {period} invoice of {card}?",
       "description": "Generates the invoice payment and closes the invoice to new purchases.",
-      "description-empty": "An invoice without purchases closes with a zero value.",
       "purchases": "Purchases",
       "payment": "Invoice payment",
       "due-date": "Due date",
@@ -1492,7 +1522,8 @@
       "pendencies-done": "Nothing open",
       "invoices-open": "{count} invoice with an entry still open | {count} invoices with entries still open",
       "invoices-done": "No invoice blocks it",
-      "next-period-missing": "There is none: pay everything or create one"
+      "next-period-missing": "There is none: pay everything or create one",
+      "next-period-unneeded": "Not needed: nothing to move"
     },
     "move": {
       "title": "Move “{name}”",
@@ -1615,6 +1646,9 @@
       "counted-balance": "Cash counted now",
       "balance-example": "0.00",
       "wallet-balance": "Wallet balance",
+      "total-balance": "Wallet total",
+      "in-wallet-now": "In the wallet now",
+      "free-balance": "Free balance",
       "informed-balance": "Informed balance",
       "difference": "Difference",
       "balance-matches": "The balance matches the bank. There is nothing to reconcile.",
@@ -1748,6 +1782,7 @@
       "empty-title": "No movements yet",
       "noun": "movement | movements",
       "open-entry": "Open the line in the statement",
+      "open-import": "Open the import",
       "anterior": "Previous",
       "posterior": "After"
     }
@@ -1939,6 +1974,10 @@
     "search": {
       "placeholder": "Name or description"
     },
+    "combobox": {
+      "search": "Search classifications",
+      "empty": "No classifications found."
+    },
     "table-columns": {
       "name": "Name",
       "type": "Type"
@@ -1995,6 +2034,10 @@
     "menu": "Cost centers",
     "search": {
       "placeholder": "Name"
+    },
+    "combobox": {
+      "search": "Search cost centers",
+      "empty": "No cost centers found."
     },
     "form": {
       "new": "Creating",
@@ -2678,8 +2721,9 @@
       "expenses": "Expenses",
       "result": "Result",
       "savings-rate": "Savings rate",
-      "red-periods": "Months in the red",
-      "red-of": "of {count}"
+      "red-periods": "Periods in the red",
+      "red-of": "of {count}",
+      "card-to-pay": "{amount} on card, unpaid"
     },
     "chart": {
       "title": "Revenues and expenses by period"
@@ -2692,13 +2736,15 @@
     "year-chart": {
       "title": "Result by year",
       "result": "Result",
-      "savings": "savings {rate}"
+      "savings": "savings {rate}",
+      "empty": "No period with paid movement"
     },
     "table": {
       "period": "Period",
       "revenues": "Revenues (R$)",
       "expenses": "Expenses (R$)",
-      "result": "Result (R$)"
+      "result": "Result (R$)",
+      "empty": "No paid movement in {cut}"
     }
   },
   "period-dashboard": {

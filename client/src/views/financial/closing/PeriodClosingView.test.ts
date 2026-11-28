@@ -419,6 +419,8 @@ describe('PeriodClosingView', () => {
     expect(checklist.text()).toContain('1 fatura com lançamento ainda aberta')
     expect(checklist.text()).toContain('Período seguinte aberto')
     expect(checklist.text()).toContain('Novembro')
+    expect(checklist.text()).not.toContain('Não há: pague tudo ou crie um')
+    expect(checklist.text()).not.toContain('Não é preciso: nada a mover')
     expect(checklist.text()).not.toContain('Resolva os itens acima.')
     expect(buttonWithText(wrapper, 'Fechar Outubro').attributes('disabled')).toBeDefined()
   })
@@ -668,6 +670,9 @@ describe('PeriodClosingView', () => {
     expect(wrapper.find('[data-slot="checklist"]').text()).toContain(
       'Não há: pague tudo ou crie um',
     )
+    expect(wrapper.find('[data-slot="checklist"]').text()).not.toContain(
+      'Não é preciso: nada a mover',
+    )
     expect(wrapper.find('[data-slot="checklist"]').findAll('li')[2]!.attributes('data-done')).toBe(
       'false',
     )
@@ -682,6 +687,20 @@ describe('PeriodClosingView', () => {
     await buttonWithText(wrapper, 'Criar período').trigger('click')
     await flushPromises()
     expect(router.currentRoute.value.name).toBe('financial-periods.create')
+  })
+
+  it('tells moving is not needed when there is no next period and nothing pending', async () => {
+    const { wrapper } = await render(
+      '/financial/closing',
+      { ...ready, nextOpenPeriod: null, targetPeriods: [] },
+      { pendencies: [] },
+    )
+
+    const nextPeriodItem = wrapper.find('[data-slot="checklist"]').findAll('li')[2]!
+    expect(nextPeriodItem.attributes('data-done')).toBe('true')
+    expect(nextPeriodItem.text()).toContain('Período seguinte aberto')
+    expect(nextPeriodItem.text()).toContain('Não é preciso: nada a mover')
+    expect(nextPeriodItem.text()).not.toContain('Não há: pague tudo ou crie um')
   })
 
   it('offers only creating a period in the alert, never paying everything', async () => {

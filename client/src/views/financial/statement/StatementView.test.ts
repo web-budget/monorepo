@@ -216,6 +216,11 @@ function selects(wrapper: Awaited<ReturnType<typeof render>>['wrapper']) {
 describe('StatementView', () => {
   beforeEach(() => {
     vi.clearAllMocks()
+    vi.mocked(reconciliationsApi.findBalance).mockResolvedValue({
+      freeBalance: 4781.65,
+      totalBalance: 4781.65,
+      compartments: [],
+    })
     document.body.replaceChildren()
     useCompactViewport(false)
   })
@@ -552,6 +557,14 @@ describe('StatementView', () => {
     expect(lastQuery().minValue).toBeUndefined()
   })
 
+  it('takes an invalid operation and an invalid amount out of the URL', async () => {
+    const { router } = await render(
+      '/statement?wallet=w-1&origin=BOGUS&min=abc&max=xyz&from=2026-11-01',
+    )
+
+    expect(router.currentRoute.value.query).toEqual({ wallet: 'w-1', from: '2026-11-01' })
+  })
+
   it('reloads with each filter and clears them', async () => {
     const { wrapper } = await render('/statement?wallet=w-1')
 
@@ -747,13 +760,17 @@ describe('StatementView', () => {
       const { wrapper } = await render('/statement?wallet=w-1')
 
       await buttonWithText(wrapper, 'Conciliar').trigger('click')
+      await flushPromises()
       const dialog = wrapper.getComponent(ReconcileDialog)
       expect(dialog.props('wallet')).toEqual({
         id: 'w-1',
         name: 'Conta corrente',
         personal: false,
         balance: 4781.65,
+        freeBalance: 4781.65,
+        compartments: [],
       })
+      expect(reconciliationsApi.findBalance).toHaveBeenCalledWith('w-1')
 
       const before = calls().length
       const form = { informedBalance: 4794.05, shownBalance: 4781.65, reason: 'Centavos' }
@@ -776,6 +793,7 @@ describe('StatementView', () => {
       const { wrapper } = await render('/statement?wallet=w-1')
 
       await buttonWithText(wrapper, 'Conciliar').trigger('click')
+      await flushPromises()
       const dialog = wrapper.getComponent(ReconcileDialog)
       dialog.vm.$emit('reconcile', dialog.props('wallet'), {
         informedBalance: 4781.65,
@@ -793,6 +811,7 @@ describe('StatementView', () => {
       const { wrapper } = await render('/statement?wallet=w-1')
 
       await buttonWithText(wrapper, 'Conciliar').trigger('click')
+      await flushPromises()
       wrapper.getComponent(ReconcileDialog).vm.$emit('close')
       await flushPromises()
 

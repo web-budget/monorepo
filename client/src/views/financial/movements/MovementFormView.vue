@@ -8,6 +8,7 @@ import FormSection from '@/components/forms/FormSection.vue'
 import InputField from '@/components/forms/InputField.vue'
 import MoneyField from '@/components/forms/MoneyField.vue'
 import SegmentedField from '@/components/forms/SegmentedField.vue'
+import ComboboxField from '@/components/forms/ComboboxField.vue'
 import SelectField from '@/components/forms/SelectField.vue'
 import StatusToggle from '@/components/forms/StatusToggle.vue'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -210,16 +211,22 @@ onMounted(async () => {
       :title="$t('movement.sections.classification')"
       :description="$t(`movement.sections.classification-help.${typeKey}`)"
     >
-      <SelectField
+      <ComboboxField
         name="costCenter"
         :label="$t('movement.form.cost-center')"
         :options="costCenterChoices"
+        :search-placeholder="$t('cost-center.combobox.search')"
+        :empty-message="$t('cost-center.combobox.empty')"
+        :loading="options.loading.value"
         required
       />
-      <SelectField
+      <ComboboxField
         name="classification"
         :label="$t(`movement.form.classification-of.${typeKey}`)"
         :options="classificationChoices"
+        :search-placeholder="$t('classification.combobox.search')"
+        :empty-message="$t('classification.combobox.empty')"
+        :loading="options.loading.value"
         required
       />
     </FormSection>

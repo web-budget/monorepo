@@ -1,10 +1,14 @@
 import { createTestingPinia } from '@pinia/testing'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { RouteLocationNormalized } from 'vue-router'
+import { authApi } from '@/api/auth'
+import { ApiError } from '@/api/client'
 import router from '@/router'
 import { authGuard } from '@/router/guard'
 import { useAuthStore } from '@/stores/auth'
 import type { Role, SessionResponse } from '@/types'
+
+vi.mock('@/api/auth')
 
 function runGuard(path: string) {
   return authGuard(
@@ -68,6 +72,18 @@ describe('authGuard', () => {
     expect(await runGuard('/configuration/users?status=PENDING')).toEqual({
       name: 'login',
       query: { redirect: '/configuration/users?status=PENDING' },
+    })
+  })
+
+  it('sends a user whose session is unavailable to the retry screen, keeping the requested path', async () => {
+    vi.mocked(auth.restoreSession).mockImplementation(() => {
+      auth.sessionUnavailable = true
+      return Promise.resolve(false)
+    })
+
+    expect(await runGuard('/financial?tab=1')).toEqual({
+      name: 'session-unavailable',
+      query: { redirect: '/financial?tab=1' },
     })
   })
 
@@ -172,5 +188,45 @@ describe('authGuard', () => {
     })
 
     expect(await runGuard('/configuration')).toEqual({ name: '403' })
+  })
+})
+
+describe('authGuard restoring the session through the real store', () => {
+  let auth: ReturnType<typeof useAuthStore>
+
+  beforeEach(() => {
+    vi.mocked(authApi.fetchSession).mockReset()
+    createTestingPinia({ createSpy: vi.fn, stubActions: false })
+    auth = useAuthStore()
+  })
+
+  it('lets the user through when the session is alive', async () => {
+    vi.mocked(authApi.fetchSession).mockResolvedValue(sessionWith(['FINANCIAL']))
+
+    expect(await runGuard('/financial')).toBe(true)
+    expect(auth.isAuthenticated).toBe(true)
+  })
+
+  it('sends the user to the login on a 401', async () => {
+    vi.mocked(authApi.fetchSession).mockRejectedValue(new ApiError(null, 401))
+
+    expect(await runGuard('/financial')).toEqual({
+      name: 'login',
+      query: { redirect: '/financial' },
+    })
+  })
+
+  it.each([
+    ['a network failure', new ApiError(null, null)],
+    ['a 500', new ApiError(null, 500)],
+    ['a 502', new ApiError(null, 502)],
+  ])('keeps the user out of the login on %s', async (_name, failure) => {
+    vi.mocked(authApi.fetchSession).mockRejectedValue(failure)
+
+    expect(await runGuard('/financial?tab=1')).toEqual({
+      name: 'session-unavailable',
+      query: { redirect: '/financial?tab=1' },
+    })
+    expect(auth.isAuthenticated).toBe(false)
   })
 })

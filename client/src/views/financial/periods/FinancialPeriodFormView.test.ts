@@ -377,7 +377,7 @@ describe('FinancialPeriodFormView', () => {
     await submit(wrapper)
 
     expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
-      'O período financeiro não esta aberto',
+      'O período financeiro não está aberto',
     )
   })
 

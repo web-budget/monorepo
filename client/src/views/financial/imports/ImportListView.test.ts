@@ -292,14 +292,52 @@ describe('ImportListView', () => {
     expect(router.currentRoute.value.name).toBe('imports.create')
   })
 
-  it('says there is no result, without the create button, when imports exist but the tab is empty', async () => {
-    const { wrapper } = await render(undefined, [])
+  it('names the empty tab, without talking about filters, when imports exist elsewhere', async () => {
+    const { wrapper, router } = await render(undefined, [])
 
     expect(wrapper.find('[data-state="empty"]').exists()).toBe(false)
     const noResult = wrapper.find('[data-state="no-result"]')
-    expect(noResult.text()).toContain('Nenhuma importação com esses filtros')
+    expect(noResult.text()).toContain('Nenhuma importação pronta')
+    expect(noResult.text()).toContain('Ver todas')
+    expect(noResult.text()).not.toContain('filtros')
+    expect(noResult.text()).not.toContain('Limpar')
     expect(noResult.text()).not.toContain('Nenhuma importação ainda')
     expect(noResult.text()).not.toContain('Criar')
+    expect(router.currentRoute.value.query).toEqual({})
+  })
+
+  it('gives every tab its own empty message and sees all from the button', async () => {
+    const { wrapper, router } = await render(undefined, [])
+    const messages = {
+      Processando: 'Nenhuma importação em processamento',
+      'Com erro': 'Nenhuma importação com erro',
+      Salvas: 'Nenhuma importação salva',
+      Desfeitas: 'Nenhuma importação desfeita',
+    }
+
+    for (const [tab, message] of Object.entries(messages)) {
+      await buttonWithText(wrapper, tab).trigger('click')
+      await flushPromises()
+      expect(wrapper.find('[data-state="no-result"]').text()).toContain(message)
+    }
+
+    await buttonWithText(wrapper, 'Ver todas').trigger('click')
+    await flushPromises()
+
+    expect(lastQuery()).toMatchObject({ filter: undefined, statuses: undefined })
+    expect(router.currentRoute.value.query).toEqual({ status: 'ALL' })
+    expect(wrapper.find('[data-state="no-result"]').text()).toContain(
+      'Nenhuma importação com esses filtros',
+    )
+  })
+
+  it('keeps the filter message when a filter narrows the empty tab', async () => {
+    const { wrapper } = await render('/imports?period=p-11', [])
+    const noResult = wrapper.find('[data-state="no-result"]')
+
+    expect(noResult.text()).toContain('Nenhuma importação com esses filtros')
+    expect(noResult.text()).toContain('Limpar filtros')
+    expect(noResult.text()).not.toContain('Nenhuma importação pronta')
   })
 
   it('names the last tab in the feminine', async () => {
@@ -328,9 +366,7 @@ describe('ImportListView', () => {
     await buttonWithText(wrapper, 'Salvas').trigger('click')
     await flushPromises()
 
-    expect(wrapper.find('[data-state="no-result"]').text()).toContain(
-      'Nenhuma importação com esses filtros',
-    )
+    expect(wrapper.find('[data-state="no-result"]').text()).toContain('Nenhuma importação salva')
   })
 
   it('shows the error state and retries', async () => {

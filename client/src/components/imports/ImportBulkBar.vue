@@ -2,6 +2,7 @@
 import { Check, X } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import FilterCombobox from '@/components/forms/FilterCombobox.vue'
 import FilterSelect from '@/components/forms/FilterSelect.vue'
 import { Button } from '@/components/ui/button'
 import type { ClassificationListView, CostCenterListView, ImportAction } from '@/types'
@@ -29,7 +30,7 @@ const actionOptions = computed(() =>
   props.actions.map((value) => ({ value, label: t(`imports.draft.actions.${value}`) })),
 )
 const costCenterOptions = computed(() =>
-  props.costCenters.map((item) => ({ value: item.id, label: item.name })),
+  props.costCenters.map((item) => ({ value: item.id, label: item.fullName })),
 )
 const classificationOptions = computed(() =>
   props.classifications.map((item) => ({ value: item.id, label: item.name })),
@@ -74,19 +75,23 @@ function clear() {
       :none-label="$t('imports.draft.bulk.keep')"
       :options="actionOptions"
     />
-    <FilterSelect
+    <FilterCombobox
       v-model="costCenter"
       class="w-full md:w-44"
       :label="$t('imports.draft.fields.cost-center')"
       :none-label="$t('imports.draft.bulk.keep')"
       :options="costCenterOptions"
+      :search-placeholder="$t('cost-center.combobox.search')"
+      :empty-message="$t('cost-center.combobox.empty')"
     />
-    <FilterSelect
+    <FilterCombobox
       v-model="classification"
       class="w-full md:w-52"
       :label="$t('imports.draft.fields.classification')"
       :none-label="$t('imports.draft.bulk.keep')"
       :options="classificationOptions"
+      :search-placeholder="$t('classification.combobox.search')"
+      :empty-message="$t('classification.combobox.empty')"
     />
     <Button type="button" :disabled="!changing || busy" @click="apply()">
       <Check />{{ $t('imports.draft.bulk.apply') }}

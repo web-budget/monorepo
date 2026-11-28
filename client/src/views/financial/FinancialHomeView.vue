@@ -15,7 +15,7 @@ import type { FinancialPeriodListView, PagedResponse } from '@/types'
 import { markHandled } from '@/utils/handledErrors'
 import { defaultPeriod } from '@/utils/movements'
 import { oldestExpired, periodMonthName } from '@/utils/periods'
-import { defaultWallet } from '@/utils/wallets'
+import { defaultStatementWallet } from '@/utils/statement'
 
 const { t, locale } = useI18n()
 const financialPeriods = useFinancialPeriodsStore()
@@ -56,7 +56,7 @@ const { counts } = useModuleCounts<number | string>({
   '/financial/statement': () =>
     safely(async () => {
       await wallets.load()
-      return defaultWallet(wallets.wallets.value)?.name ?? null
+      return defaultStatementWallet(wallets.wallets.value)?.name ?? null
     }),
   '/financial/recurring-movements': () =>
     safely(() => totalOf(recurringMovementsApi.findAll({ ended: false, size: 1 }))),

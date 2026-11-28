@@ -4,6 +4,7 @@ import { reconciliationsApi } from '@/api/reconciliations'
 import { walletEntriesApi } from '@/api/walletEntries'
 import type {
   PagedResponse,
+  ReconciliationBalanceView,
   ReconciliationForm,
   ReconciliationResultView,
   ReconciliationView,
@@ -37,6 +38,15 @@ export const WALLET_ENTRY_ORIGINS: WalletEntryOrigin[] = [
 function amountOf(text: string | undefined): number | undefined {
   const amount = Number(text)
   return text && Number.isFinite(amount) ? amount : undefined
+}
+
+export function sanitizeStatementFilters(values: ExtraQuery): ExtraQuery {
+  return {
+    ...values,
+    origin: WALLET_ENTRY_ORIGINS.some((origin) => origin === values.origin) ? values.origin! : '',
+    min: amountOf(values.min) === undefined ? '' : values.min!,
+    max: amountOf(values.max) === undefined ? '' : values.max!,
+  }
 }
 
 export function toStatementFilter(request: PageRequest, filters: ExtraQuery): StatementQuery {
@@ -100,6 +110,15 @@ export const useStatementStore = defineStore('statement', () => {
     }
   }
 
+  async function findReconciliationBalance(walletId: string): Promise<ReconciliationBalanceView> {
+    pending.value++
+    try {
+      return await reconciliationsApi.findBalance(walletId)
+    } finally {
+      pending.value--
+    }
+  }
+
   async function reconcile(
     walletId: string,
     form: ReconciliationForm,
@@ -149,6 +168,7 @@ export const useStatementStore = defineStore('statement', () => {
     findAll,
     findSummary,
     findEntry,
+    findReconciliationBalance,
     reconcile,
     findReconciliations,
     findReconciliationPosition,

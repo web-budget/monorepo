@@ -12,6 +12,7 @@ import br.com.webbudget.server.jooq.financial.tables.references.RECURRING_LAUNCH
 import br.com.webbudget.server.jooq.financial.tables.references.RECURRING_MOVEMENTS
 import br.com.webbudget.server.jooq.financial.tables.references.TRANSFERS
 import br.com.webbudget.server.jooq.registration.tables.references.CLASSIFICATIONS
+import br.com.webbudget.server.jooq.registration.tables.references.COMPARTMENTS
 import br.com.webbudget.server.jooq.registration.tables.references.COST_CENTERS
 import br.com.webbudget.server.jooq.registration.tables.references.FINANCIAL_PERIODS
 import br.com.webbudget.server.jooq.registration.tables.references.WALLETS
@@ -41,6 +42,7 @@ class ImportCandidateRepository(
     private val transfers = TRANSFERS.`as`("transfers")
     private val fromWallets = WALLETS.`as`("from_wallets")
     private val toWallets = WALLETS.`as`("to_wallets")
+    private val compartments = COMPARTMENTS.`as`("compartments")
 
     fun findOpenMovements(financialPeriodId: Long?, type: Movement.Type): List<ImportCandidate> = selectMovements(
         DSL.and(
@@ -97,6 +99,19 @@ class ImportCandidateRepository(
         ).content
             .filter { it.launchedInPeriod == null }
             .map { it.toCandidate() }
+
+    fun findCompartments(walletId: Long): List<ImportCandidate> = dsl.selectFrom(compartments)
+        .where(compartments.ID_WALLET.eq(walletId))
+        .orderBy(compartments.CREATED_ON.asc(), compartments.ID.asc())
+        .fetch { record ->
+            ImportCandidate(
+                kind = ImportCandidateKind.COMPARTMENT,
+                id = record.id!!,
+                externalId = record.externalId!!,
+                name = record.name!!,
+                value = record.balance!!
+            )
+        }
 
     private fun RecurringMovement.toCandidate() = ImportCandidate(
         kind = ImportCandidateKind.RECURRING,

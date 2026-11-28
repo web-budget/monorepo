@@ -34,6 +34,7 @@
     <include file="db/changelog/changes/2026/11/27-1000-instance-settings-and-generic-classification.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/changes/2026/11/27-1100-create-period-flow-view.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/changes/2026/11/27-1200-create-report-views.xml" relativeToChangelogFile="false"/>
+    <include file="db/changelog/changes/2026/11/27-1300-import-compartments.xml" relativeToChangelogFile="false"/>
     <include file="db/changelog/changes/2026/11/28-0023-mail-settings.xml" relativeToChangelogFile="false"/>
 
 </databaseChangeLog>

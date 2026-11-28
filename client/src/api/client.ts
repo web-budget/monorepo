@@ -22,6 +22,10 @@ export class ApiError extends Error {
   get isNetworkError(): boolean {
     return this.status === null
   }
+
+  get isUnavailable(): boolean {
+    return this.status === null || this.status >= 500
+  }
 }
 
 function asProblemDetail(body: unknown): ProblemDetail | null {

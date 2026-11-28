@@ -2,6 +2,7 @@
 import { Check, TriangleAlert } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import FilterCombobox from '@/components/forms/FilterCombobox.vue'
 import FilterSelect from '@/components/forms/FilterSelect.vue'
 import ServerErrorAlert from '@/components/forms/ServerErrorAlert.vue'
 import ImportLineBadges from '@/components/imports/ImportLineBadges.vue'
@@ -36,6 +37,7 @@ const props = defineProps<{
   importId: string
   periodId: string
   line: ImportLineView | null
+  balanceError?: string
   costCenters: CostCenterListView[]
   classifications: ClassificationListView[]
   wallets: WalletListView[]
@@ -59,12 +61,18 @@ const name = ref('')
 const costCenter = ref('')
 const classification = ref('')
 const wallet = ref('')
+const compartment = ref('')
 const link = ref('')
 const installment = ref('')
 const installments = ref('')
 
 const action = computed(() => working.value?.action)
 const linking = computed(() => action.value !== undefined && LINKING_ACTIONS.includes(action.value))
+const compartmentOptions = computed(() =>
+  candidates.value
+    .filter((item) => item.kind === 'COMPARTMENT')
+    .map((item) => ({ value: item.id, label: `${item.name} · ${plain(item.value)}` })),
+)
 const actionOptions = computed(() =>
   working.value!.allowedActions.map((value) => ({
     value,
@@ -72,7 +80,7 @@ const actionOptions = computed(() =>
   })),
 )
 const costCenterOptions = computed(() =>
-  props.costCenters.map((item) => ({ value: item.id, label: item.name })),
+  props.costCenters.map((item) => ({ value: item.id, label: item.fullName })),
 )
 const classificationOptions = computed(() => {
   const type = isIncoming(working.value!) ? 'INCOME' : 'EXPENSE'
@@ -118,6 +126,7 @@ function fill(line: ImportLineView) {
   costCenter.value = line.costCenter?.id ?? ''
   classification.value = line.classification?.id ?? ''
   wallet.value = line.wallet?.id ?? ''
+  compartment.value = line.compartment?.id ?? ''
   link.value = line.link ? key(line.link) : ''
   installment.value = line.installment ? String(line.installment) : ''
   installments.value = line.installments ? String(line.installments) : ''
@@ -125,7 +134,7 @@ function fill(line: ImportLineView) {
 
 async function loadCandidates() {
   candidates.value = []
-  if (linking.value) {
+  if (linking.value || action.value === 'COMPARTMENT') {
     await errors.run(async () => {
       candidates.value = await store.candidates(props.importId, working.value!.id)
     })
@@ -174,6 +183,9 @@ function payload(): ImportLineUpdateForm {
   if (action.value === 'TRANSFER') {
     form.wallet = wallet.value || undefined
   }
+  if (action.value === 'COMPARTMENT') {
+    form.compartment = compartment.value || undefined
+  }
   if (linking.value && chosen.value) {
     form.link = { kind: chosen.value.kind, id: chosen.value.id }
   }
@@ -185,12 +197,13 @@ async function dismiss() {
     emit('close', false)
     return
   }
-  const { action, link, wallet } = original.value!
+  const { action, link, wallet, compartment } = original.value!
   const reverted = await errors.run(() =>
     store.updateLine(props.importId, original.value!.id, {
       action,
       link: link ? { kind: link.kind, id: link.id } : undefined,
       wallet: wallet?.id,
+      compartment: compartment?.id,
     }),
   )
   if (reverted) {
@@ -227,7 +240,12 @@ async function save() {
             </DialogDescription>
             <ImportLineValue class="shrink-0" :value="working.value" bare />
           </div>
-          <ImportLineBadges :line="working" hide-installment memory-label />
+          <ImportLineBadges
+            :line="working"
+            :balance-error="balanceError"
+            hide-installment
+            memory-label
+          />
         </div>
         <ServerErrorAlert :messages="errors.messages.value" />
         <div class="grid gap-4">
@@ -260,13 +278,15 @@ async function save() {
             v-if="action === 'CREATE' || action === 'CREATE_RECURRING'"
             class="grid grid-cols-1 gap-3 sm:grid-cols-2"
           >
-            <FilterSelect
+            <FilterCombobox
               v-model="costCenter"
               :label="$t('imports.draft.fields.cost-center')"
               :none-label="$t('imports.draft.choose')"
               :options="costCenterOptions"
+              :search-placeholder="$t('cost-center.combobox.search')"
+              :empty-message="$t('cost-center.combobox.empty')"
             />
-            <FilterSelect
+            <FilterCombobox
               v-model="classification"
               :label="
                 $t(
@@ -277,6 +297,8 @@ async function save() {
               "
               :none-label="$t('imports.draft.choose')"
               :options="classificationOptions"
+              :search-placeholder="$t('classification.combobox.search')"
+              :empty-message="$t('classification.combobox.empty')"
             />
           </div>
           <div v-if="linking" class="grid gap-1.5">
@@ -296,6 +318,19 @@ async function save() {
             :label="$t('imports.draft.fields.wallet-to')"
             :none-label="$t('imports.draft.choose')"
             :options="walletOptions"
+          />
+          <FilterSelect
+            v-if="action === 'COMPARTMENT'"
+            v-model="compartment"
+            :label="
+              $t(
+                isIncoming(working)
+                  ? 'imports.draft.fields.compartment-withdraw'
+                  : 'imports.draft.fields.compartment-save',
+              )
+            "
+            :none-label="$t('imports.draft.choose')"
+            :options="compartmentOptions"
           />
           <Alert v-if="working.differentValue" variant="attention" data-slot="difference-alert">
             <TriangleAlert />

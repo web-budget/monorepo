@@ -61,7 +61,7 @@ function resetFilter() {
   <div class="flex flex-wrap items-center justify-between gap-3">
     <form
       role="search"
-      class="flex w-full max-w-2xl min-w-0 flex-1 items-center"
+      class="flex w-full max-w-2xl min-w-0 basis-full items-center lg:flex-1 lg:basis-0"
       @submit.prevent="searchNow()"
     >
       <div

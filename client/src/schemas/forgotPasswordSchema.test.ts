@@ -16,6 +16,6 @@ describe('forgotPasswordFormSchema', () => {
   it('rejects an invalid email', async () => {
     const result = await forgotPasswordFormSchema.parse({ email: 'nope' })
 
-    expect(result.errors).toEqual([{ path: 'email', errors: ['Informe um email válido'] }])
+    expect(result.errors).toEqual([{ path: 'email', errors: ['Informe um e-mail válido'] }])
   })
 })

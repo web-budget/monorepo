@@ -1,7 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { importsApi } from '@/api/imports'
-import FilterSelect from '@/components/forms/FilterSelect.vue'
+import { filterFields } from '@/test/combobox'
 import { Dialog } from '@/components/ui/dialog'
 import ImportLineDialog from '@/components/imports/ImportLineDialog.vue'
 import { problem } from '@/test/crud'
@@ -65,20 +65,23 @@ const candidates = [
   },
 ] as ImportCandidateView[]
 
-const costCenters = [{ id: 'cc-1', name: 'Pessoal', active: true }] as CostCenterListView[]
+const costCenters = [
+  { id: 'cc-1', name: 'Pessoal', fullName: 'Pessoal', active: true },
+] as CostCenterListView[]
 const classifications = [
   { id: 'cl-1', name: 'Mercado', type: 'EXPENSE', active: true },
   { id: 'cl-2', name: 'Freelas', type: 'INCOME', active: true },
 ] as ClassificationListView[]
 const wallets = [{ id: 'w-2', name: 'Poupança', type: 'SAVINGS' }] as unknown as WalletListView[]
 
-function render(current: ImportLineView | null) {
+function render(current: ImportLineView | null, balanceError?: string) {
   const { plugins } = createTestPlugins({ stubActions: false })
   return mount(ImportLineDialog, {
     props: {
       importId: 'i-1',
       periodId: 'p-11',
       line: current,
+      balanceError,
       costCenters,
       classifications,
       wallets,
@@ -112,7 +115,7 @@ function type(selector: string, value: string) {
 }
 
 function selects(wrapper: Rendered) {
-  return wrapper.findAllComponents(FilterSelect)
+  return filterFields(wrapper)
 }
 
 function choose(wrapper: Rendered, index: number, value: string) {
@@ -453,6 +456,113 @@ describe('ImportLineDialog', () => {
     await flushPromises()
 
     expect(selects(wrapper)[1]!.props('modelValue')).toBe('w-2')
+  })
+
+  describe('with a compartment', () => {
+    const compartmentCandidates = [
+      { kind: 'COMPARTMENT', id: 'k-1', name: 'Reserva da casa', value: 1000, recurring: false },
+      { kind: 'COMPARTMENT', id: 'k-2', name: 'IPTU 2027', value: 1050, recurring: false },
+    ] as ImportCandidateView[]
+    const WALLET_ACTIONS: ImportAction[] = ['CREATE', 'LINK', 'COMPARTMENT', 'IGNORE']
+
+    beforeEach(() => {
+      vi.mocked(importsApi.candidates).mockResolvedValue(compartmentCandidates)
+    })
+
+    it('lists the compartments with the balance and asks where to save a debit', async () => {
+      const wrapper = render(
+        line({ action: 'COMPARTMENT', pending: ['compartment'], allowedActions: WALLET_ACTIONS }),
+      )
+      await flushPromises()
+
+      expect(importsApi.candidates).toHaveBeenCalledWith('i-1', 'l-1')
+      const select = selects(wrapper)[1]!
+      expect(select.props('label')).toBe('Guardar em')
+      expect(select.props('options')).toEqual([
+        { value: 'k-1', label: expect.stringContaining('Reserva da casa · ') },
+        { value: 'k-2', label: expect.stringContaining('IPTU 2027 · ') },
+      ])
+      expect(dialog()!.textContent).not.toContain('Centro de custo')
+    })
+
+    it('asks where to withdraw from for a credit', async () => {
+      const wrapper = render(
+        line({ value: 50, action: 'COMPARTMENT', allowedActions: WALLET_ACTIONS }),
+      )
+      await flushPromises()
+
+      expect(selects(wrapper)[1]!.props('label')).toBe('Resgatar de')
+    })
+
+    it('loads the compartments when the action is changed to it and saves the chosen one', async () => {
+      const wrapper = render(line({ allowedActions: WALLET_ACTIONS }))
+      vi.mocked(importsApi.updateLine).mockResolvedValue(
+        line({ action: 'COMPARTMENT', allowedActions: WALLET_ACTIONS, pending: ['compartment'] }),
+      )
+      await flushPromises()
+
+      await choose(wrapper, 0, 'COMPARTMENT')
+
+      expect(importsApi.candidates).toHaveBeenCalledTimes(1)
+
+      await choose(wrapper, 1, 'k-2')
+      dialogButton('Salvar').click()
+      await flushPromises()
+
+      expect(importsApi.updateLine).toHaveBeenLastCalledWith('i-1', 'l-1', {
+        name: 'Supermercado Boa Compra',
+        compartment: 'k-2',
+      })
+    })
+
+    it('shows the compartment already chosen and sends none when nothing is chosen', async () => {
+      const chosen = { id: 'k-1', name: 'Reserva da casa', balance: 1000 }
+      const wrapper = render(
+        line({ action: 'COMPARTMENT', allowedActions: WALLET_ACTIONS, compartment: chosen }),
+      )
+      vi.mocked(importsApi.updateLine).mockResolvedValue(line())
+      await flushPromises()
+
+      expect(selects(wrapper)[1]!.props('modelValue')).toBe('k-1')
+
+      await choose(wrapper, 1, '')
+      dialogButton('Salvar').click()
+      await flushPromises()
+
+      expect(importsApi.updateLine).toHaveBeenCalledWith('i-1', 'l-1', {
+        name: 'Supermercado Boa Compra',
+        compartment: undefined,
+      })
+    })
+
+    it('gives the compartment of the line back when the change of action is cancelled', async () => {
+      const chosen = { id: 'k-1', name: 'Reserva da casa', balance: 1000 }
+      const wrapper = render(
+        line({ action: 'COMPARTMENT', allowedActions: WALLET_ACTIONS, compartment: chosen }),
+      )
+      vi.mocked(importsApi.updateLine).mockResolvedValue(line({ allowedActions: WALLET_ACTIONS }))
+      await flushPromises()
+
+      await choose(wrapper, 0, 'IGNORE')
+      dialogButton('Cancelar').click()
+      await flushPromises()
+
+      expect(importsApi.updateLine).toHaveBeenLastCalledWith('i-1', 'l-1', {
+        action: 'COMPARTMENT',
+        link: undefined,
+        wallet: undefined,
+        compartment: 'k-1',
+      })
+    })
+
+    it('shows the refusal of the balance next to the line', async () => {
+      render(line({ action: 'COMPARTMENT', allowedActions: WALLET_ACTIONS }), 'Reserva da casa')
+      await flushPromises()
+
+      expect(dialog()!.querySelector('[data-slot="line-balance-error"]')!.textContent).toContain(
+        'Passa do saldo de Reserva da casa',
+      )
+    })
   })
 
   it('says why a line is ignored and has no action to choose when only ignoring is possible', async () => {

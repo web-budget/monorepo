@@ -73,7 +73,7 @@ describe('useNotification', () => {
     expect(toast.warning).toHaveBeenCalledWith(
       expect.any(String),
       expect.objectContaining({
-        description: expect.stringContaining('Nome "Main" já esta em uso\n'),
+        description: expect.stringContaining('Nome "Main" já está em uso\n'),
       }),
     )
   })

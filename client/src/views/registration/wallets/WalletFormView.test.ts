@@ -172,7 +172,7 @@ describe('WalletFormView', () => {
       await submit(wrapper)
 
       const alert = wrapper.find('[data-slot="server-error"]')
-      expect(alert.text()).toContain('Nome "Main" já esta em uso')
+      expect(alert.text()).toContain('Nome "Main" já está em uso')
       expect(field(wrapper, 'name').attributes('aria-invalid')).toBe('true')
       expect(field(wrapper, 'name').attributes('aria-describedby')).toContain(
         alert.attributes('id'),

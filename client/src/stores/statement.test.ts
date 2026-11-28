@@ -2,7 +2,12 @@ import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { reconciliationsApi } from '@/api/reconciliations'
 import { walletEntriesApi } from '@/api/walletEntries'
-import { toStatementFilter, toStatementQuery, useStatementStore } from '@/stores/statement'
+import {
+  sanitizeStatementFilters,
+  toStatementFilter,
+  toStatementQuery,
+  useStatementStore,
+} from '@/stores/statement'
 import { createPageRequest } from '@/utils/pageRequest'
 import type {
   ReconciliationResultView,
@@ -26,6 +31,29 @@ describe('toStatementFilter', () => {
     expect(filter).toMatchObject({ filter: 'luz', direction: 'CREDIT', from: '2026-11-01' })
     expect(filter).not.toHaveProperty('page')
     expect(filter).not.toHaveProperty('sort')
+  })
+})
+
+describe('sanitizeStatementFilters', () => {
+  it('keeps a known operation and amounts that are numbers', () => {
+    const values = { wallet: 'w-1', origin: 'TRANSFER', min: '10.5', max: '0' }
+
+    expect(sanitizeStatementFilters(values)).toEqual(values)
+  })
+
+  it('drops an unknown operation and amounts that are not numbers', () => {
+    const sanitized = sanitizeStatementFilters({
+      wallet: 'w-1',
+      origin: 'BOGUS',
+      min: 'abc',
+      max: 'Infinity',
+    })
+
+    expect(sanitized).toEqual({ wallet: 'w-1', origin: '', min: '', max: '' })
+  })
+
+  it('drops amounts that are missing', () => {
+    expect(sanitizeStatementFilters({})).toEqual({ origin: '', min: '', max: '' })
   })
 })
 
@@ -118,6 +146,19 @@ describe('useStatementStore', () => {
 
     vi.mocked(reconciliationsApi.reconcile).mockRejectedValueOnce(new Error('boom'))
     await expect(store.reconcile('w-1', form)).rejects.toThrow('boom')
+    expect(store.loading).toBe(false)
+  })
+
+  it('loads the reference balances of a wallet and stops loading even when it fails', async () => {
+    const reference = { freeBalance: 50, totalBalance: 150, compartments: [] }
+    vi.mocked(reconciliationsApi.findBalance).mockResolvedValueOnce(reference)
+    const store = useStatementStore()
+
+    await expect(store.findReconciliationBalance('w-1')).resolves.toBe(reference)
+    expect(reconciliationsApi.findBalance).toHaveBeenCalledWith('w-1')
+
+    vi.mocked(reconciliationsApi.findBalance).mockRejectedValueOnce(new Error('boom'))
+    await expect(store.findReconciliationBalance('w-1')).rejects.toThrow('boom')
     expect(store.loading).toBe(false)
   })
 

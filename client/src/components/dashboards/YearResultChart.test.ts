@@ -161,6 +161,20 @@ describe('YearResultChart', () => {
     expect(bar().props('options').plugins.legend.display).toBe(false)
   })
 
+  it('warns that there is no year with movement instead of drawing an empty baseline', () => {
+    const { plugins } = createTestPlugins({ stubActions: false })
+    const wrapper = mount(YearResultChart, {
+      props: { years: [], selected: 2026 },
+      global: { plugins },
+    })
+
+    expect(wrapper.find('h2').text()).toBe('Resultado por ano')
+    expect(wrapper.find('[data-state="empty"]').text()).toBe('Nenhum período com movimento pago')
+    expect(wrapper.find('[role="status"]').exists()).toBe(true)
+    expect(wrapper.findComponent({ name: 'BarChartStub' }).exists()).toBe(false)
+    expect(wrapper.find('[role="img"]').exists()).toBe(false)
+  })
+
   it('leaves room around the plot for the labels and gives the card its title and a fixed wide height', () => {
     const { wrapper, bar } = render()
 

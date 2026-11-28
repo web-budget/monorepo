@@ -194,6 +194,87 @@ class OverviewDashboardControllerTest : BaseIntegrationTest() {
     }
 
     @Test
+    fun `should always send the card to pay, zero when there is nothing to pay`() {
+
+        overview("2024")
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.totals.cardToPay").isEqualTo(0)
+    }
+
+    @Test
+    @Sql("/sql/financial/create-invoices.sql", "/sql/financial/create-card-purchases.sql")
+    fun `should sum the purchases of the open and of the closed invoices as the card to pay`() {
+
+        overview("2024")
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.totals.cardToPay").isEqualTo(245.5)
+    }
+
+    @Test
+    @Sql("/sql/financial/create-invoices.sql", "/sql/financial/create-card-purchases.sql")
+    fun `should not count the purchases of a paid invoice`() {
+
+        dsl.execute("UPDATE financial.invoices SET status = 'PAID' WHERE id = 9102")
+
+        overview("2024")
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.totals.cardToPay").isEqualTo(125.5)
+
+        dsl.execute("UPDATE financial.invoices SET status = 'PAID' WHERE id = 9101")
+
+        overview("2024")
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.totals.cardToPay").isEqualTo(0)
+    }
+
+    @Test
+    @Sql("/sql/financial/create-invoices.sql", "/sql/financial/create-card-purchases.sql")
+    fun `should count only the invoices of the periods of the cut`() {
+
+        insertPeriod(9105L, "03/2025", "2025-03-01", "2025-03-31", "OPEN")
+        dsl.execute(
+            """
+            INSERT INTO financial.invoices (id, external_id, version, created_on, status, id_card, id_financial_period)
+            VALUES (9105, gen_random_uuid(), 0, now(), 'OPEN', 9101, 9105)
+            """.trimIndent()
+        )
+        dsl.execute(
+            """
+            INSERT INTO financial.card_purchases (id, external_id, version, created_on, name, purchased_on, value, id_invoice, id_classification, id_cost_center)
+            VALUES (9105, gen_random_uuid(), 0, now(), 'Phone', '2025-03-10', 300.00, 9105, 9101, 9101)
+            """.trimIndent()
+        )
+
+        overview("2024").expectBody().jsonPath("$.totals.cardToPay").isEqualTo(245.5)
+        overview("2025").expectBody().jsonPath("$.totals.cardToPay").isEqualTo(300.0)
+        overview("2031").expectBody().jsonPath("$.totals.cardToPay").isEqualTo(0)
+        overview("all").expectBody().jsonPath("$.totals.cardToPay").isEqualTo(545.5)
+    }
+
+    @Test
+    @Sql("/sql/financial/create-invoices.sql", "/sql/financial/create-card-purchases.sql")
+    fun `should keep the card to pay out of the expenses, the result and the savings rate`() {
+
+        createMovement("Salary", "INCOME", "1000.00", AUGUST)
+
+        overview("2024")
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.totals.revenues").isEqualTo(1000.0)
+            .jsonPath("$.totals.expenses").isEqualTo(0)
+            .jsonPath("$.totals.result").isEqualTo(1000.0)
+            .jsonPath("$.totals.savingsRate").isEqualTo(1.0)
+            .jsonPath("$.totals.redPeriods").isEqualTo(0)
+            .jsonPath("$.totals.cardToPay").isEqualTo(245.5)
+            .jsonPath("$.resultByYear[0].expenses").isEqualTo(0)
+            .jsonPath("$.periods[?(@.expenses != 0)]").isEmpty
+    }
+
+    @Test
     fun `should refuse an invalid year`() {
 
         overview("1800").expectStatus().isBadRequest

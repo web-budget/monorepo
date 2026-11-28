@@ -148,6 +148,15 @@ const options = computed<ChartOptions<'bar'>>(() => ({
       <h2 class="text-base font-semibold">{{ $t('overview.year-chart.title') }}</h2>
     </div>
     <div
+      v-if="years.length === 0"
+      class="text-muted-foreground bg-muted/50 grid aspect-[360/256] w-full min-w-0 place-content-center rounded-md px-4 text-center text-sm lg:aspect-auto lg:h-64"
+      role="status"
+      data-state="empty"
+    >
+      {{ $t('overview.year-chart.empty') }}
+    </div>
+    <div
+      v-else
       class="aspect-[360/256] w-full min-w-0 lg:aspect-auto lg:h-64"
       role="img"
       :aria-label="$t('overview.year-chart.title')"

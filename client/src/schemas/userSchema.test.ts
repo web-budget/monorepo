@@ -36,7 +36,7 @@ describe('user schemas', () => {
   it.each([
     ['name', { name: '' }, 'Informe ao menos 2 caracteres'],
     ['email', { email: '' }, 'Campo obrigatório'],
-    ['email', { email: 'nope' }, 'Informe um email válido'],
+    ['email', { email: 'nope' }, 'Informe um e-mail válido'],
     ['password', { password: 'short' }, 'Informe ao menos 8 caracteres'],
     ['roles', { roles: [] }, 'Escolha pelo menos uma área.'],
   ])('rejects a new user with an invalid %s', (_field, override, message) => {
