@@ -948,7 +948,15 @@
       "no-result-query": "Nenhuma importação encontrada para “{query}”",
       "no-result-filter": "Nenhuma importação com esses filtros",
       "no-result-hint": "Mude os filtros ou limpe a busca.",
-      "no-result-action": "Limpar filtros"
+      "no-result-action": "Limpar filtros",
+      "show-all": "Ver todas",
+      "empty-tab": {
+        "READY": "Nenhuma importação pronta",
+        "PROCESSING": "Nenhuma importação em processamento",
+        "FAILED": "Nenhuma importação com erro",
+        "SAVED": "Nenhuma importação salva",
+        "UNDONE": "Nenhuma importação desfeita"
+      }
     },
     "status": {
       "PROCESSING": "Processando",
