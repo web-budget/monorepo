@@ -1,7 +1,10 @@
 package br.com.webbudget.server.infrastructure.repository.financial
 
 import br.com.webbudget.server.domain.entities.financial.FinancialPeriodReference
+import br.com.webbudget.server.domain.entities.financial.Invoice
 import br.com.webbudget.server.domain.entities.financial.Overview
+import br.com.webbudget.server.jooq.financial.tables.references.CARD_PURCHASES
+import br.com.webbudget.server.jooq.financial.tables.references.INVOICES
 import br.com.webbudget.server.jooq.financial.tables.references.PERIOD_FLOW
 import br.com.webbudget.server.jooq.registration.tables.references.FINANCIAL_PERIODS
 import org.jooq.Condition
@@ -58,9 +61,18 @@ class PeriodFlowRepository(
             revenues = record.value1() ?: BigDecimal.ZERO,
             expenses = record.value2() ?: BigDecimal.ZERO,
             redPeriods = record.value3(),
-            periodsWithMovement = record.value4()
+            periodsWithMovement = record.value4(),
+            cardToPay = sumCardToPay(year)
         )
     }
+
+    private fun sumCardToPay(year: Int?): BigDecimal = dsl.select(DSL.sum(CARD_PURCHASES.VALUE))
+        .from(CARD_PURCHASES)
+        .join(INVOICES).on(INVOICES.ID.eq(CARD_PURCHASES.ID_INVOICE))
+        .join(financialPeriods).on(financialPeriods.ID.eq(INVOICES.ID_FINANCIAL_PERIOD))
+        .where(INVOICES.STATUS.ne(Invoice.Status.PAID.name).and(periodEndsIn(year)))
+        .fetchSingle()
+        .value1() ?: BigDecimal.ZERO
 
     fun sumByYear(): List<Overview.YearResult> {
 
@@ -80,6 +92,10 @@ class PeriodFlowRepository(
                 )
             }
     }
+
+    private fun periodEndsIn(year: Int?): Condition = year
+        ?.let { financialPeriods.ENDING_AT.between(LocalDate.of(it, 1, 1), LocalDate.of(it, 12, 31)) }
+        ?: DSL.noCondition()
 
     private fun inYear(year: Int?): Condition = year
         ?.let { periodFlow.ENDING_AT.between(LocalDate.of(it, 1, 1), LocalDate.of(it, 12, 31)) }

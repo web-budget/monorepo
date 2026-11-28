@@ -11,7 +11,8 @@ data class OverviewTotalsView(
     @field:JsonInclude(JsonInclude.Include.ALWAYS)
     val savingsRate: BigDecimal?,
     val redPeriods: Int,
-    val periodsWithMovement: Int
+    val periodsWithMovement: Int,
+    val cardToPay: BigDecimal
 )
 
 data class OverviewYearResultView(
