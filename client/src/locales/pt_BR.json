@@ -2562,8 +2562,49 @@
     "year": "Ano",
     "all-periods": "Todos os períodos",
     "provisional": "provisório",
+    "until-today": "até hoje",
     "list": {
       "plural": "a visão geral"
+    },
+    "reserve": {
+      "title": "Reserva e custo de vida",
+      "figures": {
+        "accumulated": "Acumulado",
+        "cost-of-living": "Custo de vida",
+        "current": "Reserva atual",
+        "ideal": "Reserva ideal"
+      },
+      "cost-note": {
+        "none": "Sem período encerrado",
+        "per-period": "Por período",
+        "based-on": "Por período · baseado em {count} período | Por período · baseado em {count} períodos"
+      },
+      "ideal-note": "{count} mês de custo de vida | {count} meses de custo de vida",
+      "progress": "Reserva atual em {share} da ideal",
+      "missing": "Faltam {value}",
+      "covered": "Coberta",
+      "meter": "Reserva atual em {share} da ideal"
+    },
+    "reliability": {
+      "title": "Confiabilidade",
+      "matches": "Bate com os ajustes",
+      "residue": "Resíduo de {value}",
+      "alert": "A diferença não bate com os ajustes",
+      "until-today": "Até hoje",
+      "wallets": "{count} carteira | {count} carteiras",
+      "wallets-until-today": "{count} carteira · até hoje | {count} carteiras · até hoje",
+      "no-adjustments": "Nenhum ajuste em {cut}",
+      "no-generic": "Nenhuma classificação genérica",
+      "figures": {
+        "accumulated": "Acumulado",
+        "balances-total": "Soma dos saldos",
+        "difference": "Diferença",
+        "adjustments-total": "Total dos ajustes",
+        "adjustments": "Ajustes em {cut}",
+        "credited": "Creditado",
+        "debited": "Debitado",
+        "generic-weight": "Peso da genérica"
+      }
     },
     "empty": {
       "title": "Nenhum período ainda",

@@ -2562,8 +2562,49 @@
     "year": "Year",
     "all-periods": "All periods",
     "provisional": "provisional",
+    "until-today": "until today",
     "list": {
       "plural": "the overview"
+    },
+    "reserve": {
+      "title": "Reserve and cost of living",
+      "figures": {
+        "accumulated": "Accumulated",
+        "cost-of-living": "Cost of living",
+        "current": "Current reserve",
+        "ideal": "Ideal reserve"
+      },
+      "cost-note": {
+        "none": "No closed period",
+        "per-period": "Per period",
+        "based-on": "Per period · based on {count} period | Per period · based on {count} periods"
+      },
+      "ideal-note": "{count} month of cost of living | {count} months of cost of living",
+      "progress": "Current reserve at {share} of the ideal",
+      "missing": "{value} short",
+      "covered": "Covered",
+      "meter": "Current reserve at {share} of the ideal"
+    },
+    "reliability": {
+      "title": "Reliability",
+      "matches": "Matches the adjustments",
+      "residue": "Residue of {value}",
+      "alert": "The difference does not match the adjustments",
+      "until-today": "Until today",
+      "wallets": "{count} wallet | {count} wallets",
+      "wallets-until-today": "{count} wallet · until today | {count} wallets · until today",
+      "no-adjustments": "No adjustments in {cut}",
+      "no-generic": "No generic classification",
+      "figures": {
+        "accumulated": "Accumulated",
+        "balances-total": "Sum of the balances",
+        "difference": "Difference",
+        "adjustments-total": "Total of the adjustments",
+        "adjustments": "Adjustments in {cut}",
+        "credited": "Credited",
+        "debited": "Debited",
+        "generic-weight": "Generic weight"
+      }
     },
     "empty": {
       "title": "No periods yet",

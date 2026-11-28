@@ -12,6 +12,7 @@ import {
   useCompactViewport,
 } from '@/test/crud'
 import { createTestPlugins } from '@/test/mounting'
+import { overviewExtras } from '@/test/overviewFixtures'
 import type { OverviewPeriod, OverviewView as OverviewResponse } from '@/types'
 import OverviewView from '@/views/dashboards/OverviewView.vue'
 
@@ -76,6 +77,7 @@ const overview: OverviewResponse = {
     period('p-9', '2026-09-30', 1000, 400, true),
     period('p-10', '2026-10-31', 800, 300, false),
   ],
+  ...overviewExtras,
 }
 
 async function render(location = '/dashboards/overview') {
@@ -84,6 +86,12 @@ async function render(location = '/dashboards/overview') {
       { path: '/dashboards/overview', name: 'dashboards.overview', component: OverviewView },
       { path: '/financial/movements', name: 'movements', component: { render: () => h('div') } },
       ...crudTestRoutes('financial-periods'),
+      { path: '/classifications', name: 'classifications', component: { render: () => h('div') } },
+      {
+        path: '/classifications/:id/detail',
+        name: 'classifications.detail',
+        component: { render: () => h('div') },
+      },
     ],
     stubActions: false,
     initialState: {},
@@ -197,9 +205,55 @@ describe('OverviewView', () => {
     ])
     expect(wrapper.findAll('h2').map((title) => title.text())).toEqual([
       'Resultado de 2026',
+      'Reserva e custo de vida',
       'Receitas e despesas por período',
       'Resultado por ano',
+      'Confiabilidade',
     ])
+  })
+
+  it('puts the reserve between the result and the charts, and the reliability after the table', async () => {
+    const { wrapper } = await render()
+
+    const blocks = [...wrapper.find('[data-slot="summary"]').element.parentElement!.children]
+    expect(blocks.map((block) => block.getAttribute('data-slot'))).toEqual([
+      'summary',
+      'reserve',
+      'charts',
+      'periods',
+      'reliability',
+    ])
+  })
+
+  it('marks the blocks that do not follow the cut as until today only outside the current year', async () => {
+    const { wrapper } = await render()
+    expect(wrapper.findAll('[data-slot="until-today"]')).toHaveLength(0)
+    expect(wrapper.find('[data-slot="reliability"]').text()).not.toContain('Até hoje')
+
+    vi.mocked(dashboardsApi.findOverview).mockResolvedValue({ ...overview, cut: '2025' })
+    const past = await render('/dashboards/overview?year=2025')
+    expect(past.wrapper.find('[data-slot="reserve"] [data-slot="until-today"]').text()).toBe(
+      'até hoje',
+    )
+    expect(past.wrapper.find('[data-slot="reliability"]').text()).toContain('Até hoje')
+    expect(past.wrapper.find('[data-slot="reliability"]').text()).toContain('Ajustes em 2025')
+
+    vi.mocked(dashboardsApi.findOverview).mockResolvedValue({ ...overview, cut: 'all' })
+    const everything = await render('/dashboards/overview?year=all')
+    expect(
+      everything.wrapper.find('[data-slot="reserve"] [data-slot="until-today"]').exists(),
+    ).toBe(true)
+    expect(everything.wrapper.find('[data-slot="reliability"]').text()).toContain(
+      'Ajustes em todos os períodos',
+    )
+  })
+
+  it('passes the reliability of the server to its card', async () => {
+    const { wrapper } = await render()
+
+    const card = wrapper.find('[data-slot="reliability"]')
+    expect(card.find('[data-figure="adjustments-total"]').text()).toMatch(/R\$\s*300,00/)
+    expect(card.find('[data-slot="reliability-status"]').text()).toBe('Bate com os ajustes')
   })
 
   it('lists the periods with movement from the newest to the oldest, without a status column', async () => {
@@ -406,6 +460,7 @@ describe('OverviewView', () => {
       },
       resultByYear: [],
       periods: [],
+      ...overviewExtras,
     })
     const { wrapper, router } = await render()
 

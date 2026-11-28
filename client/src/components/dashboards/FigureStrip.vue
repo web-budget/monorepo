@@ -9,6 +9,7 @@ const GRIDS: Record<number, string> = {
   3: 'grid-cols-2 md:grid-cols-3',
   4: 'grid-cols-2 lg:grid-cols-4',
   5: 'grid-cols-2 md:grid-cols-6 lg:grid-cols-5',
+  8: 'grid-cols-2 lg:grid-cols-4',
 }
 
 const CELLS: Record<number, string[]> = {
@@ -21,6 +22,7 @@ const CELLS: Record<number, string[]> = {
     'md:col-span-3 lg:col-span-1',
     'col-span-2 md:col-span-3 lg:col-span-1',
   ],
+  8: ['', '', '', '', '', '', '', ''],
 }
 
 defineProps<{ figures: Figure[] }>()
@@ -43,7 +45,13 @@ defineProps<{ figures: Figure[] }>()
       <span class="text-base font-semibold tracking-tight whitespace-nowrap md:text-2xl">
         <slot :name="`value-${figure.key}`" />
       </span>
-      <span v-if="figure.note" class="text-muted-foreground text-xs">{{ figure.note }}</span>
+      <span
+        v-if="figure.note || $slots[`note-${figure.key}`]"
+        class="text-muted-foreground text-xs"
+        :data-note="figure.key"
+      >
+        <slot :name="`note-${figure.key}`">{{ figure.note }}</slot>
+      </span>
     </div>
   </div>
 </template>

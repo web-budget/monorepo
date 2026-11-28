@@ -27,6 +27,23 @@ describe('FigureStrip', () => {
     expect(cells[1]!.text()).toBe('Label 1Value f1A note')
   })
 
+  it('lets a slot replace the note of a figure', () => {
+    const wrapper = mount(FigureStrip, {
+      props: {
+        figures: [
+          { key: 'a', label: 'A' },
+          { key: 'b', label: 'B', note: 'Plain' },
+          { key: 'c', label: 'C' },
+        ],
+      },
+      slots: { 'note-a': 'From the slot', 'note-b': '<b>Rich</b>' },
+    })
+
+    const notes = wrapper.findAll('[data-note]')
+    expect(notes.map((note) => note.text())).toEqual(['From the slot', 'Rich'])
+    expect(notes[1]!.find('b').exists()).toBe(true)
+  })
+
   it('divides the cells with the border showing through a one pixel gap', () => {
     const grid = render(5).find('[data-slot="figure-strip"]')
 
@@ -54,6 +71,15 @@ describe('FigureStrip', () => {
     expect(render(4).find('[data-slot="figure-strip"]').classes()).toEqual(
       expect.arrayContaining(['grid-cols-2', 'lg:grid-cols-4']),
     )
+  })
+
+  it('lays eight figures in two rows of four on the desktop, two columns on the phone', () => {
+    const wrapper = render(8)
+
+    expect(wrapper.find('[data-slot="figure-strip"]').classes()).toEqual(
+      expect.arrayContaining(['grid-cols-2', 'lg:grid-cols-4']),
+    )
+    expect(wrapper.findAll('[role="listitem"]')).toHaveLength(8)
   })
 
   it('lays three figures in two columns with the odd one across, three on the tablet', () => {

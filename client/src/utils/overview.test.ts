@@ -6,9 +6,12 @@ import {
   flowMonths,
   flowPeriods,
   formatRate,
+  formatShare,
   hasMovement,
   monthLabel,
   periodLabel,
+  reserveMeterWidth,
+  reserveShare,
   resultScale,
 } from '@/utils/overview'
 
@@ -157,5 +160,25 @@ describe('overview utils', () => {
     expect(resultScale([100, -100])).toEqual({ min: -128, max: 100 })
     expect(resultScale([0])).toEqual({ min: 0, max: 1 })
     expect(resultScale([])).toEqual({ min: 0, max: 1 })
+  })
+})
+
+describe('reserve helpers', () => {
+  it('writes a share as a rounded percentage, in the locale', () => {
+    expect(formatShare(0.6667, 'pt-BR')).toBe('67%')
+    expect(formatShare(1.5, 'en-US')).toBe('150%')
+    expect(formatShare(0, 'pt-BR')).toBe('0%')
+  })
+
+  it('divides the current reserve by the ideal one, counting an ideal of zero as covered', () => {
+    expect(reserveShare(6000, 12000)).toBe(0.5)
+    expect(reserveShare(18000, 12000)).toBe(1.5)
+    expect(reserveShare(0, 0)).toBe(1)
+  })
+
+  it('keeps the meter between empty and full', () => {
+    expect(reserveMeterWidth(0.5)).toBe(50)
+    expect(reserveMeterWidth(1.5)).toBe(100)
+    expect(reserveMeterWidth(-0.2)).toBe(0)
   })
 })
