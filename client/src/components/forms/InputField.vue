@@ -14,8 +14,10 @@ const props = withDefaults(
   defineProps<{
     name: string
     label: string
-    type?: 'text' | 'number' | 'date'
+    type?: 'text' | 'number' | 'date' | 'email'
     placeholder?: string
+    autocomplete?: string
+    inputmode?: 'numeric'
     disabled?: boolean
     maxlength?: number
     multiline?: boolean
@@ -27,6 +29,8 @@ const props = withDefaults(
   {
     type: 'text',
     placeholder: undefined,
+    autocomplete: undefined,
+    inputmode: undefined,
     disabled: false,
     maxlength: undefined,
     multiline: false,
@@ -75,6 +79,8 @@ function openCalendar(event: MouseEvent) {
           :type="type"
           :step="type === 'number' ? 'any' : undefined"
           :placeholder="placeholder"
+          :autocomplete="autocomplete"
+          :inputmode="inputmode"
           :maxlength="maxlength"
           :disabled="disabled"
           :class="mono && 'font-mono'"

@@ -1,0 +1,11 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" th:replace="~{layout :: layout(~{::content}, ~{::footer})}">
+<body>
+<div th:fragment="content">
+    <table th:replace="~{parts :: badge('neutral', #{mail-test.badge})}"></table>
+    <h1 th:replace="~{parts :: title(#{mail-test.title})}"></h1>
+    <p th:replace="~{parts :: paragraph(#{mail-test.lead})}"></p>
+</div>
+<p th:fragment="footer" th:text="#{mail-test.footer}" style="margin: 0;">Você recebe este e-mail porque um administrador mandou um teste para este endereço.</p>
+</body>
+</html>

@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <changeSet id="28-0023-1" author="${claude}">
+        <sql>
+            CREATE TABLE administration.mail_settings
+            (
+                id                  smallint     NOT NULL,
+                enabled             boolean      NOT NULL DEFAULT false,
+                host                varchar(255),
+                port                integer,
+                security            varchar(10)  NOT NULL DEFAULT 'STARTTLS',
+                username            varchar(255),
+                password_ciphertext text,
+                from_address        varchar(254),
+                from_name           varchar(90),
+                reply_to_address    varchar(254),
+                last_update         timestamp    NOT NULL,
+                CONSTRAINT pk_mail_settings PRIMARY KEY (id),
+                CONSTRAINT ck_administration_mail_settings_on_id CHECK (id = 1),
+                CONSTRAINT ck_administration_mail_settings_on_port CHECK (port BETWEEN 1 AND 65535),
+                CONSTRAINT ck_administration_mail_settings_on_security CHECK (security IN ('NONE', 'STARTTLS', 'SSL_TLS'))
+            );
+        </sql>
+        <rollback>
+            <sql>DROP TABLE administration.mail_settings;</sql>
+        </rollback>
+    </changeSet>
+
+    <changeSet id="28-0023-2" author="${claude}">
+        <sql>
+            INSERT INTO administration.mail_settings (id, enabled, last_update)
+            VALUES (1, false, now());
+        </sql>
+        <rollback>
+            <sql>DELETE FROM administration.mail_settings WHERE id = 1;</sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

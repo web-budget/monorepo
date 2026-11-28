@@ -7,6 +7,7 @@ import { cardsApi } from './cards'
 import { classificationsApi } from './classifications'
 import { costCentersApi } from './costCenters'
 import { financialPeriodsApi } from './financialPeriods'
+import { mailSettingsApi } from './mailSettings'
 import { settingsApi } from './settings'
 import { walletsApi } from './wallets'
 
@@ -266,6 +267,54 @@ describe('settingsApi', () => {
       method: 'put',
       url: '/administration/settings',
       data: { reserveMonths: 12 },
+    })
+  })
+})
+
+describe('mailSettingsApi', () => {
+  const form = {
+    host: 'smtp.example.com',
+    port: 587,
+    security: 'STARTTLS' as const,
+    username: 'sender',
+    password: 'secret',
+    fromAddress: 'alerts@example.com',
+    fromName: null,
+    replyToAddress: null,
+  }
+
+  it('reads the mail settings', async () => {
+    await expect(mailSettingsApi.find()).resolves.toEqual({ served: true })
+    expect(lastRequest()).toMatchObject({
+      method: 'get',
+      url: '/administration/mail-settings',
+    })
+  })
+
+  it('replaces the mail settings and returns the saved view', async () => {
+    await expect(mailSettingsApi.update(form)).resolves.toEqual({ served: true })
+    expect(lastRequest()).toMatchObject({
+      method: 'put',
+      url: '/administration/mail-settings',
+      data: form,
+    })
+  })
+
+  it('turns the sending on or off on its own endpoint', async () => {
+    await expect(mailSettingsApi.updateEnabled(true)).resolves.toEqual({ served: true })
+    expect(lastRequest()).toMatchObject({
+      method: 'patch',
+      url: '/administration/mail-settings/enabled',
+      data: { enabled: true },
+    })
+  })
+
+  it('asks the server to send a test e-mail and resolves with nothing', async () => {
+    await expect(mailSettingsApi.sendTest('ana@example.com')).resolves.toBeUndefined()
+    expect(lastRequest()).toMatchObject({
+      method: 'post',
+      url: '/administration/mail-settings/test',
+      data: { recipient: 'ana@example.com' },
     })
   })
 })

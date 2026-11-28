@@ -145,7 +145,7 @@ data class RegisterForm(
 )
 
 private const val MAX_NAME_LENGTH = 100
-private const val MAX_EMAIL_LENGTH = 254
+const val MAX_EMAIL_LENGTH = 254
 private const val MAX_PASSWORD_LENGTH = 128
 private const val MAX_TOTP_CODE_LENGTH = 16
 private const val MAX_LINK_TOKEN_LENGTH = 128

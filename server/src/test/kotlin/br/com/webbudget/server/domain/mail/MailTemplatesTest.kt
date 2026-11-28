@@ -319,6 +319,22 @@ class MailTemplatesTest {
         assertThat(plainText).contains("10/12 Aluguel: R$ 1.200,50", "10/12 Salário: R$ 8.000,00", "Abrir os movimentos: https://webbudget.example.com/financeiro/movimentos")
     }
 
+    @Test
+    fun `should render the test e-mail in both languages, without a button`() {
+
+        val portuguese = render("pt-BR", template = "mail-test")
+
+        assertThat(portuguese).contains("<html lang=\"pt-BR\"", "O envio de e-mails está funcionando", "O e-mail de teste do webBudget chegou.")
+        assertThat(portuguese).contains("Você recebe este e-mail porque um administrador mandou um teste para este endereço.")
+        assertThat(portuguese).doesNotContain("Entrar no webBudget", "/login")
+        assertCleanOutput(portuguese)
+
+        val english = render("en-US", template = "mail-test")
+
+        assertThat(english).contains("<html lang=\"en-US\"", "Email sending is working", "The webBudget test email arrived.")
+        assertCleanOutput(english)
+    }
+
     private fun assertCleanOutput(html: String) {
         assertThat(html).doesNotContainPattern("\\sth:[a-z-]+=")
         assertThat(html).doesNotContain("#{", "??", "\${")

@@ -1,4 +1,6 @@
 web-budget:
+  mail:
+    encryption-key: tlMeMafLeKBakgLirvT2G6azVtkuKjd/l544wvnrM4k=
   scheduling:
     enabled: false
   security:
