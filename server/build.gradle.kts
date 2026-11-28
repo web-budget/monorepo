@@ -8,6 +8,8 @@ import kotlinx.kover.gradle.plugin.dsl.CoverageUnit.INSTRUCTION
 import kotlinx.kover.gradle.plugin.dsl.CoverageUnit.LINE
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_25
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_4
+import org.springframework.boot.gradle.tasks.bundling.BootBuildImage
+import org.springframework.boot.gradle.tasks.bundling.BootJar
 import org.springframework.boot.gradle.tasks.run.BootRun
 import org.jooq.codegen.gradle.CodegenPluginExtension
 import org.jooq.meta.jaxb.Jdbc
@@ -156,6 +158,23 @@ tasks.withType<Test> {
 
 tasks.named<BootRun>("bootRun") {
     environment("SPRING_PROFILES_ACTIVE", System.getenv("SPRING_PROFILES_ACTIVE") ?: "dev")
+}
+
+tasks.named<BootJar>("bootJar") {
+    archiveFileName.set("${project.name}.${archiveExtension.get()}")
+}
+
+tasks.named<BootBuildImage>("bootBuildImage") {
+    builder = "bellsoft/buildpacks.builder:musl"
+    buildpacks.set(listOf("urn:cnb:builder:paketo-buildpacks/image-labels", "urn:cnb:builder:bellsoft/buildpacks/java"))
+    environment.put("BP_JVM_VERSION", JVM_25.target)
+    environment.put("BP_OCI_SOURCE", "https://github.com/web-budget/monorepo")
+    environment.put("BPE_DELIM_JAVA_TOOL_OPTIONS", " ")
+    environment.put(
+        "BPE_APPEND_JAVA_TOOL_OPTIONS",
+        "-XX:MetaspaceSize=128M -XX:MaxMetaspaceSize=256M -XX:+UseG1GC -XX:+UseStringDeduplication -Dfile.encoding=UTF-8"
+    )
+    imageName.set("webbudget/${project.name}:latest")
 }
 
 jooq {
