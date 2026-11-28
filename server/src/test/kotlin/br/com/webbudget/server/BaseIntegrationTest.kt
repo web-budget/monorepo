@@ -4,10 +4,15 @@ import br.com.webbudget.server.RestClientTestConfiguration.Companion.CSRF_COOKIE
 import br.com.webbudget.server.RestClientTestConfiguration.Companion.CSRF_HEADER
 import br.com.webbudget.server.RestClientTestConfiguration.Companion.SESSION_COOKIE
 import br.com.webbudget.server.domain.entities.administration.Language
+import br.com.webbudget.server.domain.entities.administration.MailSecurity
+import br.com.webbudget.server.domain.entities.administration.MailSettings
 import br.com.webbudget.server.domain.entities.administration.User
+import br.com.webbudget.server.domain.services.administration.MailSettingsService
 import br.com.webbudget.server.domain.services.administration.UserService
 import br.com.webbudget.server.infrastructure.repository.administration.UserRepository
+import br.com.webbudget.server.jooq.administration.tables.references.MAIL_SETTINGS
 import com.icegreen.greenmail.util.GreenMail
+import org.jooq.DSLContext
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.beans.factory.annotation.Autowired
@@ -47,12 +52,49 @@ abstract class BaseIntegrationTest {
     @Autowired
     private lateinit var environment: Environment
 
+    @Autowired
+    private lateinit var mailSettingsService: MailSettingsService
+
+    @Autowired
+    private lateinit var dsl: DSLContext
+
     private val createdUserEmails = mutableListOf<String>()
 
     @BeforeEach
     fun setUpAuthentication() {
         loginBeforeEach()
         greenMail.purgeEmailFromAllMailboxes()
+        saveGreenMailSettings()
+    }
+
+    protected fun saveGreenMailSettings() {
+
+        val server = MailSettings(
+            host = "127.0.0.1",
+            port = greenMail.smtp.port,
+            security = MailSecurity.NONE,
+            username = MailTestConfiguration.MAIL_USER,
+            fromAddress = MAIL_FROM_ADDRESS,
+            replyToAddress = MAIL_FROM_ADDRESS
+        )
+
+        mailSettingsService.update(server, MailTestConfiguration.MAIL_PASSWORD)
+        mailSettingsService.updateEnabled(true)
+    }
+
+    protected fun clearMailSettings() {
+        dsl.update(MAIL_SETTINGS)
+            .set(MAIL_SETTINGS.ENABLED, false)
+            .setNull(MAIL_SETTINGS.HOST)
+            .setNull(MAIL_SETTINGS.PORT)
+            .set(MAIL_SETTINGS.SECURITY, MailSecurity.STARTTLS.name)
+            .setNull(MAIL_SETTINGS.USERNAME)
+            .setNull(MAIL_SETTINGS.PASSWORD_CIPHERTEXT)
+            .setNull(MAIL_SETTINGS.FROM_ADDRESS)
+            .setNull(MAIL_SETTINGS.FROM_NAME)
+            .setNull(MAIL_SETTINGS.REPLY_TO_ADDRESS)
+            .where(MAIL_SETTINGS.ID.eq(1))
+            .execute()
     }
 
     protected open fun loginBeforeEach() {
@@ -156,6 +198,7 @@ abstract class BaseIntegrationTest {
         const val OBJECT_NOT_FOUND_ERROR = "Invalid state, object not found"
         const val ADMIN_PASSWORD = "test-admin-password"
         const val TEST_PASSWORD = "test-user-password"
+        const val MAIL_FROM_ADDRESS = "noreply@webbudget.com.br"
 
         private val ALL_ROLES = setOf("ADMINISTRATION", "REGISTRATION", "FINANCIAL", "DASHBOARDS")
         private val HTTP_CLIENT: HttpClient = HttpClient.newHttpClient()

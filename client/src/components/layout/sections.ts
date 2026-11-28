@@ -7,6 +7,7 @@ import {
   FileUp,
   Gauge,
   Lock,
+  Mail,
   Network,
   ReceiptText,
   RefreshCw,
@@ -149,6 +150,12 @@ export const configurationSection: ModuleSectionDefinition = {
       icon: SlidersHorizontal,
       to: '/configuration/settings',
       description: 'module-home.items.settings',
+    },
+    {
+      label: 'mail-settings.menu',
+      icon: Mail,
+      to: '/configuration/mail',
+      description: 'module-home.items.mail',
     },
     {
       label: 'integrations.menu',

@@ -292,6 +292,34 @@ export interface InstanceSettingsView {
   reserveMonths: number
 }
 
+export type MailSecurity = 'NONE' | 'STARTTLS' | 'SSL_TLS'
+
+export interface MailSettingsForm {
+  host: string
+  port: number
+  security: MailSecurity
+  username: string | null
+  password: string | null
+  fromAddress: string
+  fromName: string | null
+  replyToAddress: string | null
+}
+
+export interface MailSettingsView {
+  enabled: boolean
+  configured: boolean
+  host: string | null
+  port: number | null
+  security: MailSecurity
+  username: string | null
+  passwordSet: boolean
+  passwordStorageAvailable: boolean
+  fromAddress: string | null
+  fromName: string | null
+  replyToAddress: string | null
+  lastUpdate: string | null
+}
+
 export type FinancialPeriodStatus = 'OPEN' | 'CLOSED'
 
 export type FinancialPeriodStatusFilter = FinancialPeriodStatus | 'ALL'

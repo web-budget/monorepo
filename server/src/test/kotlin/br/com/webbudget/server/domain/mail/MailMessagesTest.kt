@@ -35,7 +35,8 @@ class MailMessagesTest {
             "recover-password",
             "user-pending-approval",
             "due-date-daily",
-            "due-date-weekly"
+            "due-date-weekly",
+            "mail-test"
         )
 
         listOf("messages.properties", "messages_en_US.properties").map { load(it) }.forEach { messages ->

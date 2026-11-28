@@ -15,6 +15,7 @@ const props = withDefaults(
     loading: boolean
     submitting?: boolean
     dirty?: boolean
+    readonly?: boolean
     messages: string[]
     fields?: string[]
     submitLabel: string
@@ -25,6 +26,7 @@ const props = withDefaults(
     description: undefined,
     submitting: false,
     dirty: false,
+    readonly: false,
     fields: () => [],
   },
 )
@@ -43,6 +45,7 @@ provide(
       <template v-if="$slots.badge" #badge><slot name="badge" /></template>
     </PageHeader>
     <ServerErrorAlert :messages="messages" />
+    <slot name="before" />
     <div
       :class="
         $slots.aside &&
@@ -53,7 +56,7 @@ provide(
     >
       <form novalidate @submit.prevent="emit('submit')">
         <Card class="gap-0 py-0">
-          <fieldset :disabled="loading || submitting" class="min-w-0">
+          <fieldset :disabled="loading || submitting || readonly" class="min-w-0">
             <slot />
           </fieldset>
           <div
@@ -61,13 +64,14 @@ provide(
           >
             <span class="text-muted-foreground text-xs max-md:hidden">
               <template v-if="dirty">{{ $t('crud.unsaved') }}</template>
+              <slot v-else name="saved" />
             </span>
             <div class="flex gap-2 max-md:w-full">
               <Button
                 type="button"
                 variant="outline"
                 class="max-md:flex-1"
-                :disabled="submitting"
+                :disabled="submitting || readonly"
                 @mousedown.prevent
                 @click="emit('back')"
               >
@@ -76,7 +80,7 @@ provide(
               <Button
                 type="submit"
                 class="max-md:flex-1"
-                :disabled="loading || submitting"
+                :disabled="loading || submitting || readonly"
                 :aria-busy="submitting"
               >
                 <template v-if="submitting">

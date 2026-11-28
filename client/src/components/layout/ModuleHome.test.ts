@@ -25,7 +25,7 @@ describe('ModuleHome', () => {
 
     expect(wrapper.find('[data-slot="page-title"]').text()).toBe('Configurações')
     expect(wrapper.find('[data-slot="page-description"]').text()).toBe(
-      'Contas de usuários, áreas de acesso e integrações.',
+      'Contas de usuários, parâmetros, e-mail e integrações.',
     )
   })
 
@@ -100,7 +100,7 @@ describe('ModuleHome', () => {
     expect(disabled.classes()).toContain('opacity-60')
     expect(disabled.text()).toContain('Em breve')
     expect(disabled.text()).toContain('Conexões com bancos e serviços externos.')
-    expect(wrapper.findAll('a[data-slot="module-card"]')).toHaveLength(2)
+    expect(wrapper.findAll('a[data-slot="module-card"]')).toHaveLength(3)
   })
 
   it('links every financial item, none of them as coming soon', () => {
