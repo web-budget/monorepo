@@ -35,7 +35,7 @@ describe('useServerErrors', () => {
     )
 
     expect(result).toBe(false)
-    expect(messages.value).toEqual(['Nome "Main" já esta em uso'])
+    expect(messages.value).toEqual(['Nome "Main" já está em uso'])
   })
 
   it('names the fields the server says are in conflict and forgets them on the next run', async () => {

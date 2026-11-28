@@ -45,7 +45,7 @@ describe('zodErrorMap', () => {
   })
 
   it('reports an invalid email', () => {
-    expect(firstMessage(z.string().email(), 'nope')).toBe('Informe um email válido')
+    expect(firstMessage(z.string().email(), 'nope')).toBe('Informe um e-mail válido')
   })
 
   it('reports any other invalid string format', () => {
@@ -55,7 +55,7 @@ describe('zodErrorMap', () => {
   it('translates a custom issue by its i18n key', () => {
     const schema = z.string().refine(() => false, { params: { i18n: 'email' } })
 
-    expect(firstMessage(schema, 'x')).toBe('Informe um email válido')
+    expect(firstMessage(schema, 'x')).toBe('Informe um e-mail válido')
   })
 
   it('keeps the default message for a custom issue without an i18n key', () => {

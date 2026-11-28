@@ -58,7 +58,7 @@ describe('CostCenterListView', () => {
   it('introduces the page and offers the active cost centers first, with the counts', async () => {
     const { wrapper } = await render()
 
-    expect(wrapper.find('h1').text()).toBe('Centros de custos')
+    expect(wrapper.find('h1').text()).toBe('Centros de custo')
     expect(wrapper.find('[data-slot="page-actions"]').text()).toBe('Criar')
     expect(wrapper.findAll('[aria-pressed]').map((button) => button.text())).toEqual([
       'Ativos 4',

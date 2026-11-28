@@ -18,7 +18,7 @@ describe('loginFormSchema', () => {
     const result = await loginFormSchema.parse({ email: '', password: '' })
 
     expect(result.errors).toEqual([
-      { path: 'email', errors: ['Campo obrigatório', 'Informe um email válido'] },
+      { path: 'email', errors: ['Campo obrigatório', 'Informe um e-mail válido'] },
       { path: 'password', errors: ['Campo obrigatório'] },
     ])
   })
@@ -26,6 +26,6 @@ describe('loginFormSchema', () => {
   it('reports an invalid email with the translated message', async () => {
     const result = await loginFormSchema.parse({ email: 'nope', password: 'secret' })
 
-    expect(result.errors).toEqual([{ path: 'email', errors: ['Informe um email válido'] }])
+    expect(result.errors).toEqual([{ path: 'email', errors: ['Informe um e-mail válido'] }])
   })
 })

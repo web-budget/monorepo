@@ -28,7 +28,7 @@ describe('i18n', () => {
 
   it('interpolates named parameters', () => {
     expect(i18n.global.t('error.conflict.wallet.name', { value: 'Main' })).toBe(
-      'Nome "Main" já esta em uso',
+      'Nome "Main" já está em uso',
     )
     expect(
       i18n.global.t('error.conflict.wallet.name', { value: 'Main' }, { locale: 'en-US' }),
