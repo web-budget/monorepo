@@ -5,12 +5,14 @@ import br.com.webbudget.server.domain.mail.MailPasswordCipher
 import br.com.webbudget.server.jooq.administration.tables.references.MAIL_SETTINGS
 import org.assertj.core.api.Assertions.assertThat
 import org.jooq.DSLContext
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD
 import org.springframework.test.web.servlet.client.RestTestClient
+import java.net.ServerSocket
 
 @Sql("/sql/administration/clear-tables.sql")
 @Sql("/sql/administration/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
@@ -21,6 +23,11 @@ class MailSettingsControllerTest : BaseIntegrationTest() {
 
     @Autowired
     private lateinit var mailPasswordCipher: MailPasswordCipher
+
+    @BeforeEach
+    fun resetMailSettings() {
+        clearMailSettings()
+    }
 
     @Test
     fun `should require authentication`() {
@@ -250,6 +257,74 @@ class MailSettingsControllerTest : BaseIntegrationTest() {
             .expectBody()
             .jsonPath("$.parameters.security").isEqualTo("is-null")
     }
+
+    @Test
+    fun `should deliver the test e-mail even with the sending turned off`() {
+
+        saveGreenMailSettings()
+        patchEnabled(false).expectStatus().isOk
+
+        postTest("""{"recipient": "admin@example.com"}""").expectStatus().isNoContent
+
+        val message = greenMail.receivedMessages.single()
+
+        assertThat(message.subject).isEqualTo("E-mail de teste do webBudget")
+        assertThat(message.allRecipients.single().toString()).isEqualTo("admin@example.com")
+    }
+
+    @Test
+    fun `should answer bad request when the test e-mail has no server saved`() {
+
+        postTest("""{"recipient": "admin@example.com"}""")
+            .expectStatus().isBadRequest
+            .expectBody()
+            .jsonPath("$.error").isEqualTo("mail-not-configured")
+
+        assertThat(greenMail.receivedMessages).isEmpty()
+    }
+
+    @Test
+    fun `should answer the reason when the test e-mail cannot be delivered`() {
+
+        val closedPort = ServerSocket(0).use { socket -> socket.localPort }
+
+        put(validBody(host = "127.0.0.1", port = closedPort, security = "NONE", username = null)).expectStatus().isOk
+
+        postTest("""{"recipient": "admin@example.com"}""")
+            .expectStatus().isBadRequest
+            .expectBody()
+            .jsonPath("$.error").isEqualTo("mail-delivery-failed")
+            .jsonPath("$.parameters.reason").isNotEmpty
+    }
+
+    @Test
+    fun `should validate the recipient of the test e-mail`() {
+
+        postTest("{}")
+            .expectStatus().isEqualTo(422)
+            .expectBody()
+            .jsonPath("$.parameters.recipient").isEqualTo("is-null-or-blank")
+
+        postTest("""{"recipient": "not-an-email"}""")
+            .expectStatus().isEqualTo(422)
+            .expectBody()
+            .jsonPath("$.parameters.recipient").isEqualTo("email-address-is-invalid")
+    }
+
+    @Test
+    fun `should require the administration role to send the test e-mail`() {
+
+        authenticateWithRoles("REGISTRATION", "FINANCIAL", "DASHBOARDS")
+
+        postTest("""{"recipient": "admin@example.com"}""")
+            .expectStatus().isForbidden
+    }
+
+    private fun postTest(body: String): RestTestClient.ResponseSpec = restTestClient.post()
+        .uri("$ENDPOINT_URL/test")
+        .contentType(MediaType.APPLICATION_JSON)
+        .body(body)
+        .exchange()
 
     private fun put(body: String): RestTestClient.ResponseSpec = restTestClient.put()
         .uri(ENDPOINT_URL)

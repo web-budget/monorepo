@@ -99,4 +99,5 @@ object ErrorCodes {
     const val RESERVE_MONTHS_OUT_OF_RANGE = "reserve-months-out-of-range"
     const val MAIL_NOT_CONFIGURED = "mail-not-configured"
     const val MAIL_ENCRYPTION_KEY_MISSING = "mail-encryption-key-missing"
+    const val MAIL_DELIVERY_FAILED = "mail-delivery-failed"
 }

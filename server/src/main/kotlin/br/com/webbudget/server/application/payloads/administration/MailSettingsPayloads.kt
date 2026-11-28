@@ -52,6 +52,13 @@ data class MailEnabledForm(
     val enabled: Boolean?
 )
 
+data class MailTestForm(
+    @field:Email(message = EMAIL_IS_INVALID)
+    @field:NotBlank(message = IS_NULL_OR_BLANK)
+    @field:Size(max = MAX_EMAIL_LENGTH, message = MAX_CHARS)
+    val recipient: String?
+)
+
 data class MailSettingsView(
     val enabled: Boolean,
     val configured: Boolean,

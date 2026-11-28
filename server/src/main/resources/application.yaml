@@ -19,15 +19,6 @@ spring:
     username: ${DATABASE_USER:sa_webbudget}
     password: ${DATABASE_PASSWORD:sa_webbudget}
 
-  mail:
-    host: ${MAIL_HOST:localhost}
-    port: ${MAIL_PORT:1025}
-    username: ${MAIL_USER:maildev}
-    password: ${MAIL_PASSWORD:maildev}
-    properties:
-      mail.smtp.auth: true
-      mail.smtp.starttls.enable: true
-
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.xml
     database-change-log-table: database_changelog
@@ -87,8 +78,6 @@ web-budget:
     client-base-url: ${CLIENT_BASE_URL:${web-budget.frontend-url}}
   frontend-url: ${APPLICATION_FRONTEND_URL:http://localhost:8086}
   mail:
-    reply-to-address: ${MAIL_REPLY_TO_ADDRESS:noreply@webbudget.com.br}
-    default-from-address: ${MAIL_DEFAULT_FROM_ADDRESS:noreply@webbudget.com.br}
     time-zone: ${MAIL_TIME_ZONE:America/Sao_Paulo}
     encryption-key: ${MAIL_ENCRYPTION_KEY:}
   due-date-notices:

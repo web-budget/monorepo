@@ -4,6 +4,7 @@ import br.com.webbudget.server.application.mappers.administration.MailSettingsMa
 import br.com.webbudget.server.application.payloads.administration.MailEnabledForm
 import br.com.webbudget.server.application.payloads.administration.MailSettingsForm
 import br.com.webbudget.server.application.payloads.administration.MailSettingsView
+import br.com.webbudget.server.application.payloads.administration.MailTestForm
 import br.com.webbudget.server.domain.entities.administration.MailSettings
 import br.com.webbudget.server.domain.entities.administration.Role
 import br.com.webbudget.server.domain.services.administration.MailSettingsService
@@ -12,6 +13,7 @@ import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
+import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -39,6 +41,14 @@ class MailSettingsController(
     @PatchMapping("/enabled")
     fun updateEnabled(@RequestBody @Valid form: MailEnabledForm): ResponseEntity<MailSettingsView> =
         respond(mailSettingsService.updateEnabled(form.enabled!!))
+
+    @PostMapping("/test")
+    fun sendTest(@RequestBody @Valid form: MailTestForm): ResponseEntity<Void> {
+
+        mailSettingsService.sendTest(form.recipient!!)
+
+        return ResponseEntity.noContent().build()
+    }
 
     private fun respond(settings: MailSettings): ResponseEntity<MailSettingsView> = ResponseEntity.ok(
         mailSettingsMapper.mapToView(settings, mailSettingsService.isPasswordStorageAvailable())

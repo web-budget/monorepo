@@ -4,6 +4,7 @@ import br.com.webbudget.server.BaseIntegrationTest
 import br.com.webbudget.server.domain.entities.administration.MailSecurity
 import br.com.webbudget.server.domain.entities.administration.MailSettings
 import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.test.context.jdbc.Sql
@@ -15,6 +16,11 @@ class MailSettingsServiceTest : BaseIntegrationTest() {
 
     @Autowired
     private lateinit var mailSettingsService: MailSettingsService
+
+    @BeforeEach
+    fun resetMailSettings() {
+        clearMailSettings()
+    }
 
     @Test
     fun `should trim the texts and treat the empty optional ones as missing`() {
