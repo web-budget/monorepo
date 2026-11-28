@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { computed, ref } from 'vue'
 import { authApi } from '@/api/auth'
+import { ApiError } from '@/api/client'
 import router from '@/router'
 import { isPublicRoute } from '@/router/publicRoutes'
 import { resetUserStores } from '@/stores/resetUserStores'
@@ -24,6 +25,8 @@ export const useAuthStore = defineStore('auth', () => {
   const session = ref<SessionResponse | null>(null)
   const loading = ref(false)
   const endingSession = ref(false)
+  const restoringSession = ref(false)
+  const sessionUnavailable = ref(false)
   const registeredEmail = ref<string | null>(null)
   const isAuthenticated = computed(() => session.value !== null)
   const isApproved = computed(() => session.value?.status === 'APPROVED')
@@ -100,12 +103,19 @@ export const useAuthStore = defineStore('auth', () => {
 
   async function restoreSession(): Promise<boolean> {
     loading.value = true
+    restoringSession.value = true
+    sessionUnavailable.value = false
     try {
       session.value = await authApi.fetchSession()
-    } catch {
-      clearSession()
+    } catch (error) {
+      if (error instanceof ApiError && error.isUnavailable) {
+        sessionUnavailable.value = true
+      } else {
+        clearSession()
+      }
     } finally {
       loading.value = false
+      restoringSession.value = false
     }
     return isAuthenticated.value
   }
@@ -157,6 +167,8 @@ export const useAuthStore = defineStore('auth', () => {
     isApproved,
     loading,
     endingSession,
+    restoringSession,
+    sessionUnavailable,
     hasRole,
     login,
     linkGoogle,
