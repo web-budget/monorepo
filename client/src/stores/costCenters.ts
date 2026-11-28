@@ -13,7 +13,11 @@ export const useCostCentersStore = defineStore('costCenters', () => {
 
   function findByName(text: string): Promise<void> {
     return resource.track(async () => {
-      const page = await costCentersApi.findAll({ filter: text, status: 'ACTIVE' })
+      const page = await costCentersApi.findAll({
+        filter: text,
+        status: 'ACTIVE',
+        sort: 'fullName,asc',
+      })
       costCenters.value = page.content
     })
   }

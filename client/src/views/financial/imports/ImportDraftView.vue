@@ -97,7 +97,7 @@ const { writeRoute } = useListFilters({
 
 const ready = optionErrors.run(async () => {
   const [costCenterPage, classificationPage] = await Promise.all([
-    costCentersApi.findAll({ status: 'ACTIVE', size: OPTIONS_PAGE_SIZE, sort: 'name,asc' }),
+    costCentersApi.findAll({ status: 'ACTIVE', size: OPTIONS_PAGE_SIZE, sort: 'fullName,asc' }),
     classificationsApi.findAll({ status: 'ACTIVE', size: OPTIONS_PAGE_SIZE, sort: 'name,asc' }),
     activeWallets.load(),
   ])

@@ -22,6 +22,9 @@ describe('useMovementFilterOptions', () => {
     expect(options.costCenters.value).toEqual([{ id: 'cc-1' }])
     expect(options.classifications.value).toEqual([{ id: 'cl-1' }])
     expect(costCentersApi.findAll).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'ACTIVE', sort: 'fullName,asc' }),
+    )
+    expect(classificationsApi.findAll).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'ACTIVE', sort: 'name,asc' }),
     )
   })

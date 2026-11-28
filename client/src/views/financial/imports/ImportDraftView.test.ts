@@ -219,6 +219,14 @@ describe('ImportDraftView', () => {
     expect(wrapper.find('[data-slot="saved-at"]').text()).toBe('Salvo às 14:32')
   })
 
+  it('loads the cost center options in hierarchy order', async () => {
+    await render()
+
+    expect(costCentersApi.findAll).toHaveBeenCalledWith(
+      expect.objectContaining({ status: 'ACTIVE', sort: 'fullName,asc' }),
+    )
+  })
+
   it('falls back to the send time when nothing was updated yet', async () => {
     const { wrapper } = await render(undefined, draft({ lastUpdate: undefined }))
 
