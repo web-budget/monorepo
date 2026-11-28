@@ -132,6 +132,14 @@ class MailSettingsControllerTest : BaseIntegrationTest() {
     }
 
     @Test
+    fun `should store the password exactly as it was sent, spaces included`() {
+
+        put(validBody(password = "  spaced pass  ")).expectStatus().isOk
+
+        assertThat(mailPasswordCipher.decrypt(storedCiphertext()!!)).isEqualTo("  spaced pass  ")
+    }
+
+    @Test
     fun `should replace the stored password when a new one comes`() {
 
         put(validBody(password = PLAIN_PASSWORD)).expectStatus().isOk

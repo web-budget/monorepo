@@ -21,12 +21,16 @@ class MailSettingsService(
     @Transactional
     fun update(settings: MailSettings, password: String?): MailSettings {
 
+        val username = settings.username.trimmedOrNull()
+
         val toSave = MailSettings(
             host = settings.host.trimmedOrNull(),
             port = settings.port,
             security = settings.security,
-            username = settings.username.trimmedOrNull(),
-            passwordCiphertext = password?.let(mailPasswordCipher::encrypt),
+            username = username,
+            passwordCiphertext = password
+                ?.takeIf { username != null && it.isNotEmpty() }
+                ?.let(mailPasswordCipher::encrypt),
             fromAddress = settings.fromAddress.trimmedOrNull(),
             fromName = settings.fromName.trimmedOrNull(),
             replyToAddress = settings.replyToAddress.trimmedOrNull()

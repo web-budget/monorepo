@@ -6,6 +6,7 @@ import br.com.webbudget.server.application.payloads.ErrorCodes.IS_NULL_OR_BLANK
 import br.com.webbudget.server.application.payloads.ErrorCodes.IS_OUT_OF_RANGE
 import br.com.webbudget.server.application.payloads.ErrorCodes.MAX_CHARS
 import br.com.webbudget.server.application.payloads.MAX_EMAIL_LENGTH
+import br.com.webbudget.server.application.payloads.UntrimmedStringDeserializer
 import br.com.webbudget.server.domain.entities.administration.MailSecurity
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.Max
@@ -13,6 +14,7 @@ import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
+import tools.jackson.databind.annotation.JsonDeserialize
 import java.time.LocalDateTime
 
 data class MailSettingsForm(
@@ -27,6 +29,7 @@ data class MailSettingsForm(
     val security: MailSecurity?,
     @field:Size(max = MAX_USERNAME_LENGTH, message = MAX_CHARS)
     val username: String?,
+    @field:JsonDeserialize(using = UntrimmedStringDeserializer::class)
     val password: String?,
     @field:Email(message = EMAIL_IS_INVALID)
     @field:NotBlank(message = IS_NULL_OR_BLANK)

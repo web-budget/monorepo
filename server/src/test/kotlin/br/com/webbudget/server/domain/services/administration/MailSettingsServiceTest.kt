@@ -43,14 +43,30 @@ class MailSettingsServiceTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `should keep the saved settings out of the string of the entity`() {
+    fun `should not replace the saved password with an empty one`() {
 
-        val saved = mailSettingsService.update(
+        val server = MailSettings(host = "smtp.example.com", port = 25, username = "mailer", fromAddress = "a@example.com")
+
+        val first = mailSettingsService.update(server, "plain-password")
+        val second = mailSettingsService.update(server, "")
+
+        assertThat(second.passwordCiphertext).isEqualTo(first.passwordCiphertext)
+    }
+
+    @Test
+    fun `should not encrypt a password when the username is removed`() {
+
+        mailSettingsService.update(
             MailSettings(host = "smtp.example.com", port = 25, username = "mailer", fromAddress = "a@example.com"),
             "plain-password"
         )
 
-        assertThat(saved.hasPassword()).isTrue()
-        assertThat(saved.toString()).doesNotContain("plain-password").doesNotContain(saved.passwordCiphertext!!)
+        val saved = mailSettingsService.update(
+            MailSettings(host = "smtp.example.com", port = 25, fromAddress = "a@example.com"),
+            "another-password"
+        )
+
+        assertThat(saved.username).isNull()
+        assertThat(saved.hasPassword()).isFalse()
     }
 }

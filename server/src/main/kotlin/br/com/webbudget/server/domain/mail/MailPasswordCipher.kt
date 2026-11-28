@@ -64,7 +64,7 @@ class MailPasswordCipher(
 
             val keyBytes = runCatching { Base64.getDecoder().decode(encodedKey.trim()) }
                 .getOrElse {
-                    throw IllegalStateException("web-budget.mail.encryption-key (MAIL_ENCRYPTION_KEY) is not valid base64", it)
+                    throw IllegalStateException("web-budget.mail.encryption-key (MAIL_ENCRYPTION_KEY) is not valid base64")
                 }
 
             check(keyBytes.size == KEY_LENGTH) {
