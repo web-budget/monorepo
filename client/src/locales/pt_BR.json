@@ -455,7 +455,10 @@
     "yes": "Sim",
     "no": "Não",
     "recover": "Recuperar",
-    "clear-selection": "Limpar seleção"
+    "clear-selection": "Limpar seleção",
+    "combobox": {
+      "loading": "Carregando…"
+    }
   },
   "notification": {
     "success": "Sucesso!",
@@ -1895,6 +1898,10 @@
     "search": {
       "placeholder": "Nome ou descrição"
     },
+    "combobox": {
+      "search": "Buscar classificação",
+      "empty": "Nenhuma classificação encontrada."
+    },
     "table-columns": {
       "name": "Nome",
       "type": "Tipo"
@@ -1951,6 +1958,10 @@
     "menu": "Centros de custo",
     "search": {
       "placeholder": "Nome"
+    },
+    "combobox": {
+      "search": "Buscar centro de custo",
+      "empty": "Nenhum centro de custo encontrado."
     },
     "form": {
       "new": "Criando",

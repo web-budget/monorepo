@@ -455,7 +455,10 @@
     "yes": "Yes",
     "no": "No",
     "recover": "Recover",
-    "clear-selection": "Clear selection"
+    "clear-selection": "Clear selection",
+    "combobox": {
+      "loading": "Loading…"
+    }
   },
   "notification": {
     "success": "Success!",
@@ -1895,6 +1898,10 @@
     "search": {
       "placeholder": "Name or description"
     },
+    "combobox": {
+      "search": "Search classifications",
+      "empty": "No classifications found."
+    },
     "table-columns": {
       "name": "Name",
       "type": "Type"
@@ -1951,6 +1958,10 @@
     "menu": "Cost centers",
     "search": {
       "placeholder": "Name"
+    },
+    "combobox": {
+      "search": "Search cost centers",
+      "empty": "No cost centers found."
     },
     "form": {
       "new": "Creating",

@@ -10,6 +10,7 @@ import { recurringMovementsApi } from '@/api/recurringMovements'
 import { invoicesApi } from '@/api/invoices'
 import SelectField from '@/components/forms/SelectField.vue'
 import { Select } from '@/components/ui/select'
+import { pickComboboxValue } from '@/test/combobox'
 import { mountView, namedTestRoutes, pageOf, problem, settle } from '@/test/crud'
 import type {
   CardListView,
@@ -131,8 +132,8 @@ async function submit(wrapper: Wrapper) {
 async function fill(wrapper: Wrapper) {
   await field(wrapper, 'name').setValue('Mercado')
   await field(wrapper, 'value').setValue('30000')
-  selects(wrapper)[2]!.vm.$emit('update:modelValue', 'cc-1')
-  selects(wrapper)[3]!.vm.$emit('update:modelValue', 'cl-1')
+  pickComboboxValue(wrapper, 'costCenter', 'cc-1')
+  pickComboboxValue(wrapper, 'classification', 'cl-1')
   await flushPromises()
 }
 
@@ -242,8 +243,8 @@ describe('CardPurchaseFormView', () => {
     const { wrapper, router } = await render()
     selects(wrapper)[0]!.vm.$emit('update:modelValue', 'c-1')
     await field(wrapper, 'name').setValue('Notebook')
-    selects(wrapper)[2]!.vm.$emit('update:modelValue', 'cc-1')
-    selects(wrapper)[3]!.vm.$emit('update:modelValue', 'cl-1')
+    pickComboboxValue(wrapper, 'costCenter', 'cc-1')
+    pickComboboxValue(wrapper, 'classification', 'cl-1')
     await wrapper.find('button[role="switch"]').trigger('click')
     await field(wrapper, 'installments').setValue('6')
     await field(wrapper, 'installmentValue').setValue('24990')
@@ -275,8 +276,8 @@ describe('CardPurchaseFormView', () => {
     const { wrapper } = await render()
     selects(wrapper)[0]!.vm.$emit('update:modelValue', 'c-1')
     await field(wrapper, 'name').setValue('Notebook')
-    selects(wrapper)[2]!.vm.$emit('update:modelValue', 'cc-1')
-    selects(wrapper)[3]!.vm.$emit('update:modelValue', 'cl-1')
+    pickComboboxValue(wrapper, 'costCenter', 'cc-1')
+    pickComboboxValue(wrapper, 'classification', 'cl-1')
     await wrapper.find('button[role="switch"]').trigger('click')
     await field(wrapper, 'installments').setValue('1')
 

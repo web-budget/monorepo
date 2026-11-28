@@ -5,7 +5,7 @@ import { classificationsApi } from '@/api/classifications'
 import { costCentersApi } from '@/api/costCenters'
 import { financialPeriodsApi } from '@/api/financialPeriods'
 import { recurringMovementsApi } from '@/api/recurringMovements'
-import { Select } from '@/components/ui/select'
+import { pickComboboxValue } from '@/test/combobox'
 import { mountView, pageOf, problem, settle } from '@/test/crud'
 import type {
   CardListView,
@@ -53,10 +53,6 @@ const existing = {
 
 function field(wrapper: Wrapper, name: string) {
   return wrapper.find(`[name="${name}"]`)
-}
-
-function selects(wrapper: Wrapper) {
-  return wrapper.findAllComponents(Select)
 }
 
 function switches(wrapper: Wrapper) {
@@ -107,8 +103,8 @@ async function render(id?: string) {
 async function fillBasics(wrapper: Wrapper) {
   await field(wrapper, 'name').setValue('Celular novo')
   await field(wrapper, 'value').setValue('25000')
-  selects(wrapper)[0]!.vm.$emit('update:modelValue', 'cc-1')
-  selects(wrapper)[1]!.vm.$emit('update:modelValue', 'cl-1')
+  pickComboboxValue(wrapper, 'costCenter', 'cc-1')
+  pickComboboxValue(wrapper, 'classification', 'cl-1')
 }
 
 describe('RecurringMovementFormView', () => {
@@ -234,8 +230,8 @@ describe('RecurringMovementFormView', () => {
 
     await field(wrapper, 'name').setValue('Salário')
     await field(wrapper, 'value').setValue('500000')
-    selects(wrapper)[0]!.vm.$emit('update:modelValue', 'cc-1')
-    selects(wrapper)[1]!.vm.$emit('update:modelValue', 'cl-2')
+    pickComboboxValue(wrapper, 'costCenter', 'cc-1')
+    pickComboboxValue(wrapper, 'classification', 'cl-2')
     await radio(wrapper, 'Prazo indeterminado').trigger('click')
     await submit(wrapper)
 

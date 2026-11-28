@@ -11,6 +11,7 @@ import SegmentedField from '@/components/forms/SegmentedField.vue'
 import SelectField from '@/components/forms/SelectField.vue'
 import { Select } from '@/components/ui/select'
 import { useConfirmDialog } from '@/composables/useConfirmDialog'
+import { comboboxField, pickComboboxValue } from '@/test/combobox'
 import { mountView, pageOf, problem, settle } from '@/test/crud'
 import type {
   ClassificationListView,
@@ -142,8 +143,8 @@ async function render(id?: string, content = periods) {
 async function fillBasics(wrapper: Wrapper) {
   await field(wrapper, 'name').setValue('Conta de água')
   await field(wrapper, 'value').setValue('9612')
-  selects(wrapper)[1]!.vm.$emit('update:modelValue', 'cc-1')
-  selects(wrapper)[2]!.vm.$emit('update:modelValue', 'cl-1')
+  pickComboboxValue(wrapper, 'costCenter', 'cc-1')
+  pickComboboxValue(wrapper, 'classification', 'cl-1')
 }
 
 async function turnOnPaid(wrapper: Wrapper) {
@@ -220,7 +221,9 @@ describe('MovementFormView', () => {
 
     expect(field(wrapper, 'name').attributes('placeholder')).toBe('Ex.: Salário de dezembro')
     expect(wrapper.text()).toContain('Só aparecem classificações de receita.')
-    expect(optionsOf(wrapper, 2)).toEqual([{ value: 'cl-2', label: 'Salário' }])
+    expect(comboboxField(wrapper, 'classification').props('options')).toEqual([
+      { value: 'cl-2', label: 'Salário' },
+    ])
   })
 
   it('lists only the open periods, marking the expired one', async () => {
@@ -268,8 +271,8 @@ describe('MovementFormView', () => {
     selects(wrapper)[0]!.vm.$emit('update:modelValue', 'p-10')
     await field(wrapper, 'name').setValue('Salário')
     await field(wrapper, 'value').setValue('840000')
-    selects(wrapper)[1]!.vm.$emit('update:modelValue', 'cc-1')
-    selects(wrapper)[2]!.vm.$emit('update:modelValue', 'cl-2')
+    pickComboboxValue(wrapper, 'costCenter', 'cc-1')
+    pickComboboxValue(wrapper, 'classification', 'cl-2')
     await submit(wrapper)
 
     expect(movementsApi.create).toHaveBeenCalledWith(
@@ -335,11 +338,11 @@ describe('MovementFormView', () => {
 
     await turnOnPaid(wrapper)
 
-    expect(optionsOf(wrapper, 3)).toEqual([
+    expect(optionsOf(wrapper, 1)).toEqual([
       { value: 'w-1', label: expect.stringMatching(/^Conta corrente · saldo R\$\s1\.234,50$/) },
       { value: 'w-2', label: expect.stringMatching(/^Poupança · saldo −R\$\s10,00$/) },
     ])
-    expect(selects(wrapper)[3]!.props('modelValue')).toBe('w-1')
+    expect(selects(wrapper)[1]!.props('modelValue')).toBe('w-1')
   })
 
   it('asks for the wallet of an already paid movement', async () => {
@@ -347,7 +350,7 @@ describe('MovementFormView', () => {
 
     await turnOnPaid(wrapper)
     await fillBasics(wrapper)
-    selects(wrapper)[3]!.vm.$emit('update:modelValue', '')
+    selects(wrapper)[1]!.vm.$emit('update:modelValue', '')
     await submit(wrapper)
 
     expect(movementsApi.create).not.toHaveBeenCalled()
@@ -392,7 +395,7 @@ describe('MovementFormView', () => {
     expect(wrapper.findAllComponents(SegmentedField).map((item) => item.props('name'))).toEqual([
       'type',
     ])
-    expect(selects(wrapper)[3]!.props('modelValue')).toBe('w-1')
+    expect(selects(wrapper)[1]!.props('modelValue')).toBe('w-1')
   })
 
   it('posts an expense paid on the card', async () => {
@@ -480,7 +483,7 @@ describe('MovementFormView', () => {
     expect(wrapper.findAll('h2').map((title) => title.text())).not.toContain('Pagamento')
     expect(wrapper.find('button[type="submit"]').text()).toBe('Salvar')
     expect(wrapper.findAllComponents(SelectField)[0]!.props('disabled')).toBe(true)
-    expect(wrapper.findAllComponents(SelectField)[1]!.props('disabled')).toBeFalsy()
+    expect(comboboxField(wrapper, 'costCenter').props('disabled')).toBeFalsy()
   })
 
   it('shows an income being edited as income and one without cost center', async () => {

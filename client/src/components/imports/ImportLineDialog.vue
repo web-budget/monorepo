@@ -2,6 +2,7 @@
 import { Check, TriangleAlert } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
+import FilterCombobox from '@/components/forms/FilterCombobox.vue'
 import FilterSelect from '@/components/forms/FilterSelect.vue'
 import ServerErrorAlert from '@/components/forms/ServerErrorAlert.vue'
 import ImportLineBadges from '@/components/imports/ImportLineBadges.vue'
@@ -79,7 +80,7 @@ const actionOptions = computed(() =>
   })),
 )
 const costCenterOptions = computed(() =>
-  props.costCenters.map((item) => ({ value: item.id, label: item.name })),
+  props.costCenters.map((item) => ({ value: item.id, label: item.fullName })),
 )
 const classificationOptions = computed(() => {
   const type = isIncoming(working.value!) ? 'INCOME' : 'EXPENSE'
@@ -277,13 +278,15 @@ async function save() {
             v-if="action === 'CREATE' || action === 'CREATE_RECURRING'"
             class="grid grid-cols-1 gap-3 sm:grid-cols-2"
           >
-            <FilterSelect
+            <FilterCombobox
               v-model="costCenter"
               :label="$t('imports.draft.fields.cost-center')"
               :none-label="$t('imports.draft.choose')"
               :options="costCenterOptions"
+              :search-placeholder="$t('cost-center.combobox.search')"
+              :empty-message="$t('cost-center.combobox.empty')"
             />
-            <FilterSelect
+            <FilterCombobox
               v-model="classification"
               :label="
                 $t(
@@ -294,6 +297,8 @@ async function save() {
               "
               :none-label="$t('imports.draft.choose')"
               :options="classificationOptions"
+              :search-placeholder="$t('classification.combobox.search')"
+              :empty-message="$t('classification.combobox.empty')"
             />
           </div>
           <div v-if="linking" class="grid gap-1.5">
