@@ -144,6 +144,20 @@ describe('FinancialHomeView', () => {
     expect(card(wrapper, '/financial/closing').attention.text()).toBe('Setembro pendente')
   })
 
+  it('shows on the statement card the wallet the statement opens on', async () => {
+    vi.mocked(walletsApi.findAll).mockResolvedValue(
+      listOf([
+        { id: 'w-1', name: 'Alfa', active: true, lastEntryOn: '2026-11-10T10:00:00' },
+        { id: 'w-2', name: 'Beta', active: true, lastEntryOn: '2026-11-20T10:00:00' },
+        { id: 'w-3', name: 'Gama', active: false, lastEntryOn: '2026-11-25T10:00:00' },
+      ] as WalletListView[]),
+    )
+    const { wrapper } = render()
+    await flushPromises()
+
+    expect(card(wrapper, '/financial/statement').count.text()).toBe('Beta')
+  })
+
   it('asks for the movements and the invoices of the period that opens by default', async () => {
     render()
     await flushPromises()
