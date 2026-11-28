@@ -216,7 +216,7 @@ class ImportLineCompartmentValidator : ImportLineValidator {
             throw DomainException(
                 "The compartment does not belong to the wallet of the import",
                 IMPORT_COMPARTMENT_NOT_AVAILABLE,
-                status = HttpStatus.UNPROCESSABLE_ENTITY
+                status = HttpStatus.UNPROCESSABLE_CONTENT
             )
         }
     }
@@ -298,7 +298,7 @@ class ImportSaveCompartmentValidator : ImportSaveValidator {
                 throw DomainException(
                     "The compartment does not belong to the wallet of the import",
                     IMPORT_COMPARTMENT_NOT_AVAILABLE,
-                    status = HttpStatus.UNPROCESSABLE_ENTITY
+                    status = HttpStatus.UNPROCESSABLE_CONTENT
                 )
             }
         }
@@ -335,7 +335,7 @@ class ImportSaveCompartmentValidator : ImportSaveValidator {
                         )
                     }
                 ),
-                HttpStatus.UNPROCESSABLE_ENTITY
+                HttpStatus.UNPROCESSABLE_CONTENT
             )
         }
     }
