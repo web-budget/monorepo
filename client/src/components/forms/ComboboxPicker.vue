@@ -93,6 +93,7 @@ watch(query, async () => {
         <button
           v-bind="$attrs"
           type="button"
+          role="combobox"
           tabindex="0"
           :aria-label="triggerLabel"
           :aria-busy="loading || undefined"

@@ -72,6 +72,7 @@ describe('ComboboxField', () => {
     expect(trigger(wrapper).attributes('aria-label')).toBe('Centro de custo')
     expect(trigger(wrapper).attributes('id')).toBe(wrapper.get('label').attributes('for'))
     expect(trigger(wrapper).attributes('tabindex')).toBe('0')
+    expect(trigger(wrapper).attributes('role')).toBe('combobox')
   })
 
   it('shows the selected option with the parent path muted', () => {
