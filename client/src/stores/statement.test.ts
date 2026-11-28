@@ -121,6 +121,19 @@ describe('useStatementStore', () => {
     expect(store.loading).toBe(false)
   })
 
+  it('loads the reference balances of a wallet and stops loading even when it fails', async () => {
+    const reference = { freeBalance: 50, totalBalance: 150, compartments: [] }
+    vi.mocked(reconciliationsApi.findBalance).mockResolvedValueOnce(reference)
+    const store = useStatementStore()
+
+    await expect(store.findReconciliationBalance('w-1')).resolves.toBe(reference)
+    expect(reconciliationsApi.findBalance).toHaveBeenCalledWith('w-1')
+
+    vi.mocked(reconciliationsApi.findBalance).mockRejectedValueOnce(new Error('boom'))
+    await expect(store.findReconciliationBalance('w-1')).rejects.toThrow('boom')
+    expect(store.loading).toBe(false)
+  })
+
   it('loads the summary of the filter, without the paging', async () => {
     const summary: StatementSummary = {
       credits: { total: 10, count: 1 },

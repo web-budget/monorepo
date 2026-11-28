@@ -12,6 +12,8 @@ const wallet: ReconcilableWallet = {
   name: 'Conta corrente',
   personal: false,
   balance: 1000,
+  freeBalance: 1000,
+  compartments: [],
 }
 
 async function render(
@@ -227,7 +229,7 @@ describe('ReconcileDialog', () => {
 
     await wrapper.setProps({
       wallet: { ...wallet, balance: 1018.5 },
-      balanceChange: { balance: 1018.5, difference: -6.1 },
+      balanceChange: { balance: 1018.5, difference: -6.1, freeBalance: 1018.5, compartments: [] },
     })
     await flushPromises()
 
@@ -247,6 +249,90 @@ describe('ReconcileDialog', () => {
         { informedBalance: 1012.4, shownBalance: 1018.5, reason: 'Centavos do banco' },
       ],
     ])
+  })
+
+  describe('with compartments', () => {
+    const withCompartments: ReconcilableWallet = {
+      ...wallet,
+      balance: 1500,
+      freeBalance: 500,
+      compartments: [
+        { id: 'c-1', name: 'Reserva da casa', balance: 1000 },
+        { id: 'c-2', name: 'IPTU 2027', balance: 0 },
+      ],
+    }
+
+    function reference() {
+      return document.body.querySelector('[data-slot="reconcile-reference"]')
+    }
+
+    it('shows the free balance and each compartment before the field, and calls the total of the wallet', async () => {
+      await render(withCompartments)
+
+      expect(reference()!.textContent).toContain('Na carteira agora')
+      expect(reference()!.textContent).toMatch(/Saldo livre\s*500,00/)
+      expect(reference()!.textContent).toMatch(/Reserva da casa\s*1\.000,00/)
+      expect(reference()!.textContent).toMatch(/IPTU 2027\s*0,00/)
+      expect(summary()).toMatch(/Total da carteira\s*1\.500,00/)
+      expect(summary()).not.toContain('Saldo da carteira')
+      expect(document.body.textContent).not.toContain('Dinheiro contado')
+    })
+
+    it('signs only the negative free balance', async () => {
+      await render({ ...withCompartments, freeBalance: -50 })
+
+      expect(reference()!.textContent).toMatch(/Saldo livre\s*−50,00/)
+      expect(reference()!.querySelectorAll('.text-expense')).toHaveLength(1)
+    })
+
+    it('calculates the difference against the total and sends the total as the shown balance', async () => {
+      const wrapper = await render(withCompartments)
+      await type('informedBalance', '160000')
+      await type('reason', 'Rendimento do banco')
+
+      expect(summary()).toMatch(/Diferença\s*100,00/)
+
+      await submit()
+
+      expect(wrapper.emitted('reconcile')).toEqual([
+        [
+          withCompartments,
+          { informedBalance: 1600, shownBalance: 1500, reason: 'Rendimento do banco' },
+        ],
+      ])
+    })
+
+    it('swaps the total, the free balance and the compartments when the balance changed', async () => {
+      const wrapper = await render(withCompartments)
+
+      await wrapper.setProps({
+        wallet: {
+          ...withCompartments,
+          balance: 1450,
+          freeBalance: 450,
+          compartments: [{ id: 'c-1', name: 'Reserva da casa', balance: 1000 }],
+        },
+        balanceChange: {
+          balance: 1450,
+          difference: 10,
+          freeBalance: 450,
+          compartments: [{ id: 'c-1', name: 'Reserva da casa', balance: 1000 }],
+        },
+      })
+      await flushPromises()
+
+      expect(reference()!.textContent).toMatch(/Saldo livre\s*450,00/)
+      expect(reference()!.textContent).not.toContain('IPTU 2027')
+      expect(summary()).toMatch(/Total da carteira\s*1\.450,00/)
+      expect(document.body.textContent).toContain('O saldo passou a 1.450,00.')
+    })
+
+    it('has no reference block without compartments', async () => {
+      await render()
+
+      expect(reference()).toBeNull()
+      expect(summary()).toContain('Saldo da carteira')
+    })
   })
 
   it('does not take the focus from the field when the cancel button is pressed', async () => {
@@ -280,7 +366,14 @@ describe('ReconcileDialog', () => {
     await type('informedBalance', '101240')
 
     await wrapper.setProps({
-      wallet: { id: 'w-2', name: 'Poupança', personal: false, balance: 10 },
+      wallet: {
+        id: 'w-2',
+        name: 'Poupança',
+        personal: false,
+        balance: 10,
+        freeBalance: 10,
+        compartments: [],
+      },
     })
     await flushPromises()
 

@@ -1,6 +1,7 @@
 package br.com.webbudget.server.application.controllers.financial
 
 import br.com.webbudget.server.application.mappers.financial.WalletEntryMapper
+import br.com.webbudget.server.application.payloads.financial.ReconciliationBalanceView
 import br.com.webbudget.server.application.payloads.financial.ReconciliationForm
 import br.com.webbudget.server.application.payloads.financial.ReconciliationPositionView
 import br.com.webbudget.server.application.payloads.financial.ReconciliationResultView
@@ -56,6 +57,14 @@ class WalletReconciliationController(
         return walletReconciliationRepository.findAll(wallet.id, pageable)
             .map { walletEntryMapper.mapToView(it) }
             .let { ResponseEntity.ok(it) }
+    }
+
+    @GetMapping("/{id}/reconciliations/balance")
+    fun getBalance(@PathVariable id: UUID): ResponseEntity<ReconciliationBalanceView> {
+
+        val wallet = movementReferenceRepository.findWallet(id) ?: throw ResourceNotFoundException()
+
+        return ResponseEntity.ok(walletEntryMapper.mapToView(movementReferenceRepository.findWalletBalances(wallet.id)))
     }
 
     @GetMapping("/{id}/reconciliations/{reconciliationId}/position")

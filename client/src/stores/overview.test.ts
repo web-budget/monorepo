@@ -2,6 +2,7 @@ import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { dashboardsApi } from '@/api/dashboards'
 import { useOverviewStore } from '@/stores/overview'
+import { overviewExtras } from '@/test/overviewFixtures'
 import type { OverviewView } from '@/types'
 
 vi.mock('@/api/dashboards')
@@ -19,6 +20,7 @@ const overview: OverviewView = {
   },
   resultByYear: [],
   periods: [],
+  ...overviewExtras,
 }
 
 describe('useOverviewStore', () => {

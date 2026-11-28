@@ -134,7 +134,7 @@ class ImportControllerTest : ImportTestSupport() {
         assertThat(lines[4]["alreadyRegistered"]).isEqualTo(true)
         assertThat(lines[5]["link"].asMap()["name"]).isEqualTo("Pagamento de fatura, Financial test card")
         assertThat(lines[6]["alreadyImported"]).isEqualTo(true)
-        assertThat(lines[2]["allowedActions"]).isEqualTo(listOf("CREATE", "LINK", "IGNORE"))
+        assertThat(lines[2]["allowedActions"]).isEqualTo(listOf("CREATE", "LINK", "COMPARTMENT", "IGNORE"))
         assertThat(lines[2]["ignoreReason"].asMap()).isEqualTo(mapOf("code" to "already-registered"))
         assertThat(lines[6]["ignoreReason"].asMap()).isEqualTo(mapOf("code" to "already-imported", "date" to "2026-11-01"))
     }

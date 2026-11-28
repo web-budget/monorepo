@@ -4,6 +4,7 @@ import { reconciliationsApi } from '@/api/reconciliations'
 import { walletEntriesApi } from '@/api/walletEntries'
 import type {
   PagedResponse,
+  ReconciliationBalanceView,
   ReconciliationForm,
   ReconciliationResultView,
   ReconciliationView,
@@ -100,6 +101,15 @@ export const useStatementStore = defineStore('statement', () => {
     }
   }
 
+  async function findReconciliationBalance(walletId: string): Promise<ReconciliationBalanceView> {
+    pending.value++
+    try {
+      return await reconciliationsApi.findBalance(walletId)
+    } finally {
+      pending.value--
+    }
+  }
+
   async function reconcile(
     walletId: string,
     form: ReconciliationForm,
@@ -149,6 +159,7 @@ export const useStatementStore = defineStore('statement', () => {
     findAll,
     findSummary,
     findEntry,
+    findReconciliationBalance,
     reconcile,
     findReconciliations,
     findReconciliationPosition,

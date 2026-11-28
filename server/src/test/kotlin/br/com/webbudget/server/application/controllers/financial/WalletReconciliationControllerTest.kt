@@ -3,6 +3,7 @@ package br.com.webbudget.server.application.controllers.financial
 import br.com.webbudget.server.BaseIntegrationTest
 import br.com.webbudget.server.jooq.financial.tables.references.WALLET_ENTRIES
 import br.com.webbudget.server.jooq.financial.tables.references.WALLET_RECONCILIATIONS
+import br.com.webbudget.server.jooq.registration.tables.references.COMPARTMENTS
 import br.com.webbudget.server.jooq.registration.tables.references.WALLETS
 import org.assertj.core.api.Assertions.assertThat
 import org.jooq.DSLContext
@@ -10,6 +11,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.test.context.jdbc.Sql
+import org.springframework.test.context.jdbc.SqlMergeMode
 import org.springframework.test.context.jdbc.Sql.ExecutionPhase.AFTER_TEST_METHOD
 import java.math.BigDecimal
 import java.time.LocalDateTime
@@ -24,6 +26,7 @@ import java.util.concurrent.CompletableFuture
     "/sql/financial/create-wallet-reconciliations.sql"
 )
 @Sql("/sql/financial/clear-tables.sql", executionPhase = AFTER_TEST_METHOD)
+@SqlMergeMode(SqlMergeMode.MergeMode.MERGE)
 class WalletReconciliationControllerTest : BaseIntegrationTest() {
 
     @Autowired
@@ -427,6 +430,160 @@ class WalletReconciliationControllerTest : BaseIntegrationTest() {
             .jsonPath("$.page.totalElements").isEqualTo(3)
     }
 
+    @Test
+    @Sql("/sql/financial/create-reconciliation-compartments.sql")
+    fun `should refuse a reconciliation of the total of a wallet with compartments and record nothing`() {
+
+        reconcile(WALLET, body("1750.75", "1750.75", "Same total"))
+            .expectStatus().isBadRequest
+            .expectBody()
+            .jsonPath("$.error").isEqualTo("reconciliation-without-difference")
+
+        assertNothingRecorded(WALLET_ID, "500.50")
+    }
+
+    @Test
+    @Sql("/sql/financial/create-reconciliation-compartments.sql")
+    fun `should adjust the free balance by the difference against the total and keep the compartments`() {
+
+        reconcile(WALLET, body("2000.75", "1750.75", "Bonus of the bank"))
+            .expectStatus().isCreated
+            .expectBody()
+            .jsonPath("$.reconciliation.informedBalance").isEqualTo(2000.75)
+            .jsonPath("$.reconciliation.walletBalance").isEqualTo(1750.75)
+            .jsonPath("$.reconciliation.difference").isEqualTo(250.0)
+            .jsonPath("$.entry.direction").isEqualTo("CREDIT")
+            .jsonPath("$.entry.value").isEqualTo(250.0)
+            .jsonPath("$.entry.previousBalance").isEqualTo(500.5)
+            .jsonPath("$.entry.resultingBalance").isEqualTo(750.5)
+
+        assertThat(balanceOf(WALLET_ID)).isEqualByComparingTo("750.50")
+        assertThat(compartmentBalanceOf(9201L)).isEqualByComparingTo("1000.00")
+        assertThat(compartmentBalanceOf(9202L)).isEqualByComparingTo("250.25")
+        assertThat(
+            dsl.select(WALLET_RECONCILIATIONS.WALLET_BALANCE).from(WALLET_RECONCILIATIONS)
+                .where(WALLET_RECONCILIATIONS.ID_WALLET.eq(WALLET_ID)).fetchSingle().value1()!!
+        ).isEqualByComparingTo("1750.75")
+    }
+
+    @Test
+    @Sql("/sql/financial/create-reconciliation-compartments.sql")
+    fun `should tell the total, the free balance and the compartments when the shown balance is the free one`() {
+
+        reconcile(WALLET, body("2000.75", "500.50", "Free shown"))
+            .expectStatus().isEqualTo(409)
+            .expectBody()
+            .jsonPath("$.error").isEqualTo("reconciliation-balance-changed")
+            .jsonPath("$.parameters.currentBalance").isEqualTo(1750.75)
+            .jsonPath("$.parameters.difference").isEqualTo(250.0)
+            .jsonPath("$.parameters.freeBalance").isEqualTo(500.5)
+            .jsonPath("$.parameters.compartments.length()").isEqualTo(2)
+            .jsonPath("$.parameters.compartments[0].id").isEqualTo(EMERGENCY_COMPARTMENT)
+            .jsonPath("$.parameters.compartments[0].name").isEqualTo("Emergency")
+            .jsonPath("$.parameters.compartments[0].balance").isEqualTo(1000.0)
+            .jsonPath("$.parameters.compartments[1].name").isEqualTo("Stocks")
+
+        assertNothingRecorded(WALLET_ID, "500.50")
+    }
+
+    @Test
+    @Sql("/sql/financial/create-reconciliation-compartments.sql")
+    fun `should not conflict when money moves between the free balance and a compartment after the dialog was opened`() {
+
+        restTestClient.post()
+            .uri("/private/v1/financial/wallets/$WALLET/compartments/$EMERGENCY_COMPARTMENT/movements")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"direction": "DEPOSIT", "value": 100.00}""")
+            .exchange()
+            .expectStatus().isCreated
+
+        reconcile(WALLET, body("2000.75", "1750.75", "After deposit"))
+            .expectStatus().isCreated
+            .expectBody()
+            .jsonPath("$.reconciliation.walletBalance").isEqualTo(1750.75)
+            .jsonPath("$.reconciliation.difference").isEqualTo(250.0)
+            .jsonPath("$.entry.resultingBalance").isEqualTo(650.5)
+
+        restTestClient.post()
+            .uri("/private/v1/financial/wallets/$WALLET/compartments/$EMERGENCY_COMPARTMENT/movements")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"direction": "WITHDRAWAL", "value": 50.00}""")
+            .exchange()
+            .expectStatus().isCreated
+
+        reconcile(WALLET, body("2100.75", "2000.75", "After withdrawal"))
+            .expectStatus().isCreated
+            .expectBody()
+            .jsonPath("$.reconciliation.difference").isEqualTo(100.0)
+    }
+
+    @Test
+    @Sql("/sql/financial/create-reconciliation-compartments.sql")
+    fun `should conflict when an entry of the free balance happens after the dialog was opened`() {
+
+        restTestClient.post()
+            .uri("/private/v1/financial/transfers")
+            .contentType(MediaType.APPLICATION_JSON)
+            .body("""{"fromWallet": "$WALLET", "toWallet": "$OTHER_WALLET", "value": 10.00}""")
+            .exchange()
+            .expectStatus().isCreated
+
+        reconcile(WALLET, body("2000.75", "1750.75", "After transfer"))
+            .expectStatus().isEqualTo(409)
+            .expectBody()
+            .jsonPath("$.error").isEqualTo("reconciliation-balance-changed")
+            .jsonPath("$.parameters.currentBalance").isEqualTo(1740.75)
+            .jsonPath("$.parameters.freeBalance").isEqualTo(490.5)
+            .jsonPath("$.parameters.compartments.length()").isEqualTo(2)
+    }
+
+    @Test
+    @Sql("/sql/financial/create-reconciliation-compartments.sql")
+    fun `should tell the free balance, the total and the compartments of a wallet`() {
+
+        restTestClient.get()
+            .uri("$RECONCILIATIONS_URL/balance")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.freeBalance").isEqualTo(500.5)
+            .jsonPath("$.totalBalance").isEqualTo(1750.75)
+            .jsonPath("$.compartments.length()").isEqualTo(2)
+            .jsonPath("$.compartments[0].id").isEqualTo(EMERGENCY_COMPARTMENT)
+            .jsonPath("$.compartments[0].name").isEqualTo("Emergency")
+            .jsonPath("$.compartments[0].balance").isEqualTo(1000.0)
+            .jsonPath("$.compartments[1].name").isEqualTo("Stocks")
+            .jsonPath("$.compartments[1].balance").isEqualTo(250.25)
+    }
+
+    @Test
+    fun `should tell the balance of a wallet without compartments, and refuse an unknown wallet or a missing role`() {
+
+        restTestClient.get()
+            .uri("$RECONCILIATIONS_URL/balance")
+            .exchange()
+            .expectStatus().isOk
+            .expectBody()
+            .jsonPath("$.freeBalance").isEqualTo(500.5)
+            .jsonPath("$.totalBalance").isEqualTo(500.5)
+            .jsonPath("$.compartments.length()").isEqualTo(0)
+
+        restTestClient.get()
+            .uri("/private/v1/financial/wallets/${UUID.randomUUID()}/reconciliations/balance")
+            .exchange()
+            .expectStatus().isNotFound
+
+        authenticateWithRoles("REGISTRATION")
+
+        restTestClient.get()
+            .uri("$RECONCILIATIONS_URL/balance")
+            .exchange()
+            .expectStatus().isForbidden
+    }
+
+    private fun compartmentBalanceOf(compartmentId: Long): BigDecimal =
+        dsl.select(COMPARTMENTS.BALANCE).from(COMPARTMENTS).where(COMPARTMENTS.ID.eq(compartmentId)).fetchSingle().value1()!!
+
     private fun body(informedBalance: String, shownBalance: String, reason: String) =
         """{"informedBalance": $informedBalance, "shownBalance": $shownBalance, "reason": "$reason"}"""
 
@@ -469,6 +626,7 @@ class WalletReconciliationControllerTest : BaseIntegrationTest() {
         private const val OTHER_WALLET = "7e1b6f3a-2c4d-4b8e-9a10-5d3f0c9b7a05"
         private const val RECONCILIATIONS_URL = "/private/v1/financial/wallets/$WALLET/reconciliations"
         private const val HISTORY_URL = "/private/v1/financial/wallets/$OTHER_WALLET/reconciliations"
+        private const val EMERGENCY_COMPARTMENT = "c0a1e9a0-0000-4000-8000-000000009201"
         private const val OPEN_PERIOD = "2a7b99bc-f077-4dbf-8458-87c5d0e8fd7a"
         private const val NEWEST_RECONCILIATION = "8c4d2f10-3a5b-4e6c-9d7e-1f2a3b4c5d13"
         private const val MIDDLE_RECONCILIATION = "8c4d2f10-3a5b-4e6c-9d7e-1f2a3b4c5d12"

@@ -63,7 +63,17 @@ class ImportSaveService(
 
         if (blockers.isNotEmpty()) {
             throw DomainException.conflict(
-                parameters = mapOf("blockers" to blockers.map { mapOf("reason" to it.reason, "position" to it.position, "name" to it.name) }),
+                parameters = mapOf(
+                    "blockers" to blockers.map {
+                        mapOf(
+                            "reason" to it.reason,
+                            "position" to it.position,
+                            "name" to it.name,
+                            "compartment" to it.compartment,
+                            "value" to it.value
+                        )
+                    }
+                ),
                 message = "The import cannot be undone",
                 error = IMPORT_UNDO_BLOCKED
             )
@@ -101,6 +111,7 @@ class ImportSaveService(
         costCenter = line.costCenter,
         classification = line.classification,
         wallet = line.targetWallet,
+        compartment = if (line.action == ImportAction.COMPARTMENT) line.targetCompartment else null,
         recurringId = when (line.action) {
             ImportAction.LINK -> line.link?.recurringId
             ImportAction.LAUNCH_RECURRING -> line.link?.id

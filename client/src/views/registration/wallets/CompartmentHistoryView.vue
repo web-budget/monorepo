@@ -4,6 +4,7 @@ import {
   ArrowDownLeft,
   ArrowUpFromLine,
   ArrowUpRight,
+  FileUp,
   History,
   Pencil,
   Trash2,
@@ -130,6 +131,10 @@ function openEntry(movement: CompartmentMovementView) {
     name: 'statement.detail',
     params: { wallet: props.id, id: movement.entryId },
   })
+}
+
+function openImport(movement: CompartmentMovementView) {
+  return router.push({ name: 'imports.detail', params: { id: movement.importId } })
 }
 
 const columns = computed(() => [
@@ -330,16 +335,28 @@ const columns = computed(() => [
         />
       </template>
       <template #cell-origin="{ item }">
-        <Button
-          v-if="item.entryId"
-          type="button"
-          variant="ghost"
-          size="icon-sm"
-          :aria-label="$t('compartment.history.open-entry')"
-          @click.stop="openEntry(item)"
-        >
-          <ArrowUpRight />
-        </Button>
+        <span class="inline-flex items-center gap-1">
+          <Button
+            v-if="item.entryId"
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            :aria-label="$t('compartment.history.open-entry')"
+            @click.stop="openEntry(item)"
+          >
+            <ArrowUpRight />
+          </Button>
+          <Button
+            v-if="item.importId"
+            type="button"
+            variant="ghost"
+            size="icon-sm"
+            :aria-label="$t('compartment.history.open-import')"
+            @click.stop="openImport(item)"
+          >
+            <FileUp />
+          </Button>
+        </span>
       </template>
     </ItemsTable>
   </PageContainer>

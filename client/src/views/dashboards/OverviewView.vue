@@ -10,6 +10,8 @@ import PageContainer from '@/components/common/PageContainer.vue'
 import PageHeader from '@/components/common/PageHeader.vue'
 import FigureStrip, { type Figure } from '@/components/dashboards/FigureStrip.vue'
 import FinancialFlowChart from '@/components/dashboards/FinancialFlowChart.vue'
+import ReliabilityCard from '@/components/dashboards/ReliabilityCard.vue'
+import ReserveCard from '@/components/dashboards/ReserveCard.vue'
 import YearResultChart from '@/components/dashboards/YearResultChart.vue'
 import ListState from '@/components/listing/ListState.vue'
 import { Badge } from '@/components/ui/badge'
@@ -72,6 +74,8 @@ const yearChoices = computed(() => [
 const cutLabel = computed(() =>
   shownCut.value === 'all' ? t('overview.summary.all-periods') : String(shownCut.value),
 )
+
+const untilToday = computed(() => shownCut.value !== currentYear)
 
 const figures = computed<Figure[]>(() => [
   { key: 'revenues', label: t('overview.figures.revenues') },
@@ -201,6 +205,12 @@ function createPeriod() {
           </template>
         </FigureStrip>
       </Card>
+      <ReserveCard
+        :accumulated="overview.accumulated"
+        :cost-of-living="overview.costOfLiving"
+        :reserve="overview.reserve"
+        :until-today="untilToday"
+      />
       <div class="grid gap-5 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]" data-slot="charts">
         <Card class="content-start p-5">
           <FinancialFlowChart :periods="overview.periods" :cut="shownCut" />
@@ -280,6 +290,11 @@ function createPeriod() {
           </div>
         </div>
       </Card>
+      <ReliabilityCard
+        :reliability="overview.reliability"
+        :cut-label="cutLabel"
+        :until-today="untilToday"
+      />
     </div>
   </PageContainer>
 </template>

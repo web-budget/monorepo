@@ -81,8 +81,14 @@ class ImportService(
         }
     }
 
-    fun candidates(import: Import, line: ImportLine): List<ImportCandidate> =
-        pool(import, line).filter { candidate -> (candidate.kind to candidate.id) !in usedTargets(import, line) }
+    fun candidates(import: Import, line: ImportLine): List<ImportCandidate> {
+
+        if (line.action == ImportAction.COMPARTMENT) {
+            return importCandidateRepository.findCompartments(import.wallet!!.id)
+        }
+
+        return pool(import, line).filter { candidate -> (candidate.kind to candidate.id) !in usedTargets(import, line) }
+    }
 
     private fun saveLine(import: Import, line: ImportLine): ImportLine {
 
@@ -108,8 +114,14 @@ class ImportService(
         change.costCenter?.let { line.costCenter = it }
         change.classification?.let { line.classification = it }
         change.wallet?.let { line.targetWallet = it }
+        change.compartment?.let { line.targetCompartment = it }
         change.installment?.let { line.installment = it }
         change.installments?.let { line.installments = it }
+
+        if (line.action == ImportAction.COMPARTMENT) {
+            line.costCenter = null
+            line.classification = null
+        }
 
         change.link?.let { reference ->
             line.link = pool(line.import, line).firstOrNull { candidate ->

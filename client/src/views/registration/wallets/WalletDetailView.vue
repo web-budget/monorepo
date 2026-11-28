@@ -122,7 +122,7 @@ const lastReconciliation = computed(() => {
         type="button"
         variant="outline"
         :disabled="!wallet.active"
-        @click="reconciliation.open(wallet, wallet.currentBalance)"
+        @click="reconciliation.open(wallet)"
       >
         <CheckCheck />{{ $t('wallet.actions.reconcile') }}
       </Button>
@@ -206,7 +206,7 @@ const lastReconciliation = computed(() => {
         :loading="history.loading.value"
         :can-reconcile="wallet.active"
         @page-changed="history.change"
-        @reconcile="reconciliation.open(wallet, wallet.currentBalance)"
+        @reconcile="reconciliation.open(wallet)"
       />
     </template>
   </DetailCard>

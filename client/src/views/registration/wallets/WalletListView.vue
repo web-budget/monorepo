@@ -193,7 +193,7 @@ const reconciliation = useReconciliation(reload)
           <WalletRowActions
             :reconcilable="item.active"
             @statement="openStatement(item)"
-            @reconcile="reconciliation.open(item, item.currentBalance)"
+            @reconcile="reconciliation.open(item)"
             @edit="changeToUpdate(item.id)"
             @remove="remove(item)"
           />

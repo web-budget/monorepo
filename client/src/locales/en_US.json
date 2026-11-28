@@ -1048,6 +1048,10 @@
       "save-blocked": "Resolve the line to save | Resolve the {count} lines to save",
       "saved": "Import saved",
       "transfer-to": "To {wallet}",
+      "compartment-save": "Save in {compartment}",
+      "compartment-withdraw": "Withdraw from {compartment}",
+      "save-error": "Could not save",
+      "balance-exceeded": "The withdrawal of {date} exceeds the balance of {compartment} ({balance}), added to the previous lines.",
       "missing": "Missing {what}",
       "columns": {
         "date": "Date",
@@ -1063,19 +1067,22 @@
         "CREATE_RECURRING": "Create recurring",
         "INVOICE_PAYMENT": "Invoice payment",
         "TRANSFER": "Transfer",
+        "COMPARTMENT": "Piggy bank",
         "IGNORE": "Ignore"
       },
       "badges": {
         "already-imported": "Already imported",
         "already-registered": "Already registered",
         "credit": "Credit without purchase",
-        "difference": "Difference of {value}"
+        "difference": "Difference of {value}",
+        "balance-exceeded": "Exceeds the balance of {compartment}"
       },
       "reasons": {
         "cost-center": "cost center",
         "classification": "classification",
         "installments": "installments",
         "wallet": "wallet",
+        "compartment": "piggy bank",
         "link": {
           "LINK": "the linked entry",
           "INVOICE_PAYMENT": "invoice payment",
@@ -1100,6 +1107,8 @@
         "ledger": "File balance",
         "ledger-on": "On {date}",
         "balance-after": "Balance after saving",
+        "free-balance-after": "Free balance after saving",
+        "total-after": "Total after saving",
         "difference": "Difference of {value}",
         "credits": "{value} in ignored credits"
       },
@@ -1128,6 +1137,8 @@
         "installment": "Current installment",
         "installments": "Number of installments",
         "wallet-to": "To the wallet",
+        "compartment-save": "Save in",
+        "compartment-withdraw": "Withdraw from",
         "link": {
           "LINK": "Entry",
           "INVOICE_PAYMENT": "Invoice payment",
@@ -1170,6 +1181,7 @@
         "linked": "Linked",
         "recurring": "Recurrings",
         "transfers": "Transfers",
+        "compartments": "Piggy banks",
         "ignored": "Ignored"
       },
       "tabs": {
@@ -1177,6 +1189,7 @@
         "LINKED": "Linked",
         "RECURRING": "Recurrings",
         "TRANSFERS": "Transfers",
+        "COMPARTMENTS": "Piggy banks",
         "IGNORED": "Ignored",
         "ALL": "All"
       },
@@ -1196,7 +1209,9 @@
         "launch-recurring": "Installment launched from “{name}” and paid on the card",
         "create-recurring": "Recurring created ({installment}/{installments}) and installment paid on the card",
         "invoice-payment": "Paid “{name}”",
-        "transfer": "Transfer to {wallet}"
+        "transfer": "Transfer to {wallet}",
+        "compartment-save": "Saved in {compartment}",
+        "compartment-withdraw": "Withdrawn from {compartment}"
       },
       "undo": {
         "action": "Undo import",
@@ -1211,6 +1226,7 @@
           "created": "Deletes {count} movement created, with the reversal in the statement. | Deletes {count} movements created, with the reversal in the statement.",
           "linked": "Undoes the payment of {count} linked entry, which goes back to open. | Undoes the payment of {count} linked entries, which go back to open.",
           "extra": "Returns {count} transfer created by the import. | Returns {count} transfers created by the import.",
+          "compartments": "Removes {count} piggy bank movement, from the free balance statement and from the history. | Removes {count} piggy bank movements, from the free balance statement and from the history.",
           "note": "Links to transfers already registered are only undone; the transfer stays."
         }
       },
@@ -1224,7 +1240,10 @@
         "recurring-launched-elsewhere": "The recurring of “{name}” (line {position}) already launched installments in another period.",
         "created-movement-changed": "The movement created by “{name}” (line {position}) was changed after saving.",
         "linked-period-not-open": "The period of the entry linked to “{name}” (line {position}) is not open.",
-        "created-transfer-changed": "The transfer created by “{name}” (line {position}) was changed after saving."
+        "created-transfer-changed": "The transfer created by “{name}” (line {position}) was changed after saving.",
+        "created-compartment-deleted": "The piggy bank {compartment} was deleted.",
+        "compartment-balance-insufficient": "The piggy bank {compartment} would be left with {value}.",
+        "wallet-inactive": "The wallet {wallet} is inactive."
       }
     },
     "errors": {
@@ -1539,6 +1558,9 @@
       "counted-balance": "Cash counted now",
       "balance-example": "0.00",
       "wallet-balance": "Wallet balance",
+      "total-balance": "Wallet total",
+      "in-wallet-now": "In the wallet now",
+      "free-balance": "Free balance",
       "informed-balance": "Informed balance",
       "difference": "Difference",
       "balance-matches": "The balance matches the bank. There is nothing to reconcile.",
@@ -1672,6 +1694,7 @@
       "empty-title": "No movements yet",
       "noun": "movement | movements",
       "open-entry": "Open the line in the statement",
+      "open-import": "Open the import",
       "anterior": "Previous",
       "posterior": "After"
     }
@@ -2539,8 +2562,49 @@
     "year": "Year",
     "all-periods": "All periods",
     "provisional": "provisional",
+    "until-today": "until today",
     "list": {
       "plural": "the overview"
+    },
+    "reserve": {
+      "title": "Reserve and cost of living",
+      "figures": {
+        "accumulated": "Accumulated",
+        "cost-of-living": "Cost of living",
+        "current": "Current reserve",
+        "ideal": "Ideal reserve"
+      },
+      "cost-note": {
+        "none": "No closed period",
+        "per-period": "Per period",
+        "based-on": "Per period · based on {count} period | Per period · based on {count} periods"
+      },
+      "ideal-note": "{count} month of cost of living | {count} months of cost of living",
+      "progress": "Current reserve at {share} of the ideal",
+      "missing": "{value} short",
+      "covered": "Covered",
+      "meter": "Current reserve at {share} of the ideal"
+    },
+    "reliability": {
+      "title": "Reliability",
+      "matches": "Matches the adjustments",
+      "residue": "Residue of {value}",
+      "alert": "The difference does not match the adjustments",
+      "until-today": "Until today",
+      "wallets": "{count} wallet | {count} wallets",
+      "wallets-until-today": "{count} wallet · until today | {count} wallets · until today",
+      "no-adjustments": "No adjustments in {cut}",
+      "no-generic": "No generic classification",
+      "figures": {
+        "accumulated": "Accumulated",
+        "balances-total": "Sum of the balances",
+        "difference": "Difference",
+        "adjustments-total": "Total of the adjustments",
+        "adjustments": "Adjustments in {cut}",
+        "credited": "Credited",
+        "debited": "Debited",
+        "generic-weight": "Generic weight"
+      }
     },
     "empty": {
       "title": "No periods yet",

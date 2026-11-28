@@ -1,5 +1,7 @@
 package br.com.webbudget.server.application.mappers.financial
 
+import br.com.webbudget.server.application.payloads.financial.ReconciliationBalanceView
+import br.com.webbudget.server.application.payloads.financial.ReconciliationCompartmentView
 import br.com.webbudget.server.application.payloads.financial.ReconciliationForm
 import br.com.webbudget.server.application.payloads.financial.ReconciliationResultView
 import br.com.webbudget.server.application.payloads.financial.ReconciliationView
@@ -21,6 +23,7 @@ import br.com.webbudget.server.domain.entities.financial.TransferLink
 import br.com.webbudget.server.domain.entities.financial.ReconciliationLine
 import br.com.webbudget.server.domain.entities.financial.ReconciliationResult
 import br.com.webbudget.server.domain.entities.financial.WalletReconciliation
+import br.com.webbudget.server.domain.entities.financial.WalletBalances
 import br.com.webbudget.server.domain.entities.financial.WalletEntry
 import br.com.webbudget.server.domain.entities.financial.WalletReference
 import br.com.webbudget.server.domain.exceptions.ResourceNotFoundException
@@ -89,6 +92,14 @@ class WalletEntryMapper(
         difference = line.difference,
         reason = line.reason,
         entryId = line.entryExternalId
+    )
+
+    fun mapToView(balances: WalletBalances): ReconciliationBalanceView = ReconciliationBalanceView(
+        freeBalance = balances.freeBalance,
+        totalBalance = balances.totalBalance,
+        compartments = balances.compartments.map { compartment ->
+            ReconciliationCompartmentView(compartment.id, compartment.name, compartment.balance)
+        }
     )
 
     fun mapToView(result: ReconciliationResult): ReconciliationResultView = ReconciliationResultView(
