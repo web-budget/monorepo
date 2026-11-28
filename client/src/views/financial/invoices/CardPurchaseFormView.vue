@@ -8,6 +8,7 @@ import FormCard from '@/components/forms/FormCard.vue'
 import FormSection from '@/components/forms/FormSection.vue'
 import InputField from '@/components/forms/InputField.vue'
 import MoneyField from '@/components/forms/MoneyField.vue'
+import ComboboxField from '@/components/forms/ComboboxField.vue'
 import SelectField from '@/components/forms/SelectField.vue'
 import InstallmentPurchaseSection from '@/components/invoices/InstallmentPurchaseSection.vue'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
@@ -216,16 +217,22 @@ const optionsReady = run(async () => {
         required
       />
       <MoneyField name="value" :label="$t('card-purchase.form.value')" required />
-      <SelectField
+      <ComboboxField
         name="costCenter"
         :label="$t('card-purchase.form.cost-center')"
         :options="costCenterChoices"
+        :search-placeholder="$t('cost-center.combobox.search')"
+        :empty-message="$t('cost-center.combobox.empty')"
+        :loading="options.loading.value"
         required
       />
-      <SelectField
+      <ComboboxField
         name="classification"
         :label="$t('card-purchase.form.classification')"
         :options="classificationChoices"
+        :search-placeholder="$t('classification.combobox.search')"
+        :empty-message="$t('classification.combobox.empty')"
+        :loading="options.loading.value"
         :hint="$t('card-purchase.form.classification-hint')"
         required
       />

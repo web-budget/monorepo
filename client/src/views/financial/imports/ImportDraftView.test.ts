@@ -4,7 +4,7 @@ import { classificationsApi } from '@/api/classifications'
 import { costCentersApi } from '@/api/costCenters'
 import { importsApi } from '@/api/imports'
 import { walletsApi } from '@/api/wallets'
-import FilterSelect from '@/components/forms/FilterSelect.vue'
+import { filterFields } from '@/test/combobox'
 import ImportBulkBar from '@/components/imports/ImportBulkBar.vue'
 import { useConfirmDialog } from '@/composables/useConfirmDialog'
 import {
@@ -145,7 +145,9 @@ const lines = [
   }),
 ]
 
-const costCenters = [{ id: 'cc-1', name: 'Pessoal', active: true }] as CostCenterListView[]
+const costCenters = [
+  { id: 'cc-1', name: 'Pessoal', fullName: 'Pessoal', active: true },
+] as CostCenterListView[]
 const classifications = [
   { id: 'cl-1', name: 'Mercado', type: 'EXPENSE', active: true },
   { id: 'cl-2', name: 'Freelas', type: 'INCOME', active: true },
@@ -225,6 +227,27 @@ describe('ImportDraftView', () => {
     expect(costCentersApi.findAll).toHaveBeenCalledWith(
       expect.objectContaining({ status: 'ACTIVE', sort: 'fullName,asc' }),
     )
+  })
+
+  it('loads every page of cost centers and classifications', async () => {
+    const page = (content: unknown[], number: number) => ({
+      content,
+      page: { size: 100, number, totalElements: 101, totalPages: 2 },
+    })
+    vi.mocked(costCentersApi.findAll)
+      .mockResolvedValueOnce(page(costCenters, 0) as never)
+      .mockResolvedValueOnce(page([], 1) as never)
+    vi.mocked(classificationsApi.findAll)
+      .mockResolvedValueOnce(page(classifications, 0) as never)
+      .mockResolvedValueOnce(page([], 1) as never)
+
+    await render()
+
+    expect(costCentersApi.findAll).toHaveBeenCalledTimes(2)
+    expect(costCentersApi.findAll).toHaveBeenLastCalledWith(
+      expect.objectContaining({ status: 'ACTIVE', sort: 'fullName,asc', page: 1 }),
+    )
+    expect(classificationsApi.findAll).toHaveBeenCalledTimes(2)
   })
 
   it('falls back to the send time when nothing was updated yet', async () => {
@@ -678,7 +701,7 @@ describe('ImportDraftView', () => {
       vi.mocked(importsApi.updateLines).mockResolvedValue()
       await wrapper.find('thead [data-slot="checkbox"]').trigger('click')
 
-      const selects = wrapper.findComponent(ImportBulkBar).findAllComponents(FilterSelect)
+      const selects = filterFields(wrapper.findComponent(ImportBulkBar))
       selects[0]!.vm.$emit('update:modelValue', 'CREATE_RECURRING')
       selects[1]!.vm.$emit('update:modelValue', 'cc-1')
       await flushPromises()
@@ -700,7 +723,7 @@ describe('ImportDraftView', () => {
       vi.mocked(importsApi.updateLines).mockResolvedValue()
       await wrapper.find('thead [data-slot="checkbox"]').trigger('click')
 
-      const selects = wrapper.findComponent(ImportBulkBar).findAllComponents(FilterSelect)
+      const selects = filterFields(wrapper.findComponent(ImportBulkBar))
       selects[2]!.vm.$emit('update:modelValue', 'cl-1')
       await flushPromises()
       await buttonWithText(wrapper, 'Aplicar').trigger('click')
@@ -720,7 +743,7 @@ describe('ImportDraftView', () => {
       vi.mocked(importsApi.updateLines).mockResolvedValue()
       await checkboxes(wrapper)[0]!.trigger('click')
       await checkboxes(wrapper)[1]!.trigger('click')
-      const selects = wrapper.findComponent(ImportBulkBar).findAllComponents(FilterSelect)
+      const selects = filterFields(wrapper.findComponent(ImportBulkBar))
       selects[0]!.vm.$emit('update:modelValue', 'IGNORE')
       await flushPromises()
 
@@ -742,7 +765,7 @@ describe('ImportDraftView', () => {
         problem(400, { error: 'import-action-not-allowed' } as never),
       )
       await checkboxes(wrapper)[0]!.trigger('click')
-      const selects = wrapper.findComponent(ImportBulkBar).findAllComponents(FilterSelect)
+      const selects = filterFields(wrapper.findComponent(ImportBulkBar))
       selects[0]!.vm.$emit('update:modelValue', 'IGNORE')
       await flushPromises()
 
@@ -758,7 +781,7 @@ describe('ImportDraftView', () => {
     it('does not call the server when no selected line accepts the change', async () => {
       const { wrapper } = await render()
       await checkboxes(wrapper)[3]!.trigger('click')
-      const selects = wrapper.findComponent(ImportBulkBar).findAllComponents(FilterSelect)
+      const selects = filterFields(wrapper.findComponent(ImportBulkBar))
       selects[0]!.vm.$emit('update:modelValue', 'CREATE')
       await flushPromises()
 
@@ -775,7 +798,7 @@ describe('ImportDraftView', () => {
       )
       await checkboxes(wrapper)[0]!.trigger('click')
 
-      const options = wrapper.findComponent(ImportBulkBar).findAllComponents(FilterSelect)[0]!
+      const options = filterFields(wrapper.findComponent(ImportBulkBar))[0]!
       expect(options.props('options').map((option: { value: string }) => option.value)).toEqual([
         'CREATE',
         'LINK',
@@ -945,7 +968,7 @@ describe('ImportDraftView', () => {
       const { wrapper } = await render(undefined, walletDraft(), compartmentLines)
       await checkboxes(wrapper)[0]!.trigger('click')
 
-      const options = wrapper.findComponent(ImportBulkBar).findAllComponents(FilterSelect)[0]!
+      const options = filterFields(wrapper.findComponent(ImportBulkBar))[0]!
       expect(options.props('options').map((option: { label: string }) => option.label)).toContain(
         'Cofrinho',
       )

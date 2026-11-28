@@ -1,7 +1,7 @@
 import { flushPromises, mount } from '@vue/test-utils'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { importsApi } from '@/api/imports'
-import FilterSelect from '@/components/forms/FilterSelect.vue'
+import { filterFields } from '@/test/combobox'
 import { Dialog } from '@/components/ui/dialog'
 import ImportLineDialog from '@/components/imports/ImportLineDialog.vue'
 import { problem } from '@/test/crud'
@@ -65,7 +65,9 @@ const candidates = [
   },
 ] as ImportCandidateView[]
 
-const costCenters = [{ id: 'cc-1', name: 'Pessoal', active: true }] as CostCenterListView[]
+const costCenters = [
+  { id: 'cc-1', name: 'Pessoal', fullName: 'Pessoal', active: true },
+] as CostCenterListView[]
 const classifications = [
   { id: 'cl-1', name: 'Mercado', type: 'EXPENSE', active: true },
   { id: 'cl-2', name: 'Freelas', type: 'INCOME', active: true },
@@ -113,7 +115,7 @@ function type(selector: string, value: string) {
 }
 
 function selects(wrapper: Rendered) {
-  return wrapper.findAllComponents(FilterSelect)
+  return filterFields(wrapper)
 }
 
 function choose(wrapper: Rendered, index: number, value: string) {
