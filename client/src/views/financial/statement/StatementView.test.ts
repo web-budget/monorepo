@@ -557,6 +557,14 @@ describe('StatementView', () => {
     expect(lastQuery().minValue).toBeUndefined()
   })
 
+  it('takes an invalid operation and an invalid amount out of the URL', async () => {
+    const { router } = await render(
+      '/statement?wallet=w-1&origin=BOGUS&min=abc&max=xyz&from=2026-11-01',
+    )
+
+    expect(router.currentRoute.value.query).toEqual({ wallet: 'w-1', from: '2026-11-01' })
+  })
+
   it('reloads with each filter and clears them', async () => {
     const { wrapper } = await render('/statement?wallet=w-1')
 
