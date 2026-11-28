@@ -43,7 +43,8 @@ class OverviewDashboardController(
                     result = overview.totals.result,
                     savingsRate = overview.totals.savingsRate,
                     redPeriods = overview.totals.redPeriods,
-                    periodsWithMovement = overview.totals.periodsWithMovement
+                    periodsWithMovement = overview.totals.periodsWithMovement,
+                    cardToPay = overview.totals.cardToPay
                 ),
                 resultByYear = overview.resultByYear.map { yearResult ->
                     OverviewYearResultView(

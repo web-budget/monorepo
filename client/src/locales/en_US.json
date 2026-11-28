@@ -2620,7 +2620,8 @@
       "result": "Result",
       "savings-rate": "Savings rate",
       "red-periods": "Months in the red",
-      "red-of": "of {count}"
+      "red-of": "of {count}",
+      "card-to-pay": "{amount} on card, unpaid"
     },
     "chart": {
       "title": "Revenues and expenses by period"

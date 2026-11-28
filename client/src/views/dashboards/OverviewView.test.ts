@@ -54,6 +54,7 @@ const overview: OverviewResponse = {
     savingsRate: 0.6111,
     redPeriods: 0,
     periodsWithMovement: 2,
+    cardToPay: 0,
   },
   resultByYear: [
     {
@@ -151,6 +152,26 @@ describe('OverviewView', () => {
     expect(figures[3]!.find('.font-mono').classes()).not.toContain('text-expense')
   })
 
+  it('says how much is on the card to pay under the expenses, only when there is something to pay', async () => {
+    const { wrapper } = await render()
+
+    expect(wrapper.find('[data-note="expenses"]').exists()).toBe(false)
+
+    vi.mocked(dashboardsApi.findOverview).mockResolvedValue({
+      ...overview,
+      totals: { ...overview.totals, cardToPay: 1234.5 },
+    })
+    const { wrapper: withCard } = await render()
+
+    const note = withCard.find('[data-note="expenses"]')
+    expect(note.text()).toMatch(/^R\$\s*1\.234,50 no cartão a pagar$/)
+    expect(note.find('[data-slot="currency"]').classes()).not.toContain('text-expense')
+    expect(withCard.find('[data-figure="expenses"] [data-slot="currency"]').text()).toMatch(
+      /R\$\s*700,00$/,
+    )
+    expect(withCard.find('[data-slot="summary"]').text()).not.toMatch(/[+−]/)
+  })
+
   it('signs the result and the savings rate in red only when they are negative', async () => {
     vi.mocked(dashboardsApi.findOverview).mockResolvedValue({
       ...overview,
@@ -161,6 +182,7 @@ describe('OverviewView', () => {
         savingsRate: -1.3333,
         redPeriods: 2,
         periodsWithMovement: 11,
+        cardToPay: 0,
       },
     })
     const { wrapper } = await render()
@@ -457,6 +479,7 @@ describe('OverviewView', () => {
         savingsRate: null,
         redPeriods: 0,
         periodsWithMovement: 0,
+        cardToPay: 0,
       },
       resultByYear: [],
       periods: [],

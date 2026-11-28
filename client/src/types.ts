@@ -776,6 +776,7 @@ export interface OverviewTotals {
   savingsRate: number | null
   redPeriods: number
   periodsWithMovement: number
+  cardToPay: number
 }
 
 export interface OverviewYearResult {
