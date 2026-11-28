@@ -207,6 +207,7 @@ jooq {
 }
 
 val jooqDb = PostgreSQLContainer(DockerImageName.parse("postgres:18-alpine"))
+val jooqCodegenExtension = extensions.getByType(CodegenPluginExtension::class.java)
 
 val changelogDir = file("src/main/resources/db/changelog")
 val jooqCodegenMarker = layout.buildDirectory.file("jooq-codegen-changelog.sha256")
@@ -224,7 +225,7 @@ fun changelogUnchangedSinceLastCodegen(): Boolean {
     return markerFile.exists() && markerFile.readText() == changelogDigest()
 }
 
-val startJooqDb by tasks.registering {
+val startJooqDb = tasks.register("startJooqDb") {
     description = "starts a disposable postgres with the changelog applied to generate the jooq classes"
     onlyIf { !changelogUnchangedSinceLastCodegen() }
     doLast {
@@ -240,7 +241,7 @@ val startJooqDb by tasks.registering {
             Liquibase("db/changelog/db.changelog-master.xml", resourceAccessor, database).update()
         }
 
-        project.extensions.getByType(CodegenPluginExtension::class.java)
+        jooqCodegenExtension
             .executions.getByName("")
             .configuration
             .withJdbc(
@@ -253,7 +254,7 @@ val startJooqDb by tasks.registering {
     }
 }
 
-val stopJooqDb by tasks.registering {
+val stopJooqDb = tasks.register("stopJooqDb") {
     description = "stops the disposable postgres used to generate the jooq classes"
     onlyIf { startJooqDb.get().didWork }
     doLast {
