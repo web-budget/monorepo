@@ -38,6 +38,7 @@ Conversa, issues, PRs e os arquivos `CLAUDE.md` são em português. Código, ide
 
 - **Investimentos são do [investlog](https://github.com/arthurgregorio/investlog).** O webBudget não acompanha aportes, resgates, rendimentos nem tem dashboard de investimentos; uma carteira do tipo `INVESTMENT` é uma carteira comum com outro tipo. No futuro, uma integração só dirá quais carteiras têm dinheiro para investir. Não proponha recursos de investimento aqui.
 - **O site público fica no repositório [`web-budget/site`](https://github.com/web-budget/site)** (webbudget.com.br, pelo Pages). As issues e os PRs do site vão para lá, não para o monorepo; a tarefa e a rodada de design dele podem ser sub-issues de um épico daqui.
+- **A instalação fica no repositório [`web-budget/docker`](https://github.com/web-budget/docker)** (compose, `example.env`, `build-from-source/` e scripts de backup). As issues e os PRs dela vão para lá, não para o monorepo; a tarefa dela pode ser sub-issue de um épico daqui. O monorepo guarda só o código da aplicação e o que constrói as imagens (`bootBuildImage`, `client/Dockerfile`, `release.yml`).
 - **Dados pessoais do usuário nunca entram no repositório nem no GitHub.** Os arquivos de amostra que ele manda (extratos e faturas em OFX, por exemplo) e a análise dos dados da v3 (`D:/desenvolvimento/web-budget/analise-v3/`) são finanças reais: nenhuma linha deles vai para issue, comentário, PR, fixture de teste, mock ou commit. Use-os só para entender o formato e escreva dados inventados no lugar.
 
 ## Documentação

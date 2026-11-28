@@ -9,15 +9,17 @@ O webBudget é um sistema livre e de código aberto para controle de finanças p
 
 ## Instalação (imagens Docker)
 
-A partir do `v4.0.0-rc1`, cada versão publica as imagens `ghcr.io/web-budget/server` e `ghcr.io/web-budget/client` (os RCs são prerelease, e a tag `latest` só existe a partir do `v4.0.0`). Com o Docker, o `compose.yaml` da raiz sobe o Postgres, o server e o client:
+A partir do `v4.0.0-rc1`, cada versão publica as imagens `ghcr.io/web-budget/server` e `ghcr.io/web-budget/client` (os RCs são prerelease, e a tag `latest` só existe a partir do `v4.0.0`). A instalação fica no repositório [`web-budget/docker`](https://github.com/web-budget/docker), com o compose que sobe o Postgres, o server e o client:
 
 ```bash
+git clone https://github.com/web-budget/docker.git webbudget
+cd webbudget
 cp example.env .env
 # no .env, informe a versão (WEBBUDGET_VERSION=v4.0.0-rc1) e os dados do SMTP
 docker compose up -d
 ```
 
-Abra **http://localhost:8080**. Na primeira subida, o usuário `admin@webbudget.com.br` é criado com a senha de `ADMIN_DEFAULT_PASSWORD` ou com uma aleatória, que aparece no log (`docker compose logs server`). A página [Instalação com Docker](https://github.com/web-budget/monorepo/wiki/Instalacao-com-Docker) traz os detalhes (e-mail, fuso, backup e atualização). Para rodar a `main` ainda não lançada, a pasta [`build-from-source/`](build-from-source) constrói as imagens do código: veja [Compilar a partir do código-fonte](https://github.com/web-budget/monorepo/wiki/Compilar-do-codigo-fonte).
+Abra **http://localhost:8080**. Na primeira subida, o usuário `admin@webbudget.com.br` é criado com a senha de `ADMIN_DEFAULT_PASSWORD` ou com uma aleatória, que aparece no log (`docker compose logs server`). A página [Instalação com Docker](https://github.com/web-budget/monorepo/wiki/Instalacao-com-Docker) traz os detalhes (e-mail, fuso, backup e atualização). Para rodar a `main` ainda não lançada, o `web-budget/docker` tem a pasta `build-from-source/`: veja [Compilar a partir do código-fonte](https://github.com/web-budget/monorepo/wiki/Compilar-do-codigo-fonte).
 
 ## Início rápido (desenvolvimento)
 
