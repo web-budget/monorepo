@@ -46,7 +46,6 @@ export function cutOf(value: string, currentYear: number): OverviewCut {
   return Number.isInteger(year) && year >= FIRST_YEAR && year <= LAST_YEAR ? year : currentYear
 }
 
-/** The dates of a period as the tooltip writes them: "15/10 – 14/11". */
 export function periodRange(startingAt: string, endingAt: string, locale: string): string {
   const format = new Intl.DateTimeFormat(locale, { day: '2-digit', month: '2-digit' })
   return `${format.format(parseLocalDate(startingAt))} – ${format.format(parseLocalDate(endingAt))}`
