@@ -12,6 +12,7 @@ import { storeToRefs } from 'pinia'
 import { computed, onMounted, ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useRouter } from 'vue-router'
+import { findAllPages } from '@/api/allPages'
 import { classificationsApi } from '@/api/classifications'
 import { costCentersApi } from '@/api/costCenters'
 import DateTimeDisplay from '@/components/common/DateTimeDisplay.vue'
@@ -54,8 +55,6 @@ import type {
 import { actionsOf, isIncoming, rejectionsOf, timeOf } from '@/utils/imports'
 import { dayAndMonth } from '@/utils/invoices'
 
-const OPTIONS_PAGE_SIZE = 100
-
 const props = defineProps<{ id: string }>()
 
 const { t, n, locale } = useI18n()
@@ -96,13 +95,19 @@ const { writeRoute } = useListFilters({
 })
 
 const ready = optionErrors.run(async () => {
-  const [costCenterPage, classificationPage] = await Promise.all([
-    costCentersApi.findAll({ status: 'ACTIVE', size: OPTIONS_PAGE_SIZE, sort: 'fullName,asc' }),
-    classificationsApi.findAll({ status: 'ACTIVE', size: OPTIONS_PAGE_SIZE, sort: 'name,asc' }),
+  const [loadedCostCenters, loadedClassifications] = await Promise.all([
+    findAllPages((query) => costCentersApi.findAll(query), {
+      status: 'ACTIVE',
+      sort: 'fullName,asc',
+    }),
+    findAllPages((query) => classificationsApi.findAll(query), {
+      status: 'ACTIVE',
+      sort: 'name,asc',
+    }),
     activeWallets.load(),
   ])
-  costCenters.value = costCenterPage.content
-  classifications.value = classificationPage.content
+  costCenters.value = loadedCostCenters
+  classifications.value = loadedClassifications
 })
 
 const item = computed(() => (current.value?.id === props.id ? current.value : null))
