@@ -103,7 +103,10 @@
       "compartment-target-date-in-past": "The target date can not be before today.",
       "compartment-with-balance": "The piggy bank still has balance and can not be deleted",
       "invalid-compartment-movement-value": "The value must be greater than zero.",
-      "insufficient-compartment-balance": "The withdrawal exceeds the balance of the piggy bank, which is {balance}."
+      "insufficient-compartment-balance": "The withdrawal exceeds the balance of the piggy bank, which is {balance}.",
+      "mail-not-configured": "Save the mail server before sending the test.",
+      "mail-encryption-key-missing": "The mail encryption key is missing. Set MAIL_ENCRYPTION_KEY on the server and restart it.",
+      "mail-delivery-failed": "Delivery failed: {reason}"
     },
     "not-found": {
       "detail": "Not found",
@@ -410,7 +413,7 @@
     "description": {
       "financial": "Entries, cards, recurring items and the closing of each period.",
       "registration": "Choose what to register or look up.",
-      "configuration": "User accounts, access areas and integrations."
+      "configuration": "User accounts, settings, e-mail and integrations."
     },
     "items": {
       "recurrent-movement": "Post movements and purchases every period.",
@@ -424,6 +427,7 @@
       "financial-period": "Create, close and reopen periods.",
       "users": "Accounts, access areas and approvals.",
       "settings": "How many months of living costs the ideal reserve covers.",
+      "mail": "SMTP server and delivery of the e-mails.",
       "integrations": "Connections with banks and external services.",
       "movement": "Income and expenses of the period.",
       "transfer": "Money that moves between wallets.",
@@ -569,6 +573,78 @@
     "toast": {
       "saved": "Settings saved",
       "saved-detail": "The ideal reserve is now {count} month of living costs. | The ideal reserve is now {count} months of living costs."
+    }
+  },
+  "mail-settings": {
+    "title": "E-mail",
+    "menu": "E-mail",
+    "description": "SMTP server that sends the webBudget e-mails.",
+    "list": {
+      "plural": "the e-mail settings"
+    },
+    "home": {
+      "no-server": "No server",
+      "on": "On",
+      "off": "Off"
+    },
+    "key-missing": {
+      "title": "The mail encryption key is missing",
+      "description": "Set MAIL_ENCRYPTION_KEY on the server and restart it to configure e-mail."
+    },
+    "sending": {
+      "label": "Send e-mails",
+      "on": "On",
+      "off": "Off",
+      "no-server": "No server saved",
+      "turning": {
+        "on": "Turning on…",
+        "off": "Turning off…"
+      }
+    },
+    "sections": {
+      "server": "Server",
+      "authentication": "Authentication",
+      "sender": "Sender",
+      "test": "Send test"
+    },
+    "form": {
+      "host": "Server",
+      "host-placeholder": "smtp.example.com",
+      "port": "Port",
+      "port-placeholder": "587",
+      "security": "Security",
+      "username": "User",
+      "password": "Password",
+      "from-address": "Sender e-mail",
+      "from-address-placeholder": "alerts{'@'}example.com",
+      "from-name": "Sender name",
+      "from-name-placeholder": "webBudget",
+      "reply-to-address": "Reply to"
+    },
+    "security": {
+      "NONE": "None",
+      "STARTTLS": "STARTTLS",
+      "SSL_TLS": "SSL/TLS"
+    },
+    "password": {
+      "saved": "Password saved. Left blank, it is kept.",
+      "removed": "The saved password is removed when saving without a user."
+    },
+    "test": {
+      "recipient": "Recipient",
+      "send": "Send test",
+      "sending": "Sending…",
+      "sent": {
+        "title": "Test e-mail sent",
+        "description": "To {recipient}."
+      },
+      "failed": "Could not send"
+    },
+    "saved-at": "Saved on {date}",
+    "toast": {
+      "saved": "Mail server saved",
+      "enabled": "E-mail sending turned on",
+      "disabled": "E-mail sending turned off"
     }
   },
   "users": {
@@ -2014,7 +2090,13 @@
     "reconciliation-reason-required": "Enter the reason for the difference.",
     "transfer-same-wallet": "Origin and destination must be different wallets.",
     "first-installment-after-last": "The current installment cannot pass the number of installments.",
-    "reserve-months-range": "Use a whole number from 1 to 24."
+    "reserve-months-range": "Use a whole number from 1 to 24.",
+    "mail-host-required": "Enter the server.",
+    "mail-port-required": "Enter the port.",
+    "mail-port-invalid": "Invalid value.",
+    "mail-from-address-required": "Enter the sender e-mail.",
+    "mail-recipient-required": "Enter the recipient.",
+    "mail-email-invalid": "Enter a valid e-mail."
   },
   "crud": {
     "required-hint": "Fields with * are required.",

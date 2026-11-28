@@ -8,6 +8,7 @@ import { useCostCentersStore } from '@/stores/costCenters'
 import { useFinancialPeriodsStore } from '@/stores/financialPeriods'
 import { useImportsStore } from '@/stores/imports'
 import { useInvoicesStore } from '@/stores/invoices'
+import { useMailSettingsStore } from '@/stores/mailSettings'
 import { useMovementsStore } from '@/stores/movements'
 import { useOverviewStore } from '@/stores/overview'
 import { usePeriodClosingStore } from '@/stores/periodClosing'
@@ -34,6 +35,7 @@ export function resetUserStores() {
   useFinancialPeriodsStore().reset()
   useImportsStore().reset()
   useInvoicesStore().reset()
+  useMailSettingsStore().reset()
   useMovementsStore().reset()
   usePeriodClosingStore().reset()
   usePeriodDashboardStore().reset()
