@@ -237,8 +237,8 @@ export interface CostCenterListView {
   name: string
   fullName: string
   active: boolean
-  incomeBudget: number | null
-  expenseBudget: number | null
+  incomeBudget?: number | null
+  expenseBudget?: number | null
 }
 
 export interface CostCenterView {
