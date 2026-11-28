@@ -105,7 +105,11 @@ describe('CostCenterFormView', () => {
     await field(wrapper, 'description').setValue('Pots and pans')
     await submit(wrapper)
 
-    expect(costCentersApi.findAll).toHaveBeenCalledWith({ filter: 'Ho', status: 'ACTIVE' })
+    expect(costCentersApi.findAll).toHaveBeenCalledWith({
+      filter: 'Ho',
+      status: 'ACTIVE',
+      sort: 'fullName,asc',
+    })
     expect(costCentersApi.create).toHaveBeenCalledWith({
       name: 'Kitchen',
       description: 'Pots and pans',

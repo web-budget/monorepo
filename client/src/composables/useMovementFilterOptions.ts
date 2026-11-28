@@ -18,7 +18,7 @@ export function useMovementFilterOptions() {
   async function load() {
     const [periodPage, costCenterPage, classificationPage] = await Promise.all([
       financialPeriodsApi.findAll({ status: 'ALL', size: OPTIONS_PAGE_SIZE }),
-      costCentersApi.findAll({ status: 'ACTIVE', size: OPTIONS_PAGE_SIZE, sort: 'name,asc' }),
+      costCentersApi.findAll({ status: 'ACTIVE', size: OPTIONS_PAGE_SIZE, sort: 'fullName,asc' }),
       classificationsApi.findAll({ status: 'ACTIVE', size: OPTIONS_PAGE_SIZE, sort: 'name,asc' }),
     ])
     periods.value = periodPage.content
