@@ -947,7 +947,15 @@
       "no-result-query": "No import found for “{query}”",
       "no-result-filter": "No import with these filters",
       "no-result-hint": "Change the filters or clear the search.",
-      "no-result-action": "Clear filters"
+      "no-result-action": "Clear filters",
+      "show-all": "See all",
+      "empty-tab": {
+        "READY": "No import ready",
+        "PROCESSING": "No import processing",
+        "FAILED": "No import with errors",
+        "SAVED": "No import saved",
+        "UNDONE": "No import undone"
+      }
     },
     "status": {
       "PROCESSING": "Processing",
