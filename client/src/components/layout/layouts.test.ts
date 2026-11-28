@@ -31,7 +31,7 @@ describe('layouts', () => {
       'Carteiras',
       'Cartões',
       'Classificações',
-      'Centros de custos',
+      'Centros de custo',
     ])
     expect(wrapper.findAll('[data-slot="sidebar-menu"] a')).toHaveLength(4)
     expect(wrapper.find('main').text()).toContain('root')

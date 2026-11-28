@@ -49,7 +49,7 @@ describe('ForgotPasswordView', () => {
 
     await submit(wrapper, 'nope')
 
-    expect(wrapper.text()).toContain('Informe um email válido')
+    expect(wrapper.text()).toContain('Informe um e-mail válido')
     expect(account.forgotPassword).not.toHaveBeenCalled()
   })
 

@@ -122,7 +122,7 @@ describe('ClassificationFormView', () => {
     await submit(wrapper)
 
     expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
-      'Nome "Salary" já esta em uso',
+      'Nome "Salary" já está em uso',
     )
     expect(field(wrapper, 'name').attributes('aria-invalid')).toBe('true')
     expect(toast.success).not.toHaveBeenCalled()

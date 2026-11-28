@@ -146,7 +146,7 @@ describe('LoginView', () => {
 
     await submit(wrapper, 'nope', 'secret')
 
-    expect(wrapper.text()).toContain('Informe um email válido')
+    expect(wrapper.text()).toContain('Informe um e-mail válido')
     expect(auth.login).not.toHaveBeenCalled()
   })
 

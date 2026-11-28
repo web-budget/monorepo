@@ -188,7 +188,7 @@ describe('UserFormView', () => {
       await settle()
 
       expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
-        'Email "a@b.c" já esta em uso',
+        'E-mail "a@b.c" já está em uso',
       )
       expect(toast.success).not.toHaveBeenCalled()
     })

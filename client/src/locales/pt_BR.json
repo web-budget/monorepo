@@ -11,22 +11,22 @@
     "conflict": {
       "title": "Conflito",
       "cost-center": {
-        "name": "Nome \"{value}\" já esta em uso"
+        "name": "Nome \"{value}\" já está em uso"
       },
       "wallet": {
-        "name": "Nome \"{value}\" já esta em uso",
-        "bank": "Banco \"{value} já esta em uso",
-        "agency": "Agência \"{value}\" já esta em uso",
-        "number": "Número de conta \"{value}\" já esta em uso"
+        "name": "Nome \"{value}\" já está em uso",
+        "bank": "Banco \"{value}\" já está em uso",
+        "agency": "Agência \"{value}\" já está em uso",
+        "number": "Número de conta \"{value}\" já está em uso"
       },
       "card": {
-        "last-four-digits": "Últimos dígitos \"{value}\" já esta em uso"
+        "last-four-digits": "Últimos dígitos \"{value}\" já está em uso"
       },
       "classification": {
-        "name": "Nome \"{value}\" já esta em uso"
+        "name": "Nome \"{value}\" já está em uso"
       },
       "user": {
-        "email": "Email \"{value}\" já esta em uso"
+        "email": "E-mail \"{value}\" já está em uso"
       },
       "invalid-user-status-transition": "A conta mudou de status enquanto a tela estava aberta. Atualize a lista.",
       "transfer-already-returned": "A transferência já foi devolvida.",
@@ -55,7 +55,7 @@
       "overlapping-start-end-dates": "Já existe um período financeiro que compreende a data de inicio e fim selecionada",
       "start-date-after-end-date": "Data de início precisa ser antes da data de fim",
       "invalid-invoice-payment-day": "{payment-day} não é um dia do mês válido, use algo entre 1 e 30",
-      "financial-period-not-open": "O período financeiro não esta aberto e não pode receber modificações",
+      "financial-period-not-open": "O período financeiro não está aberto e não pode receber modificações",
       "accounted-period-movement": "O movimento pertence a um período contabilizado e não pode ser alterado",
       "invalid-token": "Token inválido ou expirado",
       "self-action-not-allowed": "Esta ação não vale para a sua própria conta",
@@ -495,7 +495,7 @@
       "updated": "Usuário atualizado com sucesso"
     },
     "forgot-password": {
-      "requested": "Solicitação realizada, aguarde pelo email de recuperação"
+      "requested": "Solicitação realizada, aguarde pelo e-mail de recuperação"
     },
     "recover-password": {
       "success": "Senha recuperada, realize login para continuar",
@@ -1947,8 +1947,8 @@
     }
   },
   "cost-center": {
-    "title": "Centros de custos",
-    "menu": "Centros de custos",
+    "title": "Centros de custo",
+    "menu": "Centros de custo",
     "search": {
       "placeholder": "Nome"
     },
@@ -2029,7 +2029,7 @@
   },
   "validation": {
     "required": "Campo obrigatório",
-    "email": "Informe um email válido",
+    "email": "Informe um e-mail válido",
     "password-mismatch": "A confirmação deve ser igual à senha",
     "password-requirements": "A senha não atende aos requisitos",
     "password-too-long": "A senha pode ter no máximo 72 bytes",
