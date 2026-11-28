@@ -223,7 +223,7 @@ async function launch() {
       :title="$t('recurrent-movement.launch.title')"
       :description="$t('recurrent-movement.launch.description')"
     />
-    <div class="grid gap-4">
+    <div class="grid grid-cols-1 gap-4 *:min-w-0">
       <Alert v-if="!initializing && openPeriods.periods.value.length === 0" variant="destructive">
         <AlertTitle>{{ $t('recurrent-movement.launch.no-open-period') }}</AlertTitle>
         <AlertDescription class="flex flex-wrap items-center gap-3">

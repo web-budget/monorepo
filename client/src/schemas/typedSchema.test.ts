@@ -69,7 +69,7 @@ describe('toTypedSchema', () => {
 
     const result = await toTypedSchema(root).parse('x')
 
-    expect(result.errors).toEqual([{ path: '', errors: ['Informe um email válido'] }])
+    expect(result.errors).toEqual([{ path: '', errors: ['Informe um e-mail válido'] }])
   })
 
   it('casts valid values as they are', () => {

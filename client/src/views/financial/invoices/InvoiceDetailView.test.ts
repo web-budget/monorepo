@@ -8,6 +8,7 @@ import { invoicesApi } from '@/api/invoices'
 import { movementsApi } from '@/api/movements'
 import CloseInvoiceDialog from '@/components/invoices/CloseInvoiceDialog.vue'
 import { useConfirmDialog } from '@/composables/useConfirmDialog'
+import i18n from '@/locales'
 import { buttonWithText, mountView, namedTestRoutes, pageOf, problem } from '@/test/crud'
 import type { CardPurchaseListView, CardView, FinancialPeriodView, InvoiceView } from '@/types'
 import InvoiceDetailView from '@/views/financial/invoices/InvoiceDetailView.vue'
@@ -69,7 +70,7 @@ function serve(content: Partial<InvoiceView> = {}, purchaseList = purchases) {
   } as CardView)
   vi.mocked(financialPeriodsApi.findById).mockResolvedValue({
     id: 'p-11',
-    name: 'Novembro de 2026',
+    name: '11/2026',
     endingAt: '2026-11-30',
   } as FinancialPeriodView)
 }
@@ -210,6 +211,25 @@ describe('InvoiceDetailView', () => {
     expect(wrapper.find('[data-slot="no-purchases"]').find('a').exists()).toBe(false)
     expect(wrapper.find('[data-slot="no-purchases"]').text()).toContain(
       'Nenhuma compra nesta fatura',
+    )
+  })
+
+  it('offers no close on an open invoice without purchases', async () => {
+    const { wrapper } = await render({ purchaseCount: 0 }, [])
+
+    expect(headerActions(wrapper)).toEqual(['Importar fatura', 'Nova compra'])
+  })
+
+  it('names the month of the title after the end of the period, in the language of the user', async () => {
+    const { wrapper } = await render()
+    i18n.global.locale.value = 'en-US'
+    await flushPromises()
+
+    await buttonWithText(wrapper, 'Close invoice').trigger('click')
+    await flushPromises()
+
+    expect(wrapper.findComponent(CloseInvoiceDialog).props('title')).toBe(
+      'Close the November invoice of Visa Platinum?',
     )
   })
 

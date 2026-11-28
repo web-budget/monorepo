@@ -68,6 +68,18 @@ describe('apiClient', () => {
   })
 })
 
+describe('ApiError.isUnavailable', () => {
+  it.each([
+    [null, true],
+    [500, true],
+    [503, true],
+    [499, false],
+    [401, false],
+  ])('answers for status %s: %s', (status, expected) => {
+    expect(new ApiError(null, status).isUnavailable).toBe(expected)
+  })
+})
+
 describe('toApiError', () => {
   it('keeps the original axios error as the cause', () => {
     const original = failedWith(400, {})

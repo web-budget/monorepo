@@ -528,7 +528,7 @@ describe('MovementFormView', () => {
     await fillBasics(wrapper)
     await submit(wrapper)
 
-    expect(wrapper.find('[data-slot="server-error"]').text()).toContain('não esta aberto')
+    expect(wrapper.find('[data-slot="server-error"]').text()).toContain('não está aberto')
   })
 
   it('shows the server error when the options cannot be loaded', async () => {

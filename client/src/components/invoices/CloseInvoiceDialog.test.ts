@@ -65,11 +65,11 @@ describe('CloseInvoiceDialog', () => {
     expect(text).toContain('Conta corrente')
   })
 
-  it('warns that an invoice without purchases closes at zero, and leaves out what is unknown', async () => {
-    await render({ purchases: 0, value: 0, dueDate: null, walletName: null })
+  it('leaves out the due date and the wallet when they are unknown', async () => {
+    await render({ dueDate: null, walletName: null })
 
     const text = document.body.textContent!
-    expect(text).toContain('Fatura sem compras fecha com valor zero.')
+    expect(text).toContain('Gera o pagamento de fatura')
     expect(text).not.toContain('Vencimento')
     expect(text).not.toContain('Carteira sugerida')
   })

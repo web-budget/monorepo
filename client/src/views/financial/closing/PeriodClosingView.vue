@@ -127,6 +127,14 @@ const noNextPeriod = computed(() => summary.value != null && summary.value.nextO
 const pendenciesDone = computed(() => pendencies.value.length === 0)
 const blockingInvoices = computed(() => summary.value?.openInvoices.length ?? 0)
 const nextPeriodDone = computed(() => !noNextPeriod.value || pendenciesDone.value)
+const nextPeriodNote = computed(() => {
+  if (!noNextPeriod.value) {
+    return summary.value?.nextOpenPeriod?.name
+  }
+  return pendenciesDone.value
+    ? t('period-closing.checklist.next-period-unneeded')
+    : t('period-closing.checklist.next-period-missing')
+})
 const ready = computed(() => summary.value?.canClose === true && !loading.value)
 
 function toneOf(movement: MovementListView) {
@@ -577,10 +585,7 @@ function createPeriod() {
                 $t('period-closing.checklist.next-period')
               }}</span>
               <span class="text-muted-foreground text-xs">
-                {{
-                  summary?.nextOpenPeriod?.name ??
-                  $t('period-closing.checklist.next-period-missing')
-                }}
+                {{ nextPeriodNote }}
               </span>
             </span>
           </li>

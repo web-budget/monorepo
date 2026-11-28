@@ -49,7 +49,11 @@ describe('useCostCentersStore', () => {
 
     await store.findByName('Ho')
 
-    expect(costCentersApi.findAll).toHaveBeenCalledWith({ filter: 'Ho', status: 'ACTIVE' })
+    expect(costCentersApi.findAll).toHaveBeenCalledWith({
+      filter: 'Ho',
+      status: 'ACTIVE',
+      sort: 'fullName,asc',
+    })
     expect(store.costCenters).toEqual([row])
   })
 

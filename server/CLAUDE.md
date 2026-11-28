@@ -15,7 +15,11 @@ Rode tudo a partir de `server/`:
 ./gradlew koverXmlReport                                                  # roda os testes e grava build/reports/kover/report.xml
 ./gradlew koverHtmlReport                                                 # roda os testes e grava build/reports/kover/html
 ./gradlew koverVerify                                                     # roda os testes e falha se a cobertura ficar abaixo de um piso
+./gradlew bootBuildImage                                                  # gera a imagem OCI webbudget/server:latest (precisa do Docker)
+./gradlew bootBuildImage --imageName=ghcr.io/web-budget/server:<tag>     # a mesma imagem, com outro nome e tag
 ```
+
+A imagem sai por Cloud Native Buildpacks (sem Dockerfile), no builder `bellsoft/buildpacks.builder:musl` com Java 25, e o `bootJar` se chama `server.jar`. O `bootBuildImage` depende do `bootJar` e portanto do `jooqCodegen`, então também precisa do Docker. A imagem **não fixa o fuso da JVM**: o "hoje" do financeiro vem de `LocalDate.now()`, e o fuso é o da variável `TZ` do container (o compose define `America/Sao_Paulo`). O builder da BellSoft não inclui o buildpack `image-labels`, então o `build.gradle.kts` o acrescenta à lista `buildpacks` para que o `BP_OCI_SOURCE` grave a label `org.opencontainers.image.source`, que liga o pacote do `ghcr.io` ao repositório. O workflow `.github/workflows/release.yml` e o `build-from-source/` passam o `--imageName` com o nome e a tag certos.
 
 O `spring-boot-docker-compose` é uma dependência `developmentOnly` ligada ao `compose.yaml`, então o `bootRun` sobe sozinho o Postgres (`webbudget-postgres`, `postgres:18-alpine` na porta 5433, banco `webbudget`, usuário e senha `sa_webbudget`) e o Maildev (`webbudget-maildev`, SMTP na 1025 e interface em `http://localhost:1080`, usuário e senha `maildev`). Não é preciso rodar `docker compose up` à mão, mas o Docker precisa estar ligado. O Compose só entra no `bootRun`: os testes não usam o `compose.yaml` e sobem o próprio Postgres pelo Testcontainers (veja [Testes e cobertura](#testes-e-cobertura)).
 

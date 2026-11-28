@@ -36,7 +36,12 @@ import { useListFilters } from '@/composables/useListFilters'
 import { useMovementFilterOptions } from '@/composables/useMovementFilterOptions'
 import { useReconciliation } from '@/composables/useReconciliation'
 import { useServerErrors } from '@/composables/useServerErrors'
-import { STATEMENT_FILTER_KEYS, useStatementStore, WALLET_ENTRY_ORIGINS } from '@/stores/statement'
+import {
+  sanitizeStatementFilters,
+  STATEMENT_FILTER_KEYS,
+  useStatementStore,
+  WALLET_ENTRY_ORIGINS,
+} from '@/stores/statement'
 import { useTransfersStore } from '@/stores/transfers'
 import type { WalletEntryDirectionFilter, WalletEntryView } from '@/types'
 import { defaultStatementWallet, entryLabel } from '@/utils/statement'
@@ -75,10 +80,7 @@ const { writeRoute } = useListFilters({
   extra: {
     keys: STATEMENT_FILTER_KEYS,
     values: filters,
-    sanitize: (values) => ({
-      ...values,
-      origin: WALLET_ENTRY_ORIGINS.some((origin) => origin === values.origin) ? values.origin! : '',
-    }),
+    sanitize: sanitizeStatementFilters,
   },
   onExternalChange: reload,
 })
@@ -329,7 +331,7 @@ const reconciliation = useReconciliation(async () => {
         </Button>
       </template>
     </PageHeader>
-    <div class="grid gap-4">
+    <div class="grid grid-cols-1 gap-4 *:min-w-0">
       <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Card class="col-span-2 content-between gap-2 p-4 lg:col-span-1">
           <FilterSelect
@@ -400,7 +402,7 @@ const reconciliation = useReconciliation(async () => {
           </span>
         </Card>
       </div>
-      <Card class="grid gap-4 p-4" data-slot="filter-card">
+      <Card class="grid grid-cols-1 gap-4 p-4 *:min-w-0" data-slot="filter-card">
         <SearchControls
           v-model:status="pageRequest.status"
           v-model:filter="pageRequest.filterText"
@@ -410,7 +412,7 @@ const reconciliation = useReconciliation(async () => {
           @on-filter-reset="search()"
         />
         <div
-          class="border-border grid grid-cols-2 items-end gap-3 border-t pt-4 lg:grid-cols-[repeat(6,minmax(0,1fr))_auto]"
+          class="border-border grid grid-cols-2 items-end gap-3 border-t pt-4 lg:grid-cols-4 2xl:grid-cols-[repeat(6,minmax(0,1fr))_auto]"
           data-slot="filters"
         >
           <div class="grid min-w-0 content-start gap-2">

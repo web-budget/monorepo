@@ -442,7 +442,8 @@
     "delete": "Delete",
     "edit": "Edit",
     "go-home": "Go to home",
-    "go-login": "Go to sign in"
+    "go-login": "Go to sign in",
+    "try-again": "Try again"
   },
   "form": {
     "save": "Save",
@@ -947,7 +948,15 @@
       "no-result-query": "No import found for “{query}”",
       "no-result-filter": "No import with these filters",
       "no-result-hint": "Change the filters or clear the search.",
-      "no-result-action": "Clear filters"
+      "no-result-action": "Clear filters",
+      "show-all": "See all",
+      "empty-tab": {
+        "READY": "No import ready",
+        "PROCESSING": "No import processing",
+        "FAILED": "No import with errors",
+        "SAVED": "No import saved",
+        "UNDONE": "No import undone"
+      }
     },
     "status": {
       "PROCESSING": "Processing",
@@ -1349,7 +1358,6 @@
     "close": {
       "title": "Close the {period} invoice of {card}?",
       "description": "Generates the invoice payment and closes the invoice to new purchases.",
-      "description-empty": "An invoice without purchases closes with a zero value.",
       "purchases": "Purchases",
       "payment": "Invoice payment",
       "due-date": "Due date",
@@ -1435,7 +1443,8 @@
       "pendencies-done": "Nothing open",
       "invoices-open": "{count} invoice with an entry still open | {count} invoices with entries still open",
       "invoices-done": "No invoice blocks it",
-      "next-period-missing": "There is none: pay everything or create one"
+      "next-period-missing": "There is none: pay everything or create one",
+      "next-period-unneeded": "Not needed: nothing to move"
     },
     "move": {
       "title": "Move “{name}”",
@@ -2619,7 +2628,7 @@
       "expenses": "Expenses",
       "result": "Result",
       "savings-rate": "Savings rate",
-      "red-periods": "Months in the red",
+      "red-periods": "Periods in the red",
       "red-of": "of {count}",
       "card-to-pay": "{amount} on card, unpaid"
     },
@@ -2634,13 +2643,15 @@
     "year-chart": {
       "title": "Result by year",
       "result": "Result",
-      "savings": "savings {rate}"
+      "savings": "savings {rate}",
+      "empty": "No period with paid movement"
     },
     "table": {
       "period": "Period",
       "revenues": "Revenues (R$)",
       "expenses": "Expenses (R$)",
-      "result": "Result (R$)"
+      "result": "Result (R$)",
+      "empty": "No paid movement in {cut}"
     }
   },
   "period-dashboard": {

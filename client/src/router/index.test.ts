@@ -31,7 +31,7 @@ describe('router', () => {
       .map((record) => record.components?.default)
       .filter((component) => typeof component === 'function')
 
-    expect(loaders).toHaveLength(67)
+    expect(loaders).toHaveLength(68)
     for (const loader of loaders) {
       expect(await (loader as () => Promise<unknown>)()).toHaveProperty('default')
     }
@@ -56,6 +56,7 @@ describe('router', () => {
       '/error/forbidden',
       '/error/not-found',
       '/error/server-error',
+      '/error/session-unavailable',
       '/does-not-exist',
     ]) {
       expect(isPublicRoute(router.resolve(path))).toBe(true)

@@ -6,7 +6,8 @@ import { useServerErrors } from '@/composables/useServerErrors'
 import i18n from '@/locales'
 import { useInvoicesStore } from '@/stores/invoices'
 import type { CardView, FinancialPeriodView, InvoiceView } from '@/types'
-import { invoicePaymentDueDate, periodMonth } from '@/utils/invoices'
+import { invoicePaymentDueDate } from '@/utils/invoices'
+import { periodMonthName } from '@/utils/periods'
 
 function formatBare(value: number): string {
   return i18n.global.n(value, 'currency').replace(/^R\$\s*/, '')
@@ -30,7 +31,7 @@ export function useCloseInvoice(onClosed: () => Promise<unknown> | unknown) {
   const title = computed(() =>
     target.value && period.value
       ? i18n.global.t('credit-card-invoice.close.title', {
-          period: periodMonth(period.value.name),
+          period: periodMonthName(period.value.endingAt, i18n.global.locale.value),
           card: target.value.card.name,
         })
       : '',

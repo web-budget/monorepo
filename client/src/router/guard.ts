@@ -14,7 +14,8 @@ export const authGuard: NavigationGuard = async (to) => {
   }
   const auth = useAuthStore()
   if (!auth.isAuthenticated && !(await auth.restoreSession())) {
-    return { name: 'login', query: { redirect: to.fullPath } }
+    const name = auth.sessionUnavailable ? 'session-unavailable' : 'login'
+    return { name, query: { redirect: to.fullPath } }
   }
   if (!auth.isApproved) {
     return { name: 'pending-approval' }

@@ -5,7 +5,21 @@ O webBudget é um sistema livre e de código aberto para controle de finanças p
 - **Site:** https://webbudget.com.br/
 - **Versão estável:** a 3, em [arthurgregorio/web-budget](https://github.com/arthurgregorio/web-budget)
 
-> A versão 4 está em desenvolvimento e ainda em fase `alpha`. As versões `alpha` **não geram release nem imagem Docker**: quem quiser experimentá-las compila o código, como descrito em [Compilar a partir do código-fonte](https://github.com/web-budget/monorepo/wiki/Compilar-do-codigo-fonte).
+> A versão 4 está em desenvolvimento: os alphas só organizaram o trabalho, e a partir do `v4.0.0-rc1` cada versão sai como release do GitHub, com imagens Docker no `ghcr.io` ([Lançamentos](https://github.com/web-budget/monorepo/wiki/Lancamentos)).
+
+## Instalação (imagens Docker)
+
+A partir do `v4.0.0-rc1`, cada versão publica as imagens `ghcr.io/web-budget/server` e `ghcr.io/web-budget/client` (os RCs são prerelease, e a tag `latest` só existe a partir do `v4.0.0`). A instalação fica no repositório [`web-budget/docker`](https://github.com/web-budget/docker), com o compose que sobe o Postgres, o server e o client:
+
+```bash
+git clone https://github.com/web-budget/docker.git webbudget
+cd webbudget
+cp example.env .env
+# no .env, informe a versão (WEBBUDGET_VERSION=v4.0.0-rc1) e os dados do SMTP
+docker compose up -d
+```
+
+Abra **http://localhost:8080**. Na primeira subida, o usuário `admin@webbudget.com.br` é criado com a senha de `ADMIN_DEFAULT_PASSWORD` ou com uma aleatória, que aparece no log (`docker compose logs server`). A página [Instalação com Docker](https://github.com/web-budget/monorepo/wiki/Instalacao-com-Docker) traz os detalhes (e-mail, fuso, backup e atualização). Para rodar a `main` ainda não lançada, o `web-budget/docker` tem a pasta `build-from-source/`: veja [Compilar a partir do código-fonte](https://github.com/web-budget/monorepo/wiki/Compilar-do-codigo-fonte).
 
 ## Início rápido (desenvolvimento)
 
@@ -34,7 +48,7 @@ Toda a documentação fica na [wiki](https://github.com/web-budget/monorepo/wiki
 
 - **Começando:** [Visão geral e funcionalidades](https://github.com/web-budget/monorepo/wiki/Visao-geral-e-funcionalidades)
 - **Tecnologia e desenho:** [Arquitetura](https://github.com/web-budget/monorepo/wiki/Arquitetura), [Stack do server](https://github.com/web-budget/monorepo/wiki/Stack-do-server), [Stack do client](https://github.com/web-budget/monorepo/wiki/Stack-do-client), [Modelo de segurança](https://github.com/web-budget/monorepo/wiki/Modelo-de-seguranca)
-- **Compilar e rodar:** [Compilar a partir do código-fonte](https://github.com/web-budget/monorepo/wiki/Compilar-do-codigo-fonte), [Desenvolvimento local](https://github.com/web-budget/monorepo/wiki/Desenvolvimento-local), [Pipeline de CI](https://github.com/web-budget/monorepo/wiki/Pipeline-de-CI)
+- **Compilar e rodar:** [Instalação com Docker](https://github.com/web-budget/monorepo/wiki/Instalacao-com-Docker), [Compilar a partir do código-fonte](https://github.com/web-budget/monorepo/wiki/Compilar-do-codigo-fonte), [Desenvolvimento local](https://github.com/web-budget/monorepo/wiki/Desenvolvimento-local), [Pipeline de CI](https://github.com/web-budget/monorepo/wiki/Pipeline-de-CI)
 - **Configuração:** [Variáveis de ambiente](https://github.com/web-budget/monorepo/wiki/Variaveis-de-ambiente), [Perfis do Spring](https://github.com/web-budget/monorepo/wiki/Perfis-do-Spring), [Login com Google](https://github.com/web-budget/monorepo/wiki/Login-com-Google), [E-mail](https://github.com/web-budget/monorepo/wiki/E-mail)
 - **Projeto:** [Lançamentos](https://github.com/web-budget/monorepo/wiki/Lancamentos), [Contribuindo](https://github.com/web-budget/monorepo/wiki/Contribuindo)
 

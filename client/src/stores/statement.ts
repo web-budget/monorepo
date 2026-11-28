@@ -40,6 +40,15 @@ function amountOf(text: string | undefined): number | undefined {
   return text && Number.isFinite(amount) ? amount : undefined
 }
 
+export function sanitizeStatementFilters(values: ExtraQuery): ExtraQuery {
+  return {
+    ...values,
+    origin: WALLET_ENTRY_ORIGINS.some((origin) => origin === values.origin) ? values.origin! : '',
+    min: amountOf(values.min) === undefined ? '' : values.min!,
+    max: amountOf(values.max) === undefined ? '' : values.max!,
+  }
+}
+
 export function toStatementFilter(request: PageRequest, filters: ExtraQuery): StatementQuery {
   const direction = request.status as WalletEntryDirectionFilter
   return {

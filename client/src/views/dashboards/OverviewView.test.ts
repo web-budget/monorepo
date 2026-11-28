@@ -142,7 +142,7 @@ describe('OverviewView', () => {
     expect(figures[1]!.text()).toMatch(/^Despesas\s*R\$\s*700,00$/)
     expect(figures[2]!.text()).toMatch(/^Resultado\s*R\$\s*1\.100,00$/)
     expect(figures[3]!.text()).toBe('Taxa de poupança61,1%')
-    expect(figures[4]!.text()).toMatch(/^Meses no vermelho0\s+de 2$/)
+    expect(figures[4]!.text()).toMatch(/^Períodos no vermelho0\s+de 2$/)
     expect(summary.text()).not.toMatch(/[+−]/)
     expect(figures[0]!.find('[data-slot="currency"]').classes()).toContain('text-income')
     expect(figures[1]!.find('[data-slot="currency"]').classes()).toContain('text-expense')
@@ -193,7 +193,7 @@ describe('OverviewView', () => {
     expect(result.classes()).toContain('text-expense')
     expect(figures[3]!.text()).toBe('Taxa de poupança−133,3%')
     expect(figures[3]!.find('.font-mono').classes()).toContain('text-expense')
-    expect(figures[4]!.text()).toMatch(/^Meses no vermelho2\s+de 11$/)
+    expect(figures[4]!.text()).toMatch(/^Períodos no vermelho2\s+de 11$/)
   })
 
   it('writes a dash for the savings rate when there are no revenues', async () => {
@@ -212,7 +212,7 @@ describe('OverviewView', () => {
     const { wrapper } = await render()
 
     const [flow, year] = wrapper.findAllComponents({ name: 'BarChartStub' })
-    expect(flow!.props('data').datasets[0].data.slice(8, 10)).toEqual([1000, 800])
+    expect(flow!.props('data').datasets[0].data).toEqual([1000, 800])
     expect(year!.props('data').labels).toEqual(['2025', '2026'])
     expect(
       year!
@@ -315,6 +315,48 @@ describe('OverviewView', () => {
     expect(expenses!.classes()).toContain('text-expense')
     expect(result!.classes()).not.toContain('text-income')
     expect(result!.classes()).not.toContain('text-expense')
+  })
+
+  it('says there is no paid movement in the cut instead of an empty table and zeroed figures', async () => {
+    vi.mocked(dashboardsApi.findOverview).mockResolvedValue({
+      ...overview,
+      totals: {
+        revenues: 0,
+        expenses: 0,
+        result: 0,
+        savingsRate: null,
+        redPeriods: 0,
+        periodsWithMovement: 0,
+        cardToPay: 0,
+      },
+      resultByYear: [],
+      periods: [period('p-11', '2026-11-30', 0, 0, false)],
+    })
+    const { wrapper } = await render()
+
+    const table = wrapper.find('[data-slot="periods"]')
+    expect(table.find('[data-state="empty"]').text()).toBe('Nenhum movimento pago em 2026')
+    expect(table.find('table').exists()).toBe(false)
+    expect(wrapper.find('[data-figure="red-periods"]').text()).toBe('Períodos no vermelho—')
+    expect(wrapper.find('[data-slot="year-result-chart"] [data-state="empty"]').text()).toBe(
+      'Nenhum período com movimento pago',
+    )
+    const [flow] = wrapper.findAllComponents({ name: 'BarChartStub' })
+    expect(flow!.props('options').scales.y.display).toBe(false)
+  })
+
+  it('names the cut of all the periods in the empty table', async () => {
+    vi.mocked(dashboardsApi.findOverview).mockResolvedValue({
+      ...overview,
+      cut: 'all',
+      totals: { ...overview.totals, periodsWithMovement: 0 },
+      periods: [],
+    })
+    const { wrapper } = await render('/dashboards/overview?year=all')
+
+    expect(wrapper.find('[data-slot="periods"] [data-state="empty"]').text()).toBe(
+      'Nenhum movimento pago em todos os períodos',
+    )
   })
 
   it('signs a negative period result in red, glued to the value', async () => {

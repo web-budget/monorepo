@@ -66,6 +66,12 @@ export const publicRoutes: RouteRecordRaw[] = [
     component: () => import('@/views/errors/ServerErrorView.vue'),
   },
   {
+    path: '/error/session-unavailable',
+    name: 'session-unavailable',
+    meta: { public: true },
+    component: () => import('@/views/errors/SessionUnavailableView.vue'),
+  },
+  {
     path: '/:pathMatch(.*)*',
     name: 'not-found',
     meta: { public: true },

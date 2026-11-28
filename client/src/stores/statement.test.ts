@@ -2,7 +2,12 @@ import { createPinia, setActivePinia } from 'pinia'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { reconciliationsApi } from '@/api/reconciliations'
 import { walletEntriesApi } from '@/api/walletEntries'
-import { toStatementFilter, toStatementQuery, useStatementStore } from '@/stores/statement'
+import {
+  sanitizeStatementFilters,
+  toStatementFilter,
+  toStatementQuery,
+  useStatementStore,
+} from '@/stores/statement'
 import { createPageRequest } from '@/utils/pageRequest'
 import type {
   ReconciliationResultView,
@@ -26,6 +31,29 @@ describe('toStatementFilter', () => {
     expect(filter).toMatchObject({ filter: 'luz', direction: 'CREDIT', from: '2026-11-01' })
     expect(filter).not.toHaveProperty('page')
     expect(filter).not.toHaveProperty('sort')
+  })
+})
+
+describe('sanitizeStatementFilters', () => {
+  it('keeps a known operation and amounts that are numbers', () => {
+    const values = { wallet: 'w-1', origin: 'TRANSFER', min: '10.5', max: '0' }
+
+    expect(sanitizeStatementFilters(values)).toEqual(values)
+  })
+
+  it('drops an unknown operation and amounts that are not numbers', () => {
+    const sanitized = sanitizeStatementFilters({
+      wallet: 'w-1',
+      origin: 'BOGUS',
+      min: 'abc',
+      max: 'Infinity',
+    })
+
+    expect(sanitized).toEqual({ wallet: 'w-1', origin: '', min: '', max: '' })
+  })
+
+  it('drops amounts that are missing', () => {
+    expect(sanitizeStatementFilters({})).toEqual({ origin: '', min: '', max: '' })
   })
 })
 

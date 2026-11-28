@@ -136,7 +136,9 @@ describe('SearchControls', () => {
     const wrapper = render()
 
     const form = wrapper.find('form[role="search"]')
-    expect(form.classes()).toEqual(expect.arrayContaining(['w-full', 'max-w-2xl', 'flex-1']))
+    expect(form.classes()).toEqual(
+      expect.arrayContaining(['w-full', 'max-w-2xl', 'basis-full', 'lg:flex-1', 'lg:basis-0']),
+    )
     const group = form.find('div')
     expect(group.classes()).toContain('h-10')
     expect(wrapper.find('input').classes()).toContain('text-[15px]')

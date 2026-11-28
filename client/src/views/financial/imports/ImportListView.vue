@@ -164,15 +164,27 @@ const columns = computed(() => [
   },
 ])
 
-const listCopy = computed(() => ({
-  emptyTitle: t('imports.list.empty-title'),
-  emptyDescription: t('imports.list.empty-description'),
-  errorDescription: t('imports.list.error-description'),
-  noResultQuery: t('imports.list.no-result-query', { query: pageRequest.value.filterText }),
-  noResultFilter: t('imports.list.no-result-filter'),
-  noResultHint: t('imports.list.no-result-hint'),
-  noResultAction: t('imports.list.no-result-action'),
-}))
+const listCopy = computed(() => {
+  const copy = {
+    emptyTitle: t('imports.list.empty-title'),
+    emptyDescription: t('imports.list.empty-description'),
+    errorDescription: t('imports.list.error-description'),
+    noResultQuery: t('imports.list.no-result-query', { query: pageRequest.value.filterText }),
+    noResultFilter: t('imports.list.no-result-filter'),
+    noResultHint: t('imports.list.no-result-hint'),
+    noResultAction: t('imports.list.no-result-action'),
+  }
+  const status = pageRequest.value.status
+  if (narrowed.value || status === 'ALL') {
+    return copy
+  }
+  return {
+    ...copy,
+    noResultFilter: t(`imports.list.empty-tab.${status}`),
+    noResultHint: '',
+    noResultAction: t('imports.list.show-all'),
+  }
+})
 
 function search() {
   pageRequest.value.current = 0
@@ -228,8 +240,8 @@ function showsLines(item: ImportListView) {
         <Button type="button" @click="create()"><Plus />{{ $t('imports.actions.create') }}</Button>
       </template>
     </PageHeader>
-    <div class="grid gap-4">
-      <Card class="grid gap-4 p-4" data-slot="filter-card">
+    <div class="grid grid-cols-1 gap-4 *:min-w-0">
+      <Card class="grid grid-cols-1 gap-4 p-4 *:min-w-0" data-slot="filter-card">
         <SearchControls
           v-model:status="pageRequest.status"
           v-model:filter="pageRequest.filterText"

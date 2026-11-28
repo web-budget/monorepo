@@ -114,10 +114,10 @@ const columns = computed(() => [
         @row-selected="changeToDetail"
       >
         <template #cell-incomeBudget="{ item }">
-          <CurrencyDisplay :value="item.incomeBudget" />
+          <CurrencyDisplay :value="item.incomeBudget ?? null" zero-if-null />
         </template>
         <template #cell-expenseBudget="{ item }">
-          <CurrencyDisplay :value="item.expenseBudget" />
+          <CurrencyDisplay :value="item.expenseBudget ?? null" zero-if-null />
         </template>
         <template #actions="{ item }">
           <ActionButtons @on-edit="changeToUpdate(item.id)" @on-delete="remove(item)" />

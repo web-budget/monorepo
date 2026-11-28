@@ -105,7 +105,11 @@ describe('CostCenterFormView', () => {
     await field(wrapper, 'description').setValue('Pots and pans')
     await submit(wrapper)
 
-    expect(costCentersApi.findAll).toHaveBeenCalledWith({ filter: 'Ho', status: 'ACTIVE' })
+    expect(costCentersApi.findAll).toHaveBeenCalledWith({
+      filter: 'Ho',
+      status: 'ACTIVE',
+      sort: 'fullName,asc',
+    })
     expect(costCentersApi.create).toHaveBeenCalledWith({
       name: 'Kitchen',
       description: 'Pots and pans',
@@ -148,7 +152,7 @@ describe('CostCenterFormView', () => {
     await submit(wrapper)
 
     expect(wrapper.find('[data-slot="server-error"]').text()).toContain(
-      'Nome "Home" já esta em uso',
+      'Nome "Home" já está em uso',
     )
     expect(field(wrapper, 'name').attributes('aria-invalid')).toBe('true')
     expect(toast.success).not.toHaveBeenCalled()

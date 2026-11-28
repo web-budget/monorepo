@@ -8,7 +8,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 
-defineProps<{ open: boolean }>()
+defineProps<{ open: boolean; closable: boolean }>()
 
 const emit = defineEmits<{ details: []; purchase: []; import: []; close: [] }>()
 </script>
@@ -31,7 +31,7 @@ const emit = defineEmits<{ details: []; purchase: []; import: []; close: [] }>()
         <DropdownMenuItem @select="emit('import')">
           <FileUp />{{ $t('credit-card-invoice.actions.import') }}
         </DropdownMenuItem>
-        <DropdownMenuItem @select="emit('close')">
+        <DropdownMenuItem v-if="closable" @select="emit('close')">
           <Lock />{{ $t('credit-card-invoice.actions.close') }}
         </DropdownMenuItem>
       </template>
