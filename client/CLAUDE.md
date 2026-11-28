@@ -113,7 +113,7 @@ Os stores de cadastro montam tudo sobre o composable `useCrudResource`, que guar
 
 - `src/composables/useCrudResource.ts`: a mecânica comum dos stores de cadastro (veja acima).
 - `src/composables/useInactivityLogout.ts`: o logout por inatividade, iniciado no `App.vue` (veja [Autenticação](#autenticação)).
-- `src/composables/useModuleCounts.ts`: recebe um mapa de destino para uma função que devolve um valor (número ou texto, ou `null`) e preenche o `counts` ao montar, um por vez, para as capas dos módulos: a capa do Financeiro o usa duas vezes, para as contagens e para os selos de atenção.
+- `src/composables/useModuleCounts.ts`: recebe um mapa de destino para uma função que devolve um valor (número ou texto, ou `null`) e preenche o `counts` ao montar, um por vez, para as capas dos módulos: as capas do Financeiro e das Configurações o usam duas vezes, para as contagens e para os selos de atenção.
 - `src/composables/useNotification.ts` e `src/composables/useConfirmDialog.ts`: toasts e confirmação de exclusão (veja [Notificações e confirmações](#notificações-e-confirmações)).
 - `src/composables/useCrudList.ts`, `useCrudForm.ts`, `useCrudDetail.ts` e `useServerErrors.ts`: a mecânica das telas de cadastro (veja [Cadastros](#cadastros)).
 - `src/composables/useListFilters.ts` e `src/utils/listQuery.ts`: a URL como dono do estado das listas (veja [Filtros na URL](#filtros-na-url)).

@@ -105,7 +105,8 @@
       "invalid-compartment-movement-value": "O valor precisa ser maior que zero.",
       "insufficient-compartment-balance": "O resgate passa do saldo do cofrinho, que é {balance}.",
       "mail-not-configured": "Salve o servidor de e-mail antes de enviar o teste.",
-      "mail-encryption-key-missing": "Falta a chave de cifra do e-mail. Defina a MAIL_ENCRYPTION_KEY no server e reinicie-o."
+      "mail-encryption-key-missing": "Falta a chave de cifra do e-mail. Defina a MAIL_ENCRYPTION_KEY no server e reinicie-o.",
+      "mail-delivery-failed": "Falha no envio: {reason}"
     },
     "not-found": {
       "detail": "Não encontrado",

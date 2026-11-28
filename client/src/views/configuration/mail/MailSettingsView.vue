@@ -83,7 +83,7 @@ const passwordPlaceholder = computed(() =>
   passwordSaved.value && !withoutUsername.value && !locked.value ? PASSWORD_MASK : undefined,
 )
 const passwordHint = computed(() => {
-  if (!passwordSaved.value) {
+  if (!passwordSaved.value || locked.value) {
     return null
   }
   if (withoutUsername.value) {
@@ -220,7 +220,7 @@ onMounted(load)
             {{ $t('mail-settings.sending.label') }}
           </label>
           <template v-if="!locked">
-            <Badge v-if="!configured" variant="pending">
+            <Badge v-if="!configured" variant="highlight">
               {{ $t('mail-settings.sending.no-server') }}
             </Badge>
             <span

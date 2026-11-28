@@ -105,7 +105,8 @@
       "invalid-compartment-movement-value": "The value must be greater than zero.",
       "insufficient-compartment-balance": "The withdrawal exceeds the balance of the piggy bank, which is {balance}.",
       "mail-not-configured": "Save the mail server before sending the test.",
-      "mail-encryption-key-missing": "The mail encryption key is missing. Set MAIL_ENCRYPTION_KEY on the server and restart it."
+      "mail-encryption-key-missing": "The mail encryption key is missing. Set MAIL_ENCRYPTION_KEY on the server and restart it.",
+      "mail-delivery-failed": "Delivery failed: {reason}"
     },
     "not-found": {
       "detail": "Not found",

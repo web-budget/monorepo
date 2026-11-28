@@ -486,6 +486,7 @@ describe('MailSettingsView', () => {
       expect(sendButton(wrapper).element.matches(':disabled')).toBe(true)
       expect(buttonWithText(wrapper, 'Cancelar').element.matches(':disabled')).toBe(true)
       expect(buttonWithText(wrapper, 'Salvar').element.matches(':disabled')).toBe(true)
+      expect(wrapper.find('[data-slot="password-hint"]').exists()).toBe(false)
       expect(field(wrapper, 'password').attributes('placeholder')).toBeUndefined()
     })
   })
