@@ -329,7 +329,7 @@ const reconciliation = useReconciliation(async () => {
         </Button>
       </template>
     </PageHeader>
-    <div class="grid gap-4">
+    <div class="grid grid-cols-1 gap-4 *:min-w-0">
       <div class="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <Card class="col-span-2 content-between gap-2 p-4 lg:col-span-1">
           <FilterSelect

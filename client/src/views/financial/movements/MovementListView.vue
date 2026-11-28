@@ -298,7 +298,7 @@ onMounted(async () => {
         <Button type="button" @click="changeToAdd()"> <Plus />{{ $t('form.create') }} </Button>
       </template>
     </PageHeader>
-    <div class="grid gap-4">
+    <div class="grid grid-cols-1 gap-4 *:min-w-0">
       <Alert v-if="selectedPeriod?.expired" variant="attention" data-slot="expired-notice">
         <Clock />
         <AlertTitle>
@@ -392,7 +392,7 @@ onMounted(async () => {
           </span>
         </Card>
       </div>
-      <Card class="grid gap-4 p-4" data-slot="filter-card">
+      <Card class="grid grid-cols-1 gap-4 p-4 *:min-w-0" data-slot="filter-card">
         <SearchControls
           v-model:status="pageRequest.status"
           v-model:filter="pageRequest.filterText"
