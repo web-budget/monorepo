@@ -45,8 +45,8 @@ class CompositionRepository(
     private val classifications = CLASSIFICATIONS.`as`("classifications")
     private val costCenters = COST_CENTERS.`as`("cost_centers")
 
-    private val endingYear = DSL.extract(periods.ENDING_AT, DatePart.YEAR)
-    private val endingMonth = DSL.extract(periods.ENDING_AT, DatePart.MONTH)
+    private val occurredYear = DSL.extract(lines.OCCURRED_ON, DatePart.YEAR)
+    private val occurredMonth = DSL.extract(lines.OCCURRED_ON, DatePart.MONTH)
 
     fun sumExpensesBySubtree(year: Int?): List<CostCenterValue> = dsl
         .select(tree.ID_ANCESTOR, DSL.sum(lines.VALUE))
@@ -79,25 +79,28 @@ class CompositionRepository(
         .fetch { record -> ClassificationValue(record.value1()!!, record.value2()!!, null, record.value3()!!) }
 
     fun sumExpensesByMonth(year: Int?): List<MonthValue> = dsl
-        .select(classifications.EXTERNAL_ID, classifications.NAME, endingYear, endingMonth, DSL.sum(lines.VALUE))
+        .select(classifications.EXTERNAL_ID, classifications.NAME, occurredYear, occurredMonth, DSL.sum(lines.VALUE))
         .from(lines)
-        .join(periods).on(periods.ID.eq(lines.ID_FINANCIAL_PERIOD))
         .join(classifications).on(classifications.ID.eq(lines.ID_CLASSIFICATION))
-        .where(isOfType(Movement.Type.EXPENSE).and(inYear(year)))
-        .groupBy(classifications.EXTERNAL_ID, classifications.NAME, endingYear, endingMonth)
+        .where(isOfType(Movement.Type.EXPENSE).and(occurredIn(year)))
+        .groupBy(classifications.EXTERNAL_ID, classifications.NAME, occurredYear, occurredMonth)
         .fetch { record ->
             MonthValue(record.value1()!!, record.value2()!!, record.value3()!!, record.value4()!!, record.value5()!!)
         }
 
     fun findMonthsWithMovement(year: Int?): List<Month> = dsl
-        .selectDistinct(endingYear, endingMonth)
-        .from(periods)
-        .where(DSL.exists(DSL.selectOne().from(lines).where(lines.ID_FINANCIAL_PERIOD.eq(periods.ID))).and(inYear(year)))
+        .selectDistinct(occurredYear, occurredMonth)
+        .from(lines)
+        .where(occurredIn(year))
         .fetch { record -> Month(record.value1()!!, record.value2()!!) }
 
     private fun isOfType(type: Movement.Type): Condition = lines.TYPE.eq(type.name)
 
     private fun inYear(year: Int?): Condition = year
         ?.let { periods.ENDING_AT.between(LocalDate.of(it, 1, 1), LocalDate.of(it, 12, 31)) }
+        ?: DSL.noCondition()
+
+    private fun occurredIn(year: Int?): Condition = year
+        ?.let { lines.OCCURRED_ON.between(LocalDate.of(it, 1, 1), LocalDate.of(it, 12, 31)) }
         ?: DSL.noCondition()
 }

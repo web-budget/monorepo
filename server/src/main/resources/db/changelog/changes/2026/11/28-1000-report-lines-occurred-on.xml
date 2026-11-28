@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog
+    xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+        https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-5.0.xsd">
+
+    <changeSet id="28-1000-1" author="${claude}">
+        <comment>
+            occurred_on is the day a line happened: the payment date of what was paid by wallet and the purchase date
+            of a card purchase, whatever the status of its invoice. It goes at the end of the column list so that
+            CREATE OR REPLACE accepts the view, and every other column and condition stays as in 27-1200.
+        </comment>
+        <sql>
+            CREATE OR REPLACE VIEW financial.report_lines AS
+            SELECT
+                m.id_financial_period,
+                m.type,
+                m.id_cost_center,
+                m.id_classification,
+                p.value_paid AS value,
+                EXISTS (SELECT 1 FROM financial.recurring_launches rl WHERE rl.id_movement = m.id) AS fixed,
+                p.paid_on AS occurred_on
+            FROM financial.movements m
+            JOIN financial.payments p ON p.id_movement = m.id
+            WHERE p.method = 'WALLET'
+              AND m.id_invoice IS NULL
+            UNION ALL
+            SELECT
+                i.id_financial_period,
+                'EXPENSE' AS type,
+                cp.id_cost_center,
+                cp.id_classification,
+                cp.value,
+                EXISTS (SELECT 1 FROM financial.recurring_launches rl WHERE rl.id_movement = cp.id_movement) AS fixed,
+                cp.purchased_on AS occurred_on
+            FROM financial.card_purchases cp
+            JOIN financial.invoices i ON i.id = cp.id_invoice;
+        </sql>
+        <rollback>
+            <sql>
+                DROP VIEW financial.report_lines;
+
+                CREATE VIEW financial.report_lines AS
+                SELECT
+                    m.id_financial_period,
+                    m.type,
+                    m.id_cost_center,
+                    m.id_classification,
+                    p.value_paid AS value,
+                    EXISTS (SELECT 1 FROM financial.recurring_launches rl WHERE rl.id_movement = m.id) AS fixed
+                FROM financial.movements m
+                JOIN financial.payments p ON p.id_movement = m.id
+                WHERE p.method = 'WALLET'
+                  AND m.id_invoice IS NULL
+                UNION ALL
+                SELECT
+                    i.id_financial_period,
+                    'EXPENSE' AS type,
+                    cp.id_cost_center,
+                    cp.id_classification,
+                    cp.value,
+                    EXISTS (SELECT 1 FROM financial.recurring_launches rl WHERE rl.id_movement = cp.id_movement) AS fixed
+                FROM financial.card_purchases cp
+                JOIN financial.invoices i ON i.id = cp.id_invoice;
+            </sql>
+        </rollback>
+    </changeSet>
+</databaseChangeLog>

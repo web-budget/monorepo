@@ -84,7 +84,7 @@ class CompositionDashboardControllerTest : BaseIntegrationTest() {
     }
 
     @Test
-    fun `should give the value of the month in a year and null in a month without a period with movement`() {
+    fun `should give the value of the month in a year and null in a month without any line`() {
 
         seedYear2024()
 
@@ -108,8 +108,8 @@ class CompositionDashboardControllerTest : BaseIntegrationTest() {
 
         seedYear2024()
         insertPeriod(9104L, "07/2025", LocalDate.of(2025, 7, 1), LocalDate.of(2025, 7, 31))
-        paidMovement(9104L, "EXPENSE", "60.00", GYM_ID, HEALTH_ID)
-        paidMovement(9104L, "EXPENSE", "20.00", SUPERMARKET_ID, HOME_ID)
+        paidMovement(9104L, "EXPENSE", "60.00", GYM_ID, HEALTH_ID, LocalDate.of(2025, 7, 12))
+        paidMovement(9104L, "EXPENSE", "20.00", SUPERMARKET_ID, HOME_ID, LocalDate.of(2025, 7, 12))
 
         composition("all")
             .expectBody()
@@ -127,6 +127,131 @@ class CompositionDashboardControllerTest : BaseIntegrationTest() {
             .jsonPath("$.expenses").isEqualTo(80.0)
             .jsonPath("$.seasonality[0].months[6]").isEqualTo(60.0)
             .jsonPath("$.seasonality[0].months[7]").isEqualTo(null)
+    }
+
+    @Test
+    fun `should put each payment in its own month when the period crosses months`() {
+
+        insertPeriod(9201L, "15/10 to 14/11", LocalDate.of(2026, 10, 15), LocalDate.of(2026, 11, 14))
+        paidMovement(9201L, "EXPENSE", "30.00", GYM_ID, HEALTH_ID, LocalDate.of(2026, 10, 20))
+        paidMovement(9201L, "EXPENSE", "70.00", GYM_ID, HEALTH_ID, LocalDate.of(2026, 11, 3))
+
+        composition("2026")
+            .expectBody()
+            .jsonPath("$.seasonality.length()").isEqualTo(1)
+            .jsonPath("$.seasonality[0].months[8]").isEqualTo(null)
+            .jsonPath("$.seasonality[0].months[9]").isEqualTo(30.0)
+            .jsonPath("$.seasonality[0].months[10]").isEqualTo(70.0)
+            .jsonPath("$.seasonality[0].months[11]").isEqualTo(null)
+            .jsonPath("$.expenses").isEqualTo(100.0)
+    }
+
+    @Test
+    fun `should not add two periods ending in the same month`() {
+
+        insertPeriod(9201L, "20/09 to 05/10", LocalDate.of(2026, 9, 20), LocalDate.of(2026, 10, 5))
+        insertPeriod(9202L, "06/10 to 31/10", LocalDate.of(2026, 10, 6), LocalDate.of(2026, 10, 31))
+        paidMovement(9201L, "EXPENSE", "50.00", GYM_ID, HEALTH_ID, LocalDate.of(2026, 9, 25))
+        paidMovement(9202L, "EXPENSE", "70.00", GYM_ID, HEALTH_ID, LocalDate.of(2026, 10, 20))
+
+        composition("2026")
+            .expectBody()
+            .jsonPath("$.seasonality[0].months[8]").isEqualTo(50.0)
+            .jsonPath("$.seasonality[0].months[9]").isEqualTo(70.0)
+            .jsonPath("$.expenses").isEqualTo(120.0)
+    }
+
+    @Test
+    fun `should put a card purchase in the month of the purchase even when its period ends in the next year`() {
+
+        insertPeriod(9201L, "01/2027", LocalDate.of(2027, 1, 1), LocalDate.of(2027, 1, 31))
+        insertInvoice(9201L, 9101L, 9201L, "OPEN")
+        insertCardPurchase(9201L, 9201L, "90.00", GYM_ID, HEALTH_ID, LocalDate.of(2026, 12, 28))
+
+        composition("2026")
+            .expectBody()
+            .jsonPath("$.seasonality.length()").isEqualTo(1)
+            .jsonPath("$.seasonality[0].months[10]").isEqualTo(null)
+            .jsonPath("$.seasonality[0].months[11]").isEqualTo(90.0)
+            .jsonPath("$.expenses").isEqualTo(0)
+
+        composition("2027")
+            .expectBody()
+            .jsonPath("$.seasonality.length()").isEqualTo(0)
+            .jsonPath("$.expenses").isEqualTo(90.0)
+    }
+
+    @Test
+    fun `should count card purchases whatever the status of the invoice`() {
+
+        insertPeriod(9201L, "03/2026", LocalDate.of(2026, 3, 1), LocalDate.of(2026, 3, 31))
+        insertInvoice(9201L, 9101L, 9201L, "OPEN")
+        insertInvoice(9202L, 9102L, 9201L, "CLOSED")
+        insertPeriod(9202L, "04/2026", LocalDate.of(2026, 4, 1), LocalDate.of(2026, 4, 30))
+        insertInvoice(9203L, 9101L, 9202L, "PAID")
+        insertCardPurchase(9201L, 9201L, "10.00", GYM_ID, HEALTH_ID, LocalDate.of(2026, 3, 5))
+        insertCardPurchase(9202L, 9202L, "20.00", GYM_ID, HEALTH_ID, LocalDate.of(2026, 3, 6))
+        insertCardPurchase(9203L, 9203L, "40.00", GYM_ID, HEALTH_ID, LocalDate.of(2026, 3, 7))
+
+        composition("2026")
+            .expectBody()
+            .jsonPath("$.seasonality[0].months[2]").isEqualTo(70.0)
+    }
+
+    @Test
+    fun `should not count a movement that was not paid`() {
+
+        insertClassification(SUPERMARKET_ID, "Supermarket", "EXPENSE")
+        insertPeriod(9201L, "10/2026", LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 31))
+        paidMovement(9201L, "EXPENSE", "30.00", GYM_ID, HEALTH_ID, LocalDate.of(2026, 10, 20))
+        openMovement(9201L, "80.00", SUPERMARKET_ID, HOME_ID, LocalDate.of(2026, 11, 10))
+
+        composition("2026")
+            .expectBody()
+            .jsonPath("$.seasonality.length()").isEqualTo(1)
+            .jsonPath("$.seasonality[0].name").isEqualTo("Financial test gym")
+            .jsonPath("$.seasonality[0].months[9]").isEqualTo(30.0)
+            .jsonPath("$.seasonality[0].months[10]").isEqualTo(null)
+    }
+
+    @Test
+    fun `should give zero in a month with lines of another classification and null in a month with none`() {
+
+        insertClassification(SUPERMARKET_ID, "Supermarket", "EXPENSE")
+        insertPeriod(9201L, "10/2026 to 12/2026", LocalDate.of(2026, 10, 1), LocalDate.of(2026, 12, 31))
+        paidMovement(9201L, "EXPENSE", "30.00", GYM_ID, HEALTH_ID, LocalDate.of(2026, 10, 20))
+        paidMovement(9201L, "EXPENSE", "80.00", SUPERMARKET_ID, HOME_ID, LocalDate.of(2026, 11, 10))
+        paidMovement(9201L, "INCOME", "500.00", SALARY_ID, HEALTH_ID, LocalDate.of(2026, 12, 5))
+
+        composition("2026")
+            .expectBody()
+            .jsonPath("$.seasonality.length()").isEqualTo(2)
+            .jsonPath("$.seasonality[0].months[11]").isEqualTo(0)
+            .jsonPath("$.seasonality[1].months[11]").isEqualTo(0)
+            .jsonPath("$.seasonality[0].name").isEqualTo("Supermarket")
+            .jsonPath("$.seasonality[0].months[9]").isEqualTo(0)
+            .jsonPath("$.seasonality[0].months[10]").isEqualTo(80.0)
+            .jsonPath("$.seasonality[1].name").isEqualTo("Financial test gym")
+            .jsonPath("$.seasonality[1].months[9]").isEqualTo(30.0)
+            .jsonPath("$.seasonality[1].months[10]").isEqualTo(0)
+            .jsonPath("$.seasonality[1].months[0]").isEqualTo(null)
+    }
+
+    @Test
+    fun `should average the month over the years that have a line in it`() {
+
+        insertPeriod(9201L, "10/2025", LocalDate.of(2025, 10, 1), LocalDate.of(2025, 10, 31))
+        insertPeriod(9202L, "10/2026", LocalDate.of(2026, 10, 1), LocalDate.of(2026, 10, 31))
+        insertPeriod(9203L, "11/2026", LocalDate.of(2026, 11, 1), LocalDate.of(2026, 11, 30))
+        paidMovement(9201L, "EXPENSE", "30.00", GYM_ID, HEALTH_ID, LocalDate.of(2025, 10, 10))
+        paidMovement(9202L, "EXPENSE", "51.00", GYM_ID, HEALTH_ID, LocalDate.of(2026, 10, 10))
+        paidMovement(9203L, "EXPENSE", "25.00", GYM_ID, HEALTH_ID, LocalDate.of(2026, 11, 10))
+
+        composition("all")
+            .expectBody()
+            .jsonPath("$.seasonality[0].months[9]").isEqualTo(40.5)
+            .jsonPath("$.seasonality[0].months[10]").isEqualTo(25.0)
+            .jsonPath("$.seasonality[0].months[8]").isEqualTo(null)
     }
 
     @Test
@@ -161,11 +286,11 @@ class CompositionDashboardControllerTest : BaseIntegrationTest() {
         insertClassification(SUPERMARKET_ID, "Supermarket", "EXPENSE")
         insertClassification(FREELANCE_ID, "Freelance", "INCOME")
 
-        paidMovement(JULY_ID, "EXPENSE", "100.00", GYM_ID, HEALTH_ID)
-        paidMovement(JULY_ID, "EXPENSE", "40.00", GYM_ID, CHILD_ID)
-        paidMovement(JULY_ID, "INCOME", "5000.00", SALARY_ID, HEALTH_ID)
-        paidMovement(AUGUST_ID, "EXPENSE", "60.00", SUPERMARKET_ID, HOME_ID)
-        paidMovement(AUGUST_ID, "INCOME", "200.00", FREELANCE_ID, HOME_ID)
+        paidMovement(JULY_ID, "EXPENSE", "100.00", GYM_ID, HEALTH_ID, LocalDate.of(2024, 7, 10))
+        paidMovement(JULY_ID, "EXPENSE", "40.00", GYM_ID, CHILD_ID, LocalDate.of(2024, 7, 11))
+        paidMovement(JULY_ID, "INCOME", "5000.00", SALARY_ID, HEALTH_ID, LocalDate.of(2024, 7, 5))
+        paidMovement(AUGUST_ID, "EXPENSE", "60.00", SUPERMARKET_ID, HOME_ID, LocalDate.of(2024, 8, 10))
+        paidMovement(AUGUST_ID, "INCOME", "200.00", FREELANCE_ID, HOME_ID, LocalDate.of(2024, 8, 5))
     }
 
     private fun composition(year: String): ResponseSpec =
@@ -201,18 +326,62 @@ class CompositionDashboardControllerTest : BaseIntegrationTest() {
         )
     }
 
-    private fun paidMovement(periodId: Long, type: String, value: String, classificationId: Long, costCenterId: Long) {
+    private fun insertInvoice(id: Long, cardId: Long, periodId: Long, status: String) {
+        dsl.execute(
+            """
+            INSERT INTO financial.invoices (id, external_id, version, created_on, status, id_card, id_financial_period)
+            VALUES (?, gen_random_uuid(), 0, now(), ?, ?, ?)
+            """.trimIndent(),
+            id, status, cardId, periodId
+        )
+    }
+
+    private fun insertCardPurchase(
+        id: Long,
+        invoiceId: Long,
+        value: String,
+        classificationId: Long,
+        costCenterId: Long,
+        purchasedOn: LocalDate
+    ) {
+        dsl.execute(
+            """
+            INSERT INTO financial.card_purchases (id, external_id, version, created_on, name, purchased_on, value, id_invoice, id_classification, id_cost_center)
+            VALUES (?, gen_random_uuid(), 0, now(), 'Card purchase', ?, ?::numeric, ?, ?, ?)
+            """.trimIndent(),
+            id, purchasedOn, value, invoiceId, classificationId, costCenterId
+        )
+    }
+
+    private fun openMovement(periodId: Long, value: String, classificationId: Long, costCenterId: Long, dueDate: LocalDate) {
+        dsl.execute(
+            """
+            INSERT INTO financial.movements (external_id, version, created_on, name, type, value, due_date, status, id_financial_period, id_classification, id_cost_center)
+            VALUES (gen_random_uuid(), 0, now(), 'Open movement', 'EXPENSE', ?::numeric, ?, 'OPEN', ?, ?, ?)
+            """.trimIndent(),
+            value, dueDate, periodId, classificationId, costCenterId
+        )
+    }
+
+    private fun paidMovement(
+        periodId: Long,
+        type: String,
+        value: String,
+        classificationId: Long,
+        costCenterId: Long,
+        paidOn: LocalDate
+    ) {
         dsl.execute(
             """
             WITH inserted AS (
                 INSERT INTO financial.movements (external_id, version, created_on, name, type, value, due_date, status, id_financial_period, id_classification, id_cost_center)
-                VALUES (gen_random_uuid(), 0, now(), 'Paid movement', ?, ?::numeric, current_date, 'PAID', ?, ?, ?)
+                VALUES (gen_random_uuid(), 0, now(), 'Paid movement', ?, ?::numeric, ?, 'PAID', ?, ?, ?)
                 RETURNING id
             )
             INSERT INTO financial.payments (external_id, version, created_on, method, paid_on, value, discount, value_paid, id_movement, id_wallet)
-            SELECT gen_random_uuid(), 0, now(), 'WALLET', current_date, ?::numeric, 0, ?::numeric, id, 9101 FROM inserted
+            SELECT gen_random_uuid(), 0, now(), 'WALLET', ?, ?::numeric, 0, ?::numeric, id, 9101 FROM inserted
             """.trimIndent(),
-            type, value, periodId, classificationId, costCenterId, value, value
+            type, value, paidOn, periodId, classificationId, costCenterId, paidOn, value, value
         )
     }
 
