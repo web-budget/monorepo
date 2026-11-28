@@ -42,6 +42,12 @@ export const configurationRoutes: RouteRecordRaw[] = [
         meta: { breadcrumb: 'settings.menu' },
         component: () => import('@/views/configuration/settings/SettingsView.vue'),
       },
+      {
+        path: 'mail',
+        name: 'mail-settings',
+        meta: { breadcrumb: 'mail-settings.menu' },
+        component: () => import('@/views/configuration/mail/MailSettingsView.vue'),
+      },
     ],
   },
 ]

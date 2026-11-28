@@ -103,7 +103,9 @@
       "compartment-target-date-in-past": "A data alvo não pode ser anterior a hoje.",
       "compartment-with-balance": "O cofrinho ainda tem saldo e não pode ser excluído",
       "invalid-compartment-movement-value": "O valor precisa ser maior que zero.",
-      "insufficient-compartment-balance": "O resgate passa do saldo do cofrinho, que é {balance}."
+      "insufficient-compartment-balance": "O resgate passa do saldo do cofrinho, que é {balance}.",
+      "mail-not-configured": "Salve o servidor de e-mail antes de enviar o teste.",
+      "mail-encryption-key-missing": "Falta a chave de cifra do e-mail. Defina a MAIL_ENCRYPTION_KEY no server e reinicie-o."
     },
     "not-found": {
       "detail": "Não encontrado",
@@ -410,7 +412,7 @@
     "description": {
       "financial": "Lançamentos, cartões, recorrentes e fechamento de cada período.",
       "registration": "Escolha o que cadastrar ou consultar.",
-      "configuration": "Contas de usuários, áreas de acesso e integrações."
+      "configuration": "Contas de usuários, parâmetros, e-mail e integrações."
     },
     "items": {
       "recurrent-movement": "Lançam movimentos e compras a cada período.",
@@ -424,6 +426,7 @@
       "financial-period": "Criar, encerrar e reabrir períodos.",
       "users": "Contas, áreas de acesso e aprovações.",
       "settings": "Quantos meses de custo de vida a reserva ideal cobre.",
+      "mail": "Servidor SMTP e envio dos e-mails.",
       "integrations": "Conexões com bancos e serviços externos.",
       "movement": "Receitas e despesas do período.",
       "transfer": "Dinheiro que muda de carteira.",
@@ -569,6 +572,78 @@
     "toast": {
       "saved": "Parâmetros salvos",
       "saved-detail": "A reserva ideal passa a ser de {count} mês de custo de vida. | A reserva ideal passa a ser de {count} meses de custo de vida."
+    }
+  },
+  "mail-settings": {
+    "title": "E-mail",
+    "menu": "E-mail",
+    "description": "Servidor SMTP que envia os e-mails do webBudget.",
+    "list": {
+      "plural": "a configuração de e-mail"
+    },
+    "home": {
+      "no-server": "Sem servidor",
+      "on": "Ligado",
+      "off": "Desligado"
+    },
+    "key-missing": {
+      "title": "Falta a chave de cifra do e-mail",
+      "description": "Defina a MAIL_ENCRYPTION_KEY no server e reinicie-o para configurar o e-mail."
+    },
+    "sending": {
+      "label": "Enviar e-mails",
+      "on": "Ligado",
+      "off": "Desligado",
+      "no-server": "Sem servidor salvo",
+      "turning": {
+        "on": "Ligando…",
+        "off": "Desligando…"
+      }
+    },
+    "sections": {
+      "server": "Servidor",
+      "authentication": "Autenticação",
+      "sender": "Remetente",
+      "test": "Enviar teste"
+    },
+    "form": {
+      "host": "Servidor",
+      "host-placeholder": "smtp.exemplo.com.br",
+      "port": "Porta",
+      "port-placeholder": "587",
+      "security": "Segurança",
+      "username": "Usuário",
+      "password": "Senha",
+      "from-address": "E-mail do remetente",
+      "from-address-placeholder": "avisos{'@'}exemplo.com.br",
+      "from-name": "Nome do remetente",
+      "from-name-placeholder": "webBudget",
+      "reply-to-address": "Responder para"
+    },
+    "security": {
+      "NONE": "Nenhuma",
+      "STARTTLS": "STARTTLS",
+      "SSL_TLS": "SSL/TLS"
+    },
+    "password": {
+      "saved": "Senha salva. Em branco, ela é mantida.",
+      "removed": "A senha salva sai ao salvar sem usuário."
+    },
+    "test": {
+      "recipient": "Destinatário",
+      "send": "Enviar teste",
+      "sending": "Enviando…",
+      "sent": {
+        "title": "E-mail de teste enviado",
+        "description": "Para {recipient}."
+      },
+      "failed": "Não foi possível enviar"
+    },
+    "saved-at": "Salvo em {date}",
+    "toast": {
+      "saved": "Servidor de e-mail salvo",
+      "enabled": "Envio de e-mails ligado",
+      "disabled": "Envio de e-mails desligado"
     }
   },
   "users": {
@@ -2014,7 +2089,13 @@
     "reconciliation-reason-required": "Informe o motivo da diferença.",
     "transfer-same-wallet": "Origem e destino precisam ser carteiras diferentes.",
     "first-installment-after-last": "A parcela atual não pode passar do número de parcelas.",
-    "reserve-months-range": "Use um número inteiro de 1 a 24."
+    "reserve-months-range": "Use um número inteiro de 1 a 24.",
+    "mail-host-required": "Informe o servidor.",
+    "mail-port-required": "Informe a porta.",
+    "mail-port-invalid": "Valor inválido.",
+    "mail-from-address-required": "Informe o e-mail do remetente.",
+    "mail-recipient-required": "Informe o destinatário.",
+    "mail-email-invalid": "Informe um e-mail válido."
   },
   "crud": {
     "required-hint": "Campos com * são obrigatórios.",
