@@ -1,5 +1,5 @@
 import { flushPromises } from '@vue/test-utils'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { toast } from 'vue-sonner'
 import { costCentersApi } from '@/api/costCenters'
 import { useConfirmDialog } from '@/composables/useConfirmDialog'
@@ -11,6 +11,7 @@ import {
   problem,
   serveListing,
   stateOf,
+  useCompactViewport,
 } from '@/test/crud'
 import type { CostCenterListView as CostCenterRow } from '@/types'
 import CostCenterListView from '@/views/registration/cost-centers/CostCenterListView.vue'
@@ -55,6 +56,11 @@ describe('CostCenterListView', () => {
     document.body.replaceChildren()
   })
 
+  afterEach(() => {
+    useCompactViewport(false)
+    vi.restoreAllMocks()
+  })
+
   it('introduces the page and offers the active cost centers first, with the counts', async () => {
     const { wrapper } = await render()
 
@@ -81,6 +87,31 @@ describe('CostCenterListView', () => {
     expect(rows[1]!.find('a').attributes('href')).toBe('/cost-centers/cc-2/detail')
     expect(rows[0]!.findAll('td')[1]!.classes()).toContain('text-right')
   })
+
+  it.each([
+    ['the table', false],
+    ['the mobile cards', true],
+  ])(
+    'shows zero for the budgets the server leaves out, without console warnings, on %s',
+    async (_layout, compact) => {
+      useCompactViewport(compact)
+      const warn = vi.spyOn(console, 'warn').mockImplementation(() => undefined)
+      const withoutBudgets: CostCenterRow = {
+        id: 'cc-3',
+        name: 'Garage',
+        fullName: 'Garage',
+        active: true,
+      }
+
+      const { wrapper } = await render([withoutBudgets])
+
+      expect(warn).not.toHaveBeenCalled()
+      expect(wrapper.text()).toContain('Garage')
+      const budgets = wrapper.findAll('[data-slot="currency"]')
+      expect(budgets).toHaveLength(2)
+      budgets.forEach((budget) => expect(budget.text()).toMatch(/^R\$\s0,00$/))
+    },
+  )
 
   it('searches by the typed filter and by status', async () => {
     const { wrapper } = await render()
