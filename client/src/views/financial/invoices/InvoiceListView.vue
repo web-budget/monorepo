@@ -252,7 +252,7 @@ function createPeriod() {
         </Button>
       </template>
     </PageHeader>
-    <div class="grid gap-4">
+    <div class="grid grid-cols-1 gap-4 *:min-w-0">
       <Card class="flex-row flex-wrap items-end justify-between gap-3 p-4" data-slot="filter-card">
         <div
           class="grid w-full grid-cols-2 gap-3 md:w-auto md:grid-cols-[220px_220px]"

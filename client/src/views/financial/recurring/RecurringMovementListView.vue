@@ -167,7 +167,7 @@ function openDetail(recurringMovement: RecurringMovementView) {
         <Button type="button" @click="changeToAdd()"> <Plus />{{ $t('form.create') }} </Button>
       </template>
     </PageHeader>
-    <div class="grid gap-4">
+    <div class="grid grid-cols-1 gap-4 *:min-w-0">
       <Card class="p-4" data-slot="filter-card">
         <SearchControls
           v-model:status="pageRequest.status"

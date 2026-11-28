@@ -228,8 +228,8 @@ function showsLines(item: ImportListView) {
         <Button type="button" @click="create()"><Plus />{{ $t('imports.actions.create') }}</Button>
       </template>
     </PageHeader>
-    <div class="grid gap-4">
-      <Card class="grid gap-4 p-4" data-slot="filter-card">
+    <div class="grid grid-cols-1 gap-4 *:min-w-0">
+      <Card class="grid grid-cols-1 gap-4 p-4 *:min-w-0" data-slot="filter-card">
         <SearchControls
           v-model:status="pageRequest.status"
           v-model:filter="pageRequest.filterText"

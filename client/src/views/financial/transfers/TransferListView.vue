@@ -177,8 +177,8 @@ function create() {
         <Button type="button" @click="create()"><Plus />{{ $t('form.create') }}</Button>
       </template>
     </PageHeader>
-    <div class="grid gap-4">
-      <Card class="grid gap-4 p-4" data-slot="filter-card">
+    <div class="grid grid-cols-1 gap-4 *:min-w-0">
+      <Card class="grid grid-cols-1 gap-4 p-4 *:min-w-0" data-slot="filter-card">
         <SearchControls
           :status="pageRequest.status"
           v-model:filter="pageRequest.filterText"
