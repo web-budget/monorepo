@@ -10,6 +10,7 @@ import br.com.webbudget.server.jooq.registration.tables.references.FINANCIAL_PER
 import org.jooq.Condition
 import org.jooq.DSLContext
 import org.jooq.DatePart
+import org.jooq.Field
 import org.jooq.impl.DSL
 import org.springframework.stereotype.Repository
 import java.math.BigDecimal
@@ -66,14 +67,6 @@ class PeriodFlowRepository(
         )
     }
 
-    private fun sumCardToPay(year: Int?): BigDecimal = dsl.select(DSL.sum(CARD_PURCHASES.VALUE))
-        .from(CARD_PURCHASES)
-        .join(INVOICES).on(INVOICES.ID.eq(CARD_PURCHASES.ID_INVOICE))
-        .join(financialPeriods).on(financialPeriods.ID.eq(INVOICES.ID_FINANCIAL_PERIOD))
-        .where(INVOICES.STATUS.ne(Invoice.Status.PAID.name).and(periodEndsIn(year)))
-        .fetchSingle()
-        .value1() ?: BigDecimal.ZERO
-
     fun sumByYear(): List<Overview.YearResult> {
 
         val hasOpenPeriod = DSL.boolOr(periodFlow.STATUS.eq(FinancialPeriodReference.Status.OPEN.name))
@@ -93,11 +86,15 @@ class PeriodFlowRepository(
             }
     }
 
-    private fun periodEndsIn(year: Int?): Condition = year
-        ?.let { financialPeriods.ENDING_AT.between(LocalDate.of(it, 1, 1), LocalDate.of(it, 12, 31)) }
-        ?: DSL.noCondition()
+    private fun sumCardToPay(year: Int?): BigDecimal = dsl.select(DSL.sum(CARD_PURCHASES.VALUE))
+        .from(CARD_PURCHASES)
+        .join(INVOICES).on(INVOICES.ID.eq(CARD_PURCHASES.ID_INVOICE))
+        .join(financialPeriods).on(financialPeriods.ID.eq(INVOICES.ID_FINANCIAL_PERIOD))
+        .where(INVOICES.STATUS.ne(Invoice.Status.PAID.name).and(inYear(year, financialPeriods.ENDING_AT)))
+        .fetchSingle()
+        .value1() ?: BigDecimal.ZERO
 
-    private fun inYear(year: Int?): Condition = year
-        ?.let { periodFlow.ENDING_AT.between(LocalDate.of(it, 1, 1), LocalDate.of(it, 12, 31)) }
+    private fun inYear(year: Int?, endingAt: Field<LocalDate?> = periodFlow.ENDING_AT): Condition = year
+        ?.let { endingAt.between(LocalDate.of(it, 1, 1), LocalDate.of(it, 12, 31)) }
         ?: DSL.noCondition()
 }
