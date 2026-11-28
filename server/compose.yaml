@@ -19,9 +19,6 @@ services:
   maildev:
     container_name: webbudget-maildev
     image: 'maildev/maildev:2.2.1'
-    environment:
-      - 'MAILDEV_INCOMING_USER=maildev'
-      - 'MAILDEV_INCOMING_PASS=maildev'
     ports:
       - '1080:1080'
       - '1025:1025'
