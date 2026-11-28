@@ -22,6 +22,14 @@ O `vite.config.ts` fixa a porta 8086 com `strictPort: true`: se ela estiver ocup
 
 O `pnpm test` só fica em modo watch quando o terminal é interativo (TTY). Sem TTY, ou com `CI=true`, o Vitest cai para uma passada só e termina. Não conte com isso: em scripts, no CI e nas verificações do Claude use `pnpm test:run` ou `pnpm test:coverage`, que nunca ficam esperando.
 
+**A imagem do client** sai do `client/Dockerfile` (multi-stage: `node:24-alpine` com o pnpm do `packageManager` constrói o `dist/` e o `nginx:alpine` o serve) e é construída a partir de `client/`:
+
+```bash
+docker build -t webbudget/client:teste --build-arg VITE_APP_VERSION=v4.0.0-teste .
+```
+
+O `VITE_APP_VERSION` é o que o workflow de release usa para gravar a tag no menu lateral. O `nginx.conf.template` (o entrypoint da imagem faz o `envsubst` de `BACKEND_HOST`, padrão `server`, e `BACKEND_PORT`, padrão `8085`) devolve o `index.html` nas rotas da SPA, encaminha `/private` para o server com `X-Real-IP`, `X-Forwarded-For` e `X-Forwarded-Proto` e manda os cabeçalhos de segurança, entre eles um `Content-Security-Policy` sem origens externas (as fontes são locais). Uma tela nova que carregue algo de fora (fonte, imagem, script) precisa ampliar essa política no mesmo PR. A imagem escuta em http na porta 80: o HTTPS é de um proxy na frente.
+
 O CI (job `test-client` de `.github/workflows/ci.yml`) roda `pnpm install --frozen-lockfile`, `pnpm lint`, `pnpm build` e `pnpm test:coverage`, nessa ordem. Rode os três últimos antes de abrir um PR que mexe no `client/`. O CI não confere o Prettier, e o ESLint usa o `eslint-config-prettier`, então o `pnpm lint` também não reclama de formatação.
 
 **O Prettier roda só nos arquivos que você tocou.** Formate o que mudou com `pnpm exec prettier --write <arquivos>`, nunca com `pnpm format` nem com `prettier --write src/` num PR. O `src/` está formatado hoje, mas um formatador rodado na árvore inteira espalha pelo diff mudanças em arquivos que o PR não tem motivo para tocar, e elas precisam ser desfeitas à mão. Se um arquivo tocado já estava fora do padrão no `HEAD`, mantenha formatados só os seus próprios trechos em vez de reformatar o arquivo inteiro. O estilo vem do `.prettierrc.json`: sem ponto e vírgula, aspas simples e 100 colunas.
