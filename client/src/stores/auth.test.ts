@@ -208,7 +208,65 @@ describe('useAuthStore', () => {
     await expect(store.restoreSession()).resolves.toBe(false)
     expect(store.session).toBeNull()
     expect(store.loading).toBe(false)
+    expect(store.sessionUnavailable).toBe(false)
     expect(resetUserStores).toHaveBeenCalledOnce()
+  })
+
+  it.each([
+    ['a network failure', new ApiError(null, null)],
+    ['a 500', new ApiError(null, 500)],
+    ['a 503', new ApiError(null, 503)],
+  ])(
+    'restoreSession() reports the session as unavailable, not as ended, on %s',
+    async (_name, failure) => {
+      vi.mocked(authApi.fetchSession).mockRejectedValue(failure)
+      const store = useAuthStore()
+
+      await expect(store.restoreSession()).resolves.toBe(false)
+      expect(store.sessionUnavailable).toBe(true)
+      expect(store.restoringSession).toBe(false)
+      expect(store.loading).toBe(false)
+      expect(resetUserStores).not.toHaveBeenCalled()
+    },
+  )
+
+  it.each([
+    ['a 403', new ApiError(null, 403)],
+    ['an unexpected error', new Error('boom')],
+  ])('restoreSession() treats %s as no session', async (_name, failure) => {
+    vi.mocked(authApi.fetchSession).mockRejectedValue(failure)
+    const store = useAuthStore()
+
+    await expect(store.restoreSession()).resolves.toBe(false)
+    expect(store.sessionUnavailable).toBe(false)
+    expect(resetUserStores).toHaveBeenCalledOnce()
+  })
+
+  it('restoreSession() forgets an earlier outage when the next attempt works', async () => {
+    vi.mocked(authApi.fetchSession).mockRejectedValueOnce(new ApiError(null, null))
+    vi.mocked(authApi.fetchSession).mockResolvedValueOnce(session)
+    const store = useAuthStore()
+
+    await store.restoreSession()
+    await expect(store.restoreSession()).resolves.toBe(true)
+    expect(store.sessionUnavailable).toBe(false)
+  })
+
+  it('restoreSession() flags the restoration while the request is in flight', async () => {
+    let finish: (value: SessionResponse) => void = () => undefined
+    vi.mocked(authApi.fetchSession).mockReturnValue(
+      new Promise((resolve) => {
+        finish = resolve
+      }),
+    )
+    const store = useAuthStore()
+
+    const restoring = store.restoreSession()
+    expect(store.restoringSession).toBe(true)
+    finish(session)
+    await restoring
+
+    expect(store.restoringSession).toBe(false)
   })
 
   it('logout() goes to the login first and only then clears the session and the user stores', async () => {

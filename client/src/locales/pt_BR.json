@@ -442,7 +442,8 @@
     "delete": "Deletar",
     "edit": "Editar",
     "go-home": "Ir para home",
-    "go-login": "Ir para login"
+    "go-login": "Ir para login",
+    "try-again": "Tentar de novo"
   },
   "form": {
     "save": "Salvar",
