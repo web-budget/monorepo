@@ -3,13 +3,13 @@ import type { OverviewPeriod } from '@/types'
 import {
   axisScale,
   cutOf,
-  flowMonths,
   flowPeriods,
   formatRate,
   formatShare,
   hasMovement,
   monthLabel,
   periodLabel,
+  periodRange,
   reserveMeterWidth,
   reserveShare,
   resultScale,
@@ -61,43 +61,12 @@ describe('overview utils', () => {
     expect(cutOf('10000', 2026)).toBe(2026)
   })
 
-  it('always gives the twelve months, capitalized, empty where no period ends', () => {
-    const months = flowMonths([period('Nov', '2026-11-30', 100, 40, false)], 'pt-BR')
-
-    expect(months).toHaveLength(12)
-    expect(months.map((month) => month.label).slice(0, 3)).toEqual(['Jan', 'Fev', 'Mar'])
-    expect(months[10]).toMatchObject({
-      revenues: 100,
-      expenses: 40,
-      recorded: false,
-      periodNames: ['Nov'],
-      empty: false,
-    })
-    expect(months[0]).toMatchObject({ revenues: 0, expenses: 0, periodNames: [], empty: true })
+  it('writes the dates of a period as day and month, in the locale', () => {
+    expect(periodRange('2026-10-15', '2026-11-14', 'pt-BR')).toBe('15/10 – 14/11')
+    expect(periodRange('2026-10-15', '2026-11-14', 'en-US')).toBe('10/15 – 11/14')
   })
 
-  it('sums the periods that end in the same month and records it only when all are recorded', () => {
-    const months = flowMonths(
-      [
-        period('First half', '2026-03-15', 100, 10),
-        period('Second half', '2026-03-31', 50, 5, false),
-      ],
-      'pt-BR',
-    )
-
-    expect(months[2]).toMatchObject({
-      revenues: 150,
-      expenses: 15,
-      recorded: false,
-      periodNames: ['First half', 'Second half'],
-    })
-  })
-
-  it('treats a month with only zeroed periods as empty', () => {
-    expect(flowMonths([period('Dez', '2026-12-31', 0, 0, false)], 'pt-BR')[11]!.empty).toBe(true)
-  })
-
-  it('gives one slot per period for all the periods, named by month and year', () => {
+  it('gives one slot per period, named by month and year, with the dates of the period', () => {
     const slots = flowPeriods(
       [period('Dez', '2025-12-31', 100, 40), period('Jan', '2026-01-31', 0, 0, false)],
       'pt-BR',
@@ -110,6 +79,7 @@ describe('overview utils', () => {
         expenses: 40,
         recorded: true,
         periodNames: ['Dez'],
+        range: '31/12 – 31/12',
         empty: false,
       },
       {
@@ -118,9 +88,44 @@ describe('overview utils', () => {
         expenses: 0,
         recorded: false,
         periodNames: ['Jan'],
+        range: '31/01 – 31/01',
         empty: true,
       },
     ])
+  })
+
+  it('keeps the periods of a year as they were registered, one column each, in the order they start', () => {
+    const slots = flowPeriods(
+      [
+        {
+          ...period('Second', '2026-11-14', 50, 5, false),
+          financialPeriod: {
+            id: 'second',
+            name: 'Second',
+            startingAt: '2026-10-15',
+            endingAt: '2026-11-14',
+          },
+        },
+        {
+          ...period('First', '2026-10-14', 100, 10),
+          financialPeriod: {
+            id: 'first',
+            name: 'First',
+            startingAt: '2026-10-01',
+            endingAt: '2026-10-14',
+          },
+        },
+      ],
+      'pt-BR',
+    )
+
+    expect(slots.map((slot) => slot.periodNames)).toEqual([['First'], ['Second']])
+    expect(slots.map((slot) => slot.range)).toEqual(['01/10 – 14/10', '15/10 – 14/11'])
+    expect(slots.map((slot) => slot.label)).toEqual(['out/26', 'nov/26'])
+  })
+
+  it('draws nothing for a year without periods', () => {
+    expect(flowPeriods([], 'pt-BR')).toEqual([])
   })
 
   it('names only every third period past eighteen', () => {

@@ -59,9 +59,9 @@ function setTokens(values: Record<string, string>) {
   }
 }
 
-function render(cut: number | 'all' = 2026) {
+function render(shown: OverviewPeriod[] = periods) {
   const { plugins } = createTestPlugins({ stubActions: false })
-  const wrapper = mount(FinancialFlowChart, { props: { periods, cut }, global: { plugins } })
+  const wrapper = mount(FinancialFlowChart, { props: { periods: shown }, global: { plugins } })
   const bar = () => wrapper.findComponent({ name: 'BarChartStub' })
   return { wrapper, bar }
 }
@@ -75,40 +75,65 @@ describe('FinancialFlowChart', () => {
     document.documentElement.removeAttribute('style')
   })
 
-  it('draws the twelve months of the year, with the periods in the month they end', () => {
+  it('draws one column per period, named by the month it ends in, with no calendar months', () => {
     const { bar } = render()
 
     const data = bar().props('data')
-    expect(data.labels).toEqual([
-      'Jan',
-      'Fev',
-      'Mar',
-      'Abr',
-      'Mai',
-      'Jun',
-      'Jul',
-      'Ago',
-      'Set',
-      'Out',
-      'Nov',
-      'Dez',
-    ])
+    expect(data.labels).toEqual(['set/26', 'out/26'])
     expect(data.datasets.map((dataset: { label: string }) => dataset.label)).toEqual([
       'Receitas',
       'Despesas',
     ])
-    expect(data.datasets[0].data).toEqual([0, 0, 0, 0, 0, 0, 0, 0, 1000, 800, 0, 0])
-    expect(data.datasets[1].data).toEqual([0, 0, 0, 0, 0, 0, 0, 0, 400, 300, 0, 0])
+    expect(data.datasets[0].data).toEqual([1000, 800])
+    expect(data.datasets[1].data).toEqual([400, 300])
+  })
+
+  it('keeps two short periods of the same month apart and a long one in a single column', () => {
+    const { bar } = render([
+      {
+        financialPeriod: {
+          id: 'a',
+          name: 'Primeira quinzena',
+          startingAt: '2026-10-01',
+          endingAt: '2026-10-14',
+        },
+        revenues: 100,
+        expenses: 10,
+        result: 90,
+        recorded: true,
+      },
+      {
+        financialPeriod: {
+          id: 'b',
+          name: 'Do meio de outubro ao meio de novembro',
+          startingAt: '2026-10-15',
+          endingAt: '2026-11-14',
+        },
+        revenues: 200,
+        expenses: 20,
+        result: 180,
+        recorded: true,
+      },
+    ])
+
+    const data = bar().props('data')
+    expect(data.labels).toEqual(['out/26', 'nov/26'])
+    expect(data.datasets[0].data).toEqual([100, 200])
+    const { title } = bar().props('options').plugins.tooltip.callbacks
+    expect(title([{ dataIndex: 1 }])).toEqual([
+      'Do meio de outubro ao meio de novembro',
+      '15/10 – 14/11',
+    ])
   })
 
   it('takes the colors from the tokens, with the provisional period at 45% of the color', () => {
     const { bar } = render()
 
     const [revenues, expenses] = bar().props('data').datasets
-    expect(revenues.backgroundColor[8]).toBe(tokens['--income'])
-    expect(revenues.backgroundColor[9]).toBe('color-mix(in oklch, rgb(0, 128, 0) 45%, transparent)')
-    expect(expenses.backgroundColor[8]).toBe(tokens['--expense'])
-    expect(expenses.backgroundColor[9]).toBe('color-mix(in oklch, rgb(200, 0, 0) 45%, transparent)')
+    expect(revenues.backgroundColor[0]).toBe(tokens['--income'])
+    expect(revenues.backgroundColor[1]).toBe('color-mix(in oklch, rgb(0, 128, 0) 45%, transparent)')
+    expect(expenses.backgroundColor[0]).toBe(tokens['--expense'])
+    expect(expenses.backgroundColor[1]).toBe('color-mix(in oklch, rgb(200, 0, 0) 45%, transparent)')
     expect(revenues.hoverBackgroundColor).toEqual(revenues.backgroundColor)
     expect(revenues.borderColor).toBe(tokens['--income'])
     expect(expenses.borderColor).toBe(tokens['--expense'])
@@ -131,34 +156,70 @@ describe('FinancialFlowChart', () => {
     expect(x.ticks.font.size({ chart: { width: 2000 } })).toBe(16)
   })
 
-  it('marks the empty months for the plugin and names the period in the tooltip', () => {
+  it('marks the provisional period for the plugin and names the period and its dates in the tooltip', () => {
     const { bar } = render()
 
-    const { plugins } = bar().props('options')
+    const { plugins, scales } = bar().props('options')
     expect(plugins.flowMarks).toEqual({
-      empty: [0, 1, 2, 3, 4, 5, 6, 7, 10, 11],
-      provisional: [9],
+      empty: [],
+      provisional: [1],
       color: tokens['--muted-foreground'],
       font: 'IBM Plex Mono',
     })
-    expect(plugins.tooltip.callbacks.title([{ dataIndex: 9 }])).toBe('Outubro')
-    expect(plugins.tooltip.callbacks.title([{ dataIndex: 0 }])).toBe('Jan')
+    expect(plugins.tooltip.callbacks.title([{ dataIndex: 1 }])).toEqual([
+      'Outubro',
+      '01/10 – 31/10',
+    ])
     expect(plugins.tooltip.callbacks.label({ dataset: { label: 'Receitas' }, raw: 800 })).toMatch(
       /^Receitas: R\$\s*800,00$/,
     )
     expect(plugins.legend.display).toBe(false)
+    expect(scales.x.ticks.autoSkip).toBe(true)
   })
 
-  it('draws one slot per period, named by month and year, for all the periods', () => {
-    const { bar } = render('all')
+  it('marks a period without movement as empty but keeps the axis while another one has movement', () => {
+    const { bar } = render([
+      ...periods,
+      {
+        financialPeriod: {
+          id: 'p-11',
+          name: 'Novembro',
+          startingAt: '2026-11-01',
+          endingAt: '2026-11-30',
+        },
+        revenues: 0,
+        expenses: 0,
+        result: 0,
+        recorded: false,
+      },
+    ])
 
-    const { data, options } = { data: bar().props('data'), options: bar().props('options') }
-    expect(data.labels).toEqual(['set/26', 'out/26'])
-    expect(data.datasets[0].data).toEqual([1000, 800])
-    expect(options.plugins.flowMarks.empty).toEqual([])
-    expect(options.plugins.flowMarks.provisional).toEqual([1])
-    expect(options.plugins.tooltip.callbacks.title([{ dataIndex: 1 }])).toBe('Outubro')
-    expect(options.scales.x.ticks.autoSkip).toBe(true)
+    const { plugins, scales } = bar().props('options')
+    expect(plugins.flowMarks.empty).toEqual([2])
+    expect(plugins.flowMarks.provisional).toEqual([1])
+    expect(scales.y.display).toBe(true)
+  })
+
+  it('hides the numeric axis when no period has paid movement', () => {
+    const { bar } = render([
+      {
+        financialPeriod: {
+          id: 'p-11',
+          name: 'Novembro',
+          startingAt: '2026-11-01',
+          endingAt: '2026-11-30',
+        },
+        revenues: 0,
+        expenses: 0,
+        result: 0,
+        recorded: false,
+      },
+    ])
+
+    const { plugins, scales } = bar().props('options')
+    expect(scales.y.display).toBe(false)
+    expect(scales.y.max).toBe(1)
+    expect(plugins.flowMarks.empty).toEqual([0])
   })
 
   it('names only every third period past eighteen and stops skipping labels by itself', () => {
@@ -176,7 +237,7 @@ describe('FinancialFlowChart', () => {
     }))
     const { plugins } = createTestPlugins({ stubActions: false })
     const wrapper = mount(FinancialFlowChart, {
-      props: { periods: many, cut: 'all' },
+      props: { periods: many },
       global: { plugins },
     })
 

@@ -2619,7 +2619,7 @@
       "expenses": "Despesas",
       "result": "Resultado",
       "savings-rate": "Taxa de poupança",
-      "red-periods": "Meses no vermelho",
+      "red-periods": "Períodos no vermelho",
       "red-of": "de {count}"
     },
     "chart": {
@@ -2633,13 +2633,15 @@
     "year-chart": {
       "title": "Resultado por ano",
       "result": "Resultado",
-      "savings": "poupança {rate}"
+      "savings": "poupança {rate}",
+      "empty": "Nenhum período com movimento pago"
     },
     "table": {
       "period": "Período",
       "revenues": "Receitas (R$)",
       "expenses": "Despesas (R$)",
-      "result": "Resultado (R$)"
+      "result": "Resultado (R$)",
+      "empty": "Nenhum movimento pago em {cut}"
     }
   },
   "period-dashboard": {

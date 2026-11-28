@@ -15,7 +15,7 @@ import { useI18n } from 'vue-i18n'
 import { flowMarksPlugin } from '@/components/dashboards/flowMarksPlugin'
 import { useAppearanceStore } from '@/stores/appearance'
 import type { OverviewPeriod } from '@/types'
-import { axisScale, flowMonths, flowPeriods, type OverviewCut } from '@/utils/overview'
+import { axisScale, flowPeriods } from '@/utils/overview'
 
 ChartJS.register(BarElement, CategoryScale, LinearScale, Tooltip)
 
@@ -26,7 +26,7 @@ const PROVISIONAL_OPACITY = 45
 const MIN_FONT_SIZE = 10
 const MAX_FONT_SIZE = 16
 
-const props = defineProps<{ periods: OverviewPeriod[]; cut: OverviewCut }>()
+const props = defineProps<{ periods: OverviewPeriod[] }>()
 
 const { t, n, locale } = useI18n()
 const appearance = useAppearanceStore()
@@ -53,11 +53,9 @@ watch(
   },
 )
 
-const months = computed(() =>
-  props.cut === 'all'
-    ? flowPeriods(props.periods, locale.value)
-    : flowMonths(props.periods, locale.value),
-)
+const months = computed(() => flowPeriods(props.periods, locale.value))
+
+const withoutMovement = computed(() => months.value.every((month) => month.empty))
 
 const axis = computed(() =>
   axisScale(Math.max(...months.value.flatMap((month) => [month.revenues, month.expenses]))),
@@ -119,8 +117,9 @@ const options = computed<ChartOptions<'bar'>>(() => ({
       },
     },
     y: {
+      display: !withoutMovement.value,
       min: 0,
-      max: axis.value.max,
+      max: withoutMovement.value ? 1 : axis.value.max,
       grid: { color: colors.value.border },
       ticks: {
         color: colors.value.text,
@@ -144,7 +143,7 @@ const options = computed<ChartOptions<'bar'>>(() => ({
       callbacks: {
         title: (items: TooltipItem<'bar'>[]) => {
           const month = months.value[items[0]!.dataIndex]!
-          return month.periodNames.length > 0 ? month.periodNames.join(', ') : month.label
+          return [...month.periodNames, month.range]
         },
         label: (item: TooltipItem<'bar'>) =>
           `${item.dataset.label}: ${n(Number(item.raw), 'currency')}`,
